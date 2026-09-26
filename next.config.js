@@ -27,7 +27,8 @@ const CSP = [
   "font-src 'self' data:",
 
   // Las fotos de los platos y las imágenes de Unsplash que usa la portada.
-  "img-src 'self' data: blob: https://images.unsplash.com",
+  // Fotos y logos que suben los clientes desde su panel (Vercel Blob, 0019).
+  "img-src 'self' data: blob: https://images.unsplash.com https://*.public.blob.vercel-storage.com",
 
   // La aplicación no llama a ningún tercero. La base de datos se consulta
   // desde el servidor, nunca desde el navegador: si algún día aparece aquí un
