@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { ALERGENOS, CODIGOS_ALERGENOS } from '@/lib/alergenos';
 import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
+import SubirImagen from './SubirImagen';
 import {
   crearSeccionAction,
   editarSeccionAction,
@@ -264,12 +265,7 @@ function FormularioPlato({
         className="w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white placeholder-white/30"
       />
 
-      <input
-        value={fotoUrl}
-        onChange={(e) => setFotoUrl(e.target.value)}
-        placeholder="URL de la foto (opcional)"
-        className="w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white placeholder-white/30"
-      />
+      <SubirImagen valor={fotoUrl || null} onCambio={(url) => setFotoUrl(url ?? '')} etiqueta="Foto" />
 
       {secciones.length > 0 && (
         <select

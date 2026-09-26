@@ -10,6 +10,12 @@ export interface MiRestaurante {
   activo: boolean;
   colorMarca: string | null;
   estadoAcceso: string;
+  descripcion: string | null;
+  telefono: string | null;
+  direccion: string | null;
+  horario: string | null;
+  instagram: string | null;
+  urlResenas: string | null;
 }
 
 /** El restaurante del cliente que ha iniciado sesión — nunca de otro. */
@@ -24,8 +30,15 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       activo: boolean;
       color_marca: string | null;
       estado_acceso: string;
+      descripcion: string | null;
+      telefono: string | null;
+      direccion: string | null;
+      horario: string | null;
+      instagram: string | null;
+      url_resenas: string | null;
     }>(
-      `SELECT id, slug, nombre, logo_url, plan, activo, color_marca, estado_acceso
+      `SELECT id, slug, nombre, logo_url, plan, activo, color_marca, estado_acceso,
+              descripcion, telefono, direccion, horario, instagram, url_resenas
          FROM restaurantes
         WHERE propietario = dk.identidad_actual()`
     );
@@ -40,6 +53,12 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       activo: fila.activo,
       colorMarca: fila.color_marca,
       estadoAcceso: fila.estado_acceso,
+      descripcion: fila.descripcion,
+      telefono: fila.telefono,
+      direccion: fila.direccion,
+      horario: fila.horario,
+      instagram: fila.instagram,
+      urlResenas: fila.url_resenas,
     };
   });
 }
@@ -52,5 +71,30 @@ export async function obtenerCodigoQr(jwt: string, restauranteId: string): Promi
       [restauranteId]
     );
     return rows[0]?.codigo ?? null;
+  });
+}
+
+export interface DatosLocal {
+  nombre: string;
+  logoUrl: string | null;
+  colorMarca: string | null;
+  descripcion: string | null;
+  telefono: string | null;
+  direccion: string | null;
+  horario: string | null;
+  instagram: string | null;
+  urlResenas: string | null;
+}
+
+/** Solo columnas con GRANT UPDATE a dk_auth (plan y estado quedan fuera por diseño). */
+export async function actualizarDatosLocal(jwt: string, restauranteId: string, d: DatosLocal): Promise<void> {
+  await comoCliente(jwt, async (c) => {
+    await c.query(
+      `UPDATE restaurantes
+          SET nombre = $2, logo_url = $3, color_marca = $4, descripcion = $5, telefono = $6,
+              direccion = $7, horario = $8, instagram = $9, url_resenas = $10
+        WHERE id = $1`,
+      [restauranteId, d.nombre, d.logoUrl, d.colorMarca, d.descripcion, d.telefono, d.direccion, d.horario, d.instagram, d.urlResenas]
+    );
   });
 }

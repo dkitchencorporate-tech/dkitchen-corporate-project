@@ -1,6 +1,6 @@
 import React from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import SinBackendAviso from '@/components/SinBackendAviso';
+import { exigirAdmin } from '@/lib/guard-admin';
 
 export const metadata = {
   title: 'DKitchen · Central de Operaciones',
@@ -8,11 +8,14 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminLayout({
+export const dynamic = 'force-dynamic';
+
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await exigirAdmin();
   return (
     <>
       <div className="flex min-h-screen bg-[#171008] selection:bg-orange-500/30">
@@ -22,9 +25,6 @@ export default function AdminLayout({
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
           <div className="flex-1 overflow-y-auto">
-             <div className="px-6 pt-6">
-               <SinBackendAviso detalle="El panel interno se muestra vacío a propósito: no hay base de datos ni autenticación conectadas." />
-             </div>
              {children}
           </div>
         </main>

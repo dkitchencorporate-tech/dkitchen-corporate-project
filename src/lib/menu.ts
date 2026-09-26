@@ -37,6 +37,14 @@ export interface Carta {
   slug: string;
   nombre: string;
   logoUrl: string | null;
+  plan?: string;
+  colorMarca?: string | null;
+  descripcion?: string | null;
+  telefono?: string | null;
+  direccion?: string | null;
+  horario?: string | null;
+  instagram?: string | null;
+  urlResenas?: string | null;
   secciones: SeccionCarta[];
   /** Platos que no están asignados a ninguna sección. */
   sueltos: PlatoCarta[];
@@ -63,7 +71,20 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       slug: string;
       nombre: string;
       logo_url: string | null;
-    }>('SELECT id, slug, nombre, logo_url FROM restaurantes WHERE slug = $1', [slug]);
+      plan: string;
+      color_marca: string | null;
+      descripcion: string | null;
+      telefono: string | null;
+      direccion: string | null;
+      horario: string | null;
+      instagram: string | null;
+      url_resenas: string | null;
+    }>(
+      `SELECT id, slug, nombre, logo_url, plan, color_marca, descripcion, telefono,
+              direccion, horario, instagram, url_resenas
+         FROM restaurantes WHERE slug = $1`,
+      [slug]
+    );
 
     const restaurante = restaurantes[0];
     if (!restaurante) return null;
@@ -103,6 +124,14 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       slug: restaurante.slug,
       nombre: restaurante.nombre,
       logoUrl: restaurante.logo_url,
+      plan: restaurante.plan,
+      colorMarca: restaurante.color_marca,
+      descripcion: restaurante.descripcion,
+      telefono: restaurante.telefono,
+      direccion: restaurante.direccion,
+      horario: restaurante.horario,
+      instagram: restaurante.instagram,
+      urlResenas: restaurante.url_resenas,
       secciones: secciones
         .map((s) => ({
           id: s.id,

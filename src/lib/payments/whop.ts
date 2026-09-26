@@ -345,3 +345,51 @@ export async function crearCheckoutAuditoria(datos: DatosCheckoutAuditoria): Pro
 
   return { url: datosRespuesta.purchase_url };
 }
+
+/**
+ * Upgrade QR Básico → Ampliado (27/09/2026). Suscripción nueva a 25 €/mes sin
+ * el 1 € de bienvenida; el webhook (producto 'qr-upgrade') cambia el plan en
+ * la base y avisa por correo interno para cancelar la suscripción Básica en
+ * Whop y que no se cobren las dos.
+ */
+export async function crearCheckoutUpgradeAmpliado(datos: {
+  restauranteId: string;
+  restauranteNombre: string;
+  email: string;
+  nombreContacto: string;
+  origen: string;
+}): Promise<{ url: string }> {
+  const apiKey = requerirEnv('WHOP_API_KEY');
+  const companyId = requerirEnv('WHOP_COMPANY_ID');
+  const planConfig = QR_MENU.planes.ampliado;
+
+  const respuesta = await fetch(`${BASE}/checkout_configurations`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      mode: 'payment',
+      plan: {
+        company_id: companyId,
+        currency: 'eur',
+        plan_type: 'renewal',
+        initial_price: planConfig.mensual,
+        renewal_price: planConfig.mensual,
+        billing_period: 30,
+        product: { title: `QR Menú — Plan ${planConfig.nombre}`, external_identifier: 'dk-qr-menu-ampliado' },
+      },
+      metadata: {
+        producto: 'qr-upgrade',
+        restauranteId: datos.restauranteId,
+        restauranteNombre: datos.restauranteNombre,
+        email: datos.email,
+        nombreContacto: datos.nombreContacto,
+      },
+      redirect_url: `${datos.origen}/panel?upgrade=ok`,
+    }),
+  });
+  const json = await respuesta.json().catch(() => null);
+  if (!respuesta.ok) throw new Error(`Whop respondió ${respuesta.status}: ${json?.message ?? 'sin detalle'}`);
+  const url = (json as RespuestaCheckoutConfiguration | null)?.purchase_url;
+  if (!url) throw new Error('Whop no devolvió purchase_url en la configuración de checkout.');
+  return { url };
+}

@@ -11,11 +11,16 @@ import MiQr from './MiQr';
 import MisEscaneos from './MisEscaneos';
 import MiPlan from './MiPlan';
 import Soporte from './Soporte';
+import MiLocal from './MiLocal';
+import Camarero from './Camarero';
+import { authClient } from '@/lib/auth-client';
 
-type Pestana = 'carta' | 'qr' | 'escaneos' | 'plan' | 'soporte';
+type Pestana = 'carta' | 'local' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
 
 const PESTANAS: { id: Pestana; nombre: string }[] = [
   { id: 'carta', nombre: 'Mi Carta' },
+  { id: 'local', nombre: 'Mi Local' },
+  { id: 'camarero', nombre: 'Llamadas de mesa' },
   { id: 'qr', nombre: 'Mi QR' },
   { id: 'escaneos', nombre: 'Mis Escaneos' },
   { id: 'plan', nombre: 'Mi Plan' },
@@ -52,11 +57,25 @@ export default function PanelShell({
           </h1>
           <p className="text-white/40 text-xs">{restaurante.nombre}</p>
         </div>
-        <p className="text-white/40 text-sm hidden sm:block">{identidad.email}</p>
+        <div className="flex items-center gap-4">
+          <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="text-sm font-semibold text-[#D9531E] hover:underline">
+            Ver mi carta ↗
+          </a>
+          <p className="text-white/40 text-sm hidden sm:block">{identidad.email}</p>
+          <button
+            onClick={async () => {
+              await authClient.signOut();
+              window.location.href = '/panel/iniciar-sesion';
+            }}
+            className="text-white/40 hover:text-white text-sm"
+          >
+            Salir
+          </button>
+        </div>
       </header>
 
       <nav className="border-b border-white/10 px-6 flex gap-1 overflow-x-auto">
-        {PESTANAS.map((p) => (
+        {PESTANAS.filter((p) => p.id !== 'camarero' || restaurante.plan === 'ampliado').map((p) => (
           <button
             key={p.id}
             onClick={() => setPestana(p.id)}
@@ -73,6 +92,8 @@ export default function PanelShell({
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         {pestana === 'carta' && <MiCarta carta={carta} />}
+        {pestana === 'local' && <MiLocal restaurante={restaurante} />}
+        {pestana === 'camarero' && <Camarero slug={restaurante.slug} codigoQr={codigoQr} />}
         {pestana === 'qr' && (
           <MiQr codigoQr={codigoQr} restauranteNombre={restaurante.nombre} solicitudes={solicitudesQr} />
         )}

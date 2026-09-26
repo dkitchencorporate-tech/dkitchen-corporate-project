@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { type PlatoCarta, type SeccionCarta } from '@/lib/menu';
 import { obtenerCartaConRespaldo } from '@/lib/cache-resiliencia';
 import { nombreAlergeno } from '@/lib/alergenos';
+import BotonesMesa from '@/components/carta/BotonesMesa';
 
 /**
  * LA CARTA VIVA
@@ -103,7 +104,33 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
             />
           )}
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{carta.nombre}</h1>
-          <p className="text-xs uppercase tracking-[0.2em] text-black/40">Carta</p>
+          {carta.descripcion ? (
+            <p className="max-w-md text-sm leading-relaxed text-black/60">{carta.descripcion}</p>
+          ) : (
+            <p className="text-xs uppercase tracking-[0.2em] text-black/40">Carta</p>
+          )}
+          {(carta.horario || carta.direccion || carta.telefono || carta.instagram) && (
+            <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-black/50">
+              {carta.horario && <li>🕒 {carta.horario}</li>}
+              {carta.direccion && (
+                <li>
+                  <a href={`https://maps.google.com/?q=${encodeURIComponent(carta.direccion)}`} target="_blank" rel="noopener" className="hover:underline">
+                    📍 {carta.direccion}
+                  </a>
+                </li>
+              )}
+              {carta.telefono && (
+                <li>
+                  <a href={`tel:${carta.telefono.replace(/\s/g, '')}`} className="hover:underline">📞 {carta.telefono}</a>
+                </li>
+              )}
+              {carta.instagram && (
+                <li>
+                  <a href={`https://instagram.com/${carta.instagram}`} target="_blank" rel="noopener" className="hover:underline">📷 @{carta.instagram}</a>
+                </li>
+              )}
+            </ul>
+          )}
         </div>
       </header>
 
@@ -173,10 +200,21 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
           </section>
         )}
 
-        <footer className="mt-10 text-center text-[11px] text-black/30">
+        {carta.plan === 'ampliado' && carta.urlResenas && (
+          <a
+            href={carta.urlResenas}
+            target="_blank"
+            rel="noopener"
+            className="mt-10 block rounded-xl border border-black/10 bg-white p-4 text-center text-sm font-semibold hover:border-black/30"
+          >
+            ⭐ ¿Te ha gustado? Déjanos tu reseña en Google
+          </a>
+        )}
+        <footer className="mt-10 mb-20 text-center text-[11px] text-black/30">
           Carta digital de DKitchen
         </footer>
       </div>
+      {carta.plan === 'ampliado' && <BotonesMesa slug={carta.slug} color={carta.colorMarca || '#D9531E'} />}
     </main>
   );
 }

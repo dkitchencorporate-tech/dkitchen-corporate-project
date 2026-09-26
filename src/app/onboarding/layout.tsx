@@ -1,11 +1,10 @@
 import React from 'react';
-import DashboardShell from '@/components/admin/DashboardShell';
 import { exigirAdmin } from '@/lib/guard-admin';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { robots: { index: false, follow: false } };
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function OnboardingLayout({ children }: { children: React.ReactNode }) {
   await exigirAdmin();
-  return <DashboardShell>{children}</DashboardShell>;
+  return <>{children}</>;
 }

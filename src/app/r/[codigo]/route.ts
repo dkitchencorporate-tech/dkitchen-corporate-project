@@ -132,5 +132,8 @@ export async function GET(
   // 302 y no 301: la redirección permanente se queda guardada en el navegador,
   // y a partir de la segunda visita el teléfono iría directo a la carta sin
   // pasar por aquí. Los escaneos dejarían de contarse sin que nadie se entere.
-  return sinCache(NextResponse.redirect(`${origen}/m/${destino.slug}`, 302));
+  // QR de mesa (plan Ampliado): la mesa viaja hasta la carta para "Llamar al camarero".
+  const mesa = new URL(peticion.url).searchParams.get('mesa');
+  const sufijo = mesa && /^[A-Za-z0-9-]{1,12}$/.test(mesa) ? `?mesa=${encodeURIComponent(mesa)}` : '';
+  return sinCache(NextResponse.redirect(`${origen}/m/${destino.slug}${sufijo}`, 302));
 }

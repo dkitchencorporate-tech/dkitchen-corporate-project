@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { exigirAdmin } from '@/lib/guard-admin';
 
 // Son procedimientos internos: se declaran confidenciales en su propio pie, así
 // que no tiene sentido que los buscadores los indexen.
@@ -7,11 +8,14 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function ManualsLayout({
+export const dynamic = 'force-dynamic';
+
+export default async function ManualsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await exigirAdmin();
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300 font-sans print:bg-white print:text-black selection:bg-orange-500/30">
       {/* Dynamic Background Glow */}
