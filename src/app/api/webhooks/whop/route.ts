@@ -219,13 +219,15 @@ export async function POST(request: Request) {
           ]);
           return rows[0]?.ok === true;
         });
+        // El aviso es secundario: si el correo falla no se devuelve 500, o Whop
+        // reintentaría un upgrade ya aplicado.
         await enviarCorreoInterno(
           `UPGRADE A AMPLIADO: ${meta.restauranteNombre}`,
           `<p><strong>${escaparHtml(meta.restauranteNombre)}</strong> (${escaparHtml(meta.email)}) ha pagado el plan Ampliado.</p>
            <p>Plan cambiado en la base: <strong>${aplicado ? 'sí' : 'no (ya era Ampliado o no existe)'}</strong>.</p>
            <p><strong>ACCIÓN:</strong> cancela en Whop su suscripción Básica (9 €/mes) para que no se le cobren las dos.</p>
            <p>Id de pago (Whop): ${escaparHtml(evento.data.id)}</p>`
-        );
+        ).catch((error) => console.error('Upgrade aplicado, pero falló el correo interno:', error));
       } catch (error) {
         console.error(`No se pudo aplicar el upgrade a Ampliado (evento ${evento.data.id}):`, error);
         return NextResponse.json({ error: 'Fallo aplicando upgrade' }, { status: 500 });
