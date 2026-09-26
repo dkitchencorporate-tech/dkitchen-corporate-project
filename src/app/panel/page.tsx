@@ -6,6 +6,7 @@ import { escaneosDelMes, escaneosUltimos30Dias } from '@/lib/escaneos-cliente';
 import { listarMisSolicitudesQrFisico } from '@/lib/solicitudes-qr-fisico';
 import { listarMisTickets } from '@/lib/tickets';
 import PanelShell from '@/components/panel/PanelShell';
+import { SesionNoValida } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,12 +17,8 @@ export default async function Panel() {
     jwt = await obtenerJwtDeSesion();
     identidad = await identidadActual();
   } catch (error) {
-    const mensaje = error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : String(error);
-    return (
-      <pre style={{ color: 'red', background: 'black', padding: 20, whiteSpace: 'pre-wrap', fontSize: 12 }}>
-        FASE 1 (sesion): {mensaje}
-      </pre>
-    );
+    console.error('Panel: fallo al resolver la sesión', error);
+    redirect('/panel/iniciar-sesion');
   }
 
   if (!jwt || !identidad) {
@@ -67,11 +64,15 @@ export default async function Panel() {
       />
     );
   } catch (error) {
-    const mensaje = error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : String(error);
+    if (error instanceof SesionNoValida) redirect('/panel/iniciar-sesion');
+    console.error('Panel: fallo al cargar los datos', error);
     return (
-      <pre style={{ color: 'red', background: 'black', padding: 20, whiteSpace: 'pre-wrap', fontSize: 12 }}>
-        FASE 2 (datos): {mensaje}
-      </pre>
+      <div className="min-h-screen bg-[#171008] flex items-center justify-center px-6 text-center">
+        <div className="max-w-md">
+          <h1 className="text-xl font-bold text-white mb-2">No hemos podido cargar tu panel</h1>
+          <p className="text-white/50 text-sm">Recarga la página en unos segundos. Si persiste, escríbenos por WhatsApp.</p>
+        </div>
+      </div>
     );
   }
 }

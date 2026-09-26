@@ -39,9 +39,29 @@ import ws from 'ws';
 // equivocado, así que queda escrito aquí.
 neonConfig.webSocketConstructor = ws;
 
-let pool: Pool | null = null;
+let pool: Promise<Pool> | null = null;
 
-function obtenerPool(): Pool {
+/**
+ * JWK público de Neon Auth para `pg_session_jwt` (fix 26/09/2026).
+ *
+ * La extensión solo acepta `pg_session_jwt.jwk` como parámetro de ARRANQUE de
+ * la conexión: ni `SET`, ni `ALTER DATABASE/ROLE ... SET` (error 55P02). Y el
+ * pooler de Neon rechaza ese parámetro («unsupported startup parameter»), así
+ * que la aplicación se conecta al host SIN `-pooler`. Probado contra la base
+ * real: pooler → error; directo + `options` → `auth.init()` correcto.
+ * Si Neon rota la clave basta con redeplegar (se lee del JWKS al arrancar).
+ */
+async function obtenerJwk(): Promise<string> {
+  const base = process.env.NEON_AUTH_BASE_URL;
+  if (!base) throw new Error('Falta NEON_AUTH_BASE_URL para leer el JWKS.');
+  const r = await fetch(`${base.replace(/\/$/, '')}/.well-known/jwks.json`, { cache: 'no-store' });
+  if (!r.ok) throw new Error(`No se pudo leer el JWKS de Neon Auth (${r.status}).`);
+  const { keys } = (await r.json()) as { keys: unknown[] };
+  if (!keys?.length) throw new Error('JWKS de Neon Auth vacío.');
+  return JSON.stringify(keys[0]);
+}
+
+function obtenerPool(): Promise<Pool> {
   if (pool) return pool;
 
   const cadena = process.env.DK_DATABASE_URL;
@@ -58,7 +78,20 @@ function obtenerPool(): Pool {
     );
   }
 
-  pool = new Pool({ connectionString: cadena });
+  pool = obtenerJwk()
+    .then(
+      (jwk) =>
+        new Pool({
+          connectionString: cadena.replace('-pooler.', '.'),
+          options: `-c pg_session_jwt.jwk=${jwk}`,
+          // Conexión directa (sin PgBouncer): pocas conexiones por instancia.
+          max: 5,
+        })
+    )
+    .catch((e) => {
+      pool = null; // reintentar en la siguiente petición
+      throw e;
+    });
   return pool;
 }
 
@@ -71,7 +104,7 @@ function obtenerPool(): Pool {
  * el rol muere con la transacción y no viaja a la petición siguiente.
  */
 async function enTransaccion<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
-  const c = await obtenerPool().connect();
+  const c = await (await obtenerPool()).connect();
   try {
     await c.query('BEGIN');
     try {
@@ -120,6 +153,7 @@ export function comoCliente<T>(jwt: string, fn: (c: PoolClient) => Promise<T>): 
 
   return enTransaccion(async (c) => {
     try {
+      await c.query('SELECT auth.init()');
       await c.query('SELECT auth.jwt_session_init($1)', [jwt]);
     } catch {
       // No se propaga el motivo: decirle a quien lo intenta si el fallo fue la
