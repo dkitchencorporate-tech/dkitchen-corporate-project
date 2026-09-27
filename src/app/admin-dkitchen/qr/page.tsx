@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { listarClientesQr } from '@/lib/admin-clientes';
 
@@ -11,15 +12,26 @@ const COLOR_ESTADO: Record<string, string> = {
   suspendido: 'bg-red-500/15 text-red-400',
 };
 
-export default async function ClientesQr() {
-  const jwt = await exigirAdmin();
-  const clientes = await listarClientesQr(jwt);
+const FILTROS = [
+  { id: 'todos', nombre: 'Todos' },
+  { id: 'activo', nombre: 'Activos' },
+  { id: 'gracia', nombre: 'Impago (gracia)' },
+  { id: 'solo_lectura', nombre: 'Solo lectura' },
+  { id: 'suspendido', nombre: 'Suspendidos' },
+];
 
-  const activos = clientes.filter((c) => c.activo && c.estadoAcceso !== 'suspendido');
+export default async function ClientesQr({ searchParams }: { searchParams: Promise<{ estado?: string }> }) {
+  const jwt = await exigirAdmin();
+  const todos = await listarClientesQr(jwt);
+  const { estado } = await searchParams;
+  const filtro = FILTROS.some((f) => f.id === estado) ? estado! : 'todos';
+  const clientes = filtro === 'todos' ? todos : todos.filter((c) => c.estadoAcceso === filtro);
+
+  const activos = todos.filter((c) => c.activo && c.estadoAcceso !== 'suspendido');
   const mrr = activos.reduce((s, c) => s + (PRECIO[c.plan] ?? 0), 0);
-  const escaneosMes = clientes.reduce((s, c) => s + c.escaneosMes, 0);
-  const listosParaSubir = clientes.filter((c) => c.escaneosMes > 600);
-  const pendientes = clientes.reduce((s, c) => s + c.ticketsAbiertos + c.solicitudesQrPendientes, 0);
+  const escaneosMes = todos.reduce((s, c) => s + c.escaneosMes, 0);
+  const listosParaSubir = todos.filter((c) => c.escaneosMes > 600);
+  const pendientes = todos.reduce((s, c) => s + c.ticketsAbiertos + c.solicitudesQrPendientes, 0);
 
   const kpis = [
     { t: 'Clientes activos', v: activos.length },
@@ -50,8 +62,23 @@ export default async function ClientesQr() {
         </div>
       )}
 
+      <div className="flex flex-wrap gap-2">
+        {FILTROS.map((f) => (
+          <Link
+            key={f.id}
+            href={f.id === 'todos' ? '/admin-dkitchen/qr' : `/admin-dkitchen/qr?estado=${f.id}`}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${filtro === f.id ? 'bg-[#D9531E] text-white' : 'bg-white/10 text-white/60 hover:bg-white/15'}`}
+          >
+            {f.nombre} ({f.id === 'todos' ? todos.length : todos.filter((c) => c.estadoAcceso === f.id).length})
+          </Link>
+        ))}
+        <Link href="/admin-dkitchen/soporte" className="ml-auto rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/70 hover:bg-white/15">
+          Soporte y QR físico →
+        </Link>
+      </div>
+
       {clientes.length === 0 ? (
-        <p className="rounded-2xl border border-white/10 bg-[#1c140b] p-10 text-center text-white/40">Todavía no hay clientes QR.</p>
+        <p className="rounded-2xl border border-white/10 bg-[#1c140b] p-10 text-center text-white/40">{filtro === 'todos' ? 'Todavía no hay clientes QR.' : 'Ningún cliente en este estado.'}</p>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-white/10">
           <table className="w-full text-sm">
@@ -71,10 +98,13 @@ export default async function ClientesQr() {
               {clientes.map((c) => (
                 <tr key={c.restauranteId} className="hover:bg-white/[0.03]">
                   <td className="px-4 py-3">
-                    <a href={`/m/${c.slug}`} target="_blank" rel="noopener" className="font-semibold hover:text-[#D9531E]">
+                    <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="font-semibold hover:text-[#D9531E]">
                       {c.nombre}
-                    </a>
-                    <p className="text-xs text-white/30">/{c.slug}{c.codigoQr ? ` · QR ${c.codigoQr}` : ''}</p>
+                    </Link>
+                    <p className="text-xs text-white/30">
+                      <a href={`/m/${c.slug}`} target="_blank" rel="noopener" className="hover:text-white">/{c.slug} ↗</a>
+                      {c.codigoQr ? ` · QR ${c.codigoQr}` : ''}
+                    </p>
                   </td>
                   <td className="px-4 py-3">
                     <p>{c.contacto ?? '—'}</p>

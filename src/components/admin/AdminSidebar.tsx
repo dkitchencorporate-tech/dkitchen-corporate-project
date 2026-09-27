@@ -23,6 +23,7 @@ export default function AdminSidebar() {
 
   const navItems = [
     { name: 'Clientes QR Menú', href: '/admin-dkitchen/qr', icon: Users },
+    { name: 'Soporte QR', href: '/admin-dkitchen/soporte', icon: BookOpen },
     { name: 'Live Overview', href: '/admin-dkitchen/overview', icon: LayoutDashboard },
     { name: 'Directorio de Clientes', href: '/admin-dkitchen/clients', icon: Users },
     { name: 'Base de Eventos', href: '/admin-dkitchen/events-master', icon: Calendar },
