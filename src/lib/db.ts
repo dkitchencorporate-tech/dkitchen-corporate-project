@@ -153,8 +153,10 @@ export function comoCliente<T>(jwt: string, fn: (c: PoolClient) => Promise<T>): 
 
   return enTransaccion(async (c) => {
     try {
-      await c.query('SELECT auth.init()');
-      await c.query('SELECT auth.jwt_session_init($1)', [jwt]);
+      // Vía función puente SECURITY DEFINER: el esquema auth es de cloud_admin
+      // y Neon puede dejarlo sin USAGE para dk_app (pasó el 27/09 y tumbó el
+      // panel). dk.iniciar_sesion_jwt hace auth.init() + jwt_session_init().
+      await c.query('SELECT dk.iniciar_sesion_jwt($1)', [jwt]);
     } catch (e) {
       // No se propaga el motivo al cliente: decirle a quien lo intenta si el
       // fallo fue la firma, la caducidad o el emisor le ahorra trabajo para el
