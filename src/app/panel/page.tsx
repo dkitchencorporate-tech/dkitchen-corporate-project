@@ -7,6 +7,7 @@ import { listarMisSolicitudesQrFisico } from '@/lib/solicitudes-qr-fisico';
 import { listarMisTickets } from '@/lib/tickets';
 import PanelShell from '@/components/panel/PanelShell';
 import { SesionNoValida } from '@/lib/db';
+import { estadoAdmin } from '@/lib/guard-admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,8 @@ export default async function Panel() {
     const restaurante = await obtenerMiRestaurante(jwt);
 
     if (!restaurante) {
+      // El super admin no tiene restaurante: su sitio es la central (con 2FA).
+      if ((await estadoAdmin(jwt)) !== 'no_admin') redirect('/acceso-seguro');
       return (
         <div className="min-h-screen bg-[#171008] flex items-center justify-center px-6 text-center">
           <div className="max-w-md">
@@ -64,6 +67,8 @@ export default async function Panel() {
       />
     );
   } catch (error) {
+    // redirect() funciona lanzando una excepción: hay que dejarla pasar.
+    if ((error as { digest?: string })?.digest?.startsWith('NEXT_REDIRECT')) throw error;
     if (error instanceof SesionNoValida) redirect('/panel/iniciar-sesion');
     console.error('Panel: fallo al cargar los datos', error);
     return (

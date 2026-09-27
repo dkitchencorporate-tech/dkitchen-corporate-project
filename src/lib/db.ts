@@ -2,7 +2,26 @@ import 'server-only';
 
 import { Pool, neonConfig, type PoolClient } from '@neondatabase/serverless';
 import ws from 'ws';
+import { createHash } from 'node:crypto';
+import { cookies } from 'next/headers';
 import { verificarJwtNeonAuth } from './verificar-jwt';
+
+/**
+ * Huella (SHA-256) de la cookie de sesión de Neon Auth de esta petición. La
+ * base la usa para atar el segundo factor del super admin a ESTA sesión
+ * (0022): con otra cookie, aunque sea el mismo usuario, dk.es_admin() es false.
+ * Nunca viaja la cookie en sí, solo su huella.
+ */
+async function huellaSesion(): Promise<string> {
+  try {
+    const galletas = await cookies();
+    const valor =
+      galletas.get('__Secure-neon-auth.session_token')?.value ?? galletas.get('neon-auth.session_token')?.value;
+    return valor ? createHash('sha256').update(valor).digest('hex') : '';
+  } catch {
+    return ''; // fuera de una petición (cron, webhook): sin sesión de navegador
+  }
+}
 
 /**
  * CONEXIÓN A NEON — EL ÚNICO SITIO DEL PROYECTO QUE ABRE UNA
@@ -129,9 +148,10 @@ export function comoVisitante<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> 
 export async function comoCliente<T>(jwt: string, fn: (c: PoolClient) => Promise<T>): Promise<T> {
   const usuarioId = await verificarJwtNeonAuth(jwt);
   if (!usuarioId) throw new SesionNoValida();
+  const sesion = await huellaSesion();
 
   return enTransaccion(async (c) => {
-    await c.query("SELECT set_config('dk.usuario_id', $1, true)", [usuarioId]);
+    await c.query("SELECT set_config('dk.usuario_id', $1, true), set_config('dk.sesion', $2, true)", [usuarioId, sesion]);
     await c.query('SET LOCAL ROLE dk_auth');
 
     const { rows } = await c.query<{ id: string | null }>('SELECT dk.identidad_actual() AS id');
