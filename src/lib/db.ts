@@ -155,16 +155,21 @@ export function comoCliente<T>(jwt: string, fn: (c: PoolClient) => Promise<T>): 
     try {
       await c.query('SELECT auth.init()');
       await c.query('SELECT auth.jwt_session_init($1)', [jwt]);
-    } catch {
-      // No se propaga el motivo: decirle a quien lo intenta si el fallo fue la
-      // firma, la caducidad o el emisor le ahorra trabajo para el siguiente.
+    } catch (e) {
+      // No se propaga el motivo al cliente: decirle a quien lo intenta si el
+      // fallo fue la firma, la caducidad o el emisor le ahorra trabajo para el
+      // siguiente. Sí queda en el log del servidor para poder diagnosticarlo.
+      console.error("comoCliente: JWT rechazado por Postgres:", (e as Error)?.message);
       throw new SesionNoValida();
     }
 
     await c.query('SET LOCAL ROLE dk_auth');
 
     const { rows } = await c.query<{ id: string | null }>('SELECT dk.identidad_actual() AS id');
-    if (!rows[0]?.id) throw new SesionNoValida();
+    if (!rows[0]?.id) {
+      console.error("comoCliente: JWT aceptado pero dk.identidad_actual() es NULL");
+      throw new SesionNoValida();
+    }
 
     return fn(c);
   });
