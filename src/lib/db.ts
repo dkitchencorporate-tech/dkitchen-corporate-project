@@ -2,6 +2,7 @@ import 'server-only';
 
 import { Pool, neonConfig, type PoolClient } from '@neondatabase/serverless';
 import ws from 'ws';
+import { verificarJwtNeonAuth } from './verificar-jwt';
 
 /**
  * CONEXIÓN A NEON — EL ÚNICO SITIO DEL PROYECTO QUE ABRE UNA
@@ -20,7 +21,7 @@ import ws from 'ws';
  * hacer algo tiene que declarar con qué sombrero, dentro de la transacción:
  *
  *     comoVisitante()  →  SET LOCAL ROLE dk_anon
- *     comoCliente(jwt) →  auth.jwt_session_init(jwt) + SET LOCAL ROLE dk_auth
+ *     comoCliente(jwt) →  JWT verificado + set_config('dk.usuario_id') + SET LOCAL ROLE dk_auth
  *
  * Olvidar ese paso no abre nada: deja la consulta sin permisos y falla. El
  * error por omisión es denegar, que es la única forma segura de equivocarse.
@@ -41,26 +42,6 @@ neonConfig.webSocketConstructor = ws;
 
 let pool: Promise<Pool> | null = null;
 
-/**
- * JWK público de Neon Auth para `pg_session_jwt` (fix 26/09/2026).
- *
- * La extensión solo acepta `pg_session_jwt.jwk` como parámetro de ARRANQUE de
- * la conexión: ni `SET`, ni `ALTER DATABASE/ROLE ... SET` (error 55P02). Y el
- * pooler de Neon rechaza ese parámetro («unsupported startup parameter»), así
- * que la aplicación se conecta al host SIN `-pooler`. Probado contra la base
- * real: pooler → error; directo + `options` → `auth.init()` correcto.
- * Si Neon rota la clave basta con redeplegar (se lee del JWKS al arrancar).
- */
-async function obtenerJwk(): Promise<string> {
-  const base = process.env.NEON_AUTH_BASE_URL;
-  if (!base) throw new Error('Falta NEON_AUTH_BASE_URL para leer el JWKS.');
-  const r = await fetch(`${base.replace(/\/$/, '')}/.well-known/jwks.json`, { cache: 'no-store' });
-  if (!r.ok) throw new Error(`No se pudo leer el JWKS de Neon Auth (${r.status}).`);
-  const { keys } = (await r.json()) as { keys: unknown[] };
-  if (!keys?.length) throw new Error('JWKS de Neon Auth vacío.');
-  return JSON.stringify(keys[0]);
-}
-
 function obtenerPool(): Promise<Pool> {
   if (pool) return pool;
 
@@ -78,20 +59,15 @@ function obtenerPool(): Promise<Pool> {
     );
   }
 
-  pool = obtenerJwk()
-    .then(
-      (jwk) =>
-        new Pool({
-          connectionString: cadena.replace('-pooler.', '.'),
-          options: `-c pg_session_jwt.jwk=${jwk}`,
-          // Conexión directa (sin PgBouncer): pocas conexiones por instancia.
-          max: 5,
-        })
-    )
-    .catch((e) => {
-      pool = null; // reintentar en la siguiente petición
-      throw e;
-    });
+  // Conexión directa (sin PgBouncer): pocas conexiones por instancia. La
+  // identidad viaja con set_config(..., true), que es local a la transacción,
+  // así que también sería segura detrás del pooler.
+  pool = Promise.resolve(
+    new Pool({
+      connectionString: cadena.replace('-pooler.', '.'),
+      max: 5,
+    })
+  );
   return pool;
 }
 
@@ -137,39 +113,30 @@ export function comoVisitante<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> 
 }
 
 /**
- * Ejecuta como cliente con sesión demostrada.
+ * Ejecuta como cliente con sesión demostrada (Ruta A, 27/09/2026).
  *
- * El JWT no se decodifica aquí: se entrega a Postgres, que verifica la firma
- * contra el JWKS de BetterAuth por su cuenta. Esta aplicación no tiene con qué
- * firmar, así que no puede fabricar una identidad ni aunque la comprometan.
+ * 1. El servidor verifica el JWT de Neon Auth (firma EdDSA contra el JWKS de
+ *    Neon, emisor, audiencia, caducidad): verificarJwtNeonAuth().
+ * 2. El id verificado entra en Postgres con set_config('dk.usuario_id', id,
+ *    true): muere con la transacción, no viaja por el pool.
+ * 3. SET LOCAL ROLE dk_auth y dk.identidad_actual() confirma que el usuario
+ *    existe en neon_auth.user y no está baneado.
  *
- * Después de inicializar se comprueba que la identidad existe de verdad. Es
- * barato y cierra el único hueco que deja el pool compartido: una transacción
- * que escalara a dk_auth sin haber inicializado sesión heredaría la identidad
- * que dejó la petición anterior en esa misma conexión.
+ * Por qué no se verifica en Postgres con pg_session_jwt: en Neon el esquema
+ * `auth` es de cloud_admin y dk_app no puede recibir USAGE sobre él.
+ * Diagnóstico y Ruta B pendiente: SEGURIDAD_SESION_PANEL_RUTA_A_Y_B_2026-09-27.md.
  */
-export function comoCliente<T>(jwt: string, fn: (c: PoolClient) => Promise<T>): Promise<T> {
-  if (!jwt) throw new SesionNoValida();
+export async function comoCliente<T>(jwt: string, fn: (c: PoolClient) => Promise<T>): Promise<T> {
+  const usuarioId = await verificarJwtNeonAuth(jwt);
+  if (!usuarioId) throw new SesionNoValida();
 
   return enTransaccion(async (c) => {
-    try {
-      // Vía función puente SECURITY DEFINER: el esquema auth es de cloud_admin
-      // y Neon puede dejarlo sin USAGE para dk_app (pasó el 27/09 y tumbó el
-      // panel). dk.iniciar_sesion_jwt hace auth.init() + jwt_session_init().
-      await c.query('SELECT dk.iniciar_sesion_jwt($1)', [jwt]);
-    } catch (e) {
-      // No se propaga el motivo al cliente: decirle a quien lo intenta si el
-      // fallo fue la firma, la caducidad o el emisor le ahorra trabajo para el
-      // siguiente. Sí queda en el log del servidor para poder diagnosticarlo.
-      console.error("comoCliente: JWT rechazado por Postgres:", (e as Error)?.message);
-      throw new SesionNoValida();
-    }
-
+    await c.query("SELECT set_config('dk.usuario_id', $1, true)", [usuarioId]);
     await c.query('SET LOCAL ROLE dk_auth');
 
     const { rows } = await c.query<{ id: string | null }>('SELECT dk.identidad_actual() AS id');
-    if (!rows[0]?.id) {
-      console.error("comoCliente: JWT aceptado pero dk.identidad_actual() es NULL");
+    if (rows[0]?.id !== usuarioId) {
+      console.error('comoCliente: identidad no confirmada por la base (usuario borrado o baneado)');
       throw new SesionNoValida();
     }
 
