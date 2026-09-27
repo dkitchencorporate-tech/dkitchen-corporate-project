@@ -193,13 +193,13 @@ export async function atenderLlamadaAction(llamadaId: string) {
 function mensajeBase(error: unknown): never {
   const m = error instanceof Error ? error.message : '';
   // Los RAISE de 0023 ya vienen redactados para el cliente.
-  if (/plan|promoción|Ampliado/.test(m)) throw new Error(m);
+  if (/plan|promoción|banner|Ampliado/i.test(m)) throw new Error(m);
   throw new Error('No se pudo guardar. Revisa los datos e inténtalo de nuevo.');
 }
 
 function limpiarPromocion(d: DatosPromocion): DatosPromocion {
-  const titulo = (d.titulo ?? '').trim().slice(0, 60);
-  if (!titulo) throw new Error('La promoción necesita un título.');
+  const titulo = (d.titulo ?? '').trim().slice(0, 60) || null;
+  if (!titulo && !urlSegura(d.imagenUrl)) throw new Error('El banner necesita una imagen o un título.');
   const fecha = (v: string | null) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
   const hora = (v: string | null) => (v && /^\d{2}:\d{2}$/.test(v) ? v : null);
   const dias = Array.isArray(d.dias) ? [...new Set(d.dias.filter((x) => Number.isInteger(x) && x >= 1 && x <= 7))] : null;

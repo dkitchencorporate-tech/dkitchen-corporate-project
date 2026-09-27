@@ -52,7 +52,7 @@ export default function Reservar({ slug, color, nombreLocal }: { slug: string; c
     <>
       <button
         onClick={() => { setAbierto(true); setEstado('idle'); }}
-        className="mt-6 block w-full rounded-xl py-3.5 text-center text-sm font-bold text-white"
+        className="inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-bold text-white shadow-sm"
         style={{ backgroundColor: color }}
       >
         📅 Reservar mesa

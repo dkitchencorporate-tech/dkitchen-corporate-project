@@ -24,7 +24,7 @@ type Pestana = 'carta' | 'local' | 'promociones' | 'reservas' | 'camarero' | 'qr
 const PESTANAS: { id: Pestana; nombre: string }[] = [
   { id: 'carta', nombre: 'Mi Carta' },
   { id: 'local', nombre: 'Mi Local' },
-  { id: 'promociones', nombre: 'Promociones' },
+  { id: 'promociones', nombre: 'Banners' },
   { id: 'reservas', nombre: 'Reservas' },
   { id: 'camarero', nombre: 'Llamadas de mesa' },
   { id: 'qr', nombre: 'Mi QR' },

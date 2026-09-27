@@ -1,42 +1,43 @@
 import type { Metadata } from 'next';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { notFound } from 'next/navigation';
 
-import { type Carta, type PlatoCarta, type SeccionCarta, type PromocionVigente, obtenerPromocionVigente } from '@/lib/menu';
+import { type Carta, type PlatoCarta, type SeccionCarta, type Banner, obtenerBanners } from '@/lib/menu';
 import { obtenerCartaConRespaldo } from '@/lib/cache-resiliencia';
 import { nombreAlergeno } from '@/lib/alergenos';
 import BotonesMesa from '@/components/carta/BotonesMesa';
-import BannerPromocion from '@/components/carta/BannerPromocion';
+import CarruselBanners from '@/components/carta/CarruselBanners';
+import FichaPlato from '@/components/carta/FichaPlato';
 import Reservar from '@/components/carta/Reservar';
 
 /**
  * LA CARTA VIVA
  *
- * Se renderiza en el servidor y llega al teléfono como HTML. Leer la carta no
- * necesita JavaScript: se lee de pie, con la cobertura que haya, funciona con
- * lector de pantalla y zoom, y no puede romperse a mitad. Solo el banner de
- * promoción, las reservas y los botones de mesa son interactivos, y la carta
- * se lee igual sin ellos.
+ * Se renderiza en el servidor y llega al teléfono como HTML: se lee sin
+ * JavaScript, con lector de pantalla y zoom, y no puede romperse a mitad.
+ * La carta es SOLO PARA MIRAR (el QR no toma pedidos: eso es el Núcleo
+ * Operativo). Lo interactivo es opcional: carrusel de banners, ficha ampliada
+ * de cada plato, reservar mesa y llamar al camarero.
  *
- * Esta pantalla es del restaurante, no nuestra: DKitchen aparece una vez, al
- * pie, en pequeño.
+ * Orden (28/09, karc0): cabecera (logo, nombre, descripción, Reservar) →
+ * carrusel de banners → índice de secciones → platos → alérgenos → reseñas →
+ * datos del local (horario, dirección, teléfono, redes) al final.
  *
- * TRES PLANTILLAS (0023), elegidas por el hostelero en su panel. Todas usan su
- * color de marca y su logo, así que cada carta sale única sin diseño a medida:
+ * TRES PLANTILLAS (0023), elegidas por el hostelero: todas usan su color de
+ * marca y su logo.
  *  - clasica: restaurante / menú del día, cartas largas en lista.
  *  - visual:  gastro / brunch / hamburguesería, la foto vende.
  *  - express: bar / cafetería / terraza, filas densas sin foto.
  *
- * PUNTO ÚNICO DE FALLO: `obtenerCartaConRespaldo()` intenta Neon y, solo si
- * falla, sirve el espejo de sólo lectura (`src/lib/cache-resiliencia.ts`), con
- * un aviso visible. La promoción no está en el espejo: si Neon falla, sin banner.
+ * PUNTO ÚNICO DE FALLO: `obtenerCartaConRespaldo()` intenta Neon y, si falla,
+ * sirve el espejo de sólo lectura con aviso visible. Los banners no están en
+ * el espejo: si Neon falla, la carta sale sin carrusel.
  *
- * SOBRE LAS FOTOS: etiquetas `img` normales, no `next/image`, a propósito: el
- * optimizador solo sirve dominios declarados y autorizar `**` lo convertiría en
- * un proxy de imágenes abierto.
+ * FOTOS: `img` normales, no `next/image`: el optimizador solo sirve dominios
+ * declarados y autorizar `**` lo convertiría en un proxy de imágenes abierto.
  */
 
-// Se revalida cada minuto: un plato agotado o una promoción que empieza a las
+// Se revalida cada minuto: un plato agotado o un banner que empieza a las
 // 12:00 aparecen sin desplegar nada.
 export const revalidate = 60;
 
@@ -47,17 +48,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const resultado = await obtenerCartaConRespaldo(slug);
   if (!resultado) return { title: 'Carta no disponible', robots: { index: false } };
   const { carta } = resultado;
-
   return {
     title: `Carta de ${carta.nombre}`,
     description: `Carta digital de ${carta.nombre}, con precios y alérgenos actualizados.`,
     // La carta de un restaurante real sí interesa que se indexe: trae búsquedas locales.
     robots: { index: true, follow: true },
-    openGraph: {
-      title: `Carta de ${carta.nombre}`,
-      type: 'website',
-      images: carta.logoUrl ? [carta.logoUrl] : undefined,
-    },
+    openGraph: { title: `Carta de ${carta.nombre}`, type: 'website', images: carta.logoUrl ? [carta.logoUrl] : undefined },
   };
 }
 
@@ -67,11 +63,11 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
   if (!resultado) notFound();
   const { carta, desdeRespaldo } = resultado;
 
-  let promo: PromocionVigente | null = null;
+  let banners: Banner[] = [];
   try {
-    promo = await obtenerPromocionVigente(carta.slug);
+    banners = await obtenerBanners(carta.slug);
   } catch {
-    promo = null;
+    banners = [];
   }
 
   const plantilla = carta.plantilla === 'visual' || carta.plantilla === 'express' ? carta.plantilla : 'clasica';
@@ -83,17 +79,19 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
     ...(carta.sueltos.length > 0 ? [{ id: 'otros', nombre: 'Otros platos', platos: carta.sueltos }] : []),
   ];
   const alergenosEnCarta = [...new Set(grupos.flatMap((g) => g.platos.flatMap((p) => p.alergenos)))].sort();
+  const nombres = Object.fromEntries(alergenosEnCarta.map((a) => [a, nombreAlergeno(a)]));
   const fotoPortada = grupos.flatMap((g) => g.platos).find((p) => p.fotoUrl)?.fotoUrl ?? null;
   const ancho = plantilla === 'visual' ? 'max-w-3xl' : 'max-w-2xl';
+  const reservar = ampliado ? <Reservar slug={carta.slug} color={color} nombreLocal={carta.nombre} /> : null;
 
   return (
     <main className="min-h-screen bg-[#fbfaf8] text-[#1a1a1a]" style={{ '--marca': color } as CSSProperties}>
       {plantilla === 'visual' ? (
-        <CabeceraVisual carta={carta} foto={fotoPortada} />
+        <CabeceraVisual carta={carta} foto={fotoPortada} accion={reservar} />
       ) : plantilla === 'express' ? (
-        <CabeceraExpress carta={carta} />
+        <CabeceraExpress carta={carta} accion={reservar} />
       ) : (
-        <CabeceraClasica carta={carta} />
+        <CabeceraClasica carta={carta} accion={reservar} />
       )}
 
       {desdeRespaldo && (
@@ -102,11 +100,11 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
         </p>
       )}
 
+      <CarruselBanners banners={banners} color={color} />
+
       {grupos.length > 1 && <IndiceSecciones grupos={grupos} plantilla={plantilla} ancho={ancho} />}
 
-      <div className={`mx-auto px-5 pb-16 ${ancho}`}>
-        {ampliado && <Reservar slug={carta.slug} color={color} nombreLocal={carta.nombre} />}
-
+      <div className={`mx-auto px-5 pb-28 ${ancho}`}>
         {grupos.length === 0 ? (
           <p className="py-20 text-center text-black/50">Esta carta todavía no tiene platos publicados.</p>
         ) : (
@@ -123,15 +121,27 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
               </h2>
               {plantilla === 'visual' ? (
                 <ul className="grid gap-4 sm:grid-cols-2">
-                  {grupo.platos.map((plato) => <PlatoVisual key={plato.id} plato={plato} />)}
+                  {grupo.platos.map((plato) => (
+                    <li key={plato.id}>
+                      <FichaPlato plato={plato} nombresAlergenos={nombres}><PlatoVisual plato={plato} /></FichaPlato>
+                    </li>
+                  ))}
                 </ul>
               ) : plantilla === 'express' ? (
                 <ul className="divide-y divide-black/5 rounded-xl bg-white">
-                  {grupo.platos.map((plato) => <PlatoExpress key={plato.id} plato={plato} />)}
+                  {grupo.platos.map((plato) => (
+                    <li key={plato.id}>
+                      <FichaPlato plato={plato} nombresAlergenos={nombres}><PlatoExpress plato={plato} /></FichaPlato>
+                    </li>
+                  ))}
                 </ul>
               ) : (
                 <ul className="space-y-5">
-                  {grupo.platos.map((plato) => <Plato key={plato.id} plato={plato} />)}
+                  {grupo.platos.map((plato) => (
+                    <li key={plato.id}>
+                      <FichaPlato plato={plato} nombresAlergenos={nombres}><Plato plato={plato} /></FichaPlato>
+                    </li>
+                  ))}
                 </ul>
               )}
             </section>
@@ -149,7 +159,7 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
             <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
               {alergenosEnCarta.map((codigo) => (
                 <li key={codigo} className="text-xs text-black/60">
-                  <span className="font-semibold text-black/80">{codigo}</span> {nombreAlergeno(codigo)}
+                  <span className="font-semibold text-black/80">{codigo}</span> {nombres[codigo]}
                 </li>
               ))}
             </ul>
@@ -161,45 +171,25 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
             href={carta.urlResenas}
             target="_blank"
             rel="noopener"
-            className="mt-10 block rounded-xl border border-black/10 bg-white p-4 text-center text-sm font-semibold hover:border-black/30"
+            className="mt-8 block rounded-xl border border-black/10 bg-white p-4 text-center text-sm font-semibold hover:border-black/30"
           >
             ⭐ ¿Te ha gustado? Déjanos tu reseña en Google
           </a>
         )}
-        <footer className="mt-10 mb-20 text-center text-[11px] text-black/30">Carta digital de DKitchen</footer>
+
+        <DatosLocal carta={carta} />
+
+        <footer className="mt-8 text-center text-[11px] text-black/30">
+          Carta digital de {carta.nombre} · Tecnología de <a href="https://dkitchencorporate.es/qr" className="hover:underline">DKitchen</a>
+        </footer>
       </div>
 
-      {promo && <BannerPromocion promo={promo} color={color} />}
       {ampliado && <BotonesMesa slug={carta.slug} color={color} />}
     </main>
   );
 }
 
-function DatosContacto({ carta, centrado = true }: { carta: Carta; centrado?: boolean }) {
-  if (!(carta.horario || carta.direccion || carta.telefono || carta.instagram)) return null;
-  return (
-    <ul className={`flex flex-wrap gap-x-4 gap-y-1 text-xs text-black/50 ${centrado ? 'justify-center' : ''}`}>
-      {carta.horario && <li>🕒 {carta.horario}</li>}
-      {carta.direccion && (
-        <li>
-          <a href={`https://maps.google.com/?q=${encodeURIComponent(carta.direccion)}`} target="_blank" rel="noopener" className="hover:underline">
-            📍 {carta.direccion}
-          </a>
-        </li>
-      )}
-      {carta.telefono && (
-        <li>
-          <a href={`tel:${carta.telefono.replace(/\s/g, '')}`} className="hover:underline">📞 {carta.telefono}</a>
-        </li>
-      )}
-      {carta.instagram && (
-        <li>
-          <a href={`https://instagram.com/${carta.instagram}`} target="_blank" rel="noopener" className="hover:underline">📷 @{carta.instagram}</a>
-        </li>
-      )}
-    </ul>
-  );
-}
+/* ---------------------------------------------------------------- cabeceras */
 
 function Logo({ carta, tam }: { carta: Carta; tam: number }) {
   if (!carta.logoUrl) return null;
@@ -216,62 +206,48 @@ function Logo({ carta, tam }: { carta: Carta; tam: number }) {
   );
 }
 
-function CabeceraClasica({ carta }: { carta: Carta }) {
+function CabeceraClasica({ carta, accion }: { carta: Carta; accion: ReactNode }) {
   return (
     <header className="border-b border-black/10 bg-white">
-      <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 px-5 py-8 text-center">
-        <Logo carta={carta} tam={80} />
+      <div className="mx-auto flex max-w-2xl flex-col items-center gap-3 px-5 py-7 text-center">
+        <Logo carta={carta} tam={76} />
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{carta.nombre}</h1>
-        {carta.descripcion ? (
-          <p className="max-w-md text-sm leading-relaxed text-black/60">{carta.descripcion}</p>
-        ) : (
-          <p className="text-xs uppercase tracking-[0.2em] text-black/40">Carta</p>
-        )}
-        <DatosContacto carta={carta} />
+        {carta.descripcion && <p className="max-w-md text-sm leading-relaxed text-black/60">{carta.descripcion}</p>}
+        {accion && <div className="pt-1">{accion}</div>}
       </div>
     </header>
   );
 }
 
-function CabeceraVisual({ carta, foto }: { carta: Carta; foto: string | null }) {
+function CabeceraVisual({ carta, foto, accion }: { carta: Carta; foto: string | null; accion: ReactNode }) {
   return (
-    <header className="bg-white pb-6">
-      <div className="relative h-56 w-full sm:h-72" style={{ background: 'var(--marca)' }}>
+    <header className="bg-white">
+      <div className="relative h-52 w-full sm:h-64" style={{ background: 'var(--marca)' }}>
         {foto && (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img src={foto} alt="" className="h-full w-full object-cover" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-3xl items-end gap-4 px-5 pb-5">
-          <Logo carta={carta} tam={72} />
+          <Logo carta={carta} tam={64} />
           <h1 className="text-3xl font-bold leading-tight text-white drop-shadow sm:text-4xl">{carta.nombre}</h1>
         </div>
       </div>
-      <div className="mx-auto max-w-3xl space-y-3 px-5 pt-5">
-        {carta.descripcion && <p className="text-sm leading-relaxed text-black/60">{carta.descripcion}</p>}
-        <DatosContacto carta={carta} centrado={false} />
+      <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-4">
+        {carta.descripcion && <p className="min-w-0 flex-1 text-sm leading-relaxed text-black/60">{carta.descripcion}</p>}
+        {accion}
       </div>
     </header>
   );
 }
 
-function CabeceraExpress({ carta }: { carta: Carta }) {
+function CabeceraExpress({ carta, accion }: { carta: Carta; accion: ReactNode }) {
   return (
     <header className="bg-white" style={{ borderTop: '4px solid var(--marca)' }}>
       <div className="mx-auto flex max-w-2xl items-center gap-3 px-5 py-4">
         <Logo carta={carta} tam={44} />
-        <div className="min-w-0">
-          <h1 className="truncate text-lg font-bold leading-tight">{carta.nombre}</h1>
-          {carta.horario && <p className="truncate text-xs text-black/50">🕒 {carta.horario}</p>}
-        </div>
-        {carta.telefono && (
-          <a
-            href={`tel:${carta.telefono.replace(/\s/g, '')}`}
-            className="ml-auto shrink-0 rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold"
-          >
-            📞 Llamar
-          </a>
-        )}
+        <h1 className="min-w-0 flex-1 truncate text-lg font-bold leading-tight">{carta.nombre}</h1>
+        {accion}
       </div>
     </header>
   );
@@ -279,7 +255,7 @@ function CabeceraExpress({ carta }: { carta: Carta }) {
 
 function IndiceSecciones({ grupos, plantilla, ancho }: { grupos: SeccionCarta[]; plantilla: string; ancho: string }) {
   return (
-    <nav aria-label="Secciones de la carta" className="sticky top-0 z-10 border-b border-black/10 bg-white/95 backdrop-blur">
+    <nav aria-label="Secciones de la carta" className="sticky top-0 z-10 mt-4 border-y border-black/10 bg-white/95 backdrop-blur">
       <ul className={`mx-auto flex gap-2 overflow-x-auto px-5 py-3 ${ancho}`}>
         {grupos.map((g) => (
           <li key={g.id} className="shrink-0">
@@ -300,21 +276,54 @@ function IndiceSecciones({ grupos, plantilla, ancho }: { grupos: SeccionCarta[];
   );
 }
 
+/* --------------------------------------------------------- datos del local */
+
+function DatosLocal({ carta }: { carta: Carta }) {
+  if (!(carta.horario || carta.direccion || carta.telefono || carta.instagram)) return null;
+  const fila = 'flex items-start gap-3 py-2.5 text-sm';
+  return (
+    <section className="mt-8 rounded-2xl border border-black/10 bg-white px-5 py-3" aria-label="Información del local">
+      <h2 className="pt-2 text-sm font-semibold">{carta.nombre}</h2>
+      <ul className="divide-y divide-black/5">
+        {carta.horario && <li className={fila}><span aria-hidden="true">🕒</span><span className="text-black/70">{carta.horario}</span></li>}
+        {carta.direccion && (
+          <li className={fila}>
+            <span aria-hidden="true">📍</span>
+            <a href={`https://maps.google.com/?q=${encodeURIComponent(carta.direccion)}`} target="_blank" rel="noopener" className="text-black/70 hover:underline">
+              {carta.direccion}
+            </a>
+          </li>
+        )}
+        {carta.telefono && (
+          <li className={fila}>
+            <span aria-hidden="true">📞</span>
+            <a href={`tel:${carta.telefono.replace(/\s/g, '')}`} className="text-black/70 hover:underline">{carta.telefono}</a>
+          </li>
+        )}
+        {carta.instagram && (
+          <li className={fila}>
+            <span aria-hidden="true">📷</span>
+            <a href={`https://instagram.com/${carta.instagram}`} target="_blank" rel="noopener" className="text-black/70 hover:underline">@{carta.instagram}</a>
+          </li>
+        )}
+      </ul>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ platos */
+
 function Alergenos({ plato, compacto = false }: { plato: PlatoCarta; compacto?: boolean }) {
   if (plato.alergenos.length === 0) return null;
   return (
-    <p className={`flex flex-wrap gap-1.5 ${compacto ? 'mt-0.5' : 'mt-1.5'}`}>
+    <span className={`flex flex-wrap gap-1.5 ${compacto ? 'mt-0.5' : 'mt-1.5'}`}>
       {plato.alergenos.map((codigo) => (
-        <span
-          key={codigo}
-          title={nombreAlergeno(codigo)}
-          className="rounded border border-black/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-black/45"
-        >
+        <span key={codigo} title={nombreAlergeno(codigo)} className="rounded border border-black/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-black/45">
           <span className="sr-only">Contiene </span>
           {codigo}
         </span>
       ))}
-    </p>
+    </span>
   );
 }
 
@@ -332,67 +341,55 @@ function Precio({ plato, destacado = false }: { plato: PlatoCarta; destacado?: b
 
 function Plato({ plato }: { plato: PlatoCarta }) {
   return (
-    <li className="flex gap-4">
+    <span className="flex gap-4">
       {plato.fotoUrl && (
         /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={plato.fotoUrl}
-          alt=""
-          width={80}
-          height={80}
-          loading="lazy"
-          decoding="async"
-          className="h-20 w-20 shrink-0 rounded-md bg-black/5 object-cover"
-        />
+        <img src={plato.fotoUrl} alt="" width={80} height={80} loading="lazy" decoding="async" className="h-20 w-20 shrink-0 rounded-md bg-black/5 object-cover" />
       )}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-3">
-          <h3 className="font-medium leading-snug">{plato.nombre}</h3>
+      <span className="block min-w-0 flex-1">
+        <span className="flex items-baseline justify-between gap-3">
+          <span className="font-medium leading-snug">{plato.nombre}</span>
           <Precio plato={plato} />
-        </div>
-        {plato.descripcion && <p className="mt-1 text-sm leading-relaxed text-black/55">{plato.descripcion}</p>}
+        </span>
+        {plato.descripcion && <span className="mt-1 line-clamp-2 block text-sm leading-relaxed text-black/55">{plato.descripcion}</span>}
         <Alergenos plato={plato} />
-      </div>
-    </li>
+      </span>
+    </span>
   );
 }
 
 function PlatoVisual({ plato }: { plato: PlatoCarta }) {
   return (
-    <li className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
+    <span className="block overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
       {plato.fotoUrl ? (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img src={plato.fotoUrl} alt="" loading="lazy" decoding="async" className="aspect-[4/3] w-full bg-black/5 object-cover" />
       ) : (
-        <div
-          className="flex aspect-[4/3] w-full items-center justify-center text-3xl"
-          style={{ background: 'color-mix(in srgb, var(--marca) 12%, white)' }}
-          aria-hidden="true"
-        >
+        <span className="flex aspect-[4/3] w-full items-center justify-center text-3xl" style={{ background: 'color-mix(in srgb, var(--marca) 12%, white)' }} aria-hidden="true">
           🍽️
-        </div>
+        </span>
       )}
-      <div className="p-4">
-        <div className="flex items-baseline justify-between gap-3">
-          <h3 className="font-semibold leading-snug">{plato.nombre}</h3>
+      <span className="block p-4">
+        <span className="flex items-baseline justify-between gap-3">
+          <span className="font-semibold leading-snug">{plato.nombre}</span>
           <Precio plato={plato} destacado />
-        </div>
-        {plato.descripcion && <p className="mt-1 text-sm leading-relaxed text-black/55">{plato.descripcion}</p>}
+        </span>
+        {plato.descripcion && <span className="mt-1 line-clamp-2 block text-sm leading-relaxed text-black/55">{plato.descripcion}</span>}
         <Alergenos plato={plato} />
-      </div>
-    </li>
+      </span>
+    </span>
   );
 }
 
 function PlatoExpress({ plato }: { plato: PlatoCarta }) {
   return (
-    <li className="px-4 py-3">
-      <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-[15px] font-medium leading-snug">{plato.nombre}</h3>
+    <span className="block px-4 py-3">
+      <span className="flex items-baseline justify-between gap-3">
+        <span className="text-[15px] font-medium leading-snug">{plato.nombre}</span>
         <Precio plato={plato} />
-      </div>
-      {plato.descripcion && <p className="text-xs leading-relaxed text-black/50">{plato.descripcion}</p>}
+      </span>
+      {plato.descripcion && <span className="line-clamp-1 block text-xs leading-relaxed text-black/50">{plato.descripcion}</span>}
       <Alergenos plato={plato} compacto />
-    </li>
+    </span>
   );
 }

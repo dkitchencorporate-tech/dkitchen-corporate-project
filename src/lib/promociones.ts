@@ -8,7 +8,8 @@ import { comoCliente } from '@/lib/db';
  */
 
 export interface DatosPromocion {
-  titulo: string;
+  /** Opcional si hay imagen (0024: banner ya diseñado). */
+  titulo: string | null;
   texto: string | null;
   imagenUrl: string | null;
   botonTexto: string | null;

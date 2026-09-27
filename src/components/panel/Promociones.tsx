@@ -39,7 +39,7 @@ export default function Promociones({
         if (editando.id) await editarPromocionAction(editando.id, editando.d);
         else await crearPromocionAction(editando.d);
         setEditando(null);
-        setAviso({ ok: true, texto: 'Promoción guardada. Ya aparece en tu carta según su programación.' });
+        setAviso({ ok: true, texto: 'Banner guardado. Aparecerá en tu carta en menos de un minuto.' });
       } catch (e) {
         setAviso({ ok: false, texto: e instanceof Error ? e.message : 'No se pudo guardar.' });
       }
@@ -62,18 +62,20 @@ export default function Promociones({
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold">Promociones</h2>
+          <h2 className="text-xl font-bold">Banners</h2>
           <p className="text-sm text-white/40">
-            Una tarjeta que aparece al abrir tu carta: menú del día, oferta, plato especial…
-            {ampliado ? ' Programa cuándo se ve cada una.' : ' Tu plan incluye 1 promoción activa.'}
+            Aparecen arriba del todo de tu carta: menú del día, ofertas, eventos… Sube tu banner ya diseñado (o solo texto).
+            {ampliado
+              ? ` Hasta 3 activos a la vez, rotando en carrusel, y programa cuándo se ve cada uno. (${activas}/3 activos)`
+              : ` Tu plan incluye 1 banner activo. (${activas}/1 activo)`}
           </p>
         </div>
         {!editando && (
           <button
-            onClick={() => setEditando({ id: null, d: { ...VACIA, activa: ampliado || activas === 0 } })}
+            onClick={() => setEditando({ id: null, d: { ...VACIA, activa: activas < (ampliado ? 3 : 1) } })}
             className="shrink-0 rounded-lg bg-[#D9531E] px-4 py-2 text-sm font-bold hover:bg-[#B8451A]"
           >
-            + Nueva
+            + Nuevo banner
           </button>
         )}
       </div>
@@ -82,10 +84,15 @@ export default function Promociones({
 
       {editando && d && (
         <section className="space-y-4 rounded-2xl border border-[#D9531E]/40 bg-[#1c140b] p-6">
-          <h3 className="font-bold">{editando.id ? 'Editar promoción' : 'Nueva promoción'}</h3>
-          <input value={d.titulo} onChange={(e) => set('titulo', e.target.value)} maxLength={60} placeholder="Título (ej: Menú del día 12,90 €)" className={campo} />
-          <textarea value={d.texto ?? ''} onChange={(e) => set('texto', e.target.value || null)} maxLength={160} rows={2} placeholder="Texto corto (opcional)" className={campo} />
-          <SubirImagen valor={d.imagenUrl} onCambio={(url) => set('imagenUrl', url)} etiqueta="Imagen (opcional)" />
+          <h3 className="font-bold">{editando.id ? 'Editar banner' : 'Nuevo banner'}</h3>
+          <div className="space-y-1">
+            <SubirImagen valor={d.imagenUrl} onCambio={(url) => set('imagenUrl', url)} etiqueta="Imagen del banner" />
+            <p className="text-[11px] text-white/40">Formato horizontal 16:9 (recomendado 1200 × 675 px). Si tu banner ya lleva el texto, deja el título vacío.</p>
+          </div>
+          <input value={d.titulo ?? ''} onChange={(e) => set('titulo', e.target.value || null)} maxLength={60} placeholder="Título (opcional con imagen; ej: Menú del día 12,90 €)" className={campo} />
+          {!d.imagenUrl && (
+            <textarea value={d.texto ?? ''} onChange={(e) => set('texto', e.target.value || null)} maxLength={160} rows={2} placeholder="Texto corto (para banners sin imagen)" className={campo} />
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
             <input value={d.botonTexto ?? ''} onChange={(e) => set('botonTexto', e.target.value || null)} maxLength={30} placeholder="Texto del botón (ej: Ver el menú)" className={campo} />
             <select value={d.botonSeccion ?? ''} onChange={(e) => set('botonSeccion', e.target.value || null)} className={campo} aria-label="Sección a la que lleva el botón">
@@ -138,7 +145,7 @@ export default function Promociones({
             <input type="checkbox" checked={d.activa} onChange={(e) => set('activa', e.target.checked)} className="accent-[#D9531E]" /> Activa
           </label>
           <div className="flex gap-3">
-            <button onClick={guardar} disabled={pendiente || !d.titulo.trim()} className="rounded-lg bg-[#D9531E] px-5 py-2 text-sm font-bold disabled:opacity-50">
+            <button onClick={guardar} disabled={pendiente || (!d.titulo?.trim() && !d.imagenUrl)} className="rounded-lg bg-[#D9531E] px-5 py-2 text-sm font-bold disabled:opacity-50">
               {pendiente ? 'Guardando…' : 'Guardar'}
             </button>
             <button onClick={() => setEditando(null)} className="text-sm text-white/50 hover:text-white">Cancelar</button>
@@ -148,15 +155,21 @@ export default function Promociones({
 
       {promociones.length === 0 && !editando ? (
         <p className="rounded-2xl border border-white/10 bg-[#1c140b] p-8 text-center text-sm text-white/40">
-          Aún no tienes promociones. Crea la primera: es lo primero que verán tus clientes al abrir la carta.
+          Aún no tienes banners. Crea el primero: es lo primero que verán tus clientes al abrir la carta.
         </p>
       ) : (
         <ul className="space-y-3">
           {promociones.map((p) => (
             <li key={p.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-[#1c140b] p-4">
+              {p.imagenUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={p.imagenUrl} alt="" className="h-12 w-20 shrink-0 rounded-md object-cover" />
+              ) : (
+                <div className="flex h-12 w-20 shrink-0 items-center justify-center rounded-md bg-[#D9531E]/20 text-[10px] font-bold text-[#D9531E]">TEXTO</div>
+              )}
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">
-                  {p.titulo}{' '}
+                  {p.titulo ?? 'Banner con imagen'}{' '}
                   <span className={`ml-1 rounded-full px-2 py-0.5 text-[11px] ${p.activa ? 'bg-green-500/15 text-green-300' : 'bg-white/10 text-white/40'}`}>
                     {p.activa ? 'Activa' : 'Pausada'}
                   </span>
@@ -164,7 +177,7 @@ export default function Promociones({
                 <p className="text-xs text-white/40">{resumenProgramacion(p)} · {p.vistas} vistas · {p.clics} clics</p>
               </div>
               <button
-                onClick={() => accion(() => editarPromocionAction(p.id, { ...p, activa: !p.activa }), p.activa ? 'Promoción pausada.' : 'Promoción activada.')}
+                onClick={() => accion(() => editarPromocionAction(p.id, { ...p, activa: !p.activa }), p.activa ? 'Banner pausado.' : 'Banner activado.')}
                 disabled={pendiente}
                 className="text-sm text-white/60 hover:text-white"
               >
@@ -172,7 +185,7 @@ export default function Promociones({
               </button>
               <button onClick={() => setEditando({ id: p.id, d: { ...p } })} className="text-sm text-white/60 hover:text-white">Editar</button>
               <button
-                onClick={() => confirm('¿Eliminar esta promoción?') && accion(() => eliminarPromocionAction(p.id), 'Promoción eliminada.')}
+                onClick={() => confirm('¿Eliminar este banner?') && accion(() => eliminarPromocionAction(p.id), 'Banner eliminado.')}
                 disabled={pendiente}
                 className="text-sm text-red-400/80 hover:text-red-300"
               >

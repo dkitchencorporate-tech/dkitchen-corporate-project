@@ -172,9 +172,10 @@ export async function resolverCodigo(
   });
 }
 
-export interface PromocionVigente {
+export interface Banner {
   id: string;
-  titulo: string;
+  /** Opcional: un banner puede ser solo imagen ya diseñada (0024). */
+  titulo: string | null;
   texto: string | null;
   imagenUrl: string | null;
   botonTexto: string | null;
@@ -182,17 +183,17 @@ export interface PromocionVigente {
 }
 
 /**
- * Promoción que toca mostrar AHORA (fechas, días y horas en hora de Madrid,
- * mayor prioridad primero). La decide dk.promocion_vigente() (0023): la
- * tabla de promociones no es legible por dk_anon.
+ * Banners que tocan mostrar AHORA en el carrusel de la carta (fechas, días y
+ * horas en hora de Madrid, prioridad primero; 1 en Básico, hasta 3 en
+ * Ampliado). Lo decide dk.banners_vigentes() (0024): la tabla de promociones
+ * no es legible por dk_anon.
  */
-export async function obtenerPromocionVigente(slug: string): Promise<PromocionVigente | null> {
+export async function obtenerBanners(slug: string): Promise<Banner[]> {
   return comoVisitante(async (c) => {
-    const { rows } = await c.query('SELECT * FROM dk.promocion_vigente($1)', [slug.toLowerCase()]);
-    const p = rows[0];
-    return p
-      ? { id: p.id, titulo: p.titulo, texto: p.texto, imagenUrl: p.imagen_url, botonTexto: p.boton_texto, botonSeccion: p.boton_seccion }
-      : null;
+    const { rows } = await c.query('SELECT * FROM dk.banners_vigentes($1)', [slug.toLowerCase()]);
+    return rows.map((p) => ({
+      id: p.id, titulo: p.titulo, texto: p.texto, imagenUrl: p.imagen_url, botonTexto: p.boton_texto, botonSeccion: p.boton_seccion,
+    }));
   });
 }
 

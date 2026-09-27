@@ -132,8 +132,11 @@ export async function GET(
   // 302 y no 301: la redirección permanente se queda guardada en el navegador,
   // y a partir de la segunda visita el teléfono iría directo a la carta sin
   // pasar por aquí. Los escaneos dejarían de contarse sin que nadie se entere.
-  // QR de mesa (plan Ampliado): la mesa viaja hasta la carta para "Llamar al camarero".
+  // `qr=1` marca que quien llega está en el local (ha escaneado el QR): solo
+  // entonces la carta ofrece "Llamar al camarero". Si el QR es de mesa, la
+  // mesa viaja también y llega ya rellenada (el cliente puede cambiarla).
   const mesa = new URL(peticion.url).searchParams.get('mesa');
-  const sufijo = mesa && /^[A-Za-z0-9-]{1,12}$/.test(mesa) ? `?mesa=${encodeURIComponent(mesa)}` : '';
-  return sinCache(NextResponse.redirect(`${origen}/m/${destino.slug}${sufijo}`, 302));
+  const parametros = new URLSearchParams({ qr: '1' });
+  if (mesa && /^[A-Za-z0-9-]{1,12}$/.test(mesa)) parametros.set('mesa', mesa);
+  return sinCache(NextResponse.redirect(`${origen}/m/${destino.slug}?${parametros}`, 302));
 }
