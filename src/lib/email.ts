@@ -13,51 +13,53 @@ export function escaparHtml(valor: unknown): string {
 }
 
 /**
- * Transporte compartido de correo interno (mismas credenciales que ya usa
- * /api/lead) — evita duplicar la configuración de nodemailer en cada sitio
- * que necesita avisar a Alex de algo.
+ * Transporte único de correo (27/09/2026): buzón corporativo
+ * dkitchen@dkitchencorporate.es en el SMTP de Arsys (SSL, 465). Antes era
+ * Gmail (`service: 'gmail'`). Host y puerto se pueden sobrescribir con
+ * SMTP_HOST / SMTP_PORT sin tocar código.
  */
-export async function enviarCorreoInterno(asunto: string, html: string): Promise<void> {
-  if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASSWORD) {
-    console.error('Correo interno no configurado (falta SMTP_EMAIL/SMTP_PASSWORD).');
-    return;
-  }
-
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
+export function crearTransporte() {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.serviciodecorreo.es',
+    port: Number(process.env.SMTP_PORT || 465),
+    secure: Number(process.env.SMTP_PORT || 465) === 465,
     auth: {
       user: process.env.SMTP_EMAIL,
-      pass: process.env.SMTP_PASSWORD.replace(/\s/g, ''),
+      pass: process.env.SMTP_PASSWORD,
     },
   });
+}
 
-  await transporter.sendMail({
-    from: process.env.SMTP_EMAIL,
-    to: process.env.SMTP_EMAIL,
-    subject: asunto.replace(/[\r\n]/g, ' ').slice(0, 120),
+export const REMITENTE = () => `DKitchen <${process.env.SMTP_EMAIL}>`;
+/** Buzón que recibe los avisos internos (leads, pagos, soporte). Por defecto, el mismo. */
+export const BUZON_INTERNO = () => process.env.SMTP_BUZON_INTERNO || process.env.SMTP_EMAIL;
+
+function configurado(): boolean {
+  if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) return true;
+  console.error('Correo no configurado (falta SMTP_EMAIL/SMTP_PASSWORD).');
+  return false;
+}
+
+export async function enviarCorreoInterno(asunto: string, html: string): Promise<void> {
+  if (!configurado()) return;
+  await crearTransporte().sendMail({
+    from: REMITENTE(),
+    to: BUZON_INTERNO(),
+    subject: asunto.replace(/[
+]/g, ' ').slice(0, 120),
     html,
   });
 }
 
-/** Igual que `enviarCorreoInterno`, pero a un destinatario externo (un cliente), no al buzón de Alex. */
+/** Igual que `enviarCorreoInterno`, pero a un destinatario externo (un cliente). */
 export async function enviarCorreoCliente(destinatario: string, asunto: string, html: string): Promise<void> {
-  if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASSWORD) {
-    console.error('Correo a cliente no configurado (falta SMTP_EMAIL/SMTP_PASSWORD).');
-    return;
-  }
-
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.SMTP_EMAIL,
-      pass: process.env.SMTP_PASSWORD.replace(/\s/g, ''),
-    },
-  });
-
-  await transporter.sendMail({
-    from: process.env.SMTP_EMAIL,
+  if (!configurado()) return;
+  await crearTransporte().sendMail({
+    from: REMITENTE(),
+    replyTo: process.env.SMTP_EMAIL,
     to: destinatario,
-    subject: asunto.replace(/[\r\n]/g, ' ').slice(0, 120),
+    subject: asunto.replace(/[
+]/g, ' ').slice(0, 120),
     html,
   });
 }

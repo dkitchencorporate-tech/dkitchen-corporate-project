@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { crearTransporte, REMITENTE, BUZON_INTERNO } from '@/lib/email';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
 
 /**
@@ -85,17 +85,11 @@ export async function POST(request: Request) {
     const correoSeguro = escapar(email);
     const telefonoSeguro = escapar(phone);
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.SMTP_EMAIL,
-        pass: process.env.SMTP_PASSWORD.replace(/\s/g, ''),
-      },
-    });
+    const transporter = crearTransporte();
 
     await transporter.sendMail({
-      from: process.env.SMTP_EMAIL,
-      to: process.env.SMTP_EMAIL,
+      from: REMITENTE(),
+      to: BUZON_INTERNO(),
       // El asunto lleva el nombre: se limpian los saltos de línea para que no
       // pueda inyectar cabeceras adicionales en el mensaje.
       subject: `NUEVO LEAD HOSTELERIA: ${name.replace(/[\r\n]/g, ' ').slice(0, 120)}`,
