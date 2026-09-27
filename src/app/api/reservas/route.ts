@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { crearReserva } from '@/lib/reservas';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
-import { enviarCorreoCliente, escaparHtml } from '@/lib/email';
+import { enviarCorreoCliente, escaparHtml, filasCorreo } from '@/lib/email';
 
 export const runtime = 'nodejs';
 
@@ -51,15 +51,22 @@ export async function POST(peticion: Request) {
         await enviarCorreoCliente(
           r.emailNegocio,
           `Nueva reserva: ${nombre} · ${personas} pers. · ${fechaLarga(fecha)} ${hora}`,
-          `<p>Nueva reserva desde tu carta digital de <strong>${escaparHtml(r.restaurante)}</strong>:</p>
-           <ul>
-             <li><strong>Nombre:</strong> ${escaparHtml(nombre)}</li>
-             <li><strong>Teléfono:</strong> <a href="tel:${escaparHtml(telefono.replace(/\s/g, ''))}">${escaparHtml(telefono)}</a></li>
-             <li><strong>Día:</strong> ${escaparHtml(fechaLarga(fecha))} a las ${escaparHtml(hora)}</li>
-             <li><strong>Personas:</strong> ${personas}</li>
-             ${notas ? `<li><strong>Notas:</strong> ${escaparHtml(notas)}</li>` : ''}
-           </ul>
-           <p>Confírmala o cancélala en tu panel, sección Reservas: <a href="https://dkitchencorporate.es/panel">dkitchencorporate.es/panel</a></p>`
+          `<p style="margin:0 0 8px">Has recibido una reserva desde la carta digital de <strong>${escaparHtml(r.restaurante)}</strong>.</p>` +
+            filasCorreo([
+              ['Nombre', nombre],
+              ['Teléfono', telefono],
+              ['Día', fechaLarga(fecha)],
+              ['Hora', hora],
+              ['Personas', String(personas)],
+              ['Notas', notas],
+            ]) +
+            `<p style="margin:20px 0 0;font-size:14px;color:#6B6560">Llama al cliente para confirmarla y márcala como confirmada o cancelada en tu panel.</p>`,
+          {
+            titulo: 'Nueva reserva',
+            preencabezado: `${nombre} · ${personas} pers. · ${fechaLarga(fecha)} a las ${hora}`,
+            restaurante: r.restaurante,
+            boton: { texto: 'Gestionar en mi panel', url: 'https://dkitchencorporate.es/panel' },
+          }
         );
       } catch (error) {
         // La reserva ya está guardada y visible en el panel.

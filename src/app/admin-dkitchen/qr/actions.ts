@@ -5,7 +5,7 @@ import { exigirAdmin } from '@/lib/guard-admin';
 import {
   cambiarEstadoCliente, cambiarPlanCliente, responderTicket, cambiarEstadoSolicitudQr,
 } from '@/lib/admin-clientes';
-import { enviarCorreoCliente, escaparHtml } from '@/lib/email';
+import { enviarCorreoCliente, escaparHtml, escaparTexto } from '@/lib/email';
 
 /**
  * Acciones del super admin. Doble cerrojo: exigirAdmin() aquí y dk.es_admin()
@@ -56,9 +56,10 @@ export async function responderTicketAction(formulario: FormData) {
       await enviarCorreoCliente(
         destino.email,
         `Respuesta a tu consulta: ${destino.asunto}`,
-        `<p>Hola,</p><p>Hemos respondido a tu consulta <strong>${escaparHtml(destino.asunto)}</strong> (${escaparHtml(destino.restaurante)}):</p>` +
-          `<blockquote style="border-left:3px solid #D9531E;padding-left:12px;white-space:pre-wrap">${escaparHtml(respuesta)}</blockquote>` +
-          `<p>También la tienes en tu panel, sección Soporte: <a href="https://dkitchencorporate.es/panel">dkitchencorporate.es/panel</a></p><p>— Equipo DKitchen</p>`
+        `<p style="margin:0 0 12px">Hola, hemos respondido a tu consulta <strong>«${escaparHtml(destino.asunto)}»</strong> sobre ${escaparHtml(destino.restaurante)}:</p>` +
+          `<div style="border-left:3px solid #D9531E;background:#F6F5F3;border-radius:8px;padding:14px 16px;white-space:pre-wrap">${escaparTexto(respuesta, 4000)}</div>` +
+          `<p style="margin:16px 0 0;font-size:14px;color:#6B6560">También la tienes en tu panel, en Soporte. Si necesitas algo más, responde a este correo.</p>`,
+        { titulo: 'Te hemos respondido', boton: { texto: 'Abrir mi panel', url: 'https://dkitchencorporate.es/panel' } }
       );
     } catch (error) {
       // La respuesta ya quedó guardada y visible en el panel del cliente.
