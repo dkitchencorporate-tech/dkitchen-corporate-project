@@ -70,38 +70,82 @@ export interface OpcionesCorreo {
   restaurante?: string;
   /** Botón principal. */
   boton?: { texto: string; url: string };
+  /**
+   * Marca del restaurante: si se indica, la cabecera es SUYA (logo, nombre,
+   * color) y DKitchen solo firma al pie como proveedor de la tecnología.
+   * Obligatorio en todo correo que sale en nombre de un local.
+   */
+  marca?: { nombre: string; logoUrl?: string | null; color?: string | null };
 }
 
 const C = { fondo: '#F6F5F3', tarjeta: '#FFFFFF', borde: '#E7E3DE', texto: '#1A1714', suave: '#6B6560', acento: '#D9531E' };
 
+/**
+ * Modo claro y oscuro: base clara con estilos en línea (lo que respeta todo
+ * cliente) + reglas para `prefers-color-scheme: dark` (Apple Mail, Outlook
+ * app, Gmail web con tema oscuro). Gmail en móvil invierte los colores por su
+ * cuenta; la paleta está elegida para que el resultado siga siendo legible.
+ */
+const ESTILOS_TEMA = `<style>
+  :root { color-scheme: light dark; supported-color-schemes: light dark; }
+  @media (prefers-color-scheme: dark) {
+    .dk-fondo { background: #121110 !important; }
+    .dk-tarjeta { background: #1D1B19 !important; border-color: #34302C !important; }
+    .dk-texto { color: #F2EFEC !important; }
+    .dk-suave { color: #B3ACA5 !important; }
+    .dk-borde { border-color: #34302C !important; }
+    .dk-logo-fondo { background: #F2EFEC !important; color: #1A1714 !important; }
+  }
+</style>`;
+
+function colorSeguro(c: string | null | undefined): string {
+  return c && /^#[0-9a-f]{6}$/i.test(c) ? c : C.acento;
+}
+
+function cabecera(o: OpcionesCorreo): string {
+  if (o.marca) {
+    const color = colorSeguro(o.marca.color);
+    const logo = o.marca.logoUrl && /^https:\/\//.test(o.marca.logoUrl)
+      ? `<img src="${escaparHtml(o.marca.logoUrl)}" width="48" height="48" alt="${escaparHtml(o.marca.nombre)}" style="display:block;width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid ${C.borde}">`
+      : `<div style="width:48px;height:48px;border-radius:50%;background:${color};color:#FFFFFF;font-size:22px;font-weight:800;line-height:48px;text-align:center">${escaparHtml(o.marca.nombre.trim().charAt(0).toUpperCase())}</div>`;
+    return `<table role="presentation" cellpadding="0" cellspacing="0"><tr>
+        <td style="vertical-align:middle">${logo}</td>
+        <td class="dk-texto" style="padding-left:12px;font-size:19px;font-weight:800;color:${C.texto};vertical-align:middle">${escaparHtml(o.marca.nombre)}</td>
+      </tr></table>`;
+  }
+  return `<table role="presentation" cellpadding="0" cellspacing="0"><tr>
+      <td class="dk-logo-fondo" style="width:36px;height:36px;border-radius:9px;background:${C.texto};color:#FFFFFF;font-size:20px;font-weight:800;text-align:center;vertical-align:middle">D</td>
+      <td class="dk-texto" style="padding-left:10px;font-size:18px;font-weight:800;color:${C.texto}">D<span style="color:${C.acento}">Kitchen</span></td>
+    </tr></table>`;
+}
+
 export function plantillaCorreo(cuerpoHtml: string, o: OpcionesCorreo = {}): string {
-  const titulo = o.titulo ? `<h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;color:${C.texto};font-weight:700">${escaparHtml(o.titulo)}</h1>` : '';
+  const acento = colorSeguro(o.marca?.color);
+  const restaurante = o.restaurante ?? o.marca?.nombre;
+  const titulo = o.titulo ? `<h1 class="dk-texto" style="margin:0 0 16px;font-size:22px;line-height:1.3;color:${C.texto};font-weight:700">${escaparHtml(o.titulo)}</h1>` : '';
   const boton = o.boton && /^https:\/\//.test(o.boton.url)
-    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 4px"><tr><td style="border-radius:10px;background:${C.acento}">
-         <a href="${o.boton.url}" style="display:inline-block;padding:13px 24px;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none">${escaparHtml(o.boton.texto)}</a>
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 4px"><tr><td style="border-radius:10px;background:${acento}">
+         <a href="${escaparHtml(o.boton.url)}" style="display:inline-block;padding:13px 24px;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none">${escaparHtml(o.boton.texto)}</a>
        </td></tr></table>`
     : '';
-  const pieRestaurante = o.restaurante
-    ? `<p style="margin:0 0 6px;font-size:13px;color:${C.texto}">Carta digital de <strong>${escaparHtml(o.restaurante)}</strong></p>
-       <p style="margin:0 0 14px;font-size:12px;line-height:1.5;color:${C.suave}">Los datos de esta reserva o consulta se comparten solo con ${escaparHtml(o.restaurante)} para gestionarla, conforme a su política de privacidad.</p>`
+  const pieRestaurante = restaurante
+    ? `<p class="dk-texto" style="margin:0 0 6px;font-size:13px;color:${C.texto}">Carta digital de <strong>${escaparHtml(restaurante)}</strong></p>
+       <p class="dk-suave" style="margin:0 0 14px;font-size:12px;line-height:1.5;color:${C.suave}">Los datos de esta reserva o consulta se comparten solo con ${escaparHtml(restaurante)} para gestionarla, conforme a su política de privacidad.</p>`
     : '';
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>${escaparHtml(o.titulo ?? 'DKitchen')}</title></head>
-<body style="margin:0;padding:0;background:${C.fondo};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased">
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark">
+<title>${escaparHtml(o.titulo ?? restaurante ?? 'DKitchen')}</title>${ESTILOS_TEMA}</head>
+<body class="dk-fondo" style="margin:0;padding:0;background:${C.fondo};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased">
 <span style="display:none;max-height:0;overflow:hidden;opacity:0">${escaparHtml(o.preencabezado ?? '')}</span>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.fondo}"><tr><td align="center" style="padding:32px 16px">
+<table class="dk-fondo" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.fondo}"><tr><td align="center" style="padding:32px 16px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px">
-    <tr><td style="padding:0 4px 20px">
-      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-        <td style="width:36px;height:36px;border-radius:9px;background:${C.texto};color:#FFFFFF;font-size:20px;font-weight:800;text-align:center;vertical-align:middle">D</td>
-        <td style="padding-left:10px;font-size:18px;font-weight:800;color:${C.texto}">D<span style="color:${C.acento}">Kitchen</span></td>
-      </tr></table>
-    </td></tr>
-    <tr><td style="background:${C.tarjeta};border:1px solid ${C.borde};border-radius:16px;padding:32px 28px;font-size:15px;line-height:1.6;color:${C.texto}">
+    <tr><td style="padding:0 4px 20px">${cabecera(o)}</td></tr>
+    <tr><td class="dk-tarjeta dk-texto" style="background:${C.tarjeta};border:1px solid ${C.borde};border-radius:16px;padding:32px 28px;font-size:15px;line-height:1.6;color:${C.texto}">
       ${titulo}${cuerpoHtml}${boton}
     </td></tr>
     <tr><td style="padding:24px 8px 0;text-align:center">
       ${pieRestaurante}
-      <p style="margin:0;font-size:12px;line-height:1.5;color:${C.suave}">
+      <p class="dk-suave" style="margin:0;font-size:12px;line-height:1.5;color:${C.suave}">
         Tecnología de carta digital, reservas y gestión para hostelería por
         <a href="https://dkitchencorporate.es/qr" style="color:${C.acento};text-decoration:none;font-weight:600">DKitchen</a>
       </p>
@@ -119,8 +163,8 @@ export function plantillaCorreo(cuerpoHtml: string, o: OpcionesCorreo = {}): str
 export function filasCorreo(filas: [string, string | null | undefined][]): string {
   const f = filas
     .filter(([, v]) => v !== null && v !== undefined && v !== '')
-    .map(([k, v]) => `<tr><td style="padding:10px 0;border-bottom:1px solid ${C.borde};font-size:13px;color:${C.suave};width:38%;vertical-align:top">${escaparHtml(k)}</td>
-      <td style="padding:10px 0;border-bottom:1px solid ${C.borde};font-size:15px;color:${C.texto};font-weight:600">${escaparTexto(v, 500)}</td></tr>`)
+    .map(([k, v]) => `<tr><td class="dk-suave dk-borde" style="padding:10px 0;border-bottom:1px solid ${C.borde};font-size:13px;color:${C.suave};width:38%;vertical-align:top">${escaparHtml(k)}</td>
+      <td class="dk-texto dk-borde" style="padding:10px 0;border-bottom:1px solid ${C.borde};font-size:15px;color:${C.texto};font-weight:600">${escaparTexto(v, 500)}</td></tr>`)
     .join('');
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 0">${f}</table>`;
 }

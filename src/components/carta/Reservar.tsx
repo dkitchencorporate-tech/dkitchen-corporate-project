@@ -28,7 +28,7 @@ export default function Reservar({ slug, color, nombreLocal }: { slug: string; c
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          slug, nombre: f.get('nombre'), telefono: f.get('telefono'), fecha: f.get('fecha'),
+          slug, nombre: f.get('nombre'), telefono: f.get('telefono'), email: f.get('email'), fecha: f.get('fecha'),
           hora: f.get('hora'), personas: Number(f.get('personas')), notas: f.get('notas'),
         }),
       });
@@ -71,7 +71,7 @@ export default function Reservar({ slug, color, nombreLocal }: { slug: string; c
               <div className="space-y-4 text-center">
                 <p className="text-4xl">✅</p>
                 <p className="font-semibold text-[#1a1a1a]">¡Solicitud enviada!</p>
-                <p className="text-sm text-black/60">El local ha recibido tu reserva y te confirmará por teléfono.</p>
+                <p className="text-sm text-black/60">El local ha recibido tu reserva y te la confirmará en breve (por correo si lo has indicado, o por teléfono).</p>
                 {whatsappUrl && (
                   <a href={whatsappUrl} target="_blank" rel="noopener" className="block rounded-xl bg-[#25D366] py-3 text-sm font-bold text-white">
                     Enviar también por WhatsApp
@@ -83,6 +83,7 @@ export default function Reservar({ slug, color, nombreLocal }: { slug: string; c
               <form onSubmit={enviar} className="space-y-3">
                 <input name="nombre" required minLength={2} maxLength={80} placeholder="Tu nombre" autoComplete="name" className={campo} />
                 <input name="telefono" required type="tel" inputMode="tel" pattern="\+?[0-9 ]{9,20}" placeholder="Teléfono" autoComplete="tel" className={campo} />
+                <input name="email" type="email" maxLength={120} placeholder="Correo (para recibir la confirmación)" autoComplete="email" className={campo} />
                 <div className="grid grid-cols-2 gap-3">
                   <input name="fecha" required type="date" min={hoy} defaultValue={hoy} className={campo} aria-label="Fecha" />
                   <input name="hora" required type="time" defaultValue="21:00" className={campo} aria-label="Hora" />

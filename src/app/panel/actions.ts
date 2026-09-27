@@ -24,7 +24,8 @@ import {
   eliminarPromocion as dbEliminarPromocion,
   type DatosPromocion,
 } from '@/lib/promociones';
-import { cambiarEstadoReserva as dbCambiarEstadoReserva } from '@/lib/reservas';
+import { cambiarEstadoReserva as dbCambiarEstadoReserva, marcarAvisada as dbMarcarAvisada } from '@/lib/reservas';
+import { avisarEstadoAlCliente, whatsappParaCliente } from '@/lib/correos-reserva';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -242,9 +243,33 @@ export async function eliminarPromocionAction(id: string) {
   revalidatePath(`/m/${restaurante.slug}`);
 }
 
-export async function cambiarEstadoReservaAction(id: string, estado: 'confirmada' | 'cancelada' | 'pendiente') {
+/**
+ * Confirmar o cancelar una reserva. Si el cliente dejó su correo, recibe el
+ * aviso automáticamente con la marca del restaurante. Devuelve el enlace de
+ * WhatsApp con el mensaje ya escrito para que el dueño lo envíe con un toque
+ * (el envío automático por la API de WhatsApp es un upsell aparte).
+ */
+export async function cambiarEstadoReservaAction(
+  id: string,
+  estado: 'confirmada' | 'cancelada' | 'pendiente'
+): Promise<{ correoEnviado: boolean; whatsappUrl: string | null }> {
   if (!UUID.test(id) || !['confirmada', 'cancelada', 'pendiente'].includes(estado)) throw new Error('Datos no válidos.');
-  const { jwt } = await requerirSesionYRestaurante();
-  await dbCambiarEstadoReserva(jwt, id, estado);
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  const reserva = await dbCambiarEstadoReserva(jwt, id, estado);
+  if (!reserva) throw new Error('No se encontró la reserva.');
   revalidatePath('/panel');
+  if (estado === 'pendiente') return { correoEnviado: false, whatsappUrl: null };
+
+  const marca = { nombre: restaurante.nombre, logoUrl: restaurante.logoUrl, color: restaurante.colorMarca };
+  let correoEnviado = false;
+  if (reserva.email) {
+    try {
+      await avisarEstadoAlCliente(marca, reserva, estado, { telefono: restaurante.telefono, direccion: restaurante.direccion });
+      await dbMarcarAvisada(jwt, id);
+      correoEnviado = true;
+    } catch (error) {
+      console.error('Aviso de reserva al cliente no enviado:', (error as Error).message);
+    }
+  }
+  return { correoEnviado, whatsappUrl: whatsappParaCliente(marca, reserva, estado) };
 }

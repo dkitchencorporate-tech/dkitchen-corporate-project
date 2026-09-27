@@ -6,6 +6,8 @@ import { cambiarEstadoReservaAction } from '@/app/panel/actions';
 
 const fechaCorta = (iso: string) =>
   new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`));
+const fechaLarga = (iso: string) =>
+  new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`));
 
 const ESTILO: Record<Reserva['estado'], string> = {
   pendiente: 'bg-amber-500/15 text-amber-300',
@@ -15,41 +17,21 @@ const ESTILO: Record<Reserva['estado'], string> = {
 
 /** Reservas recibidas desde la carta (plan Ampliado). */
 export default function Reservas({ reservas, whatsapp }: { reservas: Reserva[]; whatsapp: string | null }) {
-  const [pendiente, iniciar] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [abierta, setAbierta] = useState<Reserva | null>(null);
   const hoy = new Date().toISOString().slice(0, 10);
   const proximas = reservas.filter((r) => r.fecha >= hoy);
   const pasadas = reservas.filter((r) => r.fecha < hoy);
 
-  function cambiar(id: string, estado: Reserva['estado']) {
-    setError(null);
-    iniciar(async () => {
-      try { await cambiarEstadoReservaAction(id, estado); }
-      catch (e) { setError(e instanceof Error ? e.message : 'No se pudo actualizar.'); }
-    });
-  }
-
   const tarjeta = (r: Reserva) => (
-    <li key={r.id} className="rounded-2xl border border-white/10 bg-[#1c140b] p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="font-semibold">
-          {fechaCorta(r.fecha)} · {r.hora} · {r.personas} {r.personas === 1 ? 'persona' : 'personas'}
-        </p>
-        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTILO[r.estado]}`}>{r.estado}</span>
-      </div>
-      <p className="mt-1 text-sm">
-        {r.nombre} ·{' '}
-        <a href={`tel:${r.telefono.replace(/\s/g, '')}`} className="text-[#D9531E] hover:underline">{r.telefono}</a>
-      </p>
-      {r.notas && <p className="mt-1 text-sm text-white/50">«{r.notas}»</p>}
-      {r.estado !== 'cancelada' && r.fecha >= hoy && (
-        <div className="mt-3 flex gap-4 text-sm">
-          {r.estado === 'pendiente' && (
-            <button disabled={pendiente} onClick={() => cambiar(r.id, 'confirmada')} className="font-semibold text-green-300 hover:text-green-200">Confirmar</button>
-          )}
-          <button disabled={pendiente} onClick={() => cambiar(r.id, 'cancelada')} className="text-white/50 hover:text-white">Cancelar</button>
+    <li key={r.id}>
+      <button onClick={() => setAbierta(r)} className="w-full rounded-2xl border border-white/10 bg-[#1c140b] p-4 text-left hover:border-white/25">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="font-semibold">{fechaCorta(r.fecha)} · {r.hora} · {r.personas} {r.personas === 1 ? 'persona' : 'personas'}</p>
+          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTILO[r.estado]}`}>{r.estado}</span>
         </div>
-      )}
+        <p className="mt-1 text-sm text-white/70">{r.nombre}</p>
+        <p className="mt-2 text-xs font-semibold text-[#D9531E]">Ver detalles →</p>
+      </button>
     </li>
   );
 
@@ -58,11 +40,11 @@ export default function Reservas({ reservas, whatsapp }: { reservas: Reserva[]; 
       <div>
         <h2 className="text-xl font-bold">Reservas</h2>
         <p className="text-sm text-white/40">
-          Llegan desde el botón «Reservar mesa» de tu carta. Te avisamos por correo
-          {whatsapp ? ' y el cliente puede enviártela también por WhatsApp.' : '. Añade tu WhatsApp en Mi Local para recibirlas también por ahí.'}
+          Llegan desde el botón «Reservar mesa» de tu carta. Ábrelas para confirmar o cancelar: si el cliente dejó su correo, recibe el
+          aviso automáticamente con tu logo y tu nombre.
+          {whatsapp ? '' : ' Añade tu WhatsApp en Mi Local para recibirlas también por ahí.'}
         </p>
       </div>
-      {error && <p className="text-sm text-red-400">{error}</p>}
 
       <section className="space-y-3">
         <h3 className="text-sm font-bold uppercase tracking-wider text-white/50">Próximas ({proximas.length})</h3>
@@ -79,6 +61,95 @@ export default function Reservas({ reservas, whatsapp }: { reservas: Reserva[]; 
           <ul className="space-y-3 opacity-70">{pasadas.map(tarjeta)}</ul>
         </section>
       )}
+
+      {abierta && <FichaReserva reserva={abierta} pasada={abierta.fecha < hoy} onCerrar={() => setAbierta(null)} />}
+    </div>
+  );
+}
+
+function FichaReserva({ reserva, pasada, onCerrar }: { reserva: Reserva; pasada: boolean; onCerrar: () => void }) {
+  const [pendiente, iniciar] = useTransition();
+  const [estado, setEstado] = useState(reserva.estado);
+  const [resultado, setResultado] = useState<{ correoEnviado: boolean; whatsappUrl: string | null; accion: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  function cambiar(nuevo: 'confirmada' | 'cancelada') {
+    setError(null);
+    iniciar(async () => {
+      try {
+        const r = await cambiarEstadoReservaAction(reserva.id, nuevo);
+        setEstado(nuevo);
+        setResultado({ ...r, accion: nuevo });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'No se pudo actualizar.');
+      }
+    });
+  }
+
+  const fila = (etiqueta: string, valor: React.ReactNode) => (
+    <div className="flex justify-between gap-4 border-b border-white/10 py-2.5 text-sm">
+      <span className="text-white/45">{etiqueta}</span>
+      <span className="text-right font-medium">{valor}</span>
+    </div>
+  );
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-4" onClick={onCerrar} role="presentation">
+      <div role="dialog" aria-modal="true" aria-labelledby="ficha-reserva" onClick={(e) => e.stopPropagation()}
+           className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-white/10 bg-[#1c140b] p-6 text-white sm:rounded-3xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 id="ficha-reserva" className="text-lg font-bold">Reserva</h2>
+          <button onClick={onCerrar} aria-label="Cerrar" className="text-white/40 hover:text-white">✕</button>
+        </div>
+
+        <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${ESTILO[estado]}`}>{estado}</span>
+        <div className="mt-3">
+          {fila('Nombre', reserva.nombre)}
+          {fila('Día', fechaLarga(reserva.fecha))}
+          {fila('Hora', reserva.hora)}
+          {fila('Personas', reserva.personas)}
+          {fila('Teléfono', <a href={`tel:${reserva.telefono.replace(/\s/g, '')}`} className="text-[#D9531E] hover:underline">{reserva.telefono}</a>)}
+          {fila('Correo', reserva.email ? <a href={`mailto:${reserva.email}`} className="text-[#D9531E] hover:underline">{reserva.email}</a> : <span className="text-white/35">No indicado</span>)}
+          {reserva.notas && fila('Notas', <span className="whitespace-pre-line">{reserva.notas}</span>)}
+        </div>
+
+        {resultado && (
+          <div className="mt-4 space-y-2 rounded-xl bg-white/5 p-4 text-sm">
+            <p className="font-semibold text-green-300">✓ Reserva {resultado.accion}.</p>
+            <p className="text-white/60">
+              {resultado.correoEnviado
+                ? 'Le hemos enviado un correo al cliente con tu logo y tu nombre.'
+                : 'El cliente no dejó correo: avísale por WhatsApp o llámale.'}
+            </p>
+            {resultado.whatsappUrl && (
+              <a href={resultado.whatsappUrl} target="_blank" rel="noopener" className="block rounded-lg bg-[#25D366] py-2.5 text-center font-bold text-white">
+                Avisar también por WhatsApp
+              </a>
+            )}
+          </div>
+        )}
+
+        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+
+        {!pasada && !resultado && estado !== 'cancelada' && (
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            {estado === 'pendiente' ? (
+              <button disabled={pendiente} onClick={() => cambiar('confirmada')} className="rounded-xl bg-green-600 py-3 font-bold hover:bg-green-500 disabled:opacity-50">
+                {pendiente ? 'Enviando…' : 'Confirmar'}
+              </button>
+            ) : (
+              <span className="rounded-xl bg-white/5 py-3 text-center text-sm text-white/50">Confirmada</span>
+            )}
+            <button disabled={pendiente} onClick={() => confirm('¿Cancelar esta reserva? Se avisará al cliente.') && cambiar('cancelada')}
+                    className="rounded-xl border border-white/15 py-3 font-bold text-white/70 hover:text-white disabled:opacity-50">
+              Cancelar
+            </button>
+          </div>
+        )}
+        <p className="mt-4 text-[11px] leading-relaxed text-white/35">
+          ¿Quieres que la confirmación salga sola por WhatsApp, sin pulsar nada? Pídelo en Soporte: lo configuramos con la API oficial de WhatsApp Business.
+        </p>
+      </div>
     </div>
   );
 }
