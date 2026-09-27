@@ -13,13 +13,19 @@ import MiPlan from './MiPlan';
 import Soporte from './Soporte';
 import MiLocal from './MiLocal';
 import Camarero from './Camarero';
+import Promociones from './Promociones';
+import Reservas from './Reservas';
+import type { Promocion } from '@/lib/promociones';
+import type { Reserva } from '@/lib/reservas';
 import { authClient } from '@/lib/auth-client';
 
-type Pestana = 'carta' | 'local' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
+type Pestana = 'carta' | 'local' | 'promociones' | 'reservas' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
 
 const PESTANAS: { id: Pestana; nombre: string }[] = [
   { id: 'carta', nombre: 'Mi Carta' },
   { id: 'local', nombre: 'Mi Local' },
+  { id: 'promociones', nombre: 'Promociones' },
+  { id: 'reservas', nombre: 'Reservas' },
   { id: 'camarero', nombre: 'Llamadas de mesa' },
   { id: 'qr', nombre: 'Mi QR' },
   { id: 'escaneos', nombre: 'Mis Escaneos' },
@@ -36,6 +42,8 @@ export default function PanelShell({
   escaneos30d,
   solicitudesQr,
   tickets,
+  promociones,
+  reservas,
 }: {
   identidad: { id: string; nombre: string; email: string };
   restaurante: MiRestaurante;
@@ -45,6 +53,8 @@ export default function PanelShell({
   escaneos30d: EscaneosPorDia[];
   solicitudesQr: SolicitudQrFisico[];
   tickets: Ticket[];
+  promociones: Promocion[];
+  reservas: Reserva[];
 }) {
   const [pestana, setPestana] = useState<Pestana>('carta');
 
@@ -75,7 +85,7 @@ export default function PanelShell({
       </header>
 
       <nav className="border-b border-white/10 px-6 flex gap-1 overflow-x-auto">
-        {PESTANAS.filter((p) => p.id !== 'camarero' || restaurante.plan === 'ampliado').map((p) => (
+        {PESTANAS.filter((p) => (p.id !== 'camarero' && p.id !== 'reservas') || restaurante.plan === 'ampliado').map((p) => (
           <button
             key={p.id}
             onClick={() => setPestana(p.id)}
@@ -93,6 +103,8 @@ export default function PanelShell({
       <main className="max-w-4xl mx-auto px-6 py-8">
         {pestana === 'carta' && <MiCarta carta={carta} />}
         {pestana === 'local' && <MiLocal restaurante={restaurante} />}
+        {pestana === 'promociones' && <Promociones promociones={promociones} secciones={carta.secciones} plan={restaurante.plan} />}
+        {pestana === 'reservas' && <Reservas reservas={reservas} whatsapp={restaurante.whatsapp} />}
         {pestana === 'camarero' && <Camarero slug={restaurante.slug} codigoQr={codigoQr} />}
         {pestana === 'qr' && (
           <MiQr codigoQr={codigoQr} restauranteNombre={restaurante.nombre} solicitudes={solicitudesQr} />

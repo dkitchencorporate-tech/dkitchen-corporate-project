@@ -5,6 +5,8 @@ import { listarMiCarta } from '@/lib/menu-propietario';
 import { escaneosDelMes, escaneosUltimos30Dias } from '@/lib/escaneos-cliente';
 import { listarMisSolicitudesQrFisico } from '@/lib/solicitudes-qr-fisico';
 import { listarMisTickets } from '@/lib/tickets';
+import { listarPromociones } from '@/lib/promociones';
+import { listarMisReservas } from '@/lib/reservas';
 import PanelShell from '@/components/panel/PanelShell';
 import { SesionNoValida } from '@/lib/db';
 import { estadoAdmin } from '@/lib/guard-admin';
@@ -45,13 +47,15 @@ export default async function Panel() {
       );
     }
 
-    const [codigoQr, carta, escaneosMes, escaneos30d, solicitudesQr, tickets] = await Promise.all([
+    const [codigoQr, carta, escaneosMes, escaneos30d, solicitudesQr, tickets, promociones, reservas] = await Promise.all([
       obtenerCodigoQr(jwt, restaurante.id),
       listarMiCarta(jwt, restaurante.id),
       escaneosDelMes(jwt, restaurante.id),
       escaneosUltimos30Dias(jwt, restaurante.id),
       listarMisSolicitudesQrFisico(jwt, restaurante.id),
       listarMisTickets(jwt, restaurante.id),
+      listarPromociones(jwt, restaurante.id),
+      restaurante.plan === 'ampliado' ? listarMisReservas(jwt, restaurante.id) : Promise.resolve([]),
     ]);
 
     return (
@@ -64,6 +68,8 @@ export default async function Panel() {
         escaneos30d={escaneos30d}
         solicitudesQr={solicitudesQr}
         tickets={tickets}
+        promociones={promociones}
+        reservas={reservas}
       />
     );
   } catch (error) {

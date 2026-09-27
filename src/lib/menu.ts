@@ -45,6 +45,8 @@ export interface Carta {
   horario?: string | null;
   instagram?: string | null;
   urlResenas?: string | null;
+  /** clasica | visual | express (0023). Ausente en espejos antiguos → clásica. */
+  plantilla?: string;
   secciones: SeccionCarta[];
   /** Platos que no están asignados a ninguna sección. */
   sueltos: PlatoCarta[];
@@ -79,9 +81,10 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       horario: string | null;
       instagram: string | null;
       url_resenas: string | null;
+      plantilla: string;
     }>(
       `SELECT id, slug, nombre, logo_url, plan, color_marca, descripcion, telefono,
-              direccion, horario, instagram, url_resenas
+              direccion, horario, instagram, url_resenas, plantilla
          FROM restaurantes WHERE slug = $1`,
       [slug]
     );
@@ -132,6 +135,7 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       horario: restaurante.horario,
       instagram: restaurante.instagram,
       urlResenas: restaurante.url_resenas,
+      plantilla: restaurante.plantilla,
       secciones: secciones
         .map((s) => ({
           id: s.id,
@@ -166,4 +170,33 @@ export async function resolverCodigo(
     );
     return rows[0] ?? null;
   });
+}
+
+export interface PromocionVigente {
+  id: string;
+  titulo: string;
+  texto: string | null;
+  imagenUrl: string | null;
+  botonTexto: string | null;
+  botonSeccion: string | null;
+}
+
+/**
+ * Promoción que toca mostrar AHORA (fechas, días y horas en hora de Madrid,
+ * mayor prioridad primero). La decide dk.promocion_vigente() (0023): la
+ * tabla de promociones no es legible por dk_anon.
+ */
+export async function obtenerPromocionVigente(slug: string): Promise<PromocionVigente | null> {
+  return comoVisitante(async (c) => {
+    const { rows } = await c.query('SELECT * FROM dk.promocion_vigente($1)', [slug.toLowerCase()]);
+    const p = rows[0];
+    return p
+      ? { id: p.id, titulo: p.titulo, texto: p.texto, imagenUrl: p.imagen_url, botonTexto: p.boton_texto, botonSeccion: p.boton_seccion }
+      : null;
+  });
+}
+
+/** Vista o clic del banner. Anti-inflado por visitante dentro de la función SQL. */
+export async function registrarEventoPromocion(promocionId: string, tipo: 'vista' | 'clic', clave: string): Promise<void> {
+  await comoVisitante((c) => c.query('SELECT dk.registrar_evento_promocion($1, $2, $3)', [promocionId, tipo, clave]));
 }

@@ -18,6 +18,24 @@ import {
 } from '@/lib/menu-propietario';
 import { crearSolicitudQrFisico as dbCrearSolicitudQrFisico, type TipoQrFisico } from '@/lib/solicitudes-qr-fisico';
 import { crearTicket as dbCrearTicket } from '@/lib/tickets';
+import {
+  crearPromocion as dbCrearPromocion,
+  editarPromocion as dbEditarPromocion,
+  eliminarPromocion as dbEliminarPromocion,
+  type DatosPromocion,
+} from '@/lib/promociones';
+import { cambiarEstadoReserva as dbCambiarEstadoReserva } from '@/lib/reservas';
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** WhatsApp en formato internacional sin espacios (+34600111222). España por defecto. */
+function normalizarWhatsapp(valor: string | null | undefined): string | null {
+  const limpio = (valor ?? '').replace(/[s-]/g, '');
+  if (!limpio) return null;
+  const conPrefijo = limpio.startsWith('+') ? limpio : /^[6789][0-9]{8}$/.test(limpio) ? `+34${limpio}` : limpio;
+  if (!/^+?[0-9]{9,15}$/.test(conPrefijo)) throw new Error('El WhatsApp debe ser un número de teléfono válido.');
+  return conPrefijo;
+}
 
 /**
  * Todas las acciones repiten el mismo patrón: obtener el JWT + el
@@ -136,6 +154,8 @@ export async function actualizarLocalAction(d: DatosLocal) {
     horario: limpio(d.horario, 200),
     instagram: limpio(d.instagram?.replace(/^@/, ''), 60),
     urlResenas: urlSegura(d.urlResenas),
+    plantilla: ['clasica', 'visual', 'express'].includes(d.plantilla) ? d.plantilla : 'clasica',
+    whatsapp: normalizarWhatsapp(d.whatsapp),
   });
   revalidatePath('/panel');
   revalidatePath(`/m/${restaurante.slug}`);
@@ -162,4 +182,69 @@ export async function llamadasPendientesAction() {
 export async function atenderLlamadaAction(llamadaId: string) {
   const { jwt } = await requerirSesionYRestaurante();
   await atenderLlamada(jwt, llamadaId);
+}
+
+// ---------------------------------------------------------------------------
+// Promociones (banner de la carta) y reservas — 0023. Los límites por plan
+// (1 promoción activa y sin programación en Básico) los aplica la base; aquí
+// se valida el formato y se traduce el error a un mensaje claro.
+// ---------------------------------------------------------------------------
+
+function mensajeBase(error: unknown): never {
+  const m = error instanceof Error ? error.message : '';
+  // Los RAISE de 0023 ya vienen redactados para el cliente.
+  if (/plan|promoción|Ampliado/.test(m)) throw new Error(m);
+  throw new Error('No se pudo guardar. Revisa los datos e inténtalo de nuevo.');
+}
+
+function limpiarPromocion(d: DatosPromocion): DatosPromocion {
+  const titulo = (d.titulo ?? '').trim().slice(0, 60);
+  if (!titulo) throw new Error('La promoción necesita un título.');
+  const fecha = (v: string | null) => (v && /^d{4}-d{2}-d{2}$/.test(v) ? v : null);
+  const hora = (v: string | null) => (v && /^d{2}:d{2}$/.test(v) ? v : null);
+  const dias = Array.isArray(d.dias) ? [...new Set(d.dias.filter((x) => Number.isInteger(x) && x >= 1 && x <= 7))] : null;
+  return {
+    titulo,
+    texto: limpio(d.texto, 160),
+    imagenUrl: urlSegura(d.imagenUrl),
+    botonTexto: limpio(d.botonTexto, 30),
+    botonSeccion: d.botonSeccion && UUID.test(d.botonSeccion) ? d.botonSeccion : null,
+    inicio: fecha(d.inicio),
+    fin: fecha(d.fin),
+    dias: dias && dias.length > 0 && dias.length < 7 ? dias : null,
+    horaInicio: hora(d.horaInicio),
+    horaFin: hora(d.horaFin),
+    prioridad: Math.min(9, Math.max(0, Math.trunc(Number(d.prioridad) || 0))),
+    activa: Boolean(d.activa),
+  };
+}
+
+export async function crearPromocionAction(d: DatosPromocion) {
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  await dbCrearPromocion(jwt, restaurante.id, limpiarPromocion(d)).catch(mensajeBase);
+  revalidatePath('/panel');
+  revalidatePath(`/m/${restaurante.slug}`);
+}
+
+export async function editarPromocionAction(id: string, d: DatosPromocion) {
+  if (!UUID.test(id)) throw new Error('Promoción no válida.');
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  await dbEditarPromocion(jwt, id, limpiarPromocion(d)).catch(mensajeBase);
+  revalidatePath('/panel');
+  revalidatePath(`/m/${restaurante.slug}`);
+}
+
+export async function eliminarPromocionAction(id: string) {
+  if (!UUID.test(id)) throw new Error('Promoción no válida.');
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  await dbEliminarPromocion(jwt, id);
+  revalidatePath('/panel');
+  revalidatePath(`/m/${restaurante.slug}`);
+}
+
+export async function cambiarEstadoReservaAction(id: string, estado: 'confirmada' | 'cancelada' | 'pendiente') {
+  if (!UUID.test(id) || !['confirmada', 'cancelada', 'pendiente'].includes(estado)) throw new Error('Datos no válidos.');
+  const { jwt } = await requerirSesionYRestaurante();
+  await dbCambiarEstadoReserva(jwt, id, estado);
+  revalidatePath('/panel');
 }
