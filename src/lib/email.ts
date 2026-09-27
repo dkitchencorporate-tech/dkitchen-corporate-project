@@ -45,8 +45,7 @@ export async function enviarCorreoInterno(asunto: string, html: string): Promise
   await crearTransporte().sendMail({
     from: REMITENTE(),
     to: BUZON_INTERNO(),
-    subject: asunto.replace(/[
-]/g, ' ').slice(0, 120),
+    subject: asunto.replace(/[\r\n]/g, ' ').slice(0, 120),
     html,
   });
 }
@@ -58,8 +57,7 @@ export async function enviarCorreoCliente(destinatario: string, asunto: string, 
     from: REMITENTE(),
     replyTo: process.env.SMTP_EMAIL,
     to: destinatario,
-    subject: asunto.replace(/[
-]/g, ' ').slice(0, 120),
+    subject: asunto.replace(/[\r\n]/g, ' ').slice(0, 120),
     html,
   });
 }
