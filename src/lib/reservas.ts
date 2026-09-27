@@ -30,7 +30,9 @@ export async function crearReserva(slug: string, d: DatosReserva): Promise<Resul
     if (r?.resultado === 'ok') {
       return { resultado: 'ok', restaurante: r.restaurante, emailNegocio: r.email_negocio, whatsapp: r.whatsapp };
     }
-    return { resultado: r?.resultado ?? 'datos_invalidos' };
+    const conocidos = ['no_disponible', 'fecha_invalida', 'duplicada', 'datos_invalidos'] as const;
+    const resultado = conocidos.find((k) => k === r?.resultado) ?? 'datos_invalidos';
+    return { resultado };
   });
 }
 

@@ -30,10 +30,10 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** WhatsApp en formato internacional sin espacios (+34600111222). España por defecto. */
 function normalizarWhatsapp(valor: string | null | undefined): string | null {
-  const limpio = (valor ?? '').replace(/[s-]/g, '');
+  const limpio = (valor ?? '').replace(/[\s-]/g, '');
   if (!limpio) return null;
   const conPrefijo = limpio.startsWith('+') ? limpio : /^[6789][0-9]{8}$/.test(limpio) ? `+34${limpio}` : limpio;
-  if (!/^+?[0-9]{9,15}$/.test(conPrefijo)) throw new Error('El WhatsApp debe ser un número de teléfono válido.');
+  if (!/^\+?[0-9]{9,15}$/.test(conPrefijo)) throw new Error('El WhatsApp debe ser un número de teléfono válido.');
   return conPrefijo;
 }
 
@@ -200,8 +200,8 @@ function mensajeBase(error: unknown): never {
 function limpiarPromocion(d: DatosPromocion): DatosPromocion {
   const titulo = (d.titulo ?? '').trim().slice(0, 60);
   if (!titulo) throw new Error('La promoción necesita un título.');
-  const fecha = (v: string | null) => (v && /^d{4}-d{2}-d{2}$/.test(v) ? v : null);
-  const hora = (v: string | null) => (v && /^d{2}:d{2}$/.test(v) ? v : null);
+  const fecha = (v: string | null) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
+  const hora = (v: string | null) => (v && /^\d{2}:\d{2}$/.test(v) ? v : null);
   const dias = Array.isArray(d.dias) ? [...new Set(d.dias.filter((x) => Number.isInteger(x) && x >= 1 && x <= 7))] : null;
   return {
     titulo,

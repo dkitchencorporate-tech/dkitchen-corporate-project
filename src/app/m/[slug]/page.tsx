@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { CSSProperties } from 'react';
 import { notFound } from 'next/navigation';
 
 import { type Carta, type PlatoCarta, type SeccionCarta, type PromocionVigente, obtenerPromocionVigente } from '@/lib/menu';
@@ -86,7 +87,7 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
   const ancho = plantilla === 'visual' ? 'max-w-3xl' : 'max-w-2xl';
 
   return (
-    <main className="min-h-screen bg-[#fbfaf8] text-[#1a1a1a]" style={{ ['--marca' as string]: color }}>
+    <main className="min-h-screen bg-[#fbfaf8] text-[#1a1a1a]" style={{ '--marca': color } as CSSProperties}>
       {plantilla === 'visual' ? (
         <CabeceraVisual carta={carta} foto={fotoPortada} />
       ) : plantilla === 'express' ? (
