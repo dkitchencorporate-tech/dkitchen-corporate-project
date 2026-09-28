@@ -1,53 +1,87 @@
 import type { Metadata } from 'next';
-import RutaSelectorDarkKitchen from '@/components/RutaSelectorDarkKitchen';
-import SiguientePeldano from '@/components/sections/SiguientePeldano';
-import Hero3DLazy from '@/components/motion/Hero3DLazy';
+import Link from 'next/link';
+import { HeroPagina, Titulo, Dolores, Faq, Cierre } from '@/components/dk/Bloques';
+import { Marquesina, Contador, TarjetaTilt } from '@/components/dk/Movimiento';
+import Aparecer from '@/components/qr-landing/Aparecer';
+import { CocinaMultimarca } from '@/components/dk/PiezasProductos';
+import { MARCAS } from '@/lib/marcas-data';
 
+/** Dark Kitchen multimarca — rediseño 29/09/2026. Palabra clave: dark kitchen multimarca / marcas virtuales. */
 export const metadata: Metadata = {
-  title: 'Dark Kitchen Enterprise | DKitchen',
-  description:
-    'Exprime la capacidad ociosa de tus fogones montando marcas virtuales a domicilio: ingeniería de procesos, fichas técnicas, KDS multimarca y enrutamiento de flotas.',
+  title: 'Dark kitchen multimarca y marcas virtuales llave en mano · DKitchen',
+  description: 'Opera hasta 7 marcas virtuales desde tu cocina con recetas, proveedores y procesos ya probados, pedidos propios sin comisión y una sola pantalla de cocina. Inversión desde 3.000 €.',
   alternates: { canonical: 'https://dkitchencorporate.es/dark-kitchen' },
 };
 
+const WA = 'https://wa.me/34622652659?text=Hola,%20quiero%20solicitar%20la%20entrevista%20de%20admisi%C3%B3n%20para%20Dark%20Kitchen.';
+
 export default function PaginaDarkKitchen() {
   return (
-    <div>
-      {/* TRANSICIÓN DE DOLOR AL MODELO DARK KITCHEN */}
-      <section className="pt-28 md:pt-32 pb-20 bg-[#171008] text-white relative overflow-hidden border-b border-white/10">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#D9531E] rounded-full blur-[120px] opacity-20 pointer-events-none"></div>
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-orange-600 rounded-full blur-[150px] opacity-10 pointer-events-none"></div>
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+    <div className="bg-white text-[#17191E]">
+      <HeroPagina etiqueta="Dark Kitchen multimarca"
+        titulo="Una cocina. Siete marcas. Cero comisiones."
+        sub="Tu cocina ya está pagada. Te damos marcas virtuales con recetas, proveedores y procesos probados, pedidos propios sin comisión y una sola pantalla que ordena todo."
+        ctas={[{ href: WA, t: 'Solicitar entrevista de admisión' }, { href: '/marcas', t: 'Ver las marcas', secundario: true }]}
+        nota="Solo 2 proyectos por trimestre."
+        visual={<CocinaMultimarca />} />
 
-        <div className="max-w-5xl mx-auto px-8 relative z-10 text-center">
-          <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs font-bold tracking-[0.2em] uppercase mb-8 backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-            El precio de improvisar
+      <Marquesina oscura items={['6 marcas probadas', 'Hasta 7 marcas por cocina', 'Pedidos propios sin comisión', 'Una sola pantalla de cocina', 'Recetas y proveedores cerrados']} />
+
+      <section className="bg-[#F7F7F5] py-24 md:py-32">
+        <div className="mx-auto max-w-6xl px-6 md:px-8">
+          <Titulo etiqueta="El precio de improvisar" texto="Más pedidos con caos es más ruina, no más dinero." sub="Abrir cinco apps de delivery a la vez colapsa los fogones, quema al equipo y se lleva el margen en comisiones." />
+          <div className="mt-14 grid gap-4 md:grid-cols-[1.2fr_1fr]">
+            <Aparecer className="rounded-[28px] bg-[#111317] p-8 text-white md:p-10">
+              <p className="text-sm text-white/60">Si facturas en apps de delivery</p>
+              <p className="font-display mt-1 text-5xl font-semibold"><Contador hasta={10000} sufijo=" €" /></p>
+              <p className="mt-6 text-sm text-white/60">con comisiones del 30 %, pierdes</p>
+              <p className="font-display mt-1 text-5xl font-semibold text-[#E8592A]">−<Contador hasta={3000} sufijo=" €" /></p>
+              <p className="mt-6 text-white/65">En tu propio canal, esa misma venta deja 0 € en comisiones de plataforma.</p>
+            </Aparecer>
+            <Dolores items={[['Fogones colapsados en cada pico.', 'Y el pase se convierte en una guerra.'], ['Recetas que cambian según quién cocina.', 'Y las reseñas lo notan.']]} />
           </div>
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black leading-[1.1] mb-6 text-balance">
-            Si tu sistema es un caos, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D9531E] to-orange-400 border-b-4 border-[#D9531E]/50 pb-1">más clientes significará tu ruina.</span>
-          </h1>
-
-          {/* Elemento 3D del hero (Parte 7, Sección 2.3): cajas apilándose,
-              marcas apilables bajo una sola cocina. */}
-          <Hero3DLazy preset="dark-kitchen" className="w-full h-56 md:h-72 mb-6" />
-
-          <p className="text-lg md:text-2xl text-gray-400 max-w-4xl mx-auto leading-relaxed font-medium text-pretty mb-12">
-            Muchos negocios intentan escalar abriendo canales en 5 apps de delivery a la vez. ¿El resultado? Pierden hasta el 30% de rentabilidad en comisiones, colapsan los fogones y queman al equipo. El verdadero crecimiento exige una infraestructura quirúrgica.
-          </p>
-          <div className="w-px h-24 bg-gradient-to-b from-[#D9531E] to-transparent mx-auto"></div>
         </div>
       </section>
 
-      <RutaSelectorDarkKitchen />
-
-      <section className="py-10 bg-[#FDFCF8] border-t border-gray-100 text-center">
-        <a href="/casos-de-exito" className="text-gray-700 font-black hover:text-[#D9531E] transition-colors">
-          Ver negocios reales que ya usan el sistema →
-        </a>
+      <section className="py-24 md:py-32">
+        <div className="mx-auto max-w-6xl px-6 md:px-8">
+          <Titulo etiqueta="Qué te llevas" texto="Todo lo difícil, ya resuelto." />
+          <div className="mt-14 grid gap-4 md:grid-cols-3">
+            {([['Marcas llave en mano', 'Seis marcas ya operadas en una cocina real: fichas técnicas, proveedores y tiempos. Tu equipo sigue el protocolo y empaqueta.'], ['Pedidos propios', 'Tu propia app de pedidos: el cliente pide en dos toques, el dinero va a tu banco y la base de clientes es tuya.'], ['Una sola pantalla de cocina', 'Todos los pedidos de todas las marcas, ordenados en una pantalla. El chef solo ve qué cocinar y en qué orden.']] as [string, string][]).map(([t, d], i) => (
+              <Aparecer key={t} retraso={i * 0.08}><TarjetaTilt className="h-full rounded-[28px] border border-[#E6E6E2] p-7"><span className="font-display text-sm font-semibold text-[#E8592A]">0{i + 1}</span><p className="mt-3 text-xl font-semibold">{t}</p><p className="mt-2 text-[#6B7079]">{d}</p></TarjetaTilt></Aparecer>
+            ))}
+          </div>
+          <div className="mt-14 flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none]">
+            {MARCAS.map((m) => (
+              <Link key={m.slug} href="/marcas" className="shrink-0 rounded-full border border-[#E6E6E2] px-5 py-3 text-sm font-semibold hover:border-[#17191E]">{m.nombre} <span className="font-normal text-[#9A9EA6]">· {m.concepto}</span></Link>
+            ))}
+          </div>
+        </div>
       </section>
 
-      <SiguientePeldano siguiente="marcas" />
+      <section className="bg-[#111317] py-24 text-white md:py-32">
+        <div className="mx-auto max-w-6xl px-6 md:px-8">
+          <Titulo oscuro etiqueta="Proceso de admisión" texto="No aceptamos todos los proyectos. Y eso te protege." sub="Si los números de tu cocina no garantizan rentabilidad, te lo decimos antes de que gastes un euro." />
+          <ol className="mt-14 grid gap-4 md:grid-cols-3">
+            {([['Evaluación', 'Analizamos tu cocina, tu radio de reparto y tu coste de producto. Si no sale rentable, paramos aquí.'], ['Ingeniería de carta', 'Adaptamos las recetas a tu equipo, diseñamos el flujo de trabajo y elegimos el envase para que llegue perfecto.'], ['Lanzamiento', 'Montamos los pedidos propios, el cobro y la conexión de repartidores con tu pantalla de cocina.']] as [string, string][]).map(([t, d], i) => (
+              <Aparecer key={t} retraso={i * 0.1}><li className="h-full rounded-[28px] border border-white/10 p-7"><p className="font-display text-5xl font-semibold text-[#E8592A]">{i + 1}</p><p className="mt-3 text-xl font-semibold">{t}</p><p className="mt-2 text-white/60">{d}</p></li></Aparecer>
+            ))}
+          </ol>
+          <Aparecer className="mt-10 rounded-[24px] border border-white/10 bg-white/[0.04] p-6 md:flex md:items-center md:justify-between md:p-8">
+            <div><p className="text-sm text-white/60">Inversión</p><p className="font-display text-4xl font-semibold">De 3.000 € a 10.000 €</p><p className="mt-1 text-sm text-white/50">La cifra exacta se cierra en la evaluación. Es un proyecto a medida, no un plan de catálogo.</p></div>
+            <a href={WA} className="mt-6 inline-block rounded-full bg-[#E8592A] px-7 py-4 font-semibold md:mt-0">Solicitar entrevista</a>
+          </Aparecer>
+        </div>
+      </section>
+
+      <Faq preguntas={[
+        ['¿Por qué solo 2 proyectos por trimestre?', 'Es un límite real de capacidad: cada proyecto exige ingeniería de procesos a medida y solo podemos garantizar ese nivel en dos a la vez.'],
+        ['¿Qué pasa si no supero la evaluación?', 'Rechazamos el proyecto antes de que gastes un euro, y te explicamos por qué.'],
+        ['¿Puedo usar mi propia carta?', 'Sí. Las marcas del catálogo aceleran el arranque, pero los procesos y los pedidos propios funcionan igual con tu menú.'],
+        ['¿Tengo que dejar Glovo, Uber Eats o Just Eat?', 'No. Puedes seguir en ellas; tu canal propio es donde no pagas comisión, no el único posible.'],
+      ]} />
+
+      <Cierre titulo="Tu cocina ya está pagada. Hazla vender más." sub="Pide la entrevista de admisión. Si no es rentable para ti, te lo decimos antes de que gastes un euro." cta={{ href: WA, t: 'Solicitar entrevista' }} secundario={{ href: '/casos-de-exito', t: 'Ver casos reales' }} />
     </div>
   );
 }

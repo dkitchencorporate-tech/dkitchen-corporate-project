@@ -119,7 +119,8 @@ export default function PaginaSignature() {
           <Aparecer className="rounded-[32px] border border-white/10 bg-white/[0.05] p-8 backdrop-blur md:p-10">
             <p className="text-sm text-white/60">Entrada</p>
             <p className="font-display text-7xl font-semibold">700 €</p>
-            <p className="mt-2 text-white/70">+ 69 €/mes de mantenimiento</p>
+            <p className="mt-2 text-white/70">o 2 cuotas de 375 € · después 69 €/mes</p>
+            <p className="mt-1 text-sm text-[#7FD1AE]">Los 2 primeros meses de mantenimiento, incluidos</p>
             <ul className="mt-6 space-y-2 text-sm text-white/75">
               {['App con tu marca y dominio', 'Pedidos, cocina, fidelización y cierre fiscal', 'Pack de arranque incluido', 'Soporte en español'].map((x) => <li key={x} className="flex gap-2"><span className="text-[#E8592A]">✓</span>{x}</li>)}
             </ul>
