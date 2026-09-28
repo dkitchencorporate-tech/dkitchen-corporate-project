@@ -69,11 +69,11 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
     <div className="space-y-8">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold">Llamadas de mesa</h2>
+          <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Llamadas de mesa</h2>
           <p className="text-sm text-[#6B7079]">Deja esta pantalla abierta en la barra. Se actualiza sola cada 8 segundos.</p>
         </div>
         {!sonido ? (
-          <button onClick={activarSonido} className="shrink-0 bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-4 py-2 rounded-lg">
+          <button onClick={activarSonido} className="shrink-0 bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-4 py-2 rounded-full">
             🔔 Activar alarma sonora
           </button>
         ) : (
@@ -95,7 +95,7 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
                   {l.motivo === 'cuenta' ? 'Pide la cuenta' : 'Llama al camarero'} · {haceCuanto(l.creadaEn)}
                 </p>
               </div>
-              <button onClick={() => atender(l.id)} className="rounded-lg bg-[#17191E] text-white px-4 py-2 text-sm font-bold">
+              <button onClick={() => atender(l.id)} className="rounded-full bg-[#17191E] text-white px-4 py-2 text-sm font-bold">
                 Atendida
               </button>
             </li>
@@ -104,7 +104,7 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
       )}
 
       <section className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-4">
-        <h3 className="font-bold">QR por mesa</h3>
+        <h3 className="text-lg font-semibold">QR por mesa</h3>
         <p className="text-sm text-[#6B7079]">
           Cada mesa necesita su propio QR para saber quién llama. Descarga uno por mesa e imprímelos.
         </p>

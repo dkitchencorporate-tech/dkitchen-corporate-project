@@ -48,7 +48,7 @@ export default function NuevoCliente() {
     <div className="w-full rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-7">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold">Nuevo cliente</h2>
+          <h2 className="font-display text-xl font-semibold tracking-tight">Nuevo cliente</h2>
           <p className="mt-1 text-sm text-[#6B7079]">Para demos, cortesías o ventas cerradas en persona. El cliente recibe un correo para crear su contraseña.</p>
         </div>
         <button onClick={() => { setAbierto(false); setPaso(1); }} className="text-sm text-[#6B7079]">Cancelar</button>

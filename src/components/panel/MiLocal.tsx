@@ -9,6 +9,7 @@ const campo = 'w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text
 
 const PLANTILLAS = [
   { id: 'clasica', nombre: 'Clásica', para: 'Restaurante, menú del día, cartas largas' },
+  { id: 'editorial', nombre: 'Editorial', para: 'Cocina de autor y vinos' },
   { id: 'visual', nombre: 'Visual', para: 'Gastro, brunch, hamburguesas: la foto vende' },
   { id: 'express', nombre: 'Express', para: 'Bar, cafetería, terraza: rápida y compacta' },
 ];
@@ -122,7 +123,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
     <div className="space-y-8">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold">Mi Local</h2>
+          <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Mi Local</h2>
           <p className="text-sm text-[#6B7079]">Lo que tus clientes ven en la cabecera de la carta.</p>
         </div>
         <a
@@ -140,7 +141,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
           <div className="w-32 shrink-0"><MiniPlantilla tipo={plantillaActual.id} color={d.colorMarca} /></div>
           <div className="min-w-0 space-y-1">
             <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7079]">Tu diseño</p>
-            <h3 className="font-bold">{NIVELES[restaurante.nivelDiseno]?.nombre ?? 'Esencial'} · {plantillaActual.nombre}</h3>
+            <h3 className="text-lg font-semibold">{NIVELES[restaurante.nivelDiseno]?.nombre ?? 'Esencial'} · {plantillaActual.nombre}</h3>
             <p className="text-xs text-[#6B7079]">
               El diseño de tu carta lo prepara DKitchen para que se vea profesional en cualquier móvil. Tú gestionas el contenido: platos,
               fotos, precios, banners y datos del local.
@@ -150,7 +151,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
         {esencial ? (
           <a
             href="/panel?pestana=diseno"
-            className="block w-full rounded-xl border border-[#E8592A]/50 bg-[#E8592A]/10 p-4 text-left hover:bg-[#E8592A]/15"
+            className="block w-full rounded-full border border-[#E8592A]/50 bg-[#E8592A]/10 p-4 text-left hover:bg-[#E8592A]/15"
           >
             <p className="font-semibold">Sube tu carta al diseño de autor</p>
             <p className="text-xs text-[#6B7079]">Portada con tu imagen, categorías con foto, tipografía editorial… y te la dejamos cargada y optimizada. Ver niveles de diseño →</p>
@@ -162,7 +163,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
 
 
       <section className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-5">
-        <h3 className="font-bold">Identidad</h3>
+        <h3 className="text-lg font-semibold">Identidad</h3>
         <SubirImagen valor={d.logoUrl} onCambio={(url) => setD((p) => ({ ...p, logoUrl: url }))} etiqueta="Logo" redonda />
         <div className="grid sm:grid-cols-[1fr_auto] gap-3">
           <label className="space-y-1">
@@ -178,7 +179,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
       </section>
 
       <section className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-4">
-        <h3 className="font-bold">Contacto y horario</h3>
+        <h3 className="text-lg font-semibold">Contacto y horario</h3>
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="space-y-1">
             <span className="text-xs text-[#6B7079]">Teléfono</span>
@@ -201,7 +202,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
 
       <section className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="font-bold">Reservas y Google</h3>
+          <h3 className="text-lg font-semibold">Reservas y Google</h3>
           {!ampliado && <span className="rounded-full bg-[#EDEDEA] px-2 py-0.5 text-[11px] font-semibold text-[#6B7079]">Plan Ampliado</span>}
         </div>
         {ampliado ? (
@@ -251,7 +252,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
         <button
           onClick={guardar}
           disabled={pendiente}
-          className="bg-[#E8592A] hover:bg-[#CF4A1F] disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-lg"
+          className="bg-[#E8592A] hover:bg-[#CF4A1F] disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-full"
         >
           {pendiente ? 'Guardando…' : 'Guardar cambios'}
         </button>

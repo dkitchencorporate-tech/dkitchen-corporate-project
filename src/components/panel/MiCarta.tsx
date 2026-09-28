@@ -35,10 +35,10 @@ export default function MiCarta({
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Mi Carta</h2>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Mi Carta</h2>
         <button
           onClick={() => setPlatoEnEdicion('nuevo')}
-          className="bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors"
+          className="bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-4 py-2 rounded-full transition-colors"
         >
           + Añadir plato
         </button>
@@ -133,7 +133,7 @@ function SeccionCard({
             </button>
           </div>
         ) : (
-          <h3 className="font-bold text-lg">{seccion.nombre}</h3>
+          <h3 className="text-lg font-semibold">{seccion.nombre}</h3>
         )}
 
         {!sinBorrar && !editando && (
@@ -181,7 +181,7 @@ function SeccionCard({
                 )}
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                <span className="font-semibold tabular-nums text-sm">{Number(plato.precio).toFixed(2)}€</span>
+                <span className="font-semibold tabular-nums text-sm">{Number(plato.precio).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
                 <button onClick={() => onEditarPlato(plato)} className="text-[#6B7079] hover:text-[#3F434B] text-sm">
                   Editar
                 </button>
@@ -246,7 +246,7 @@ function FormularioPlato({
   return (
     <div className="bg-white border border-[#E8592A]/40 rounded-2xl p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-bold">{plato ? 'Editar plato' : 'Nuevo plato'}</h3>
+        <h3 className="text-lg font-semibold">{plato ? 'Editar plato' : 'Nuevo plato'}</h3>
         <button onClick={onCerrar} className="text-[#6B7079] hover:text-[#3F434B] text-sm">
           Cancelar
         </button>
@@ -343,7 +343,7 @@ function FormularioPlato({
         <button
           onClick={guardar}
           disabled={pendiente}
-          className="ml-auto bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50"
+          className="ml-auto bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
         >
           {pendiente ? 'Guardando…' : 'Guardar'}
         </button>

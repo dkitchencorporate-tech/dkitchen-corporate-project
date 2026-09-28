@@ -22,7 +22,7 @@ export default function MisEscaneos({
 
   return (
     <div className="space-y-8">
-      <h2 className="text-xl font-bold">Mis Escaneos</h2>
+      <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Mis Escaneos</h2>
 
       <div className="bg-white border border-[#E6E6E2] rounded-2xl p-6">
         <p className="text-[#6B7079] text-sm">Este mes</p>

@@ -51,7 +51,7 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
 
   return (
     <div className="space-y-8">
-      <h2 className="text-xl font-bold">Mi Plan</h2>
+      <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Mi Plan</h2>
 
       <ResumenCuenta restaurante={restaurante} servicios={servicios} precioPlan={actual.precio} nombrePlan={actual.nombre} />
 
@@ -76,7 +76,7 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
               className={`rounded-2xl p-6 border ${id === 'ampliado' ? 'border-[#E8592A]/60 bg-[#E8592A]/5' : 'border-[#E6E6E2] bg-white'}`}
             >
               <div className="flex items-baseline justify-between">
-                <h3 className="font-bold text-lg">{p.nombre}</h3>
+                <h3 className="text-lg font-semibold">{p.nombre}</h3>
                 <p className="font-black text-xl">
                   {p.precio} €<span className="text-sm font-normal text-[#6B7079]">/mes</span>
                 </p>
@@ -94,7 +94,7 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
                 <button
                   onClick={mejorar}
                   disabled={pendiente}
-                  className="mt-5 w-full bg-[#E8592A] hover:bg-[#CF4A1F] disabled:opacity-50 text-white font-bold py-2.5 rounded-lg"
+                  className="mt-5 w-full bg-[#E8592A] hover:bg-[#CF4A1F] disabled:opacity-50 text-white font-bold py-2.5 rounded-full"
                 >
                   {pendiente ? 'Abriendo pago seguro…' : 'Pasar a Ampliado'}
                 </button>

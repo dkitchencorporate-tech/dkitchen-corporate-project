@@ -23,7 +23,7 @@ export default function MiQr({
 }) {
   return (
     <div className="space-y-8">
-      <h2 className="text-xl font-bold">Mi QR</h2>
+      <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Mi QR</h2>
 
       {codigoQr ? (
         <div className="bg-white border border-[#E6E6E2] rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6">
@@ -41,7 +41,7 @@ export default function MiQr({
             <a
               href="/api/mi-qr/imagen"
               download
-              className="inline-block mt-3 bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors"
+              className="inline-block mt-3 bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
             >
               Descargar PNG en alta resolución
             </a>
@@ -55,7 +55,7 @@ export default function MiQr({
 
       {solicitudes.length > 0 && (
         <div>
-          <h3 className="font-bold mb-3">Tus solicitudes de QR físico</h3>
+          <h3 className="mb-3 text-lg font-semibold">Tus solicitudes de QR físico</h3>
           <ul className="space-y-2">
             {solicitudes.map((s) => (
               <li
@@ -71,7 +71,7 @@ export default function MiQr({
                 <div className="text-right">
                   <p className="text-sm text-[#3F434B]">{ETIQUETAS_ESTADO[s.estado] ?? s.estado}</p>
                   {s.precioCentimos != null && (
-                    <p className="text-xs text-[#6B7079]">{(s.precioCentimos / 100).toFixed(2)}€</p>
+                    <p className="text-xs text-[#6B7079]">{(s.precioCentimos / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</p>
                   )}
                 </div>
               </li>
@@ -136,7 +136,7 @@ function FormularioQrFisico() {
 
   return (
     <div className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-4">
-      <h3 className="font-bold">Pide tu QR físico profesional</h3>
+      <h3 className="text-lg font-semibold">Pide tu QR físico profesional</h3>
       <p className="text-[#6B7079] text-sm">
         Todo formato se cotiza antes de fabricar — te escribimos con el presupuesto y solo se produce
         una vez pagado.
@@ -186,7 +186,7 @@ function FormularioQrFisico() {
         <button
           onClick={enviar}
           disabled={pendiente}
-          className="bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50"
+          className="bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
         >
           {pendiente ? 'Enviando…' : 'Pedir presupuesto'}
         </button>

@@ -38,10 +38,10 @@ export default function Soporte({ tickets }: { tickets: Ticket[] }) {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-xl font-bold">Soporte</h2>
+      <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Soporte</h2>
 
       <div className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-3">
-        <h3 className="font-bold">Abrir un ticket</h3>
+        <h3 className="text-lg font-semibold">Abrir un ticket</h3>
         <input
           value={asunto}
           onChange={(e) => setAsunto(e.target.value)}
@@ -60,7 +60,7 @@ export default function Soporte({ tickets }: { tickets: Ticket[] }) {
           <button
             onClick={enviar}
             disabled={pendiente}
-            className="ml-auto bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50"
+            className="ml-auto bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
           >
             {pendiente ? 'Enviando…' : 'Enviar ticket'}
           </button>
@@ -69,7 +69,7 @@ export default function Soporte({ tickets }: { tickets: Ticket[] }) {
 
       {tickets.length > 0 && (
         <div>
-          <h3 className="font-bold mb-3">Tus tickets</h3>
+          <h3 className="mb-3 text-lg font-semibold">Tus tickets</h3>
           <ul className="space-y-3">
             {tickets.map((t) => (
               <li key={t.id} className="bg-white border border-[#E6E6E2] rounded-xl p-4">

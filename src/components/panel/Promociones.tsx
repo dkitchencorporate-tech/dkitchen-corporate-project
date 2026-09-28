@@ -62,7 +62,7 @@ export default function Promociones({
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold">Banners</h2>
+          <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Banners</h2>
           <p className="text-sm text-[#6B7079]">
             Aparecen arriba del todo de tu carta: menú del día, ofertas, eventos… Sube tu banner ya diseñado (o solo texto).
             {ampliado
@@ -73,7 +73,7 @@ export default function Promociones({
         {!editando && (
           <button
             onClick={() => setEditando({ id: null, d: { ...VACIA, activa: activas < (ampliado ? 3 : 1) } })}
-            className="shrink-0 rounded-lg bg-[#E8592A] px-4 py-2 text-sm font-bold hover:bg-[#CF4A1F]"
+            className="shrink-0 rounded-full bg-[#E8592A] px-4 py-2 text-sm font-bold hover:bg-[#CF4A1F]"
           >
             + Nuevo banner
           </button>
@@ -84,7 +84,7 @@ export default function Promociones({
 
       {editando && d && (
         <section className="space-y-4 rounded-2xl border border-[#E8592A]/40 bg-white p-6">
-          <h3 className="font-bold">{editando.id ? 'Editar banner' : 'Nuevo banner'}</h3>
+          <h3 className="text-lg font-semibold">{editando.id ? 'Editar banner' : 'Nuevo banner'}</h3>
           <div className="space-y-1">
             <SubirImagen valor={d.imagenUrl} onCambio={(url) => set('imagenUrl', url)} etiqueta="Imagen del banner" />
             <p className="text-[11px] text-[#6B7079]">Formato horizontal 16:9 (recomendado 1200 × 675 px). Si tu banner ya lleva el texto, deja el título vacío.</p>
@@ -145,7 +145,7 @@ export default function Promociones({
             <input type="checkbox" checked={d.activa} onChange={(e) => set('activa', e.target.checked)} className="accent-[#D9531E]" /> Activa
           </label>
           <div className="flex gap-3">
-            <button onClick={guardar} disabled={pendiente || (!d.titulo?.trim() && !d.imagenUrl)} className="rounded-lg bg-[#E8592A] px-5 py-2 text-sm font-bold disabled:opacity-50">
+            <button onClick={guardar} disabled={pendiente || (!d.titulo?.trim() && !d.imagenUrl)} className="rounded-full bg-[#E8592A] px-5 py-2 text-sm font-bold disabled:opacity-50">
               {pendiente ? 'Guardando…' : 'Guardar'}
             </button>
             <button onClick={() => setEditando(null)} className="text-sm text-[#6B7079] hover:text-[#1B1D22]">Cancelar</button>

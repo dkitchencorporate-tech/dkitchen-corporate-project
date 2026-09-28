@@ -73,7 +73,7 @@ export default function TraductorCarta({ restauranteId, activos, secciones, plat
               ))}
             </div>
           ))}
-          <button disabled={pendiente} onClick={guardarTraducciones} className="rounded-lg bg-[#E8592A] px-5 py-2.5 text-sm font-bold disabled:opacity-50">
+          <button disabled={pendiente} onClick={guardarTraducciones} className="rounded-full bg-[#E8592A] px-5 py-2.5 text-sm font-bold disabled:opacity-50">
             {pendiente ? 'Guardando…' : 'Guardar traducciones'}
           </button>
         </section>

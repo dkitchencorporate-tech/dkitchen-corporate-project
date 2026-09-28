@@ -97,7 +97,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <Link href="/admin-dkitchen/qr" className="text-xs text-[#6B7079] hover:text-[#1B1D22]">← Clientes QR</Link>
-          <h1 className="mt-1 text-2xl font-black">{r.nombre}</h1>
+          <h1 className="font-display mt-1 text-3xl font-semibold tracking-tight md:text-4xl">{r.nombre}</h1>
           <p className="text-sm text-[#6B7079]">
             /{r.slug} · alta {fecha.format(new Date(r.creado_en))} · último acceso{' '}
             {ficha.ultimo_acceso ? fechaHora.format(new Date(ficha.ultimo_acceso)) : 'nunca'}
@@ -130,7 +130,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6 lg:col-span-2">
-          <h2 className="text-lg font-semibold">Escaneos de los últimos 30 días</h2>
+          <h2 className="font-display text-xl font-semibold tracking-tight">Escaneos de los últimos 30 días</h2>
           <div className="mt-4 flex h-32 items-end gap-1" role="img" aria-label={`${total30} escaneos en 30 días`}>
             {ficha.escaneos_30d.map((d) => (
               <div
@@ -144,7 +144,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         </section>
 
         <section className="rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6 space-y-3 text-sm">
-          <h2 className="text-lg font-semibold">Contacto y carta</h2>
+          <h2 className="font-display text-xl font-semibold tracking-tight">Contacto y carta</h2>
           <p>{ficha.contacto ?? '—'}</p>
           {ficha.email && <a href={`mailto:${ficha.email}`} className="block text-[#E8592A] hover:underline">{ficha.email}</a>}
           <p className="text-[#6B7079]">{r.telefono ?? 'Sin teléfono'} · {r.direccion ?? 'Sin dirección'}</p>
@@ -154,12 +154,12 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
       </div>
 
       <section id="acciones" className="scroll-mt-20 rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6">
-        <h2 className="text-lg font-semibold">Acciones</h2>
+        <h2 className="font-display text-xl font-semibold tracking-tight">Acciones</h2>
         <p className="text-xs text-[#6B7079]">Cada acción queda registrada en el historial.</p>
         <div className="mt-4 flex flex-wrap gap-3">
           <form action={regalarTodoAction}>
             <input type="hidden" name="restauranteId" value={r.id} />
-            <button className="rounded-lg bg-[#E8592A] px-4 py-2 text-sm font-bold hover:bg-[#CF4A1F]">Darle todo gratis</button>
+            <button className="rounded-full bg-[#E8592A] px-4 py-2 text-sm font-bold hover:bg-[#CF4A1F]">Darle todo gratis</button>
           </form>
           {ficha.platos === 0 && (
             <form action={cartaDemoAction}>
@@ -195,7 +195,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
 
       <section id="enlace" className="scroll-mt-20 rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6 space-y-5">
         <div>
-          <h2 className="text-lg font-semibold">Enlace de pago a medida</h2>
+          <h2 className="font-display text-xl font-semibold tracking-tight">Enlace de pago a medida</h2>
           <p className="text-xs text-[#6B7079]">Plan y/o servicios al precio que decidas. Al pagarlo se activa solo y queda en el historial.</p>
         </div>
         <EnlacesPago restauranteId={r.id} catalogo={catalogo} />
@@ -229,7 +229,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
 
       <section id="servicios" className="scroll-mt-20 rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6 space-y-4">
         <div>
-          <h2 className="text-lg font-semibold">Servicios y módulos</h2>
+          <h2 className="font-display text-xl font-semibold tracking-tight">Servicios y módulos</h2>
           <p className="text-xs text-[#6B7079]">"Demo" activa sin cobro (para enseñar o grabar vídeos). "Regalar" = cortesía comercial. Todo queda en el historial.</p>
         </div>
         <ul className="divide-y divide-[#ECECE8] text-sm">
@@ -290,7 +290,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
       </section>
 
       <section id="diseno" className="scroll-mt-20 rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6">
-        <h2 className="text-lg font-semibold">Diseño de la carta</h2>
+        <h2 className="font-display text-xl font-semibold tracking-tight">Diseño de la carta</h2>
         <p className="text-xs text-[#6B7079]">
           Solo DKitchen lo asigna (el cliente administra contenido). Esencial = incluido · Autor = Setup Experto · Signature = a medida.
         </p>
@@ -316,7 +316,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             <span className="block text-xs text-[#6B7079]">Color (libre)</span>
             <input type="color" name="color" defaultValue={r.color_marca ?? '#D9531E'} className="h-[38px] w-16 rounded-lg border border-[#E6E6E2] bg-white p-1" />
           </label>
-          <button className="rounded-lg bg-[#E8592A] px-4 py-2 font-bold hover:bg-[#CF4A1F]">Aplicar diseño</button>
+          <button className="rounded-full bg-[#E8592A] px-4 py-2 font-bold hover:bg-[#CF4A1F]">Aplicar diseño</button>
         </form>
       </section>
 

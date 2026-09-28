@@ -22,7 +22,7 @@ export default async function SoporteQr() {
   return (
     <div className="p-6 lg:p-10 text-[#1B1D22] space-y-10">
       <div>
-        <h1 className="text-2xl font-black">Soporte QR Menú</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Soporte QR Menú</h1>
         <p className="text-sm text-[#6B7079]">
           {abiertos} ticket{abiertos === 1 ? '' : 's'} sin responder · {pendientes} pedido{pendientes === 1 ? '' : 's'} de QR físico en curso
         </p>
@@ -64,7 +64,7 @@ export default async function SoporteQr() {
                   <label className="flex items-center gap-2 text-xs text-[#6B7079]">
                     <input type="checkbox" name="cerrar" className="accent-[#D9531E]" /> Cerrar el ticket
                   </label>
-                  <button className="rounded-lg bg-[#E8592A] px-4 py-2 text-sm font-bold hover:bg-[#CF4A1F]">Responder</button>
+                  <button className="rounded-full bg-[#E8592A] px-4 py-2 text-sm font-bold hover:bg-[#CF4A1F]">Responder</button>
                 </div>
               </form>
             )}

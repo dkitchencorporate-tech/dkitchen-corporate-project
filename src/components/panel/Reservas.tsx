@@ -38,7 +38,7 @@ export default function Reservas({ reservas, whatsapp }: { reservas: Reserva[]; 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold">Reservas</h2>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Reservas</h2>
         <p className="text-sm text-[#6B7079]">
           Llegan desde el botón «Reservar mesa» de tu carta. Ábrelas para confirmar o cancelar: si el cliente dejó su correo, recibe el
           aviso automáticamente con tu logo y tu nombre.

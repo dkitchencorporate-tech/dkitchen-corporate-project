@@ -37,7 +37,7 @@ export default function Sala({
   return (
     <div className="space-y-8">
       <header>
-        <h2 className="text-xl font-bold">Sala</h2>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Sala</h2>
         <p className="text-sm text-[#6B7079]">Tu local, tu equipo y su trabajo. La carta sigue siendo solo para mirar: aquí se organiza el servicio.</p>
         {aviso && <p className={`mt-2 text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</p>}
       </header>
@@ -46,10 +46,10 @@ export default function Sala({
         <section className="rounded-2xl border border-[#E6E6E2] bg-white p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="font-bold">Plano de tu local</h3>
+              <h3 className="text-lg font-semibold">Plano de tu local</h3>
               <p className="text-sm text-[#6B7079]">{mesas.length} {mesas.length === 1 ? 'mesa' : 'mesas'} · {zonas.length} {zonas.length === 1 ? 'zona' : 'zonas'} · {mesas.filter((m) => m.camareroId).length} con camarero asignado</p>
             </div>
-            <button onClick={() => setEditor(true)} className="rounded-lg bg-[#E8592A] px-4 py-2 text-sm font-bold">{mesas.length ? 'Abrir editor de sala' : 'Dibujar mi sala'}</button>
+            <button onClick={() => setEditor(true)} className="rounded-full bg-[#E8592A] px-4 py-2 text-sm font-bold">{mesas.length ? 'Abrir editor de sala' : 'Dibujar mi sala'}</button>
           </div>
           {zonas.length > 0 && (
             <ul className="mt-4 flex flex-wrap gap-2 text-xs">
@@ -67,12 +67,12 @@ export default function Sala({
 
       {modulos.app && (
         <section className="space-y-4 rounded-2xl border border-[#E6E6E2] bg-white p-5">
-          <h3 className="font-bold">Camareros</h3>
+          <h3 className="text-lg font-semibold">Camareros</h3>
           <p className="text-sm text-[#6B7079]">Cada camarero entra desde su móvil con su enlace personal, sin contraseña. Si deja el equipo, desactívalo y el enlace deja de funcionar.</p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input value={nombreCam} onChange={(e) => setNombreCam(e.target.value)} maxLength={40} placeholder="Nombre del camarero" className={`flex-1 ${campo}`} />
             <button disabled={pendiente || !nombreCam.trim()} onClick={() => accion(async () => { const r = await crearCamareroAction(nombreCam); setEnlace(r.enlace); setNombreCam(''); }, 'Acceso creado.')}
-              className="rounded-lg bg-[#E8592A] px-4 py-2 text-sm font-bold disabled:opacity-50">Crear acceso</button>
+              className="rounded-full bg-[#E8592A] px-4 py-2 text-sm font-bold disabled:opacity-50">Crear acceso</button>
           </div>
           {enlace && (
             <div className="space-y-2 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-sm">
@@ -134,7 +134,7 @@ export default function Sala({
 
       {modulos.tpv && (
         <section className="space-y-2 rounded-2xl border border-[#E6E6E2] bg-white p-5">
-          <h3 className="font-bold">Conexión con tu TPV</h3>
+          <h3 className="text-lg font-semibold">Conexión con tu TPV</h3>
           {tpv ? (
             <p className="text-sm text-[#3F434B]">
               Conectado con <strong>{tpv.proveedor}</strong> · {tpv.activa ? '🟢 activa' : '⚪ pausada'}

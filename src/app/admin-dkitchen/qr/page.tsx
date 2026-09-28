@@ -45,7 +45,7 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
     <div className="px-4 py-6 sm:p-6 lg:p-10 text-[#1B1D22] space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black">Clientes QR Menú</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Clientes QR Menú</h1>
           <p className="text-sm text-[#6B7079]">Datos reales de la base. Se actualiza en cada visita.</p>
         </div>
         <NuevoCliente />

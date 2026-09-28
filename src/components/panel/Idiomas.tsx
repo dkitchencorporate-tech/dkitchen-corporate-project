@@ -30,7 +30,7 @@ export default function Idiomas({ activos, platos, traducciones }: {
   return (
     <div className="space-y-6">
       <header>
-        <h2 className="text-xl font-bold">Idiomas de tu carta</h2>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Idiomas de tu carta</h2>
         <p className="text-sm text-[#6B7079]">Elige hasta 3 idiomas. <strong className="text-[#3F434B]">Nosotros traducimos tu carta</strong> (nombres, descripciones y secciones) y tus clientes verán un selector de idioma. Si cambias un plato, lo actualizamos.</p>
         {aviso && <p className={`mt-2 text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</p>}
       </header>
@@ -51,7 +51,7 @@ export default function Idiomas({ activos, platos, traducciones }: {
 
       {activos.length > 0 && (
         <section className="space-y-3 rounded-2xl border border-[#E6E6E2] bg-white p-5">
-          <h3 className="font-bold">Estado de la traducción</h3>
+          <h3 className="text-lg font-semibold">Estado de la traducción</h3>
           {activos.map((i) => {
             const n = hechos(i), total = platos.length, pct = total ? Math.round((n / total) * 100) : 100;
             return (

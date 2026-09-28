@@ -43,7 +43,7 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
     tiene(s) ? (
       <span className="block rounded-xl bg-green-500/15 py-3 text-center text-sm font-bold text-green-700">✓ Activo en tu cuenta</span>
     ) : (
-      <button disabled={pendiente} onClick={() => comprar(s)} className="w-full rounded-xl bg-[#E8592A] py-3 text-sm font-bold hover:bg-[#CF4A1F] disabled:opacity-50">
+      <button disabled={pendiente} onClick={() => comprar(s)} className="w-full rounded-full bg-[#E8592A] py-3 text-sm font-bold hover:bg-[#CF4A1F] disabled:opacity-50">
         {pendiente ? 'Abriendo pago seguro…' : texto ?? 'Activar'}
       </button>
     );
@@ -57,7 +57,7 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
   return (
     <div className="space-y-12">
       <header>
-        <h2 className="text-2xl font-bold">{vista === 'diseno' ? 'Diseño de tu carta' : 'Módulos para tu local'}</h2>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">{vista === 'diseno' ? 'Diseño de tu carta' : 'Módulos para tu local'}</h2>
         <p className="mt-1 text-sm text-[#6B7079]">{vista === 'diseno'
           ? 'Tú gestionas platos, precios y fotos. El diseño lo prepara DKitchen.'
           : 'Herramientas que se suman a tu carta QR, una a una. Activas solo lo que necesitas.'}</p>
@@ -70,7 +70,7 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
       <section className="space-y-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-[#E8592A]">Niveles de diseño</p>
-          <h3 className="mt-1 text-xl font-bold">Tu carta es tu escaparate. Que se vea a la altura de tu cocina.</h3>
+          <h3 className="font-display mt-1 text-2xl font-semibold tracking-tight">Tu carta es tu escaparate. Que se vea a la altura de tu cocina.</h3>
           <p className="mt-1 text-sm text-[#6B7079]">Tú gestionas platos, precios y fotos. El diseño lo prepara un experto de DKitchen, una vez, bien hecho.</p>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
@@ -100,7 +100,7 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
               <div className="space-y-2">
                 <a href="/base-operativa" target="_blank" rel="noopener" className="block rounded-xl border border-[#D6D6D1] py-2.5 text-center text-sm font-semibold hover:border-[#D6D6D1]">Ver cómo es DKitchen Signature</a>
                 <a href={WHATSAPP_DK} target="_blank" rel="noopener" className="block rounded-xl border border-[#D6D6D1] py-2.5 text-center text-sm font-semibold hover:border-[#D6D6D1]">Hablar directamente con nosotros</a>
-                <ActivarNucleoOperativoBoton className="w-full rounded-xl bg-[#17191E] py-3 text-sm font-bold text-white" />
+                <ActivarNucleoOperativoBoton className="w-full rounded-full bg-[#17191E] py-3 text-sm font-bold text-white" />
               </div>
             } />
         </div>
@@ -121,7 +121,7 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
       <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#E6E6E2] bg-white p-6">
         <div className="max-w-md">
           <p className="text-xs font-bold uppercase tracking-widest text-[#E8592A]">Carta en idiomas</p>
-          <h3 className="mt-1 text-lg font-bold">🇬🇧 🇫🇷 🇩🇪 Que tus clientes extranjeros lean tu carta en su idioma</h3>
+          <h3 className="font-display mt-1 text-xl font-semibold tracking-tight">🇬🇧 🇫🇷 🇩🇪 Que tus clientes extranjeros lean tu carta en su idioma</h3>
           <p className="mt-1 text-sm text-[#6B7079]">Eliges hasta 3 idiomas y <strong className="text-[#3F434B]">nosotros traducimos tu carta</strong>. Tus clientes ven un selector de idioma. Pago único, sin cuota.</p>
         </div>
         <div className="w-full sm:w-56"><Boton s="idiomas" texto={`Activar · ${euros(precio('idiomas')?.precioCentimos ?? 2900)}`} /></div>
@@ -131,7 +131,7 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
       <section className="space-y-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-[#E8592A]">Módulos de Sala</p>
-          <h3 className="mt-1 text-xl font-bold">Organiza el servicio en sala sin cambiar tu TPV</h3>
+          <h3 className="font-display mt-1 text-2xl font-semibold tracking-tight">Organiza el servicio en sala sin cambiar tu TPV</h3>
           <p className="mt-1 text-sm text-[#6B7079]">
             Tu carta sigue siendo para mirar: el cliente nunca pide desde el móvil. Estos módulos ayudan a tu equipo.
             {!ampliado && ' Requieren el plan Ampliado.'}
@@ -244,7 +244,7 @@ function MapaNucleo({ credito, nModulos, precioTodo }: { credito: { euros: strin
     <section className="space-y-4">
       <div>
         <p className="text-xs font-bold uppercase tracking-widest text-[#E8592A]">El siguiente nivel</p>
-        <h3 className="mt-1 text-xl font-bold">QR Menú y DKitchen Signature no son lo mismo</h3>
+        <h3 className="font-display mt-1 text-2xl font-semibold tracking-tight">QR Menú y DKitchen Signature no son lo mismo</h3>
         <p className="mt-1 text-sm text-[#6B7079]">
           El QR es una herramienta para tu carta y tu sala. DKitchen Signature (nuestro Núcleo Operativo) es el sistema que gestiona todo tu restaurante, y es tuyo.
         </p>
@@ -274,7 +274,7 @@ function MapaNucleo({ credito, nModulos, precioTodo }: { credito: { euros: strin
         ) : (
           <p className="mt-2 text-sm text-[#6B7079]">Si activas módulos de sala, durante 6 meses lo que pagues se descuenta de la entrada de Signature (hasta la mitad).</p>
         )}
-        <a href="/panel?pestana=soporte&asunto=Quiero%20conocer%20DKitchen%20Signature" className="mt-4 inline-block rounded-xl bg-[#17191E] px-5 py-2.5 text-sm font-bold text-white">
+        <a href="/panel?pestana=soporte&asunto=Quiero%20conocer%20DKitchen%20Signature" className="mt-4 inline-block rounded-full bg-[#17191E] px-5 py-2.5 text-sm font-bold text-white">
           Quiero conocer DKitchen Signature
         </a>
       </div>
