@@ -9,6 +9,7 @@ import ComparativaQr from '@/components/qr-landing/ComparativaQr';
 import PreguntasQr, { PREGUNTAS } from '@/components/qr-landing/PreguntasQr';
 import { LineaServicio } from '@/components/qr-landing/Extras';
 import { Marquesina } from '@/components/dk/Movimiento';
+import VistaExplosionada from '@/components/dk/VistaExplosionada';
 
 export const metadata: Metadata = {
   title: 'Carta digital QR para restaurantes | Primer mes por 1 € · DKitchen',
@@ -61,6 +62,7 @@ export default function PaginaQr() {
       <HeroQr />
       <Marquesina oscura items={['Tu carta cambia, tu QR nunca', 'Alérgenos según la UE', 'Cuatro estilos propios', 'Reservas y llamada al camarero', 'Primer mes por 1 €', 'Sin permanencia']} />
       <ProblemaQr />
+      <VistaExplosionada />
       <ComoFuncionaQr />
       <PruebaloQr />
       <SalaViva />

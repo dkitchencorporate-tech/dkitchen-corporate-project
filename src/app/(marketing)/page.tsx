@@ -4,6 +4,7 @@ import Link from 'next/link';
 import DispositivoVivo from '@/components/dk/DispositivoVivo';
 import { FondoVivo, Marquesina, Contador, TextoRevelado, BotonMagnetico, TarjetaTilt } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
+import VistaExplosionada from '@/components/dk/VistaExplosionada';
 
 /**
  * Portada v2 (29/09/2026): fondo vivo, dispositivo con la carta real, cinta de
@@ -49,6 +50,8 @@ export default function Home() {
       </section>
 
       <Marquesina oscura items={['Sin comisiones por pedido', 'Cambios al momento', 'Alérgenos según la UE', 'Tu marca, tus clientes', 'Primer mes por 1 €', 'Sin permanencia']} />
+
+      <VistaExplosionada />
 
       <section className="bg-[#F7F7F5] py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
