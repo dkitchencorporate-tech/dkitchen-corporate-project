@@ -17,6 +17,8 @@ export const MODELOS = [
     puntos: ['Club VIP con puntos por pedido', 'Carta con fotos y pedido directo', 'Se instala como una app'] },
   { id: 'wingboss', nombre: 'Wing Boss', tipo: 'App de pedidos · alitas', color: '#E0162B', url: 'https://wingboss.dkitchencorporate.es/',
     puntos: ['Combos y packs para compartir', 'Club VIP con alitas y postres gratis', 'Marca oscura, pensada para la noche'] },
+  { id: 'bokadipan', nombre: 'Bokadipan', tipo: 'App de pedidos · bocadillos de autor', color: '#C9922E', url: 'https://bokadipan.dkitchencorporate.es/',
+    puntos: ['Hecha en menos de 3 horas sobre nuestra base', 'Club Bokadi con puntos y premios', 'Carta en dos idiomas y pedido directo'] },
 ];
 const wa = (t: string) => `https://wa.me/34622652659?text=${encodeURIComponent(`Hola, quiero un modelo como ${t} para mi negocio.`)}`;
 
@@ -45,7 +47,7 @@ export function ModelosReales({ oscuro = true }: { oscuro?: boolean }) {
   const m = MODELOS.find((x) => x.id === abierto);
   return (
     <>
-      <div className="mt-14 grid gap-10 md:grid-cols-2">
+      <div className="mt-14 grid gap-10 md:grid-cols-2 md:[&>*:last-child:nth-child(odd)]:col-span-2 md:[&>*:last-child:nth-child(odd)]:mx-auto md:[&>*:last-child:nth-child(odd)]:max-w-[calc(50%-1.25rem)]">
         {MODELOS.map((x, i) => (
           <motion.div key={x.id} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.7, delay: i * 0.1, ease: CURVA }}
             className={`grid items-center gap-6 rounded-[32px] p-6 sm:grid-cols-[220px_1fr] md:p-8 ${oscuro ? 'border border-white/10 bg-white/[0.04] text-white' : 'border border-[#E6E6E2] bg-white text-[#17191E]'}`}>
@@ -99,7 +101,7 @@ export function CartasAutorDemo() {
         <motion.div key={c.id} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.7, delay: i * 0.1, ease: CURVA }} className="text-center">
           <div className="mx-auto w-[250px]">
             <Marco>
-              {cargar ? <iframe src={`/demo/carta?plantilla=${c.id}&embed=1`} title={`Carta de autor: ${c.nombre}`} loading="lazy" className="absolute inset-0 h-full w-full border-0" /> : <div className="absolute inset-0 animate-pulse bg-white/5" />}
+              {cargar ? <iframe src={`/demo/carta?plantilla=${c.id}&embed=1`} title={`Carta de autor: ${c.nombre}`} loading="lazy" style={{ width: 390, height: 845, transform: `scale(${226 / 390})`, transformOrigin: '0 0' }} className="absolute left-0 top-0 border-0" /> : <div className="absolute inset-0 animate-pulse bg-white/5" />}
             </Marco>
           </div>
           <p className="font-display mt-5 text-2xl font-semibold">{c.nombre}</p>
@@ -110,6 +112,13 @@ export function CartasAutorDemo() {
           </div>
         </motion.div>
       ))}
+      <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.4 }} transition={{ duration: 0.7, ease: CURVA }}
+        className="rounded-[32px] border border-white/10 bg-white/[0.04] p-8 text-center md:col-span-3 md:p-10">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#E8592A]">¿Tienes otra idea?</p>
+        <p className="font-display mx-auto mt-3 max-w-2xl text-3xl font-semibold leading-tight md:text-4xl">Diseñamos tu carta desde cero, con tu marca.</p>
+        <p className="mx-auto mt-3 max-w-xl text-[15px] text-white/60">Si ninguno de estos estilos es tu local, cuéntanos cómo lo imaginas: colores, tipografía, fotos, ambiente. La creamos a medida y la ves antes de publicarla.</p>
+        <a href={`https://wa.me/34622652659?text=${encodeURIComponent('Hola, quiero mi propio diseño de autor para la carta de mi local.')}`} className="mt-6 inline-block rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-[#17191E] hover:bg-white/90">Quiero mi propio diseño de autor</a>
+      </motion.div>
     </motion.div>
   );
 }

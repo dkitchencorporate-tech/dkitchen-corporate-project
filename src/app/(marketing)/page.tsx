@@ -83,7 +83,7 @@ export default function Home() {
                   {e.destacado && <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(232,89,42,.45),transparent)] animate-[deriva2_16s_ease-in-out_infinite_alternate]" />}
                   <span className={`relative font-display text-2xl font-semibold ${e.destacado ? 'text-[#E8592A]' : 'text-[#9A9EA6]'}`}>{e.n}</span>
                   <div className="relative">
-                    <h3 className="font-display text-3xl font-semibold">{e.t}{e.destacado && <span className="ml-3 rounded-full bg-[#E8592A] px-3 py-1 align-middle font-sans text-xs font-semibold uppercase tracking-[0.16em] text-white">Empieza aquí</span>}</h3>
+                    <h3 className="font-display text-3xl font-semibold">{e.t}{e.destacado && <span className="ml-3 inline-block whitespace-nowrap rounded-full bg-[#E8592A] px-3 py-1 align-middle font-sans text-xs font-semibold uppercase tracking-[0.16em] text-white">Empieza aquí</span>}</h3>
                     <p className={`mt-2 max-w-2xl ${e.destacado ? 'text-white/65' : 'text-[#6B7079]'}`}>{e.d}</p>
                   </div>
                   <div className="relative md:text-right">

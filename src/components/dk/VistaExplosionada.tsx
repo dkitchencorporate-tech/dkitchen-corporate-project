@@ -55,6 +55,7 @@ export default function VistaExplosionada() {
   const escMovil = useTransform(p, [0, 0.12, 0.8, 0.95], movil ? [0.85, 0.5, 0.5, 0.8] : [1, 0.82, 0.82, 1]);
   const giro = useTransform(p, [0, 0.12, 0.8, 0.95], [18, 0, 0, 0]);
   const publicada = useTransform(p, [0.9, 0.97], [0, 1]);
+  const aviso = useTransform(p, [0, 0.03, 0.8, 0.86], [1, 1, 1, 0]);
   const [fase, setFase] = useState(0);
   useMotionValueEvent(p, 'change', (v) => setFase(v < 0.12 ? 0 : v < 0.8 ? 1 : 2));
   const titulos = ['Una carta, seis superpoderes.', 'Todo lo que lleva tu carta.', 'Y todo cabe en un QR.'];
@@ -68,6 +69,10 @@ export default function VistaExplosionada() {
           <motion.h2 key={fase} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
             className="font-display mt-3 text-3xl font-semibold leading-[1.05] text-[#17191E] md:text-5xl">{titulos[fase]}</motion.h2>
         </div>
+        <motion.div style={{ opacity: aviso }} aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-6 z-30 flex flex-col items-center gap-1 text-[#6B7079] md:bottom-8">
+          <span className="rounded-full border border-[#E6E6E2] bg-white/90 px-4 py-1.5 text-xs font-semibold shadow-sm backdrop-blur">Sigue bajando</span>
+          <svg viewBox="0 0 24 24" className="h-6 w-6 animate-bounce text-[#E8592A]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
+        </motion.div>
         <div className="relative flex w-full flex-1 items-center justify-center">
           <motion.div style={{ scale: escMovil, rotateX: giro, transformPerspective: 1400 }} className="relative z-10 w-[230px] md:w-[270px]">
             <div className="rounded-[46px] p-[3px] shadow-[0_50px_100px_-20px_rgba(23,25,30,.45)] [background:linear-gradient(145deg,#6b707b,#1b1d22_35%,#0b0c0f_70%,#4a4e57)]">

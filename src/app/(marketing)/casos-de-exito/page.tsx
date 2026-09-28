@@ -60,10 +60,11 @@ export default function CasosDeExito() {
 
       <section className="bg-[#F7F7F5] py-20">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <Aparecer className="rounded-[28px] border border-dashed border-[#D6D6D1] p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A9EA6]">Próximamente</p>
-            <p className="font-display mt-2 text-3xl font-semibold">Seven Food Fries</p>
-            <p className="mt-2 max-w-2xl text-[#6B7079]">Publicaremos su caso en cuanto el cliente autorice qué datos de su negocio se pueden mostrar. No antes.</p>
+          <Aparecer className="rounded-[28px] border border-[#E6E6E2] bg-white p-8 md:p-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#E8592A]">Velocidad real</p>
+            <p className="font-display mt-2 text-3xl font-semibold md:text-4xl">Bokadipan: una app completa en menos de 3 horas.</p>
+            <p className="mt-3 max-w-2xl text-[#6B7079]">Carta, club de puntos, idiomas y pedido directo, montados sobre la misma base que Seven Food Fries y Wing Boss. Tu app no empieza de cero: empieza de algo que ya funciona.</p>
+            <a href="https://bokadipan.dkitchencorporate.es/" target="_blank" rel="noopener" className="mt-5 inline-flex items-center gap-2 font-semibold">Ver Bokadipan en vivo <span className="text-[#E8592A]">↗</span></a>
           </Aparecer>
         </div>
       </section>
