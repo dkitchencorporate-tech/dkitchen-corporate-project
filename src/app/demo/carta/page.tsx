@@ -247,7 +247,7 @@ function ListTapasLayout({ menu, categories, lang, t, activeDiner, setActiveDine
                         </div>
                         {item.isChefRecommendation && (
                           <span className="inline-block text-[9px] font-black tracking-widest bg-[#e85d04]/10 text-[#e85d04] px-2 py-0.5 rounded-full mb-2 uppercase">
-                            ⭐ {t.chef_rec}
+                            {t.chef_rec}
                           </span>
                         )}
                         {item.allergens.length > 0 && (
@@ -589,7 +589,7 @@ function GridBurgerLayout({ menu, categories, lang, t, activeDiner, setActiveDin
               </>
             ) : (
               <div className="px-6 py-4 bg-white/10 text-white font-black rounded-2xl border border-white/20 uppercase tracking-widest flex items-center justify-center gap-2 w-full sm:w-auto animate-fade-in">
-                <span>🔥</span> ¡Bienvenido al Sindicato!
+                ¡Bienvenido al Sindicato!
               </div>
             )}
           </div>
@@ -609,7 +609,10 @@ function CartaContent() {
   const tableParam = searchParams.get('table') || 'Demo';
 
   const [lang, setLang] = useState<LanguageCode>('es');
-  const [activeTemplate, setActiveTemplate] = useState<TemplateType>('sushi');
+  // ?plantilla=sushi|tapas|burger abre un diseño concreto; ?embed=1 oculta los controles de DKitchen (para incrustarla en la web)
+  const plantillaParam = searchParams.get('plantilla');
+  const incrustada = searchParams.get('embed') === '1';
+  const [activeTemplate, setActiveTemplate] = useState<TemplateType>(plantillaParam === 'tapas' || plantillaParam === 'burger' ? plantillaParam : 'sushi');
   const [activeDiner, setActiveDiner] = useState<number>(1);
   const [cart, setCart] = useState<CartItem[]>([]);
   
@@ -721,21 +724,25 @@ function CartaContent() {
             </button>
           )}
 
-          <div className="flex gap-2 w-full shadow-2xl rounded-2xl overflow-hidden border border-white/10 bg-black/90 backdrop-blur-xl p-1.5">
-            <button onClick={() => setIsSwitcherModalOpen(true)} className="flex-1 bg-transparent text-white px-4 py-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10">
-              🎨 {t.sales_cta_1}
+          {!incrustada && (
+          <div className="flex w-full gap-1.5 rounded-full border border-white/10 bg-[#17191E]/90 p-1.5 shadow-[0_12px_40px_rgba(0,0,0,.45)] backdrop-blur-xl" style={{ fontFamily: 'var(--fuente-display), Inter, sans-serif' }}>
+            <button onClick={() => setIsSwitcherModalOpen(true)} className="flex-1 rounded-full px-4 py-3 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
+              Cambiar diseño
             </button>
-            <button onClick={() => setIsSalesModalOpen(true)} className="flex-1 bg-[#10b981] hover:bg-[#059669] text-black px-4 py-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest">
-              💰 {t.sales_cta_2}
+            <button onClick={() => setIsSalesModalOpen(true)} className="flex-1 rounded-full bg-[#E8592A] px-4 py-3 text-sm font-semibold text-white hover:bg-[#CF4A1F]">
+              Quiero esta carta
             </button>
           </div>
+          )}
 
           {/* GLOBAL BACK BUTTON (MOVED HERE) */}
-          <div className="flex justify-center mt-2 pointer-events-auto">
-            <a href="/" className="text-white/70 hover:text-white text-[10px] uppercase tracking-widest font-bold flex items-center gap-2 transition-colors py-2 px-4 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 hover:bg-black/60">
-              {t.back_to_home}
+          {!incrustada && (
+          <div className="flex justify-center pointer-events-auto">
+            <a href="/qr" className="rounded-full border border-white/10 bg-[#17191E]/70 px-4 py-2 text-xs font-medium text-white/70 backdrop-blur-sm hover:text-white">
+              Volver a DKitchen
             </a>
           </div>
+          )}
         </div>
       </div>
 
@@ -743,17 +750,17 @@ function CartaContent() {
       {isSwitcherModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsSwitcherModalOpen(false)}></div>
-          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin bg-[#0a0a0a] border border-white/10 rounded-3xl p-6 md:p-10 shadow-2xl animate-fade-in">
-            <h3 className="font-serif text-3xl text-white mb-8 text-center">{t.select_design}</h3>
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin bg-[#17191E] border border-white/10 rounded-[28px] p-6 md:p-10 shadow-2xl animate-fade-in" style={{ fontFamily: 'var(--fuente-display), Inter, sans-serif' }}>
+            <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Tres cartas de autor</p><h3 className="mt-3 mb-8 text-center text-3xl font-semibold text-white">{t.select_design}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <button onClick={() => { setActiveTemplate('sushi'); setIsSwitcherModalOpen(false); }} className={`p-8 rounded-2xl border transition-all ${activeTemplate === 'sushi' ? 'bg-amber-500/10 border-amber-500' : 'bg-black border-white/10 hover:border-white/30'}`}>
-                <div className="text-5xl mb-6">🍣</div><div className="font-serif text-white text-xl mb-2">Alta Cocina</div><div className="text-sm text-gray-500">Diseño Editorial y Minimalista.</div>
+              <button onClick={() => { setActiveTemplate('sushi'); setIsSwitcherModalOpen(false); }} className={`p-8 text-left rounded-2xl border transition-all ${activeTemplate === 'sushi' ? 'border-[#E8592A] bg-[#E8592A]/10' : 'border-white/10 hover:border-white/30'}`}>
+                <div className="font-serif text-white text-2xl mb-2">Alta Cocina</div><div className="text-sm text-gray-500">Diseño Editorial y Minimalista.</div>
               </button>
-              <button onClick={() => { setActiveTemplate('tapas'); setIsSwitcherModalOpen(false); }} className={`p-8 rounded-2xl border transition-all ${activeTemplate === 'tapas' ? 'bg-[#e85d04]/10 border-[#e85d04]' : 'bg-black border-white/10 hover:border-white/30'}`}>
-                <div className="text-5xl mb-6">🍺</div><div className="font-serif text-white text-xl mb-2">Bar & Tapas</div><div className="text-sm text-gray-500">Diseño Lista. Tradición y Cuchareo.</div>
+              <button onClick={() => { setActiveTemplate('tapas'); setIsSwitcherModalOpen(false); }} className={`p-8 text-left rounded-2xl border transition-all ${activeTemplate === 'tapas' ? 'border-[#E8592A] bg-[#E8592A]/10' : 'border-white/10 hover:border-white/30'}`}>
+                <div className="font-serif text-white text-2xl mb-2">Bar & Tapas</div><div className="text-sm text-gray-500">Diseño Lista. Tradición y Cuchareo.</div>
               </button>
-              <button onClick={() => { setActiveTemplate('burger'); setIsSwitcherModalOpen(false); }} className={`p-8 rounded-2xl border transition-all ${activeTemplate === 'burger' ? 'bg-[#ff003c]/10 border-[#ff003c]' : 'bg-black border-white/10 hover:border-white/30'}`}>
-                <div className="text-5xl mb-6">🍔</div><div className="font-sans font-black uppercase text-white text-xl mb-2">Fast Food App</div><div className="text-sm text-gray-500">Diseño Grid/Neon. Compra Impulsiva.</div>
+              <button onClick={() => { setActiveTemplate('burger'); setIsSwitcherModalOpen(false); }} className={`p-8 text-left rounded-2xl border transition-all ${activeTemplate === 'burger' ? 'border-[#E8592A] bg-[#E8592A]/10' : 'border-white/10 hover:border-white/30'}`}>
+                <div className="font-sans font-black uppercase text-white text-2xl mb-2">Fast Food App</div><div className="text-sm text-gray-500">Diseño en cuadrícula. Compra por impulso.</div>
               </button>
             </div>
             <button onClick={() => setIsSwitcherModalOpen(false)} className="mt-10 w-full text-xs uppercase tracking-[0.2em] text-gray-500 hover:text-white">{t.close}</button>
@@ -765,20 +772,20 @@ function CartaContent() {
       {isSalesModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={() => setIsSalesModalOpen(false)}></div>
-          <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-[#0a0a0a] border border-white/10 rounded-3xl p-8 shadow-2xl text-center animate-fade-in">
+          <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-[#17191E] border border-white/10 rounded-[28px] p-8 shadow-2xl text-center animate-fade-in" style={{ fontFamily: 'var(--fuente-display), Inter, sans-serif' }}>
             <h3 className="font-serif text-3xl text-white mb-4">{t.sales_title}</h3>
             <p className="text-gray-400 text-sm font-light leading-relaxed mb-8">
               {t.sales_desc}
             </p>
             <div className="space-y-4">
-              <a href="/" className="block w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest bg-white text-black hover:bg-gray-200">
-                {t.sales_btn_web}
+              <a href="/qr#planes" className="block w-full rounded-full bg-[#E8592A] py-4 text-[15px] font-semibold text-white hover:bg-[#CF4A1F]">
+                Quiero mi carta · primer mes 1 €
               </a>
-              <a href="https://calendly.com/dkitchencorporate/30min" target="_blank" rel="noopener noreferrer" className="block w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest bg-[#10b981] text-black hover:bg-[#059669]">
-                {t.sales_btn_calendly}
+              <a href="https://wa.me/34622652659?text=Hola,%20he%20visto%20las%20cartas%20de%20autor%20y%20quiero%20una%20para%20mi%20local." target="_blank" rel="noopener noreferrer" className="block w-full rounded-full border border-white/20 py-4 text-[15px] font-semibold text-white hover:border-white/50">
+                Hablar por WhatsApp
               </a>
-              <a href="https://wa.me/34622652659" target="_blank" rel="noopener noreferrer" className="block w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest border border-[#10b981] text-[#10b981] hover:bg-[#10b981]/10">
-                {t.sales_btn_whatsapp}
+              <a href="https://calendly.com/dkitchencorporate/30min" target="_blank" rel="noopener noreferrer" className="block w-full py-2 text-sm text-white/55 hover:text-white">
+                O reserva una llamada de 30 min
               </a>
             </div>
             <button onClick={() => setIsSalesModalOpen(false)} className="mt-6 text-xs uppercase tracking-[0.2em] text-gray-600 hover:text-white">{t.close}</button>

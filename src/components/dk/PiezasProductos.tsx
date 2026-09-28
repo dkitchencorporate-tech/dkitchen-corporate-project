@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useInView, useReducedMotion } from 'framer-mot
 import { CURVA } from './Movimiento';
 
 /* =================================================================== EXPERIENCE: taquilla en vivo */
-const ENTRADAS = ['Laura · 2 entradas', 'Marcos · 4 entradas', 'Ana · 2 entradas', 'Javi · 3 entradas', 'Sara · 2 entradas', 'Pablo · 6 entradas'];
+const ENTRADAS = ['Alex · 2 entradas', 'Marcos · 4 entradas', 'Ana · 2 entradas', 'Javi · 3 entradas', 'Sara · 2 entradas', 'Pablo · 6 entradas'];
 export function TaquillaViva() {
   const quieto = useReducedMotion();
   const [vendidas, setVendidas] = useState(62);

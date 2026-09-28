@@ -10,6 +10,9 @@ import PreguntasQr, { PREGUNTAS } from '@/components/qr-landing/PreguntasQr';
 import { LineaServicio } from '@/components/qr-landing/Extras';
 import { Marquesina } from '@/components/dk/Movimiento';
 import VistaExplosionada from '@/components/dk/VistaExplosionada';
+import { CartasAutorDemo } from '@/components/dk/Modelos';
+import { Titulo } from '@/components/dk/Bloques';
+import { FondoVivo } from '@/components/dk/Movimiento';
 
 export const metadata: Metadata = {
   title: 'Carta digital QR para restaurantes | Primer mes por 1 € · DKitchen',
@@ -65,6 +68,13 @@ export default function PaginaQr() {
       <VistaExplosionada />
       <ComoFuncionaQr />
       <PruebaloQr />
+      <section className="relative overflow-hidden bg-[#111317] py-24 text-white md:py-32">
+        <FondoVivo className="opacity-40" />
+        <div className="relative mx-auto max-w-6xl px-6 md:px-8">
+          <Titulo oscuro etiqueta="Cartas de autor" texto="Tres cartas. Tres personalidades. Pruébalas." sub="Cartas completas y funcionando: tócalas dentro del móvil, ábrelas en grande o elige la tuya." />
+          <CartasAutorDemo />
+        </div>
+      </section>
       <SalaViva />
       <PlanesQr />
       <ComparativaQr />

@@ -5,6 +5,8 @@ import { Marquesina, Contador, TarjetaTilt } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
 import { CocinaMultimarca } from '@/components/dk/PiezasProductos';
 import { MARCAS } from '@/lib/marcas-data';
+import { ModelosReales } from '@/components/dk/Modelos';
+import { FondoVivo } from '@/components/dk/Movimiento';
 
 /** Dark Kitchen multimarca — rediseño 29/09/2026. Palabra clave: dark kitchen multimarca / marcas virtuales. */
 export const metadata: Metadata = {
@@ -56,6 +58,14 @@ export default function PaginaDarkKitchen() {
               <Link key={m.slug} href="/marcas" className="shrink-0 rounded-full border border-[#E6E6E2] px-5 py-3 text-sm font-semibold hover:border-[#17191E]">{m.nombre} <span className="font-normal text-[#9A9EA6]">· {m.concepto}</span></Link>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden bg-[#111317] py-24 text-white md:py-32">
+        <FondoVivo className="opacity-50" />
+        <div className="relative mx-auto max-w-6xl px-6 md:px-8">
+          <Titulo oscuro etiqueta="Desarrollos reales" texto="Dos marcas del catálogo, ya con su app de pedidos." sub="Seven Food Fries y Wing Boss venden con su propia app, lista para replicar en tu cocina." />
+          <ModelosReales />
         </div>
       </section>
 

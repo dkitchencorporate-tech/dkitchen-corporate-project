@@ -7,7 +7,7 @@ export const metadata = {
   metadataBase: new URL("https://dkitchencorporate.es"),
   title: "DKitchen | Carta digital QR y digitalización para hostelería",
   description: "Carta digital con QR que no tienes que reimprimir nunca, eventos gastronómicos llave en mano y dark kitchen multimarca. Sin comisiones sobre tus ventas y sin tocar tu dinero.",
-  keywords: ["carta digital qr restaurante", "kds dark kitchen", "menu qr hostelería", "digitalización restaurantes", "eventos gastronómicos llave en mano", "dark kitchen multimarca"],
+  keywords: ["carta digital qr restaurante", "menú qr", "app propia restaurante sin comisiones", "digitalización restaurantes", "eventos para restaurantes", "dark kitchen multimarca", "marcas virtuales", "alérgenos carta"],
   authors: [{ name: "DKitchen" }],
   alternates: { canonical: "/" },
   robots: {
@@ -21,19 +21,20 @@ export const metadata = {
       'max-snippet': -1,
     },
   },
+  // La imagen para compartir la genera cada página (opengraph-image.tsx).
   openGraph: {
-    title: "DKitchen | Multiplica tus reservas en piloto automático",
-    description: "Sistemas digitales de autor para hostelería inteligente. Deja de perder dinero en comisiones.",
+    title: "DKitchen · Tu restaurante, con sistema propio",
+    description: "Carta digital QR desde 1 €, tu propia app de pedidos sin comisiones, eventos llave en mano y dark kitchen multimarca.",
     url: "https://dkitchencorporate.es",
-    images: [{ url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1200", width: 1200, height: 630, alt: "DKitchen Hostelería" }],
     siteName: "DKitchen",
+    locale: "es_ES",
     type: "website",
   },
   icons: { icon: "/icon.svg", apple: "/icon.svg" },
   twitter: {
     card: "summary_large_image",
-    title: "DKitchen | Hostelería Inteligente",
-    description: "Sistemas digitales de autor para restaurantes y Dark Kitchens.",
+    title: "DKitchen · Tu restaurante, con sistema propio",
+    description: "Carta digital QR, apps propias sin comisiones, eventos y dark kitchen para hostelería.",
   }
 };
 

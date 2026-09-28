@@ -19,6 +19,9 @@ export default function robots(): MetadataRoute.Robots {
         '/dashboard',
         '/manuals/',
         '/api/',
+        // Paneles privados de clientes y camareros.
+        '/panel/',
+        '/sala/',
       ],
     },
     sitemap: 'https://dkitchencorporate.es/sitemap.xml',

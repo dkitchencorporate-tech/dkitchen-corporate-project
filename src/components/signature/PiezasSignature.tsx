@@ -10,7 +10,7 @@ const FLUJO = [
   { p: 'pedido', t: 'Nuevo pedido #231', d: 'Mesa 6 · 2 pizzas, 1 bebida', c: '#E8592A' },
   { p: 'cocina', t: 'En cocina', d: 'Comanda enviada a la pantalla de cocina', c: '#D99A1E' },
   { p: 'pagado', t: 'Pagado · 24,50 €', d: 'Cobro en tu app, sin comisión de plataforma', c: '#2F8F6B' },
-  { p: 'puntos', t: '+25 puntos', d: 'Laura sube a cliente VIP', c: '#3B6EA5' },
+  { p: 'puntos', t: '+25 puntos', d: 'Alex sube a cliente VIP', c: '#3B6EA5' },
 ];
 
 function PantallaApp({ fase }: { fase: number }) {
@@ -144,7 +144,7 @@ function Pantalla({ n }: { n: number }) {
   );
   return (
     <div className="h-full bg-[#0F1012] p-4 text-white">
-      <p className="text-xs text-white/50">Clientes</p><p className="font-display text-xl font-semibold">Laura M.</p>
+      <p className="text-xs text-white/50">Clientes</p><p className="font-display text-xl font-semibold">Alex M.</p>
       <div className="mt-3 rounded-2xl bg-gradient-to-br from-[#E8592A] to-[#C58B2A] p-4"><p className="text-[10px] uppercase tracking-[0.2em]">Nivel VIP</p><p className="font-display text-3xl font-semibold">1.240 pts</p></div>
       <p className="mt-4 text-xs text-white/60">Pedidos este mes: 6 · Último: ayer</p>
       <div className="mt-3 rounded-xl border border-white/10 p-3 text-xs">Aviso enviado: «Hoy, pizza trufa con un 10 %»</div>

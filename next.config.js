@@ -35,9 +35,10 @@ const CSP = [
   // dominio de Neon, es que algo se ha cableado por el lado equivocado.
   "connect-src 'self'",
 
-  // Nadie nos incrusta, y nosotros no incrustamos a nadie.
+  // Nadie nos incrusta. Nosotros solo incrustamos páginas propias (las cartas
+  // demo de /demo/carta dentro de /qr, 29/09/2026); nunca a terceros.
   "frame-ancestors 'none'",
-  "frame-src 'none'",
+  "frame-src 'self'",
   "object-src 'none'",
 
   // Un formulario de esta web no puede enviar sus datos a otro sitio.
@@ -49,6 +50,10 @@ const CSP = [
 
   'upgrade-insecure-requests',
 ].join('; ');
+
+// Única excepción: /demo/carta (una demo pública, sin datos ni sesión) se
+// puede incrustar DESDE NUESTRO PROPIO DOMINIO para enseñarla dentro de la web.
+const CSP_DEMO_INCRUSTABLE = CSP.replace("frame-ancestors 'none'", "frame-ancestors 'self'");
 
 const cabecerasDeSeguridad = [
   { key: 'Content-Security-Policy', value: CSP },
@@ -117,7 +122,11 @@ const nextConfig = {
   serverExternalPackages: ['@neondatabase/serverless', 'ws', 'bufferutil', 'utf-8-validate'],
 
   async headers() {
-    return [{ source: '/:path*', headers: cabecerasDeSeguridad }];
+    return [
+      { source: '/:path*', headers: cabecerasDeSeguridad },
+      // Va después: en Next gana la última regla que coincide con la misma cabecera.
+      { source: '/demo/carta', headers: [{ key: 'Content-Security-Policy', value: CSP_DEMO_INCRUSTABLE }, { key: 'X-Frame-Options', value: 'SAMEORIGIN' }] },
+    ];
   },
 };
 

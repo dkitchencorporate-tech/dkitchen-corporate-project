@@ -26,7 +26,7 @@ function PantallaAlta() {
       {['Nombre del restaurante', 'Tu nombre', 'Tu correo'].map((c, i) => (
         <div key={c} className="mt-3">
           <p className="text-xs font-medium">{c}</p>
-          <div className="mt-1 h-10 rounded-xl border border-[#E7E1D8] bg-white px-3 py-2.5 text-sm text-[#1A1714]/70">{['Casa Brasa', 'Laura', 'laura@casabrasa.es'][i]}</div>
+          <div className="mt-1 h-10 rounded-xl border border-[#E7E1D8] bg-white px-3 py-2.5 text-sm text-[#1A1714]/70">{['Casa Brasa', 'Alex', 'alex@casabrasa.es'][i]}</div>
         </div>
       ))}
       <div className="mt-auto rounded-full bg-[#17191E] py-3.5 text-center text-sm font-semibold text-white">Continuar al pago seguro</div>

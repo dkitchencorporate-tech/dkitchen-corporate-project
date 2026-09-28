@@ -3,6 +3,8 @@ import Image from 'next/image';
 import { HeroPagina, Titulo, Cierre } from '@/components/dk/Bloques';
 import { Marquesina, Contador, TarjetaTilt } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
+import { ModelosReales } from '@/components/dk/Modelos';
+import { FondoVivo } from '@/components/dk/Movimiento';
 
 /** Casos de éxito — rediseño 29/09/2026. Solo lo que cada cliente ha autorizado mostrar. */
 export const metadata: Metadata = {
@@ -45,6 +47,14 @@ export default function CasosDeExito() {
             ))}
           </div>
           <Aparecer className="mt-10"><a href="https://nestorpizzas.es/" target="_blank" rel="noopener" className="inline-flex items-center gap-2 font-semibold">Ver su app en vivo <span className="text-[#E8592A]">↗</span></a></Aparecer>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden bg-[#111317] py-24 text-white md:py-32">
+        <FondoVivo className="opacity-50" />
+        <div className="relative mx-auto max-w-6xl px-6 md:px-8">
+          <Titulo oscuro etiqueta="Desarrollos" texto="Más apps hechas con DKitchen." sub="Modelos reales que puedes probar ahora mismo. Si te gusta uno, lo adaptamos a tu marca." />
+          <ModelosReales />
         </div>
       </section>
 

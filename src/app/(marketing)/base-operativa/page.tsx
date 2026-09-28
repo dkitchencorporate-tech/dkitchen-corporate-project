@@ -4,6 +4,8 @@ import { FondoVivo, Marquesina, TextoRevelado, BotonMagnetico, TarjetaTilt } fro
 import Aparecer from '@/components/qr-landing/Aparecer';
 import { MovilApp, CalculadoraComisiones, CapitulosSignature } from '@/components/signature/PiezasSignature';
 import ActivarNucleoOperativoBoton from '@/components/sections/ActivarNucleoOperativoBoton';
+import { ModelosReales } from '@/components/dk/Modelos';
+import { Titulo } from '@/components/dk/Bloques';
 
 /**
  * DKitchen Signature (antes «Núcleo Operativo») — rediseño 29/09/2026.
@@ -74,6 +76,14 @@ export default function PaginaSignature() {
       </section>
 
       <CapitulosSignature />
+
+      <section className="relative overflow-hidden bg-[#111317] py-24 text-white md:py-32">
+        <FondoVivo className="opacity-50" />
+        <div className="relative mx-auto max-w-6xl px-6 md:px-8">
+          <Titulo oscuro etiqueta="Modelos en marcha" texto="No te lo contamos. Tócalo." sub="Dos apps reales hechas con DKitchen Signature. Desliza dentro del móvil, ábrelas en grande o visita la web real." />
+          <ModelosReales />
+        </div>
+      </section>
 
       <section className="bg-[#F7F7F5] py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">

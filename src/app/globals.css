@@ -53,3 +53,4 @@
 @keyframes marquesina { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes reflejo { 0%, 60% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
 @media (prefers-reduced-motion: reduce) { [class*="animate-[deriva"], [class*="animate-[marquesina"], [class*="animate-[reflejo"] { animation: none !important; } }
+@keyframes recorrido { 0%, 6% { transform: translateY(0); } 94%, 100% { transform: translateY(calc(-100% + 460px)); } }
