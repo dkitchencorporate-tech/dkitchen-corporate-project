@@ -18,7 +18,7 @@ export default async function AdminLayout({
   await exigirAdmin();
   return (
     <>
-      <div className="flex min-h-screen bg-[#171008] selection:bg-orange-500/30">
+      <div className="flex min-h-screen flex-col bg-[#F7F7F5] text-[#1B1D22] selection:bg-orange-500/30 md:flex-row">
         {/* Navigation Sidebar */}
         <AdminSidebar />
 

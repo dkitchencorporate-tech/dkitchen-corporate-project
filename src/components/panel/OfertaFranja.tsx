@@ -20,11 +20,11 @@ export default function OfertaFranja({ oferta, onVer }: { oferta: string; onVer:
   useEffect(() => { registrarOfertaAction(oferta, 'mostrada').catch(() => {}); }, [oferta]);
   if (!visible || !TEXTOS_OFERTA[oferta]) return null;
   return (
-    <div className="border-b border-[#D9531E]/20 bg-[#D9531E]/[0.07] px-4 py-3 sm:px-6 lg:px-10">
+    <div className="border-b border-[#E8592A]/20 bg-[#E8592A]/[0.07] px-4 py-3 sm:px-6 lg:px-10">
       <div className="mx-auto flex max-w-4xl items-center gap-3 text-sm">
-        <p className="flex-1 text-white/85">{TEXTOS_OFERTA[oferta]}</p>
-        <button onClick={onVer} className="shrink-0 rounded-lg bg-[#D9531E] px-3 py-1.5 font-bold">Ver</button>
-        <button onClick={() => { setVisible(false); registrarOfertaAction(oferta, 'cerrada').catch(() => {}); }} aria-label="Cerrar" className="shrink-0 text-white/40 hover:text-white">✕</button>
+        <p className="flex-1 text-[#3F434B]">{TEXTOS_OFERTA[oferta]}</p>
+        <button onClick={onVer} className="shrink-0 rounded-lg bg-[#E8592A] px-3 py-1.5 font-bold">Ver</button>
+        <button onClick={() => { setVisible(false); registrarOfertaAction(oferta, 'cerrada').catch(() => {}); }} aria-label="Cerrar" className="shrink-0 text-[#6B7079] hover:text-[#1B1D22]">✕</button>
       </div>
     </div>
   );

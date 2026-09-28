@@ -55,11 +55,11 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
 
       <ResumenCuenta restaurante={restaurante} servicios={servicios} precioPlan={actual.precio} nombrePlan={actual.nombre} />
 
-      <div className="bg-[#1c140b] border border-white/10 rounded-2xl p-6 flex flex-wrap items-end justify-between gap-4">
+      <div className="bg-white border border-[#E6E6E2] rounded-2xl p-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-white/50 text-sm">Plan actual</p>
+          <p className="text-[#6B7079] text-sm">Plan actual</p>
           <p className="text-3xl font-black mt-1">{actual.nombre}</p>
-          <p className="text-white/40 text-sm mt-1">{actual.precio} €/mes · sin permanencia</p>
+          <p className="text-[#6B7079] text-sm mt-1">{actual.precio} €/mes · sin permanencia</p>
         </div>
         <p className="text-sm">
           Cuenta: <span className={`font-semibold ${estado.color}`}>{estado.texto}</span>
@@ -73,28 +73,28 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
           return (
             <div
               key={id}
-              className={`rounded-2xl p-6 border ${id === 'ampliado' ? 'border-[#D9531E]/60 bg-[#D9531E]/5' : 'border-white/10 bg-[#1c140b]'}`}
+              className={`rounded-2xl p-6 border ${id === 'ampliado' ? 'border-[#E8592A]/60 bg-[#E8592A]/5' : 'border-[#E6E6E2] bg-white'}`}
             >
               <div className="flex items-baseline justify-between">
                 <h3 className="font-bold text-lg">{p.nombre}</h3>
                 <p className="font-black text-xl">
-                  {p.precio} €<span className="text-sm font-normal text-white/40">/mes</span>
+                  {p.precio} €<span className="text-sm font-normal text-[#6B7079]">/mes</span>
                 </p>
               </div>
               <ul className="mt-4 space-y-2">
                 {p.funciones.map((f) => (
-                  <li key={f} className="flex gap-2 text-sm text-white/70">
-                    <span className="text-[#D9531E]">✓</span> {f}
+                  <li key={f} className="flex gap-2 text-sm text-[#3F434B]">
+                    <span className="text-[#E8592A]">✓</span> {f}
                   </li>
                 ))}
               </ul>
               {esActual ? (
-                <p className="mt-5 text-center text-sm font-semibold text-white/40">Tu plan actual</p>
+                <p className="mt-5 text-center text-sm font-semibold text-[#6B7079]">Tu plan actual</p>
               ) : id === 'ampliado' ? (
                 <button
                   onClick={mejorar}
                   disabled={pendiente}
-                  className="mt-5 w-full bg-[#D9531E] hover:bg-[#B8451A] disabled:opacity-50 text-white font-bold py-2.5 rounded-lg"
+                  className="mt-5 w-full bg-[#E8592A] hover:bg-[#CF4A1F] disabled:opacity-50 text-white font-bold py-2.5 rounded-lg"
                 >
                   {pendiente ? 'Abriendo pago seguro…' : 'Pasar a Ampliado'}
                 </button>
@@ -103,9 +103,9 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
           );
         })}
       </div>
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
       {!esAmpliado && (
-        <p className="text-xs text-white/30">
+        <p className="text-xs text-[#9A9EA6]">
           El cambio se activa en cuanto se confirma el pago. Tu suscripción Básica se cancela para que no pagues las dos.
         </p>
       )}
@@ -143,35 +143,35 @@ function ResumenCuenta({ restaurante, servicios, precioPlan, nombrePlan }: {
   });
   const cuotaMensual = precioPlan * 100 + filas.reduce((t, x) => t + x.cuota, 0);
   return (
-    <section className="rounded-2xl border border-white/10 bg-[#1c140b]">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-white/10 p-6">
+    <section className="rounded-2xl border border-[#E6E6E2] bg-white">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#E6E6E2] p-6">
         <div>
-          <p className="text-sm text-white/50">Pagas cada mes</p>
+          <p className="text-sm text-[#6B7079]">Pagas cada mes</p>
           <p className="mt-1 text-4xl font-black">{eur(cuotaMensual)}</p>
-          <p className="mt-1 text-sm text-white/40">Se renueva el día {alta.getDate()} de cada mes · sin permanencia</p>
+          <p className="mt-1 text-sm text-[#6B7079]">Se renueva el día {alta.getDate()} de cada mes · sin permanencia</p>
         </div>
-        <p className="text-sm text-white/50">Cliente desde el {fechaLarga.format(alta)}</p>
+        <p className="text-sm text-[#6B7079]">Cliente desde el {fechaLarga.format(alta)}</p>
       </div>
-      <ul className="divide-y divide-white/5">
+      <ul className="divide-y divide-[#ECECE8]">
         <li className="flex flex-wrap items-start justify-between gap-2 p-5">
           <div>
             <p className="font-semibold">Plan {nombrePlan}</p>
-            <p className="text-sm text-white/50">Tu carta QR{restaurante.plan === 'ampliado' ? ' con reservas, llamada al camarero y banners' : ''}</p>
+            <p className="text-sm text-[#6B7079]">Tu carta QR{restaurante.plan === 'ampliado' ? ' con reservas, llamada al camarero y banners' : ''}</p>
           </div>
           <p className="text-sm font-semibold">{precioPlan} €/mes</p>
         </li>
         {filas.map((x) => (
           <li key={x.id} className="flex flex-wrap items-start justify-between gap-2 p-5">
             <div>
-              <p className="font-semibold">{x.nombre} <span className="ml-1 text-xs font-normal text-green-400">{x.estado}</span></p>
-              <p className="text-sm text-white/50">{QUE_ES[x.id] ?? ''}</p>
-              <p className="text-xs text-white/35">Desde el {fechaLarga.format(new Date(x.desde))}</p>
+              <p className="font-semibold">{x.nombre} <span className="ml-1 text-xs font-normal text-green-700">{x.estado}</span></p>
+              <p className="text-sm text-[#6B7079]">{QUE_ES[x.id] ?? ''}</p>
+              <p className="text-xs text-[#9A9EA6]">Desde el {fechaLarga.format(new Date(x.desde))}</p>
             </div>
             <p className="text-sm font-semibold">{x.precio}</p>
           </li>
         ))}
       </ul>
-      {filas.length === 0 && <p className="px-5 pb-5 text-sm text-white/40">Aún no tienes servicios añadidos. Los encontrarás en las pestañas Diseño y Módulos.</p>}
+      {filas.length === 0 && <p className="px-5 pb-5 text-sm text-[#6B7079]">Aún no tienes servicios añadidos. Los encontrarás en las pestañas Diseño y Módulos.</p>}
     </section>
   );
 }

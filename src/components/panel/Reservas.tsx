@@ -24,13 +24,13 @@ export default function Reservas({ reservas, whatsapp }: { reservas: Reserva[]; 
 
   const tarjeta = (r: Reserva) => (
     <li key={r.id}>
-      <button onClick={() => setAbierta(r)} className="w-full rounded-2xl border border-white/10 bg-[#1c140b] p-4 text-left hover:border-white/25">
+      <button onClick={() => setAbierta(r)} className="w-full rounded-2xl border border-[#E6E6E2] bg-white p-4 text-left hover:border-[#D6D6D1]">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="font-semibold">{fechaCorta(r.fecha)} · {r.hora} · {r.personas} {r.personas === 1 ? 'persona' : 'personas'}</p>
           <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTILO[r.estado]}`}>{r.estado}</span>
         </div>
-        <p className="mt-1 text-sm text-white/70">{r.nombre}</p>
-        <p className="mt-2 text-xs font-semibold text-[#D9531E]">Ver detalles →</p>
+        <p className="mt-1 text-sm text-[#3F434B]">{r.nombre}</p>
+        <p className="mt-2 text-xs font-semibold text-[#E8592A]">Ver detalles →</p>
       </button>
     </li>
   );
@@ -39,7 +39,7 @@ export default function Reservas({ reservas, whatsapp }: { reservas: Reserva[]; 
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold">Reservas</h2>
-        <p className="text-sm text-white/40">
+        <p className="text-sm text-[#6B7079]">
           Llegan desde el botón «Reservar mesa» de tu carta. Ábrelas para confirmar o cancelar: si el cliente dejó su correo, recibe el
           aviso automáticamente con tu logo y tu nombre.
           {whatsapp ? '' : ' Añade tu WhatsApp en Mi Local para recibirlas también por ahí.'}
@@ -47,9 +47,9 @@ export default function Reservas({ reservas, whatsapp }: { reservas: Reserva[]; 
       </div>
 
       <section className="space-y-3">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-white/50">Próximas ({proximas.length})</h3>
+        <h3 className="text-sm font-bold uppercase tracking-wider text-[#6B7079]">Próximas ({proximas.length})</h3>
         {proximas.length === 0 ? (
-          <p className="rounded-2xl border border-white/10 bg-[#1c140b] p-8 text-center text-sm text-white/40">No hay reservas próximas.</p>
+          <p className="rounded-2xl border border-[#E6E6E2] bg-white p-8 text-center text-sm text-[#6B7079]">No hay reservas próximas.</p>
         ) : (
           <ul className="space-y-3">{proximas.map(tarjeta)}</ul>
         )}
@@ -57,7 +57,7 @@ export default function Reservas({ reservas, whatsapp }: { reservas: Reserva[]; 
 
       {pasadas.length > 0 && (
         <section className="space-y-3">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-white/50">Últimos 7 días</h3>
+          <h3 className="text-sm font-bold uppercase tracking-wider text-[#6B7079]">Últimos 7 días</h3>
           <ul className="space-y-3 opacity-70">{pasadas.map(tarjeta)}</ul>
         </section>
       )}
@@ -87,8 +87,8 @@ function FichaReserva({ reserva, pasada, onCerrar }: { reserva: Reserva; pasada:
   }
 
   const fila = (etiqueta: string, valor: React.ReactNode) => (
-    <div className="flex justify-between gap-4 border-b border-white/10 py-2.5 text-sm">
-      <span className="text-white/45">{etiqueta}</span>
+    <div className="flex justify-between gap-4 border-b border-[#E6E6E2] py-2.5 text-sm">
+      <span className="text-[#6B7079]">{etiqueta}</span>
       <span className="text-right font-medium">{valor}</span>
     </div>
   );
@@ -96,10 +96,10 @@ function FichaReserva({ reserva, pasada, onCerrar }: { reserva: Reserva; pasada:
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-4" onClick={onCerrar} role="presentation">
       <div role="dialog" aria-modal="true" aria-labelledby="ficha-reserva" onClick={(e) => e.stopPropagation()}
-           className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-white/10 bg-[#1c140b] p-6 text-white sm:rounded-3xl">
+           className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-[#E6E6E2] bg-white p-6 text-[#1B1D22] sm:rounded-3xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 id="ficha-reserva" className="text-lg font-bold">Reserva</h2>
-          <button onClick={onCerrar} aria-label="Cerrar" className="text-white/40 hover:text-white">✕</button>
+          <button onClick={onCerrar} aria-label="Cerrar" className="text-[#6B7079] hover:text-[#1B1D22]">✕</button>
         </div>
 
         <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${ESTILO[estado]}`}>{estado}</span>
@@ -108,15 +108,15 @@ function FichaReserva({ reserva, pasada, onCerrar }: { reserva: Reserva; pasada:
           {fila('Día', fechaLarga(reserva.fecha))}
           {fila('Hora', reserva.hora)}
           {fila('Personas', reserva.personas)}
-          {fila('Teléfono', <a href={`tel:${reserva.telefono.replace(/\s/g, '')}`} className="text-[#D9531E] hover:underline">{reserva.telefono}</a>)}
-          {fila('Correo', reserva.email ? <a href={`mailto:${reserva.email}`} className="text-[#D9531E] hover:underline">{reserva.email}</a> : <span className="text-white/35">No indicado</span>)}
+          {fila('Teléfono', <a href={`tel:${reserva.telefono.replace(/\s/g, '')}`} className="text-[#E8592A] hover:underline">{reserva.telefono}</a>)}
+          {fila('Correo', reserva.email ? <a href={`mailto:${reserva.email}`} className="text-[#E8592A] hover:underline">{reserva.email}</a> : <span className="text-[#9A9EA6]">No indicado</span>)}
           {reserva.notas && fila('Notas', <span className="whitespace-pre-line">{reserva.notas}</span>)}
         </div>
 
         {resultado && (
-          <div className="mt-4 space-y-2 rounded-xl bg-white/5 p-4 text-sm">
-            <p className="font-semibold text-green-300">✓ Reserva {resultado.accion}.</p>
-            <p className="text-white/60">
+          <div className="mt-4 space-y-2 rounded-xl bg-[#F3F3F0] p-4 text-sm">
+            <p className="font-semibold text-green-700">✓ Reserva {resultado.accion}.</p>
+            <p className="text-[#6B7079]">
               {resultado.correoEnviado
                 ? 'Le hemos enviado un correo al cliente con tu logo y tu nombre.'
                 : 'El cliente no dejó correo: avísale por WhatsApp o llámale.'}
@@ -129,7 +129,7 @@ function FichaReserva({ reserva, pasada, onCerrar }: { reserva: Reserva; pasada:
           </div>
         )}
 
-        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
         {!pasada && !resultado && estado !== 'cancelada' && (
           <div className="mt-5 grid grid-cols-2 gap-3">
@@ -138,15 +138,15 @@ function FichaReserva({ reserva, pasada, onCerrar }: { reserva: Reserva; pasada:
                 {pendiente ? 'Enviando…' : 'Confirmar'}
               </button>
             ) : (
-              <span className="rounded-xl bg-white/5 py-3 text-center text-sm text-white/50">Confirmada</span>
+              <span className="rounded-xl bg-[#F3F3F0] py-3 text-center text-sm text-[#6B7079]">Confirmada</span>
             )}
             <button disabled={pendiente} onClick={() => confirm('¿Cancelar esta reserva? Se avisará al cliente.') && cambiar('cancelada')}
-                    className="rounded-xl border border-white/15 py-3 font-bold text-white/70 hover:text-white disabled:opacity-50">
+                    className="rounded-xl border border-[#D6D6D1] py-3 font-bold text-[#3F434B] hover:text-[#1B1D22] disabled:opacity-50">
               Cancelar
             </button>
           </div>
         )}
-        <p className="mt-4 text-[11px] leading-relaxed text-white/35">
+        <p className="mt-4 text-[11px] leading-relaxed text-[#9A9EA6]">
           ¿Quieres que la confirmación salga sola por WhatsApp, sin pulsar nada? Pídelo en Soporte: lo configuramos con la API oficial de WhatsApp Business.
         </p>
       </div>

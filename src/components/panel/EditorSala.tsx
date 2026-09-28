@@ -130,19 +130,19 @@ export default function EditorSala({
   const nombreCam = (id: string | null) => camareros.find((c) => c.id === id)?.nombre;
 
   return (
-    <div className="fixed inset-0 z-[100] flex h-[100dvh] flex-col bg-[#120d08] text-white" role="dialog" aria-modal="true" aria-label="Editor de sala">
-      <header className="flex flex-wrap items-center gap-2 border-b border-white/10 px-4 py-3">
+    <div className="fixed inset-0 z-[100] flex h-[100dvh] flex-col bg-[#F7F7F5] text-[#1B1D22]" role="dialog" aria-modal="true" aria-label="Editor de sala">
+      <header className="flex flex-wrap items-center gap-2 border-b border-[#E6E6E2] px-4 py-3">
         <h2 className="mr-auto font-bold">Editor de sala</h2>
-        {aviso && <span className={`text-sm ${aviso.ok ? 'text-green-400' : 'text-red-400'}`}>{aviso.texto}</span>}
-        <button disabled={pendiente || !cambios} onClick={guardar} className="rounded-lg bg-[#D9531E] px-4 py-2 text-sm font-bold disabled:opacity-40">
+        {aviso && <span className={`text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</span>}
+        <button disabled={pendiente || !cambios} onClick={guardar} className="rounded-lg bg-[#E8592A] px-4 py-2 text-sm font-bold disabled:opacity-40">
           {pendiente ? 'Guardando…' : cambios ? 'Guardar plano' : 'Guardado'}
         </button>
-        <button onClick={cerrar} className="rounded-lg bg-white/10 px-3 py-2 text-sm">Cerrar</button>
+        <button onClick={cerrar} className="rounded-lg bg-[#EDEDEA] px-3 py-2 text-sm">Cerrar</button>
       </header>
 
-      <div className="flex gap-2 overflow-x-auto border-b border-white/10 px-4 py-2">
+      <div className="flex gap-2 overflow-x-auto border-b border-[#E6E6E2] px-4 py-2">
         {HERRAMIENTAS.map((h) => (
-          <button key={h.tipo} onClick={() => anadir(h.tipo)} className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-sm text-white/80 hover:border-white/30">
+          <button key={h.tipo} onClick={() => anadir(h.tipo)} className="shrink-0 rounded-lg border border-[#E6E6E2] px-3 py-2 text-sm text-[#3F434B] hover:border-[#D6D6D1]">
             + {h.nombre}
           </button>
         ))}
@@ -151,7 +151,7 @@ export default function EditorSala({
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <div className="min-h-0 flex-1 overflow-auto p-3">
           <div ref={lienzo} onPointerMove={mover} onPointerUp={soltar} onPointerCancel={soltar} onPointerDown={() => setSel(null)}
-            className="relative mx-auto aspect-[4/3] w-full max-w-4xl touch-none select-none overflow-hidden rounded-xl border border-white/15 bg-[#1c140b] bg-[linear-gradient(rgba(255,255,255,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.04)_1px,transparent_1px)] bg-[size:4%_5.33%]">
+            className="relative mx-auto aspect-[4/3] w-full max-w-4xl touch-none select-none overflow-hidden rounded-xl border border-[#D6D6D1] bg-white bg-[linear-gradient(rgba(255,255,255,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.04)_1px,transparent_1px)] bg-[size:4%_5.33%]">
             {elementos.map((e) => {
               const s = sel?.clave === e.clave;
               const estilo = e.tipo === 'zona'
@@ -162,10 +162,10 @@ export default function EditorSala({
                 : { background: '#3a6ea5' };
               return (
                 <div key={e.clave} onPointerDown={(ev) => empezar(ev, 'elemento', e.clave, e.x, e.y)}
-                  className={`absolute flex cursor-move items-start justify-start overflow-hidden rounded-sm p-1 text-[10px] font-bold ${s ? 'outline outline-2 outline-white' : ''}`}
+                  className={`absolute flex cursor-move items-start justify-start overflow-hidden rounded-sm p-1 text-[10px] font-bold ${s ? 'outline outline-2 outline-[#1B1D22]' : ''}`}
                   style={{ left: `${e.x}%`, top: `${e.y}%`, width: `${e.ancho}%`, height: `${e.alto}%`, ...estilo, zIndex: e.tipo === 'zona' ? 1 : 2 }}>
                   {(e.etiqueta || (e.tipo === 'zona' && nombreCam(e.camareroId))) && (
-                    <span className="rounded bg-black/40 px-1 text-white/90">{e.etiqueta}{e.camareroId ? ` · ${nombreCam(e.camareroId) ?? ''}` : ''}</span>
+                    <span className="rounded bg-black/40 px-1 text-[#3F434B]">{e.etiqueta}{e.camareroId ? ` · ${nombreCam(e.camareroId) ?? ''}` : ''}</span>
                   )}
                 </div>
               );
@@ -174,7 +174,7 @@ export default function EditorSala({
               const s = sel?.clave === m.clave;
               return (
                 <div key={m.clave} onPointerDown={(ev) => empezar(ev, 'mesa', m.clave, m.x, m.y)}
-                  className={`absolute z-10 flex cursor-move flex-col items-center justify-center text-[11px] font-black text-[#1A1714] shadow-md ${m.forma === 'redonda' ? 'rounded-full' : 'rounded-md'} ${s ? 'outline outline-2 outline-[#D9531E]' : ''}`}
+                  className={`absolute z-10 flex cursor-move flex-col items-center justify-center text-[11px] font-black text-[#1A1714] shadow-md ${m.forma === 'redonda' ? 'rounded-full' : 'rounded-md'} ${s ? 'outline outline-2 outline-[#E8592A]' : ''}`}
                   style={{ left: `${m.x}%`, top: `${m.y}%`, width: `${m.ancho}%`, height: `${m.alto}%`, background: m.camareroId ? '#fff' : '#e7e1d8' }}>
                   {m.numero}
                   <span className="text-[8px] font-medium opacity-60">{m.plazas}p{m.camareroId ? ` · ${nombreCam(m.camareroId)?.slice(0, 6) ?? ''}` : ''}</span>
@@ -182,48 +182,48 @@ export default function EditorSala({
               );
             })}
             {mesas.length === 0 && elementos.length === 0 && (
-              <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-white/40">Empieza añadiendo paredes y mesas con los botones de arriba. Arrástralos para colocarlos.</p>
+              <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-[#6B7079]">Empieza añadiendo paredes y mesas con los botones de arriba. Arrástralos para colocarlos.</p>
             )}
           </div>
         </div>
 
-        <aside className="max-h-[42vh] w-full shrink-0 overflow-y-auto border-t border-white/10 p-4 lg:max-h-none lg:w-80 lg:border-l lg:border-t-0">
+        <aside className="max-h-[42vh] w-full shrink-0 overflow-y-auto border-t border-[#E6E6E2] p-4 lg:max-h-none lg:w-80 lg:border-l lg:border-t-0">
           {mesaSel ? (
             <div className="space-y-3">
               <h3 className="font-bold">Mesa {mesaSel.numero}</h3>
               <div className="grid grid-cols-2 gap-2">
-                <label className="space-y-1"><span className="text-xs text-white/50">Número</span><input value={mesaSel.numero} onChange={(e) => cambiarMesa({ numero: e.target.value.slice(0, 12) })} className={campo} /></label>
-                <label className="space-y-1"><span className="text-xs text-white/50">Plazas</span><input type="number" min={1} max={30} value={mesaSel.plazas} onChange={(e) => cambiarMesa({ plazas: Number(e.target.value) })} className={campo} /></label>
+                <label className="space-y-1"><span className="text-xs text-[#6B7079]">Número</span><input value={mesaSel.numero} onChange={(e) => cambiarMesa({ numero: e.target.value.slice(0, 12) })} className={campo} /></label>
+                <label className="space-y-1"><span className="text-xs text-[#6B7079]">Plazas</span><input type="number" min={1} max={30} value={mesaSel.plazas} onChange={(e) => cambiarMesa({ plazas: Number(e.target.value) })} className={campo} /></label>
               </div>
-              <label className="block space-y-1"><span className="text-xs text-white/50">Forma</span>
+              <label className="block space-y-1"><span className="text-xs text-[#6B7079]">Forma</span>
                 <select value={mesaSel.forma} onChange={(e) => { const f = e.target.value as MesaE['forma']; cambiarMesa({ forma: f, ancho: f === 'rectangular' ? 12 : 7, alto: f === 'rectangular' ? 8 : 10 }); }} className={campo}>
                   <option value="cuadrada">Cuadrada</option><option value="redonda">Redonda</option><option value="rectangular">Rectangular</option>
                 </select></label>
-              <label className="block space-y-1"><span className="text-xs text-white/50">Zona</span><input value={mesaSel.zona} onChange={(e) => cambiarMesa({ zona: e.target.value.slice(0, 30) })} className={campo} /></label>
-              <label className="block space-y-1"><span className="text-xs text-white/50">Camarero</span>
+              <label className="block space-y-1"><span className="text-xs text-[#6B7079]">Zona</span><input value={mesaSel.zona} onChange={(e) => cambiarMesa({ zona: e.target.value.slice(0, 30) })} className={campo} /></label>
+              <label className="block space-y-1"><span className="text-xs text-[#6B7079]">Camarero</span>
                 <select value={mesaSel.camareroId ?? ''} onChange={(e) => cambiarMesa({ camareroId: e.target.value || null })} className={campo}>
                   <option value="">Sin asignar (la toma quien atienda)</option>
                   {activos.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                 </select></label>
-              <div className="flex gap-4"><button onClick={girarSel} className="text-sm text-white/70 underline">Girar 90°</button><button onClick={borrar} className="text-sm text-red-400">Eliminar mesa</button></div>
+              <div className="flex gap-4"><button onClick={girarSel} className="text-sm text-[#3F434B] underline">Girar 90°</button><button onClick={borrar} className="text-sm text-red-600">Eliminar mesa</button></div>
             </div>
           ) : elemSel ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold">{{ pared: 'Pared', division: 'División', barra: 'Barra', puerta: 'Puerta', zona: 'Zona' }[elemSel.tipo]}</h3>
-                <button onClick={girarSel} className="rounded-lg border border-white/15 px-3 py-1.5 text-sm">Girar 90° {elemSel.ancho >= elemSel.alto * 0.75 ? '(ponerla vertical)' : '(ponerla horizontal)'}</button>
+                <button onClick={girarSel} className="rounded-lg border border-[#D6D6D1] px-3 py-1.5 text-sm">Girar 90° {elemSel.ancho >= elemSel.alto * 0.75 ? '(ponerla vertical)' : '(ponerla horizontal)'}</button>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <label className="space-y-1"><span className="text-xs text-white/50">Ancho</span><input type="range" min={0.5} max={100} step={0.5} value={elemSel.ancho} onChange={(e) => cambiarElem({ ancho: Number(e.target.value) })} className="w-full" /></label>
-                <label className="space-y-1"><span className="text-xs text-white/50">Alto</span><input type="range" min={0.5} max={100} step={0.5} value={elemSel.alto} onChange={(e) => cambiarElem({ alto: Number(e.target.value) })} className="w-full" /></label>
+                <label className="space-y-1"><span className="text-xs text-[#6B7079]">Ancho</span><input type="range" min={0.5} max={100} step={0.5} value={elemSel.ancho} onChange={(e) => cambiarElem({ ancho: Number(e.target.value) })} className="w-full" /></label>
+                <label className="space-y-1"><span className="text-xs text-[#6B7079]">Alto</span><input type="range" min={0.5} max={100} step={0.5} value={elemSel.alto} onChange={(e) => cambiarElem({ alto: Number(e.target.value) })} className="w-full" /></label>
               </div>
               {(elemSel.tipo === 'zona' || elemSel.tipo === 'barra') && (
-                <label className="block space-y-1"><span className="text-xs text-white/50">Nombre</span><input value={elemSel.etiqueta ?? ''} onChange={(e) => cambiarElem({ etiqueta: e.target.value.slice(0, 30) || null })} placeholder="Terraza, Salón…" className={campo} /></label>
+                <label className="block space-y-1"><span className="text-xs text-[#6B7079]">Nombre</span><input value={elemSel.etiqueta ?? ''} onChange={(e) => cambiarElem({ etiqueta: e.target.value.slice(0, 30) || null })} placeholder="Terraza, Salón…" className={campo} /></label>
               )}
               {elemSel.tipo === 'zona' && (
                 <>
-                  <div className="flex gap-2">{COLORES_ZONA.map((c) => <button key={c} onClick={() => cambiarElem({ color: c })} aria-label={c} className={`h-7 w-7 rounded-full border-2 ${elemSel.color === c ? 'border-white' : 'border-transparent'}`} style={{ background: c }} />)}</div>
-                  <label className="block space-y-1"><span className="text-xs text-white/50">Camarero de esta zona</span>
+                  <div className="flex gap-2">{COLORES_ZONA.map((c) => <button key={c} onClick={() => cambiarElem({ color: c })} aria-label={c} className={`h-7 w-7 rounded-full border-2 ${elemSel.color === c ? 'border-[#D6D6D1]' : 'border-transparent'}`} style={{ background: c }} />)}</div>
+                  <label className="block space-y-1"><span className="text-xs text-[#6B7079]">Camarero de esta zona</span>
                     <select value={elemSel.camareroId ?? ''} onChange={(e) => cambiarElem({ camareroId: e.target.value || null })} className={campo}>
                       <option value="">Sin asignar</option>
                       {activos.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
@@ -231,14 +231,14 @@ export default function EditorSala({
                   <button onClick={() => {
                     const e = elemSel; marcar();
                     setMesas((l) => l.map((m) => (m.x >= e.x && m.x <= e.x + e.ancho && m.y >= e.y && m.y <= e.y + e.alto ? { ...m, camareroId: e.camareroId, zona: e.etiqueta ?? m.zona } : m)));
-                  }} className="w-full rounded-lg bg-white/10 py-2 text-sm font-semibold">Asignar a este camarero las mesas de la zona</button>
+                  }} className="w-full rounded-lg bg-[#EDEDEA] py-2 text-sm font-semibold">Asignar a este camarero las mesas de la zona</button>
                 </>
               )}
-              <button onClick={borrar} className="text-sm text-red-400">Eliminar</button>
+              <button onClick={borrar} className="text-sm text-red-600">Eliminar</button>
             </div>
           ) : (
-            <div className="space-y-2 text-sm text-white/55">
-              <p className="font-bold text-white">Cómo funciona</p>
+            <div className="space-y-2 text-sm text-[#6B7079]">
+              <p className="font-bold text-[#1B1D22]">Cómo funciona</p>
               <p>1. Añade paredes, barra y puertas para dibujar tu local.</p>
               <p>2. Añade las mesas y arrástralas a su sitio.</p>
               <p>3. Crea zonas (Terraza, Salón…) y asígnales un camarero: al guardar, las mesas de la zona sin camarero pasan a ser suyas.</p>

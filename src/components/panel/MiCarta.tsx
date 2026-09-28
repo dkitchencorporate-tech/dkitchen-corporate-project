@@ -38,7 +38,7 @@ export default function MiCarta({
         <h2 className="text-xl font-bold">Mi Carta</h2>
         <button
           onClick={() => setPlatoEnEdicion('nuevo')}
-          className="bg-[#D9531E] hover:bg-[#B8451A] text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors"
+          className="bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors"
         >
           + Añadir plato
         </button>
@@ -57,12 +57,12 @@ export default function MiCarta({
           value={nuevaSeccion}
           onChange={(e) => setNuevaSeccion(e.target.value)}
           placeholder="Nombre de la nueva sección (ej. Entrantes)"
-          className="flex-1 rounded-lg bg-black/30 border border-white/10 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:border-[#D9531E]"
+          className="flex-1 rounded-lg bg-white border border-[#E6E6E2] px-4 py-2.5 text-[#1B1D22] placeholder-[#9A9EA6] focus:outline-none focus:border-[#E8592A]"
         />
         <button
           onClick={agregarSeccion}
           disabled={pendiente}
-          className="rounded-lg bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-semibold transition-colors"
+          className="rounded-lg bg-[#EDEDEA] hover:bg-[#E5E5E1] px-4 py-2.5 text-sm font-semibold transition-colors"
         >
           Añadir sección
         </button>
@@ -87,7 +87,7 @@ export default function MiCarta({
       )}
 
       {carta.secciones.length === 0 && sueltos.length === 0 && (
-        <p className="text-white/40 text-center py-12">
+        <p className="text-[#6B7079] text-center py-12">
           Todavía no tienes ninguna sección ni plato. Empieza creando una sección arriba.
         </p>
       )}
@@ -119,16 +119,16 @@ function SeccionCard({
   }
 
   return (
-    <div className="bg-[#1c140b] border border-white/10 rounded-2xl p-5">
+    <div className="bg-white border border-[#E6E6E2] rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
         {editando ? (
           <div className="flex gap-2 flex-1">
             <input
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="flex-1 rounded-lg bg-black/30 border border-white/10 px-3 py-1.5 text-white"
+              className="flex-1 rounded-lg bg-white border border-[#E6E6E2] px-3 py-1.5 text-[#1B1D22]"
             />
-            <button onClick={guardarNombre} disabled={pendiente} className="text-sm text-green-400 font-semibold">
+            <button onClick={guardarNombre} disabled={pendiente} className="text-sm text-green-700 font-semibold">
               Guardar
             </button>
           </div>
@@ -138,12 +138,12 @@ function SeccionCard({
 
         {!sinBorrar && !editando && (
           <div className="flex gap-3 text-sm">
-            <button onClick={() => setEditando(true)} className="text-white/40 hover:text-white/70">
+            <button onClick={() => setEditando(true)} className="text-[#6B7079] hover:text-[#3F434B]">
               Renombrar
             </button>
             <button
               onClick={() => iniciarTransicion(() => eliminarSeccionAction(seccion.id))}
-              className="text-red-400/70 hover:text-red-400"
+              className="text-red-400/70 hover:text-red-600"
             >
               Eliminar
             </button>
@@ -152,37 +152,37 @@ function SeccionCard({
       </div>
 
       {platos.length === 0 ? (
-        <p className="text-white/30 text-sm">Sin platos todavía.</p>
+        <p className="text-[#9A9EA6] text-sm">Sin platos todavía.</p>
       ) : (
-        <ul className="divide-y divide-white/5">
+        <ul className="divide-y divide-[#ECECE8]">
           {platos.map((plato) => (
             <li key={plato.id} className="py-3 flex items-center justify-between gap-3">
               {plato.fotoUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={plato.fotoUrl} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
               ) : (
-                <button onClick={() => onEditarPlato(plato)} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-dashed border-white/15 text-[10px] text-white/35" title="Añadir foto">
+                <button onClick={() => onEditarPlato(plato)} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-dashed border-[#D6D6D1] text-[10px] text-[#9A9EA6]" title="Añadir foto">
                   + foto
                 </button>
               )}
               <div className="min-w-0 flex-1">
-                <p className={`font-medium truncate ${!plato.disponible ? 'text-white/30 line-through' : ''}`}>
+                <p className={`font-medium truncate ${!plato.disponible ? 'text-[#9A9EA6] line-through' : ''}`}>
                   {plato.nombre}
                 </p>
                 {plato.descripcion ? (
-                  <p className="text-xs text-white/45 mt-0.5 line-clamp-1">{plato.descripcion}</p>
+                  <p className="text-xs text-[#6B7079] mt-0.5 line-clamp-1">{plato.descripcion}</p>
                 ) : (
-                  <button onClick={() => onEditarPlato(plato)} className="text-xs text-[#D9531E]/80 hover:text-[#D9531E] mt-0.5">+ Añadir descripción</button>
+                  <button onClick={() => onEditarPlato(plato)} className="text-xs text-[#E8592A]/80 hover:text-[#E8592A] mt-0.5">+ Añadir descripción</button>
                 )}
                 {plato.alergenos.length > 0 && (
-                  <p className="text-xs text-white/30 mt-0.5">
+                  <p className="text-xs text-[#9A9EA6] mt-0.5">
                     {plato.alergenos.map((c) => ALERGENOS[c] ?? c).join(', ')}
                   </p>
                 )}
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <span className="font-semibold tabular-nums text-sm">{Number(plato.precio).toFixed(2)}€</span>
-                <button onClick={() => onEditarPlato(plato)} className="text-white/40 hover:text-white/70 text-sm">
+                <button onClick={() => onEditarPlato(plato)} className="text-[#6B7079] hover:text-[#3F434B] text-sm">
                   Editar
                 </button>
               </div>
@@ -244,10 +244,10 @@ function FormularioPlato({
   }
 
   return (
-    <div className="bg-[#1c140b] border border-[#D9531E]/40 rounded-2xl p-5 space-y-4">
+    <div className="bg-white border border-[#E8592A]/40 rounded-2xl p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-bold">{plato ? 'Editar plato' : 'Nuevo plato'}</h3>
-        <button onClick={onCerrar} className="text-white/40 hover:text-white/70 text-sm">
+        <button onClick={onCerrar} className="text-[#6B7079] hover:text-[#3F434B] text-sm">
           Cancelar
         </button>
       </div>
@@ -257,7 +257,7 @@ function FormularioPlato({
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
           placeholder="Nombre del plato"
-          className="rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white placeholder-white/30"
+          className="rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]"
         />
         <input
           value={precio}
@@ -266,20 +266,20 @@ function FormularioPlato({
           step="0.01"
           min="0"
           placeholder="Precio (€)"
-          className="rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white placeholder-white/30"
+          className="rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]"
         />
       </div>
 
       <label className="block space-y-1">
-        <span className="text-xs text-white/50">Descripción del plato ({descripcion.length}/300)</span>
+        <span className="text-xs text-[#6B7079]">Descripción del plato ({descripcion.length}/300)</span>
         <textarea
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value.slice(0, 300))}
           placeholder="Ej: Croquetas caseras de jamón ibérico, cremosas por dentro y crujientes por fuera. 6 unidades."
           rows={3}
-          className="w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white placeholder-white/30"
+          className="w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]"
         />
-        <span className="block text-[11px] text-white/35">Se ve en la carta y completa al abrir el plato. Una buena descripción vende más.</span>
+        <span className="block text-[11px] text-[#9A9EA6]">Se ve en la carta y completa al abrir el plato. Una buena descripción vende más.</span>
       </label>
 
       <SubirImagen valor={fotoUrl || null} onCambio={(url) => setFotoUrl(url ?? '')} etiqueta="Foto" />
@@ -288,7 +288,7 @@ function FormularioPlato({
         <select
           value={seccionId}
           onChange={(e) => setSeccionId(e.target.value)}
-          className="w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white"
+          className="w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22]"
         >
           <option value="">Sin sección</option>
           {secciones.map((s) => (
@@ -300,7 +300,7 @@ function FormularioPlato({
       )}
 
       <div>
-        <p className="text-sm text-white/50 mb-2">Alérgenos (obligatorio marcar si aplica — Reglamento UE 1169/2011)</p>
+        <p className="text-sm text-[#6B7079] mb-2">Alérgenos (obligatorio marcar si aplica — Reglamento UE 1169/2011)</p>
         <div className="flex flex-wrap gap-2">
           {CODIGOS_ALERGENOS.map((codigo) => (
             <button
@@ -309,8 +309,8 @@ function FormularioPlato({
               onClick={() => alternarAlergeno(codigo)}
               className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                 alergenos.includes(codigo)
-                  ? 'bg-[#D9531E] border-[#D9531E] text-white'
-                  : 'border-white/15 text-white/50 hover:border-white/30'
+                  ? 'bg-[#E8592A] border-[#E8592A] text-white'
+                  : 'border-[#D6D6D1] text-[#6B7079] hover:border-[#D6D6D1]'
               }`}
             >
               {ALERGENOS[codigo]}
@@ -320,7 +320,7 @@ function FormularioPlato({
       </div>
 
       {plato && (
-        <label className="flex items-center gap-2 text-sm text-white/60 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-[#6B7079] cursor-pointer">
           <input
             type="checkbox"
             checked={disponible}
@@ -335,7 +335,7 @@ function FormularioPlato({
         {plato && (
           <button
             onClick={() => iniciarTransicion(async () => { await eliminarPlatoAction(plato.id); onCerrar(); })}
-            className="text-sm text-red-400/70 hover:text-red-400"
+            className="text-sm text-red-400/70 hover:text-red-600"
           >
             Eliminar plato
           </button>
@@ -343,7 +343,7 @@ function FormularioPlato({
         <button
           onClick={guardar}
           disabled={pendiente}
-          className="ml-auto bg-[#D9531E] hover:bg-[#B8451A] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50"
+          className="ml-auto bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50"
         >
           {pendiente ? 'Guardando…' : 'Guardar'}
         </button>

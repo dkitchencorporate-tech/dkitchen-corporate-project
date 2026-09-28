@@ -55,17 +55,17 @@ function Cambios({ e }: { e: EntradaHistorial }) {
   const lineas = Object.entries(cambios);
   if (e.accion.endsWith('.update')) {
     return (
-      <ul className="mt-1 space-y-0.5 text-xs text-white/50">
+      <ul className="mt-1 space-y-0.5 text-xs text-[#6B7079]">
         {lineas.map(([k, d]) => (
           <li key={k}>
-            <span className="text-white/70">{k}</span>: {valor(d?.antes)} → <span className="text-white/80">{valor(d?.despues)}</span>
+            <span className="text-[#3F434B]">{k}</span>: {valor(d?.antes)} → <span className="text-[#3F434B]">{valor(d?.despues)}</span>
           </li>
         ))}
       </ul>
     );
   }
   const nombre = (cambios as Record<string, unknown>).nombre;
-  return nombre ? <p className="mt-1 text-xs text-white/50">«{valor(nombre)}»</p> : null;
+  return nombre ? <p className="mt-1 text-xs text-[#6B7079]">«{valor(nombre)}»</p> : null;
 }
 
 export default async function FichaClienteQr({ params }: { params: Promise<{ id: string }> }) {
@@ -89,17 +89,17 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
     : r.estado_acceso;
 
   return (
-    <div className="px-4 py-6 sm:p-6 lg:p-10 text-white space-y-8">
+    <div className="px-4 py-6 sm:p-6 lg:p-10 text-[#1B1D22] space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link href="/admin-dkitchen/qr" className="text-xs text-white/40 hover:text-white">← Clientes QR</Link>
+          <Link href="/admin-dkitchen/qr" className="text-xs text-[#6B7079] hover:text-[#1B1D22]">← Clientes QR</Link>
           <h1 className="mt-1 text-2xl font-black">{r.nombre}</h1>
-          <p className="text-sm text-white/40">
+          <p className="text-sm text-[#6B7079]">
             /{r.slug} · alta {fecha.format(new Date(r.creado_en))} · último acceso{' '}
             {ficha.ultimo_acceso ? fechaHora.format(new Date(ficha.ultimo_acceso)) : 'nunca'}
           </p>
         </div>
-        <a href={`/m/${r.slug}`} target="_blank" rel="noopener" className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold hover:border-[#D9531E]">
+        <a href={`/m/${r.slug}`} target="_blank" rel="noopener" className="rounded-lg border border-[#D6D6D1] px-4 py-2 text-sm font-semibold hover:border-[#E8592A]">
           Ver su carta ↗
         </a>
       </div>
@@ -111,92 +111,92 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           { t: 'Escaneos 30 días', v: total30 },
           { t: 'Llamadas de mesa 30 días', v: ficha.llamadas_30d },
         ].map((k) => (
-          <div key={k.t} className="rounded-2xl border border-white/10 bg-[#1c140b] p-5">
-            <p className="text-xs text-white/40">{k.t}</p>
+          <div key={k.t} className="rounded-2xl border border-[#E6E6E2] bg-white p-5">
+            <p className="text-xs text-[#6B7079]">{k.t}</p>
             <p className="mt-1 text-lg font-black">{k.v}</p>
           </div>
         ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6 lg:col-span-2">
+        <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6 lg:col-span-2">
           <h2 className="font-bold">Escaneos de los últimos 30 días</h2>
           <div className="mt-4 flex h-32 items-end gap-1" role="img" aria-label={`${total30} escaneos en 30 días`}>
             {ficha.escaneos_30d.map((d) => (
               <div
                 key={d.dia}
                 title={`${d.dia}: ${d.n}`}
-                className="flex-1 rounded-t bg-[#D9531E]"
+                className="flex-1 rounded-t bg-[#E8592A]"
                 style={{ height: `${Math.max(3, (d.n / maxDia) * 100)}%`, opacity: d.n ? 1 : 0.25 }}
               />
             ))}
           </div>
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6 space-y-3 text-sm">
+        <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6 space-y-3 text-sm">
           <h2 className="font-bold">Contacto y carta</h2>
           <p>{ficha.contacto ?? '—'}</p>
-          {ficha.email && <a href={`mailto:${ficha.email}`} className="block text-[#D9531E] hover:underline">{ficha.email}</a>}
-          <p className="text-white/50">{r.telefono ?? 'Sin teléfono'} · {r.direccion ?? 'Sin dirección'}</p>
-          <p className="text-white/50">{ficha.secciones} secciones · {ficha.platos} platos</p>
-          <p className="text-white/50">QR: {ficha.codigos.join(', ') || '—'}</p>
+          {ficha.email && <a href={`mailto:${ficha.email}`} className="block text-[#E8592A] hover:underline">{ficha.email}</a>}
+          <p className="text-[#6B7079]">{r.telefono ?? 'Sin teléfono'} · {r.direccion ?? 'Sin dirección'}</p>
+          <p className="text-[#6B7079]">{ficha.secciones} secciones · {ficha.platos} platos</p>
+          <p className="text-[#6B7079]">QR: {ficha.codigos.join(', ') || '—'}</p>
         </section>
       </div>
 
-      <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6">
+      <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6">
         <h2 className="font-bold">Acciones</h2>
-        <p className="text-xs text-white/40">Cada acción queda registrada en el historial.</p>
+        <p className="text-xs text-[#6B7079]">Cada acción queda registrada en el historial.</p>
         <div className="mt-4 flex flex-wrap gap-3">
           <form action={regalarTodoAction}>
             <input type="hidden" name="restauranteId" value={r.id} />
-            <button className="rounded-lg bg-[#D9531E] px-4 py-2 text-sm font-bold hover:bg-[#B8451A]">Darle todo gratis</button>
+            <button className="rounded-lg bg-[#E8592A] px-4 py-2 text-sm font-bold hover:bg-[#CF4A1F]">Darle todo gratis</button>
           </form>
           {ficha.platos === 0 && (
             <form action={cartaDemoAction}>
               <input type="hidden" name="restauranteId" value={r.id} />
-              <button className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/15">Cargar carta de demostración</button>
+              <button className="rounded-lg bg-[#EDEDEA] px-4 py-2 text-sm font-semibold hover:bg-[#E5E5E1]">Cargar carta de demostración</button>
             </form>
           )}
           {ficha.email && (
             <form action={reenviarAccesoAction}>
               <input type="hidden" name="email" value={ficha.email} />
-              <button className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/15">Reenviar enlace de acceso</button>
+              <button className="rounded-lg bg-[#EDEDEA] px-4 py-2 text-sm font-semibold hover:bg-[#E5E5E1]">Reenviar enlace de acceso</button>
             </form>
           )}
           <form action={cambiarEstadoAction}>
             <input type="hidden" name="restauranteId" value={r.id} />
             <input type="hidden" name="estado" value={r.activo ? 'suspendido' : 'activo'} />
-            <button className={`rounded-lg px-4 py-2 text-sm font-semibold ${r.activo ? 'bg-red-500/15 text-red-300 hover:bg-red-500/25' : 'bg-green-500/15 text-green-300 hover:bg-green-500/25'}`}>
+            <button className={`rounded-lg px-4 py-2 text-sm font-semibold ${r.activo ? 'bg-red-500/15 text-red-600 hover:bg-red-500/25' : 'bg-green-500/15 text-green-700 hover:bg-green-500/25'}`}>
               {r.activo ? 'Suspender cuenta' : 'Reactivar cuenta'}
             </button>
           </form>
           <form action={cambiarPlanAction}>
             <input type="hidden" name="restauranteId" value={r.id} />
             <input type="hidden" name="plan" value={r.plan === 'ampliado' ? 'basico' : 'ampliado'} />
-            <button className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/15">
+            <button className="rounded-lg bg-[#EDEDEA] px-4 py-2 text-sm font-semibold hover:bg-[#E5E5E1]">
               Pasar a {r.plan === 'ampliado' ? 'Básico' : 'Ampliado'}
             </button>
           </form>
-          <Link href="/admin-dkitchen/soporte" className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/15">
+          <Link href="/admin-dkitchen/soporte" className="rounded-lg bg-[#EDEDEA] px-4 py-2 text-sm font-semibold hover:bg-[#E5E5E1]">
             Soporte y QR físico
           </Link>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6 space-y-4">
+      <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6 space-y-4">
         <div>
           <h2 className="font-bold">Servicios y módulos</h2>
-          <p className="text-xs text-white/40">"Demo" activa sin cobro (para enseñar o grabar vídeos). "Regalar" = cortesía comercial. Todo queda en el historial.</p>
+          <p className="text-xs text-[#6B7079]">"Demo" activa sin cobro (para enseñar o grabar vídeos). "Regalar" = cortesía comercial. Todo queda en el historial.</p>
         </div>
-        <ul className="divide-y divide-white/5 text-sm">
+        <ul className="divide-y divide-[#ECECE8] text-sm">
           {CATALOGO_SERVICIOS.map(([clave, nombre]) => {
             const s = servicios.find((x) => x.servicio === clave);
             return (
               <li key={clave} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
                 <span>
                   <strong>{nombre}</strong>
-                  {s ? <span className="ml-2 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] text-green-300">{s.estado} · {s.origen}</span>
-                     : <span className="ml-2 text-xs text-white/35">no contratado</span>}
+                  {s ? <span className="ml-2 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] text-green-700">{s.estado} · {s.origen}</span>
+                     : <span className="ml-2 text-xs text-[#9A9EA6]">no contratado</span>}
                 </span>
                 <span className="flex gap-2">
                   {(s ? ['entregado', 'cancelar'] : ['demo', 'regalar']).map((accion) => (
@@ -204,7 +204,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
                       <input type="hidden" name="restauranteId" value={r.id} />
                       <input type="hidden" name="servicio" value={clave} />
                       <input type="hidden" name="accion" value={accion} />
-                      <button className={`rounded-md px-2.5 py-1 text-xs font-semibold ${accion === 'cancelar' ? 'bg-red-500/15 text-red-300' : 'bg-white/10 hover:bg-white/15'}`}>
+                      <button className={`rounded-md px-2.5 py-1 text-xs font-semibold ${accion === 'cancelar' ? 'bg-red-500/15 text-red-600' : 'bg-[#EDEDEA] hover:bg-[#E5E5E1]'}`}>
                         {accion === 'entregado' ? 'Marcar entregado' : accion === 'cancelar' ? 'Cancelar' : accion === 'demo' ? 'Activar demo' : 'Regalar'}
                       </button>
                     </form>
@@ -216,7 +216,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         </ul>
 
         {servicios.filter((x) => x.servicio === 'setup_esencial' || x.servicio === 'setup_experto').map((s) => (
-          <form key={s.servicio} action={checklistSetupAction} className="rounded-xl bg-black/20 p-4 text-sm">
+          <form key={s.servicio} action={checklistSetupAction} className="rounded-xl bg-white p-4 text-sm">
             <input type="hidden" name="restauranteId" value={r.id} />
             <input type="hidden" name="servicio" value={s.servicio} />
             <p className="mb-2 font-bold">Entrega del {s.servicio === 'setup_experto' ? 'Setup Experto' : 'Setup Esencial'}</p>
@@ -225,82 +225,82 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
                 <label key={k} className="flex items-center gap-2"><input type="checkbox" name={k} defaultChecked={s.checklist[k] === true} className="accent-[#D9531E]" /> {t}</label>
               ))}
             </div>
-            <button className="mt-3 rounded-md bg-white/10 px-3 py-1.5 text-xs font-bold">Guardar progreso</button>
+            <button className="mt-3 rounded-md bg-[#EDEDEA] px-3 py-1.5 text-xs font-bold">Guardar progreso</button>
           </form>
         ))}
 
         {servicios.some((x) => x.servicio === 'conexion_tpv' || x.servicio === 'pack_sala') && (
-          <form action={conexionTpvAction} className="space-y-2 rounded-xl bg-black/20 p-4 text-sm">
+          <form action={conexionTpvAction} className="space-y-2 rounded-xl bg-white p-4 text-sm">
             <input type="hidden" name="restauranteId" value={r.id} />
             <p className="font-bold">Conexión con el TPV</p>
             <div className="grid gap-2 sm:grid-cols-2">
-              <input name="proveedor" required placeholder="TPV (Revo, Ágora, Last.app…)" className="rounded-lg border border-white/10 bg-black/30 px-3 py-2" />
-              <input name="endpoint" required type="url" placeholder="https://… (endpoint del fabricante)" className="rounded-lg border border-white/10 bg-black/30 px-3 py-2" />
+              <input name="proveedor" required placeholder="TPV (Revo, Ágora, Last.app…)" className="rounded-lg border border-[#E6E6E2] bg-white px-3 py-2" />
+              <input name="endpoint" required type="url" placeholder="https://… (endpoint del fabricante)" className="rounded-lg border border-[#E6E6E2] bg-white px-3 py-2" />
             </div>
-            <input name="credencial" type="password" autoComplete="off" placeholder="Cabecera Authorization (p. ej. Bearer xxx). Vacío = mantener" className="w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2" />
+            <input name="credencial" type="password" autoComplete="off" placeholder="Cabecera Authorization (p. ej. Bearer xxx). Vacío = mantener" className="w-full rounded-lg border border-[#E6E6E2] bg-white px-3 py-2" />
             <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="activa" defaultChecked className="accent-[#D9531E]" /> Activa</label>
-            <p className="text-[11px] text-white/35">La credencial se cifra (AES-256-GCM) antes de guardarse; nadie puede volver a leerla desde el panel.</p>
-            <button className="rounded-md bg-[#D9531E] px-3 py-1.5 text-xs font-bold">Guardar conexión</button>
+            <p className="text-[11px] text-[#9A9EA6]">La credencial se cifra (AES-256-GCM) antes de guardarse; nadie puede volver a leerla desde el panel.</p>
+            <button className="rounded-md bg-[#E8592A] px-3 py-1.5 text-xs font-bold">Guardar conexión</button>
           </form>
         )}
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6">
+      <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6">
         <h2 className="font-bold">Diseño de la carta</h2>
-        <p className="text-xs text-white/40">
+        <p className="text-xs text-[#6B7079]">
           Solo DKitchen lo asigna (el cliente administra contenido). Esencial = incluido · Autor = Setup Experto · Signature = a medida.
         </p>
         <form action={asignarDisenoAction} className="mt-4 flex flex-wrap items-end gap-3 text-sm">
           <input type="hidden" name="restauranteId" value={r.id} />
           <label className="space-y-1">
-            <span className="block text-xs text-white/50">Plantilla</span>
-            <select name="plantilla" defaultValue={r.plantilla ?? 'clasica'} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2">
+            <span className="block text-xs text-[#6B7079]">Plantilla</span>
+            <select name="plantilla" defaultValue={r.plantilla ?? 'clasica'} className="rounded-lg border border-[#E6E6E2] bg-white px-3 py-2">
               <option value="clasica">Clásica</option>
               <option value="visual">Visual</option>
               <option value="express">Express</option>
             </select>
           </label>
           <label className="space-y-1">
-            <span className="block text-xs text-white/50">Nivel</span>
-            <select name="nivel" defaultValue={r.nivel_diseno ?? 'esencial'} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2">
+            <span className="block text-xs text-[#6B7079]">Nivel</span>
+            <select name="nivel" defaultValue={r.nivel_diseno ?? 'esencial'} className="rounded-lg border border-[#E6E6E2] bg-white px-3 py-2">
               <option value="esencial">Esencial</option>
               <option value="autor">Carta de Autor</option>
               <option value="signature">Signature</option>
             </select>
           </label>
           <label className="space-y-1">
-            <span className="block text-xs text-white/50">Color (libre)</span>
-            <input type="color" name="color" defaultValue={r.color_marca ?? '#D9531E'} className="h-[38px] w-16 rounded-lg border border-white/10 bg-black/30 p-1" />
+            <span className="block text-xs text-[#6B7079]">Color (libre)</span>
+            <input type="color" name="color" defaultValue={r.color_marca ?? '#D9531E'} className="h-[38px] w-16 rounded-lg border border-[#E6E6E2] bg-white p-1" />
           </label>
-          <button className="rounded-lg bg-[#D9531E] px-4 py-2 font-bold hover:bg-[#B8451A]">Aplicar diseño</button>
+          <button className="rounded-lg bg-[#E8592A] px-4 py-2 font-bold hover:bg-[#CF4A1F]">Aplicar diseño</button>
         </form>
       </section>
 
-      <section id="enlace" className="scroll-mt-20 rounded-2xl border border-white/10 bg-[#1c140b] p-6 space-y-5">
+      <section id="enlace" className="scroll-mt-20 rounded-2xl border border-[#E6E6E2] bg-white p-6 space-y-5">
         <div>
           <h2 className="font-bold">Enlace de pago a medida</h2>
-          <p className="text-xs text-white/40">Plan y/o servicios al precio que decidas. Al pagarlo se activa solo y queda en el historial.</p>
+          <p className="text-xs text-[#6B7079]">Plan y/o servicios al precio que decidas. Al pagarlo se activa solo y queda en el historial.</p>
         </div>
         <EnlacesPago restauranteId={r.id} catalogo={catalogo} />
         {enlaces.length > 0 && (
-          <ul className="divide-y divide-white/5 border-t border-white/10 pt-2 text-sm">
+          <ul className="divide-y divide-[#ECECE8] border-t border-[#E6E6E2] pt-2 text-sm">
             {enlaces.map((e) => (
               <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                 <div className="min-w-0">
                   <p className="font-medium">{[e.plan ? `Plan ${e.plan}` : null, ...e.servicios].filter(Boolean).join(' + ')}</p>
-                  <p className="text-xs text-white/40">
+                  <p className="text-xs text-[#6B7079]">
                     {(e.primerCentimos / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                     {e.mensualCentimos ? ` + ${(e.mensualCentimos / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}/mes` : ''} · {fecha.format(new Date(e.creadoEn))}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${e.estado === 'pagado' ? 'bg-green-500/15 text-green-300' : e.estado === 'anulado' ? 'bg-white/10 text-white/40' : 'bg-amber-500/15 text-amber-300'}`}>{e.estado}</span>
-                  {e.estado === 'pendiente' && e.url && <a href={e.url} target="_blank" rel="noopener" className="text-xs text-white/60 underline">Abrir</a>}
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${e.estado === 'pagado' ? 'bg-green-500/15 text-green-700' : e.estado === 'anulado' ? 'bg-[#EDEDEA] text-[#6B7079]' : 'bg-amber-500/15 text-amber-700'}`}>{e.estado}</span>
+                  {e.estado === 'pendiente' && e.url && <a href={e.url} target="_blank" rel="noopener" className="text-xs text-[#6B7079] underline">Abrir</a>}
                   {e.estado === 'pendiente' && (
                     <form action={anularEnlaceAction}>
                       <input type="hidden" name="enlaceId" value={e.id} />
                       <input type="hidden" name="restauranteId" value={r.id} />
-                      <button className="text-xs text-red-400">Anular</button>
+                      <button className="text-xs text-red-600">Anular</button>
                     </form>
                   )}
                 </div>
@@ -311,7 +311,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
       </section>
 
       {cartaCliente && (
-        <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6">
+        <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6">
           <TraductorCarta
             restauranteId={id}
             activos={cartaCliente.idiomas ?? []}
@@ -322,19 +322,19 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         </section>
       )}
 
-      <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6">
+      <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6">
         <h2 className="font-bold">Historial de cambios</h2>
         {historial.length === 0 ? (
-          <p className="mt-3 text-sm text-white/40">Sin cambios registrados todavía.</p>
+          <p className="mt-3 text-sm text-[#6B7079]">Sin cambios registrados todavía.</p>
         ) : (
           <ol className="mt-4 space-y-3">
             {historial.map((e, i) => (
-              <li key={i} className="border-l-2 border-white/10 pl-4">
+              <li key={i} className="border-l-2 border-[#E6E6E2] pl-4">
                 <p className="text-sm">
                   <span className={e.quien === 'DKitchen' ? 'text-[#D9531E]' : e.quien === 'sistema' ? 'text-white/50' : 'text-white'}>
                     {ACCION[e.accion] ?? e.accion}
                   </span>
-                  <span className="ml-2 text-xs text-white/30">{fechaHora.format(new Date(e.ocurridoEn))}</span>
+                  <span className="ml-2 text-xs text-[#9A9EA6]">{fechaHora.format(new Date(e.ocurridoEn))}</span>
                 </p>
                 <Cambios e={e} />
               </li>

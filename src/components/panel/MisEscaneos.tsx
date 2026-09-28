@@ -24,23 +24,23 @@ export default function MisEscaneos({
     <div className="space-y-8">
       <h2 className="text-xl font-bold">Mis Escaneos</h2>
 
-      <div className="bg-[#1c140b] border border-white/10 rounded-2xl p-6">
-        <p className="text-white/50 text-sm">Este mes</p>
-        <p className="text-4xl font-black text-[#D9531E] mt-1">{escaneosMes}</p>
-        <p className="text-white/40 text-xs mt-1">
+      <div className="bg-white border border-[#E6E6E2] rounded-2xl p-6">
+        <p className="text-[#6B7079] text-sm">Este mes</p>
+        <p className="text-4xl font-black text-[#E8592A] mt-1">{escaneosMes}</p>
+        <p className="text-[#6B7079] text-xs mt-1">
           Cuenta cada vez que alguien escanea tu QR — el umbral que usamos para saber si conviene subir
           de plan es 600/mes sostenido.
         </p>
       </div>
 
-      <div className="bg-[#1c140b] border border-white/10 rounded-2xl p-6">
-        <p className="text-white/50 text-sm mb-4">Últimos 30 días</p>
+      <div className="bg-white border border-[#E6E6E2] rounded-2xl p-6">
+        <p className="text-[#6B7079] text-sm mb-4">Últimos 30 días</p>
         <div className="flex items-end gap-0.5 h-32">
           {dias.map((d) => (
             <div
               key={d.fecha}
               title={`${d.fecha}: ${d.total}`}
-              className="flex-1 bg-[#D9531E] rounded-t-sm min-h-[2px]"
+              className="flex-1 bg-[#E8592A] rounded-t-sm min-h-[2px]"
               style={{ height: `${Math.max(2, (d.total / maximo) * 100)}%` }}
             />
           ))}

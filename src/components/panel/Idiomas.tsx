@@ -31,37 +31,37 @@ export default function Idiomas({ activos, platos, traducciones }: {
     <div className="space-y-6">
       <header>
         <h2 className="text-xl font-bold">Idiomas de tu carta</h2>
-        <p className="text-sm text-white/40">Elige hasta 3 idiomas. <strong className="text-white/70">Nosotros traducimos tu carta</strong> (nombres, descripciones y secciones) y tus clientes verán un selector de idioma. Si cambias un plato, lo actualizamos.</p>
-        {aviso && <p className={`mt-2 text-sm ${aviso.ok ? 'text-green-400' : 'text-red-400'}`}>{aviso.texto}</p>}
+        <p className="text-sm text-[#6B7079]">Elige hasta 3 idiomas. <strong className="text-[#3F434B]">Nosotros traducimos tu carta</strong> (nombres, descripciones y secciones) y tus clientes verán un selector de idioma. Si cambias un plato, lo actualizamos.</p>
+        {aviso && <p className={`mt-2 text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</p>}
       </header>
 
-      <section className="space-y-3 rounded-2xl border border-white/10 bg-[#1c140b] p-5">
+      <section className="space-y-3 rounded-2xl border border-[#E6E6E2] bg-white p-5">
         <div className="flex flex-wrap gap-2">
           {Object.entries(DISPONIBLES).map(([c, n]) => {
             const on = idiomas.includes(c);
             return (
               <button key={c} type="button" aria-pressed={on} disabled={!on && idiomas.length >= 3}
                 onClick={() => setIdiomas((l) => (on ? l.filter((x) => x !== c) : [...l, c]))}
-                className={`rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-30 ${on ? 'bg-[#D9531E]' : 'bg-white/10'}`}>{n}</button>
+                className={`rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-30 ${on ? 'bg-[#E8592A]' : 'bg-[#EDEDEA]'}`}>{n}</button>
             );
           })}
         </div>
-        <button disabled={pendiente} onClick={guardar} className="rounded-lg bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/15">Guardar idiomas ({idiomas.length}/3)</button>
+        <button disabled={pendiente} onClick={guardar} className="rounded-lg bg-[#EDEDEA] px-4 py-2 text-sm font-bold hover:bg-[#E5E5E1]">Guardar idiomas ({idiomas.length}/3)</button>
       </section>
 
       {activos.length > 0 && (
-        <section className="space-y-3 rounded-2xl border border-white/10 bg-[#1c140b] p-5">
+        <section className="space-y-3 rounded-2xl border border-[#E6E6E2] bg-white p-5">
           <h3 className="font-bold">Estado de la traducción</h3>
           {activos.map((i) => {
             const n = hechos(i), total = platos.length, pct = total ? Math.round((n / total) * 100) : 100;
             return (
               <div key={i} className="space-y-1">
-                <div className="flex justify-between text-sm"><span>{DISPONIBLES[i]}</span><span className="text-white/50">{pct === 100 ? '✓ Lista' : `DKitchen está traduciendo · ${n}/${total}`}</span></div>
-                <div className="h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-[#D9531E]" style={{ width: `${pct}%` }} /></div>
+                <div className="flex justify-between text-sm"><span>{DISPONIBLES[i]}</span><span className="text-[#6B7079]">{pct === 100 ? '✓ Lista' : `DKitchen está traduciendo · ${n}/${total}`}</span></div>
+                <div className="h-2 overflow-hidden rounded-full bg-[#EDEDEA]"><div className="h-full bg-[#E8592A]" style={{ width: `${pct}%` }} /></div>
               </div>
             );
           })}
-          <p className="text-xs text-white/35">¿Ves algo que cambiarías? Escríbenos desde Soporte y lo corregimos.</p>
+          <p className="text-xs text-[#9A9EA6]">¿Ves algo que cambiarías? Escríbenos desde Soporte y lo corregimos.</p>
         </section>
       )}
     </div>

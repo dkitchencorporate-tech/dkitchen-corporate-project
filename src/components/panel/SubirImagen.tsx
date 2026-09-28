@@ -41,14 +41,14 @@ export default function SubirImagen({
   return (
     <div className="flex items-center gap-4">
       <div
-        className={`h-20 w-20 shrink-0 overflow-hidden border border-white/10 bg-black/30 flex items-center justify-center ${
+        className={`h-20 w-20 shrink-0 overflow-hidden border border-[#E6E6E2] bg-white flex items-center justify-center ${
           redonda ? 'rounded-full' : 'rounded-xl'
         }`}
       >
         {valor ? (
           <img src={valor} alt="" className="h-full w-full object-cover" />
         ) : (
-          <span className="text-[10px] uppercase tracking-wider text-white/30">Sin {etiqueta.toLowerCase()}</span>
+          <span className="text-[10px] uppercase tracking-wider text-[#9A9EA6]">Sin {etiqueta.toLowerCase()}</span>
         )}
       </div>
       <div className="space-y-1.5">
@@ -57,18 +57,18 @@ export default function SubirImagen({
             type="button"
             disabled={subiendo}
             onClick={() => entrada.current?.click()}
-            className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-semibold hover:bg-white/15 disabled:opacity-50"
+            className="rounded-lg bg-[#EDEDEA] px-3 py-1.5 text-sm font-semibold hover:bg-[#E5E5E1] disabled:opacity-50"
           >
             {subiendo ? 'Subiendo…' : valor ? `Cambiar ${etiqueta.toLowerCase()}` : `Subir ${etiqueta.toLowerCase()}`}
           </button>
           {valor && !subiendo && (
-            <button type="button" onClick={() => onCambio(null)} className="px-2 text-sm text-white/40 hover:text-red-400">
+            <button type="button" onClick={() => onCambio(null)} className="px-2 text-sm text-[#6B7079] hover:text-red-600">
               Quitar
             </button>
           )}
         </div>
-        <p className="text-[11px] text-white/30">JPG, PNG o WebP. Se optimiza automáticamente.</p>
-        {error && <p className="text-xs text-red-400">{error}</p>}
+        <p className="text-[11px] text-[#9A9EA6]">JPG, PNG o WebP. Se optimiza automáticamente.</p>
+        {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
       <input
         ref={entrada}

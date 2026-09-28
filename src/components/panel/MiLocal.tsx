@@ -42,7 +42,7 @@ function MiniPlantilla({ tipo, color }: { tipo: string; color: string }) {
           <div className="mt-1.5 grid grid-cols-2 gap-1">
             {[0, 1].map((i) => (
               <div key={i} className="rounded bg-white p-1 shadow-sm">
-                <div className="h-5 rounded bg-black/10" />
+                <div className="h-5 rounded bg-white" />
                 <div className={`mt-1 ${barra}`} />
               </div>
             ))}
@@ -51,7 +51,7 @@ function MiniPlantilla({ tipo, color }: { tipo: string; color: string }) {
       ) : tipo === 'express' ? (
         <>
           <div className="flex items-center gap-1 border-t-2 pt-1" style={{ borderColor: color }}>
-            <div className="h-3 w-3 rounded-full bg-black/15" />
+            <div className="h-3 w-3 rounded-full bg-white" />
             <div className={`w-10 ${barra}`} />
           </div>
           <div className="mt-1.5 space-y-1.5 rounded bg-white p-1">
@@ -70,10 +70,10 @@ function MiniPlantilla({ tipo, color }: { tipo: string; color: string }) {
           <div className="mt-2 space-y-1.5">
             {[0, 1, 2].map((i) => (
               <div key={i} className="flex gap-1">
-                <div className="h-4 w-4 rounded bg-black/10" />
+                <div className="h-4 w-4 rounded bg-white" />
                 <div className="flex-1 space-y-0.5">
                   <div className={barra} />
-                  <div className="h-1 w-3/4 rounded bg-black/10" />
+                  <div className="h-1 w-3/4 rounded bg-white" />
                 </div>
               </div>
             ))}
@@ -123,25 +123,25 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold">Mi Local</h2>
-          <p className="text-sm text-white/40">Lo que tus clientes ven en la cabecera de la carta.</p>
+          <p className="text-sm text-[#6B7079]">Lo que tus clientes ven en la cabecera de la carta.</p>
         </div>
         <a
           href={`/m/${restaurante.slug}`}
           target="_blank"
           rel="noopener"
-          className="shrink-0 rounded-lg border border-white/15 px-3 py-2 text-sm font-semibold hover:border-[#D9531E] hover:text-[#D9531E]"
+          className="shrink-0 rounded-lg border border-[#D6D6D1] px-3 py-2 text-sm font-semibold hover:border-[#E8592A] hover:text-[#E8592A]"
         >
           Ver mi carta ↗
         </a>
       </div>
 
-      <section className="bg-[#1c140b] border border-white/10 rounded-2xl p-6 space-y-4">
+      <section className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-4">
         <div className="flex items-start gap-4">
           <div className="w-32 shrink-0"><MiniPlantilla tipo={plantillaActual.id} color={d.colorMarca} /></div>
           <div className="min-w-0 space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-white/40">Tu diseño</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7079]">Tu diseño</p>
             <h3 className="font-bold">{NIVELES[restaurante.nivelDiseno]?.nombre ?? 'Esencial'} · {plantillaActual.nombre}</h3>
-            <p className="text-xs text-white/50">
+            <p className="text-xs text-[#6B7079]">
               El diseño de tu carta lo prepara DKitchen para que se vea profesional en cualquier móvil. Tú gestionas el contenido: platos,
               fotos, precios, banners y datos del local.
             </p>
@@ -150,28 +150,28 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
         {esencial ? (
           <a
             href="/panel?pestana=diseno"
-            className="block w-full rounded-xl border border-[#D9531E]/50 bg-[#D9531E]/10 p-4 text-left hover:bg-[#D9531E]/15"
+            className="block w-full rounded-xl border border-[#E8592A]/50 bg-[#E8592A]/10 p-4 text-left hover:bg-[#E8592A]/15"
           >
             <p className="font-semibold">Sube tu carta al diseño de autor</p>
-            <p className="text-xs text-white/60">Portada con tu imagen, categorías con foto, tipografía editorial… y te la dejamos cargada y optimizada. Ver niveles de diseño →</p>
+            <p className="text-xs text-[#6B7079]">Portada con tu imagen, categorías con foto, tipografía editorial… y te la dejamos cargada y optimizada. Ver niveles de diseño →</p>
           </a>
         ) : (
-          <p className="text-xs text-white/40">¿Quieres un cambio en el diseño? Pídelo en Soporte y lo revisamos contigo.</p>
+          <p className="text-xs text-[#6B7079]">¿Quieres un cambio en el diseño? Pídelo en Soporte y lo revisamos contigo.</p>
         )}
       </section>
 
 
-      <section className="bg-[#1c140b] border border-white/10 rounded-2xl p-6 space-y-5">
+      <section className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-5">
         <h3 className="font-bold">Identidad</h3>
         <SubirImagen valor={d.logoUrl} onCambio={(url) => setD((p) => ({ ...p, logoUrl: url }))} etiqueta="Logo" redonda />
         <div className="grid sm:grid-cols-[1fr_auto] gap-3">
           <label className="space-y-1">
-            <span className="text-xs text-white/50">Nombre del local *</span>
+            <span className="text-xs text-[#6B7079]">Nombre del local *</span>
             <input value={d.nombre} onChange={set('nombre')} maxLength={80} className={campo} />
           </label>
         </div>
         <div className="space-y-1.5">
-          <span className="text-xs text-white/50">Color de tu carta</span>
+          <span className="text-xs text-[#6B7079]">Color de tu carta</span>
           {esencial ? (
             <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Color de la carta">
               {PALETA.map((c) => (
@@ -183,78 +183,78 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
                   aria-label={c.nombre}
                   title={c.nombre}
                   onClick={() => setD((p) => ({ ...p, colorMarca: c.hex }))}
-                  className={`h-9 w-9 rounded-full border-2 ${d.colorMarca.toUpperCase() === c.hex ? 'border-white' : 'border-transparent'}`}
+                  className={`h-9 w-9 rounded-full border-2 ${d.colorMarca.toUpperCase() === c.hex ? 'border-[#D6D6D1]' : 'border-transparent'}`}
                   style={{ background: c.hex }}
                 />
               ))}
             </div>
           ) : (
-            <p className="flex items-center gap-2 text-xs text-white/50">
+            <p className="flex items-center gap-2 text-xs text-[#6B7079]">
               <span className="inline-block h-5 w-5 rounded-full" style={{ background: d.colorMarca }} /> Fijado por DKitchen en tu diseño de autor.
             </p>
           )}
         </div>
         <label className="block space-y-1">
-          <span className="text-xs text-white/50">Descripción corta ({d.descripcion.length}/280)</span>
+          <span className="text-xs text-[#6B7079]">Descripción corta ({d.descripcion.length}/280)</span>
           <textarea value={d.descripcion} onChange={set('descripcion')} maxLength={280} rows={2} placeholder="Ej: Cocina mediterránea de mercado desde 1998" className={campo} />
         </label>
       </section>
 
-      <section className="bg-[#1c140b] border border-white/10 rounded-2xl p-6 space-y-4">
+      <section className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-4">
         <h3 className="font-bold">Contacto y horario</h3>
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="space-y-1">
-            <span className="text-xs text-white/50">Teléfono</span>
+            <span className="text-xs text-[#6B7079]">Teléfono</span>
             <input value={d.telefono} onChange={set('telefono')} maxLength={30} placeholder="+34 600 000 000" className={campo} />
           </label>
           <label className="space-y-1">
-            <span className="text-xs text-white/50">Instagram</span>
+            <span className="text-xs text-[#6B7079]">Instagram</span>
             <input value={d.instagram} onChange={set('instagram')} maxLength={60} placeholder="@tulocal" className={campo} />
           </label>
         </div>
         <label className="block space-y-1">
-          <span className="text-xs text-white/50">Dirección</span>
+          <span className="text-xs text-[#6B7079]">Dirección</span>
           <input value={d.direccion} onChange={set('direccion')} maxLength={160} placeholder="Calle, número, ciudad" className={campo} />
         </label>
         <label className="block space-y-1">
-          <span className="text-xs text-white/50">Horario</span>
+          <span className="text-xs text-[#6B7079]">Horario</span>
           <input value={d.horario} onChange={set('horario')} maxLength={200} placeholder="L-V 13:00-16:00 y 20:00-23:30 · S-D 13:00-00:00" className={campo} />
         </label>
       </section>
 
-      <section className="bg-[#1c140b] border border-white/10 rounded-2xl p-6 space-y-4">
+      <section className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-4">
         <div className="flex items-center justify-between gap-3">
           <h3 className="font-bold">Reservas y Google</h3>
-          {!ampliado && <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-white/60">Plan Ampliado</span>}
+          {!ampliado && <span className="rounded-full bg-[#EDEDEA] px-2 py-0.5 text-[11px] font-semibold text-[#6B7079]">Plan Ampliado</span>}
         </div>
         {ampliado ? (
           <>
             <label className="block space-y-1">
-              <span className="text-xs text-white/50">WhatsApp para recibir reservas</span>
+              <span className="text-xs text-[#6B7079]">WhatsApp para recibir reservas</span>
               <input value={d.whatsapp} onChange={set('whatsapp')} maxLength={20} inputMode="tel" placeholder="600 000 000" className={campo} />
-              <span className="block text-[11px] text-white/35">
+              <span className="block text-[11px] text-[#9A9EA6]">
                 Tus clientes reservan desde la carta: te llega un correo y pueden enviártelo también por WhatsApp. Lo ves todo en la pestaña Reservas.
               </span>
             </label>
             <label className="block space-y-1">
-              <span className="text-xs text-white/50">Enlace para dejar reseñas en Google</span>
+              <span className="text-xs text-[#6B7079]">Enlace para dejar reseñas en Google</span>
               <input value={d.urlResenas} onChange={set('urlResenas')} maxLength={300} placeholder="https://g.page/r/..." className={campo} />
-              <span className="block text-[11px] text-white/35">
+              <span className="block text-[11px] text-[#9A9EA6]">
                 En tu Perfil de Empresa de Google: «Pedir reseñas» → copia el enlace y pégalo aquí. Aparecerá un botón al final de tu carta.
               </span>
             </label>
-            <div className="rounded-lg bg-white/5 p-4 text-xs text-white/60 space-y-2">
-              <p className="font-semibold text-white/80">Pon tu carta en Google Maps (2 minutos)</p>
+            <div className="rounded-lg bg-[#F3F3F0] p-4 text-xs text-[#6B7079] space-y-2">
+              <p className="font-semibold text-[#3F434B]">Pon tu carta en Google Maps (2 minutos)</p>
               <ol className="list-decimal pl-4 space-y-1">
                 <li>Entra en tu Perfil de Empresa de Google (búscate en Google Maps estando conectado).</li>
                 <li>Editar perfil → <strong>Menú</strong> (o «Enlace al menú») y pega esta dirección:</li>
               </ol>
               <div className="flex items-center gap-2">
-                <code className="flex-1 truncate rounded bg-black/30 px-2 py-1.5 text-white/80 select-all">{urlCarta}</code>
+                <code className="flex-1 truncate rounded bg-white px-2 py-1.5 text-[#3F434B] select-all">{urlCarta}</code>
                 <button
                   type="button"
                   onClick={() => navigator.clipboard?.writeText(urlCarta).then(() => setAviso({ ok: true, texto: 'Enlace copiado.' }))}
-                  className="shrink-0 rounded-md bg-white/10 px-3 py-1.5 font-semibold hover:bg-white/15"
+                  className="shrink-0 rounded-md bg-[#EDEDEA] px-3 py-1.5 font-semibold hover:bg-[#E5E5E1]"
                 >
                   Copiar
                 </button>
@@ -263,7 +263,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
             </div>
           </>
         ) : (
-          <p className="text-sm text-white/50">
+          <p className="text-sm text-[#6B7079]">
             Reservas desde la carta (con aviso por correo y WhatsApp), botón de reseñas de Google y carta enlazada en Google Maps están
             incluidos en el plan Ampliado. Puedes activarlo desde <strong>Mi Plan</strong>.
           </p>
@@ -274,11 +274,11 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
         <button
           onClick={guardar}
           disabled={pendiente}
-          className="bg-[#D9531E] hover:bg-[#B8451A] disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-lg"
+          className="bg-[#E8592A] hover:bg-[#CF4A1F] disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-lg"
         >
           {pendiente ? 'Guardando…' : 'Guardar cambios'}
         </button>
-        {aviso && <p className={`text-sm ${aviso.ok ? 'text-green-400' : 'text-red-400'}`}>{aviso.texto}</p>}
+        {aviso && <p className={`text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</p>}
       </div>
     </div>
   );

@@ -40,27 +40,27 @@ export default function Soporte({ tickets }: { tickets: Ticket[] }) {
     <div className="space-y-8">
       <h2 className="text-xl font-bold">Soporte</h2>
 
-      <div className="bg-[#1c140b] border border-white/10 rounded-2xl p-6 space-y-3">
+      <div className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-3">
         <h3 className="font-bold">Abrir un ticket</h3>
         <input
           value={asunto}
           onChange={(e) => setAsunto(e.target.value)}
           placeholder="Asunto"
-          className="w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white placeholder-white/30"
+          className="w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]"
         />
         <textarea
           value={mensaje}
           onChange={(e) => setMensaje(e.target.value)}
           placeholder="Cuéntanos qué pasa"
           rows={4}
-          className="w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white placeholder-white/30"
+          className="w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]"
         />
         <div className="flex items-center justify-between">
-          {enviado && <p className="text-sm text-green-400">Enviado.</p>}
+          {enviado && <p className="text-sm text-green-700">Enviado.</p>}
           <button
             onClick={enviar}
             disabled={pendiente}
-            className="ml-auto bg-[#D9531E] hover:bg-[#B8451A] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50"
+            className="ml-auto bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50"
           >
             {pendiente ? 'Enviando…' : 'Enviar ticket'}
           </button>
@@ -72,26 +72,26 @@ export default function Soporte({ tickets }: { tickets: Ticket[] }) {
           <h3 className="font-bold mb-3">Tus tickets</h3>
           <ul className="space-y-3">
             {tickets.map((t) => (
-              <li key={t.id} className="bg-[#1c140b] border border-white/10 rounded-xl p-4">
+              <li key={t.id} className="bg-white border border-[#E6E6E2] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-1">
                   <p className="font-semibold">{t.asunto}</p>
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full ${
                       t.estado === 'abierto'
-                        ? 'bg-amber-500/15 text-amber-400'
+                        ? 'bg-amber-500/15 text-amber-700'
                         : t.estado === 'respondido'
-                        ? 'bg-green-500/15 text-green-400'
-                        : 'bg-white/10 text-white/40'
+                        ? 'bg-green-500/15 text-green-700'
+                        : 'bg-[#EDEDEA] text-[#6B7079]'
                     }`}
                   >
                     {ETIQUETAS_ESTADO[t.estado] ?? t.estado}
                   </span>
                 </div>
-                <p className="text-white/60 text-sm">{t.mensaje}</p>
+                <p className="text-[#6B7079] text-sm">{t.mensaje}</p>
                 {t.respuesta && (
-                  <div className="mt-3 pt-3 border-t border-white/10">
-                    <p className="text-xs text-white/40 mb-1">Respuesta:</p>
-                    <p className="text-sm text-white/80">{t.respuesta}</p>
+                  <div className="mt-3 pt-3 border-t border-[#E6E6E2]">
+                    <p className="text-xs text-[#6B7079] mb-1">Respuesta:</p>
+                    <p className="text-sm text-[#3F434B]">{t.respuesta}</p>
                   </div>
                 )}
               </li>

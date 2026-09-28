@@ -40,9 +40,9 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
 
   const Boton = ({ s, texto }: { s: Servicio; texto?: string }) =>
     tiene(s) ? (
-      <span className="block rounded-xl bg-green-500/15 py-3 text-center text-sm font-bold text-green-300">✓ Activo en tu cuenta</span>
+      <span className="block rounded-xl bg-green-500/15 py-3 text-center text-sm font-bold text-green-700">✓ Activo en tu cuenta</span>
     ) : (
-      <button disabled={pendiente} onClick={() => comprar(s)} className="w-full rounded-xl bg-[#D9531E] py-3 text-sm font-bold hover:bg-[#B8451A] disabled:opacity-50">
+      <button disabled={pendiente} onClick={() => comprar(s)} className="w-full rounded-xl bg-[#E8592A] py-3 text-sm font-bold hover:bg-[#CF4A1F] disabled:opacity-50">
         {pendiente ? 'Abriendo pago seguro…' : texto ?? 'Activar'}
       </button>
     );
@@ -57,18 +57,18 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
     <div className="space-y-12">
       <header>
         <h2 className="text-2xl font-bold">{vista === 'diseno' ? 'Diseño de tu carta' : 'Módulos para tu local'}</h2>
-        <p className="mt-1 text-sm text-white/50">{vista === 'diseno'
+        <p className="mt-1 text-sm text-[#6B7079]">{vista === 'diseno'
           ? 'Tú gestionas platos, precios y fotos. El diseño lo prepara DKitchen.'
           : 'Herramientas que se suman a tu carta QR, una a una. Activas solo lo que necesitas.'}</p>
-        {error && <p className="mt-3 rounded-lg bg-red-500/10 p-3 text-sm text-red-300">{error}</p>}
+        {error && <p className="mt-3 rounded-lg bg-red-500/10 p-3 text-sm text-red-600">{error}</p>}
       </header>
 
       {vista === 'diseno' && (<>
       <section className="space-y-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-[#D9531E]">Niveles de diseño</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#E8592A]">Niveles de diseño</p>
           <h3 className="mt-1 text-xl font-bold">Tu carta es tu escaparate. Que se vea a la altura de tu cocina.</h3>
-          <p className="mt-1 text-sm text-white/50">Tú gestionas platos, precios y fotos. El diseño lo prepara un experto de DKitchen, una vez, bien hecho.</p>
+          <p className="mt-1 text-sm text-[#6B7079]">Tú gestionas platos, precios y fotos. El diseño lo prepara un experto de DKitchen, una vez, bien hecho.</p>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
           <NivelCard titulo="Esencial" subtitulo="Incluida en tu plan" actual={restaurante.nivelDiseno === 'esencial'}
@@ -81,12 +81,12 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
               <div className="space-y-2">
                 {experto && (
                   <p className="text-center">
-                    {experto.precioAnclaCentimos && servicios.plazasExperto > 0 && <span className="mr-2 text-sm text-white/40 line-through">{euros(experto.precioAnclaCentimos)}</span>}
-                    <span className="text-2xl font-black">{euros(experto.precioCentimos)}</span> <span className="text-xs text-white/50">pago único</span>
+                    {experto.precioAnclaCentimos && servicios.plazasExperto > 0 && <span className="mr-2 text-sm text-[#6B7079] line-through">{euros(experto.precioAnclaCentimos)}</span>}
+                    <span className="text-2xl font-black">{euros(experto.precioCentimos)}</span> <span className="text-xs text-[#6B7079]">pago único</span>
                   </p>
                 )}
-                {servicios.plazasExperto > 0 && <p className="text-center text-xs font-semibold text-[#D9531E]">Precio de lanzamiento · quedan {servicios.plazasExperto} de 20 plazas</p>}
-                <a href="/panel/vista-previa" target="_blank" rel="noopener" className="block rounded-xl border border-white/20 py-2.5 text-center text-sm font-semibold hover:border-white/50">Ver mi carta con este diseño</a>
+                {servicios.plazasExperto > 0 && <p className="text-center text-xs font-semibold text-[#E8592A]">Precio de lanzamiento · quedan {servicios.plazasExperto} de 20 plazas</p>}
+                <a href="/panel/vista-previa" target="_blank" rel="noopener" className="block rounded-xl border border-[#D6D6D1] py-2.5 text-center text-sm font-semibold hover:border-[#D6D6D1]">Ver mi carta con este diseño</a>
                 <Boton s="setup_experto" texto="Quiero mi Carta de Autor" />
               </div>
             } />
@@ -95,17 +95,17 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
             maqueta={<MaquetaSignature />}
             pie={
               <div className="space-y-2">
-                <a href="/base-operativa" target="_blank" rel="noopener" className="block rounded-xl border border-white/20 py-2.5 text-center text-sm font-semibold hover:border-white/50">Ver cómo es DKitchen Signature</a>
-                <a href={WHATSAPP_DK} target="_blank" rel="noopener" className="block rounded-xl border border-white/20 py-2.5 text-center text-sm font-semibold hover:border-white/50">Hablar directamente con nosotros</a>
-                <ActivarNucleoOperativoBoton className="w-full rounded-xl bg-white py-3 text-sm font-bold text-[#1A1714]" />
+                <a href="/base-operativa" target="_blank" rel="noopener" className="block rounded-xl border border-[#D6D6D1] py-2.5 text-center text-sm font-semibold hover:border-[#D6D6D1]">Ver cómo es DKitchen Signature</a>
+                <a href={WHATSAPP_DK} target="_blank" rel="noopener" className="block rounded-xl border border-[#D6D6D1] py-2.5 text-center text-sm font-semibold hover:border-[#D6D6D1]">Hablar directamente con nosotros</a>
+                <ActivarNucleoOperativoBoton className="w-full rounded-xl bg-[#17191E] py-3 text-sm font-bold text-white" />
               </div>
             } />
         </div>
         {esencial && !tiene('setup_experto') && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#1c140b] p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E6E6E2] bg-white p-5">
             <div>
               <p className="font-bold">Puesta a punto: te dejamos tu carta perfecta, sin cambiar el diseño</p>
-              <p className="text-sm text-white/50">Un experto de DKitchen revisa y configura tu carta contigo: categorías, textos, alérgenos, fotos, horarios y tu ficha de Google.</p>
+              <p className="text-sm text-[#6B7079]">Un experto de DKitchen revisa y configura tu carta contigo: categorías, textos, alérgenos, fotos, horarios y tu ficha de Google.</p>
             </div>
             <div className="w-full sm:w-56"><Boton s="setup_esencial" texto={`Puesta a punto · ${euros(esencial.precioCentimos)}`} /></div>
           </div>
@@ -115,11 +115,11 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
 
       {vista === 'modulos' && (<>
       {/* IDIOMAS */}
-      <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#1c140b] p-6">
+      <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#E6E6E2] bg-white p-6">
         <div className="max-w-md">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#D9531E]">Carta en idiomas</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#E8592A]">Carta en idiomas</p>
           <h3 className="mt-1 text-lg font-bold">🇬🇧 🇫🇷 🇩🇪 Que tus clientes extranjeros lean tu carta en su idioma</h3>
-          <p className="mt-1 text-sm text-white/50">Eliges hasta 3 idiomas y <strong className="text-white/80">nosotros traducimos tu carta</strong>. Tus clientes ven un selector de idioma. Pago único, sin cuota.</p>
+          <p className="mt-1 text-sm text-[#6B7079]">Eliges hasta 3 idiomas y <strong className="text-[#3F434B]">nosotros traducimos tu carta</strong>. Tus clientes ven un selector de idioma. Pago único, sin cuota.</p>
         </div>
         <div className="w-full sm:w-56"><Boton s="idiomas" texto={`Activar · ${euros(precio('idiomas')?.precioCentimos ?? 2900)}`} /></div>
       </section>
@@ -127,9 +127,9 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
       {/* 3. MÓDULOS DE SALA */}
       <section className="space-y-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-[#D9531E]">Módulos de Sala</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#E8592A]">Módulos de Sala</p>
           <h3 className="mt-1 text-xl font-bold">Organiza el servicio en sala sin cambiar tu TPV</h3>
-          <p className="mt-1 text-sm text-white/50">
+          <p className="mt-1 text-sm text-[#6B7079]">
             Tu carta sigue siendo para mirar: el cliente nunca pide desde el móvil. Estos módulos ayudan a tu equipo.
             {!ampliado && ' Requieren el plan Ampliado.'}
           </p>
@@ -138,16 +138,16 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
           {MODULOS.map((m) => {
             const p = precio(m.id);
             return (
-              <article key={m.id} className="grid gap-4 rounded-2xl border border-white/10 bg-[#1c140b] p-5 md:grid-cols-[1fr_14rem]">
+              <article key={m.id} className="grid gap-4 rounded-2xl border border-[#E6E6E2] bg-white p-5 md:grid-cols-[1fr_14rem]">
                 <div>
                   <h4 className="text-lg font-bold">{m.titulo}</h4>
-                  <p className="mt-1 text-sm text-white/75">{m.resuelve}</p>
-                  <p className="mt-2 text-sm text-white/50"><strong className="text-white/70">Cómo funciona:</strong> {m.como}</p>
-                  <ul className="mt-3 grid gap-1 text-sm text-white/70 sm:grid-cols-2">{m.incluye.map((i) => <li key={i}>✓ {i}</li>)}</ul>
+                  <p className="mt-1 text-sm text-[#3F434B]">{m.resuelve}</p>
+                  <p className="mt-2 text-sm text-[#6B7079]"><strong className="text-[#3F434B]">Cómo funciona:</strong> {m.como}</p>
+                  <ul className="mt-3 grid gap-1 text-sm text-[#3F434B] sm:grid-cols-2">{m.incluye.map((i) => <li key={i}>✓ {i}</li>)}</ul>
                 </div>
                 <div className="flex flex-col justify-center gap-2">
-                  <p className="text-center text-2xl font-black">{p ? euros(p.precioCentimos) : ''}<span className="text-xs font-normal text-white/50"> /mes</span></p>
-                  {ampliado ? <Boton s={m.id} /> : <a href="/panel?pestana=plan" className="block rounded-xl border border-white/20 py-3 text-center text-sm font-bold">Pasar a Ampliado</a>}
+                  <p className="text-center text-2xl font-black">{p ? euros(p.precioCentimos) : ''}<span className="text-xs font-normal text-[#6B7079]"> /mes</span></p>
+                  {ampliado ? <Boton s={m.id} /> : <a href="/panel?pestana=plan" className="block rounded-xl border border-[#D6D6D1] py-3 text-center text-sm font-bold">Pasar a Ampliado</a>}
                 </div>
               </article>
             );
@@ -155,16 +155,16 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
         </div>
         {nModulos === MODULOS.length ? (
           <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-5">
-            <p className="font-bold text-green-300">Tienes todos los Módulos de Sala activos</p>
-            <p className="mt-1 text-sm text-white/60">Plano, App de sala y Conexión TPV ya funcionan en tu cuenta. Los gestionas en la pestaña Sala; el resumen de lo que pagas está en Mi Plan.</p>
+            <p className="font-bold text-green-700">Tienes todos los Módulos de Sala activos</p>
+            <p className="mt-1 text-sm text-[#6B7079]">Plano, App de sala y Conexión TPV ya funcionan en tu cuenta. Los gestionas en la pestaña Sala; el resumen de lo que pagas está en Mi Plan.</p>
           </div>
         ) : pack && (
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#D9531E]/50 bg-[#D9531E]/10 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#E8592A]/50 bg-[#E8592A]/10 p-5">
             <div>
               <p className="font-bold">Pack Sala Completo: los 3 módulos</p>
-              <p className="text-sm text-white/60">
-                {pack.precioAnclaCentimos && <span className="mr-1 line-through text-white/40">{euros(pack.precioAnclaCentimos)}</span>}
-                <strong className="text-white">{euros(pack.precioCentimos)}/mes</strong>{nModulos >= 2 ? ' · completa lo que ya tienes' : ''}
+              <p className="text-sm text-[#6B7079]">
+                {pack.precioAnclaCentimos && <span className="mr-1 line-through text-[#6B7079]">{euros(pack.precioAnclaCentimos)}</span>}
+                <strong className="text-[#1B1D22]">{euros(pack.precioCentimos)}/mes</strong>{nModulos >= 2 ? ' · completa lo que ya tienes' : ''}
               </p>
             </div>
             <div className="w-full sm:w-56">{ampliado ? <Boton s="pack_sala" texto="Activar el Pack" /> : null}</div>
@@ -184,14 +184,14 @@ function NivelCard({ titulo, subtitulo, puntos, maqueta, pie, actual, destacada 
   titulo: string; subtitulo: string; puntos: string[]; maqueta: React.ReactNode; pie?: React.ReactNode; actual?: boolean; destacada?: boolean;
 }) {
   return (
-    <article className={`flex flex-col rounded-2xl border p-5 ${destacada ? 'border-[#D9531E]/60 bg-[#D9531E]/[0.06]' : 'border-white/10 bg-[#1c140b]'}`}>
+    <article className={`flex flex-col rounded-2xl border p-5 ${destacada ? 'border-[#E8592A]/60 bg-[#E8592A]/[0.06]' : 'border-[#E6E6E2] bg-white'}`}>
       <div className="mb-3 overflow-hidden rounded-xl">{maqueta}</div>
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-bold">{titulo}</h4>
-        {actual && <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] font-bold text-green-300">Tu diseño</span>}
+        {actual && <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] font-bold text-green-700">Tu diseño</span>}
       </div>
-      <p className="text-xs text-white/45">{subtitulo}</p>
-      <ul className="mt-3 flex-1 space-y-1 text-sm text-white/70">{puntos.map((p) => <li key={p}>✓ {p}</li>)}</ul>
+      <p className="text-xs text-[#6B7079]">{subtitulo}</p>
+      <ul className="mt-3 flex-1 space-y-1 text-sm text-[#3F434B]">{puntos.map((p) => <li key={p}>✓ {p}</li>)}</ul>
       {pie && <div className="mt-4">{pie}</div>}
     </article>
   );
@@ -201,9 +201,9 @@ const barra = 'h-1.5 rounded bg-black/15';
 function MaquetaEsencial() {
   return (
     <div className="h-40 space-y-2 bg-[#fbfaf8] p-3" aria-hidden="true">
-      <div className="mx-auto h-5 w-5 rounded-full bg-[#D9531E]" /><div className={`mx-auto w-16 ${barra}`} />
+      <div className="mx-auto h-5 w-5 rounded-full bg-[#E8592A]" /><div className={`mx-auto w-16 ${barra}`} />
       <div className="space-y-1.5 rounded-lg bg-white p-2 shadow-sm">
-        {[0, 1, 2].map((i) => <div key={i} className="flex items-center gap-2"><div className="flex-1 space-y-1"><div className={barra} /><div className="h-1 w-2/3 rounded bg-black/10" /></div><div className="h-6 w-6 rounded bg-black/10" /></div>)}
+        {[0, 1, 2].map((i) => <div key={i} className="flex items-center gap-2"><div className="flex-1 space-y-1"><div className={barra} /><div className="h-1 w-2/3 rounded bg-white" /></div><div className="h-6 w-6 rounded bg-white" /></div>)}
       </div>
     </div>
   );
@@ -221,8 +221,8 @@ function MaquetaAutor() {
 function MaquetaSignature() {
   return (
     <div className="flex h-40 flex-col justify-end bg-gradient-to-br from-[#111] via-[#2a1d12] to-[#5c3a1e] p-3" aria-hidden="true">
-      <p className="font-serif text-lg text-white">Tu marca</p>
-      <p className="text-[10px] uppercase tracking-[0.3em] text-white/60">tu app · tus pedidos · tu propiedad</p>
+      <p className="font-serif text-lg text-[#1B1D22]">Tu marca</p>
+      <p className="text-[10px] uppercase tracking-[0.3em] text-[#6B7079]">tu app · tus pedidos · tu propiedad</p>
     </div>
   );
 }
@@ -240,38 +240,38 @@ function MapaNucleo({ credito, nModulos, precioTodo }: { credito: { euros: strin
   return (
     <section className="space-y-4">
       <div>
-        <p className="text-xs font-bold uppercase tracking-widest text-[#D9531E]">El siguiente nivel</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-[#E8592A]">El siguiente nivel</p>
         <h3 className="mt-1 text-xl font-bold">QR Menú y DKitchen Signature no son lo mismo</h3>
-        <p className="mt-1 text-sm text-white/50">
+        <p className="mt-1 text-sm text-[#6B7079]">
           El QR es una herramienta para tu carta y tu sala. DKitchen Signature (nuestro Núcleo Operativo) es el sistema que gestiona todo tu restaurante, y es tuyo.
         </p>
       </div>
-      <div className="overflow-hidden rounded-2xl border border-white/10">
-        <div className="grid grid-cols-2 bg-white/5 text-xs font-semibold uppercase tracking-wider">
-          <p className="p-3 text-white/50">QR Menú · lo que tienes</p>
-          <p className="border-l border-white/10 p-3 text-[#D9531E]">DKitchen Signature</p>
+      <div className="overflow-hidden rounded-2xl border border-[#E6E6E2]">
+        <div className="grid grid-cols-2 bg-[#F3F3F0] text-xs font-semibold uppercase tracking-wider">
+          <p className="p-3 text-[#6B7079]">QR Menú · lo que tienes</p>
+          <p className="border-l border-[#E6E6E2] p-3 text-[#E8592A]">DKitchen Signature</p>
         </div>
         {filas.map(([k, a, b]) => (
-          <div key={k} className="border-t border-white/5">
-            <p className="px-3 pt-3 text-[11px] font-semibold uppercase tracking-wider text-white/35">{k}</p>
+          <div key={k} className="border-t border-[#E6E6E2]">
+            <p className="px-3 pt-3 text-[11px] font-semibold uppercase tracking-wider text-[#9A9EA6]">{k}</p>
             <div className="grid grid-cols-2 text-sm">
-              <p className="p-3 pt-1 text-white/65">{a}</p>
-              <p className="border-l border-white/10 p-3 pt-1 font-medium">{b}</p>
+              <p className="p-3 pt-1 text-[#3F434B]">{a}</p>
+              <p className="border-l border-[#E6E6E2] p-3 pt-1 font-medium">{b}</p>
             </div>
           </div>
         ))}
       </div>
-      <div className="rounded-2xl bg-gradient-to-r from-[#D9531E]/25 to-transparent p-5">
+      <div className="rounded-2xl bg-gradient-to-r from-[#E8592A]/25 to-transparent p-5">
         <p className="font-bold">Con todos los módulos del QR pagarías {precioTodo}/mes y nunca sería tuyo. Con DKitchen Signature pagas 69 €/mes y el sistema es tuyo.</p>
         {credito && nModulos > 0 ? (
           <p className="mt-2 text-sm">
             🎁 Te descontamos lo que ya llevas pagado en módulos: <strong>{credito.euros}</strong> de la entrada de Signature (hasta la mitad).
-            <strong className="text-[#D9531E]"> Te quedan {credito.dias} días</strong> para aprovecharlo.
+            <strong className="text-[#E8592A]"> Te quedan {credito.dias} días</strong> para aprovecharlo.
           </p>
         ) : (
-          <p className="mt-2 text-sm text-white/60">Si activas módulos de sala, durante 6 meses lo que pagues se descuenta de la entrada de Signature (hasta la mitad).</p>
+          <p className="mt-2 text-sm text-[#6B7079]">Si activas módulos de sala, durante 6 meses lo que pagues se descuenta de la entrada de Signature (hasta la mitad).</p>
         )}
-        <a href="/panel?pestana=soporte&asunto=Quiero%20conocer%20DKitchen%20Signature" className="mt-4 inline-block rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#1A1714]">
+        <a href="/panel?pestana=soporte&asunto=Quiero%20conocer%20DKitchen%20Signature" className="mt-4 inline-block rounded-xl bg-[#17191E] px-5 py-2.5 text-sm font-bold text-white">
           Quiero conocer DKitchen Signature
         </a>
       </div>

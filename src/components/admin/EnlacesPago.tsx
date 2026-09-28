@@ -34,7 +34,7 @@ export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wider text-white/40">Qué se cobra</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-[#6B7079]">Qué se cobra</p>
           <select value={plan} onChange={(e) => setPlan(e.target.value)} className={campo}>
             <option value="">Sin plan (solo servicios)</option>
             <option value="basico">Plan Básico · 9 €/mes</option>
@@ -42,18 +42,18 @@ export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId
           </select>
           <div className="grid gap-1.5 sm:grid-cols-2">
             {catalogo.map((c) => (
-              <label key={c.servicio} className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm">
+              <label key={c.servicio} className="flex items-center gap-2 rounded-lg border border-[#E6E6E2] px-3 py-2 text-sm">
                 <input type="checkbox" checked={servicios.includes(c.servicio)}
                   onChange={(e) => setServicios((l) => (e.target.checked ? [...l, c.servicio] : l.filter((x) => x !== c.servicio)))} />
                 <span className="flex-1">{c.nombre}</span>
-                <span className="text-xs text-white/40">{eur(c.precio)}{c.tipo === 'mensual' ? '/mes' : ''}</span>
+                <span className="text-xs text-[#6B7079]">{eur(c.precio)}{c.tipo === 'mensual' ? '/mes' : ''}</span>
               </label>
             ))}
           </div>
         </div>
         <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wider text-white/40">Cuánto</p>
-          <p className="text-sm text-white/50">Precio normal: primer pago {eur(normal.primer)}{normal.mensual ? ` · después ${eur(normal.mensual)}/mes` : ''}. Cámbialo para aplicar un descuento o lo acordado.</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-[#6B7079]">Cuánto</p>
+          <p className="text-sm text-[#6B7079]">Precio normal: primer pago {eur(normal.primer)}{normal.mensual ? ` · después ${eur(normal.mensual)}/mes` : ''}. Cámbialo para aplicar un descuento o lo acordado.</p>
           <label className="block text-sm">Primer pago (€)
             <input inputMode="decimal" value={primer} onChange={(e) => setPrimer(e.target.value)} placeholder={(normal.primer / 100).toString()} className={campo} />
           </label>
@@ -66,20 +66,20 @@ export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={enviar} onChange={(e) => setEnviar(e.target.checked)} /> Enviárselo por correo ahora</label>
         </div>
       </div>
-      {resultado?.error && <p className="text-sm text-red-400">{resultado.error}</p>}
+      {resultado?.error && <p className="text-sm text-red-600">{resultado.error}</p>}
       {resultado?.url && (
         <div className="space-y-2 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-sm">
-          <p className="font-semibold text-green-300">Enlace listo{enviar ? ' y enviado por correo' : ''}.</p>
-          <code className="block break-all rounded bg-black/30 p-2 text-xs">{resultado.url}</code>
+          <p className="font-semibold text-green-700">Enlace listo{enviar ? ' y enviado por correo' : ''}.</p>
+          <code className="block break-all rounded bg-white p-2 text-xs">{resultado.url}</code>
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => navigator.clipboard?.writeText(resultado.url!)} className="rounded-lg bg-white/10 px-3 py-1.5 font-semibold">Copiar</button>
-            <a href={`https://wa.me/?text=${encodeURIComponent('Tu enlace de pago DKitchen: ' + resultado.url)}`} target="_blank" rel="noopener" className="rounded-lg bg-white/10 px-3 py-1.5 font-semibold">Enviar por WhatsApp</a>
+            <button onClick={() => navigator.clipboard?.writeText(resultado.url!)} className="rounded-lg bg-[#EDEDEA] px-3 py-1.5 font-semibold">Copiar</button>
+            <a href={`https://wa.me/?text=${encodeURIComponent('Tu enlace de pago DKitchen: ' + resultado.url)}`} target="_blank" rel="noopener" className="rounded-lg bg-[#EDEDEA] px-3 py-1.5 font-semibold">Enviar por WhatsApp</a>
           </div>
         </div>
       )}
       <button disabled={pendiente || (!plan && servicios.length === 0)}
         onClick={() => { setResultado(null); iniciar(async () => setResultado(await crearEnlaceAction({ restauranteId, plan, servicios, primer: primerFinal, mensual: mensualFinal, nota, enviar }))); }}
-        className="rounded-lg bg-[#D9531E] px-5 py-2.5 text-sm font-bold disabled:opacity-40">
+        className="rounded-lg bg-[#E8592A] px-5 py-2.5 text-sm font-bold disabled:opacity-40">
         {pendiente ? 'Creando enlace…' : `Crear enlace · ${eur(Math.round((primerFinal || 0) * 100))}${mensualFinal ? ` + ${eur(Math.round(mensualFinal * 100))}/mes` : ''}`}
       </button>
     </div>

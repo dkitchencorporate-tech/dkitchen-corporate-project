@@ -91,20 +91,20 @@ export default function PanelShell({
 
   const salir = async () => { await authClient.signOut(); window.location.href = '/panel/iniciar-sesion'; };
   const titulo = PESTANAS.find((p) => p.id === pestana)?.nombre ?? '';
-  const Navegacion = () => (
+  const Navegacion = ({ oscuro = false }: { oscuro?: boolean }) => (
     <nav aria-label="Secciones del panel" className="space-y-7">
       {GRUPOS.map((g) => {
         const items = g.items.filter((p) => visible(p.id));
         if (items.length === 0) return null;
         return (
           <div key={g.titulo}>
-            <p className="px-3 text-[11px] font-medium uppercase tracking-[0.18em] text-white/30">{g.titulo}</p>
+            <p className={`px-3 text-[11px] font-medium uppercase tracking-[0.18em] ${oscuro ? 'text-white/35' : 'text-[#9A9EA6]'}`}>{g.titulo}</p>
             <ul className="mt-2 space-y-0.5">
               {items.map((p) => (
                 <li key={p.id}>
                   <button onClick={() => setPestana(p.id)} aria-current={pestana === p.id ? 'page' : undefined}
-                    className={`relative w-full rounded-xl px-3 py-2 text-left text-[15px] transition-colors ${pestana === p.id ? 'font-semibold text-white' : 'text-white/55 hover:text-white'}`}>
-                    {pestana === p.id && <motion.span layoutId="pestana-activa" className="absolute inset-0 rounded-xl bg-white/[0.08]" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                    className={`relative w-full rounded-xl px-3 py-2 text-left text-[15px] transition-colors ${pestana === p.id ? (oscuro ? 'font-semibold text-white' : 'font-semibold text-[#1B1D22]') : (oscuro ? 'text-white/60 hover:text-white' : 'text-[#6B7079] hover:text-[#1B1D22]')}`}>
+                    {pestana === p.id && <motion.span layoutId="pestana-activa" className={`absolute inset-0 rounded-xl ${oscuro ? 'bg-white/10' : 'bg-[#EDEDEA]'}`} transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
                     <span className="relative">{p.nombre}</span>
                   </button>
                 </li>
@@ -117,31 +117,31 @@ export default function PanelShell({
   );
 
   return (
-    <div className="min-h-screen bg-[#14100C] text-white lg:grid lg:grid-cols-[16rem_1fr]">
+    <div className="min-h-screen bg-[#F7F7F5] text-[#1B1D22] lg:grid lg:grid-cols-[16rem_1fr]">
       {/* Lateral (escritorio) */}
-      <aside className="hidden border-r border-white/[0.06] lg:flex lg:h-screen lg:sticky lg:top-0 lg:flex-col">
+      <aside className="hidden bg-[#17191E] text-white lg:flex lg:h-screen lg:sticky lg:top-0 lg:flex-col">
         <div className="px-6 pb-6 pt-7">
           <p className="text-[15px] font-semibold tracking-tight">{restaurante.nombre}</p>
-          <p className="mt-0.5 text-xs text-white/35">Carta QR · plan {restaurante.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</p>
+          <p className="mt-0.5 text-xs text-white/40">Carta QR · plan {restaurante.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</p>
         </div>
-        <div className="flex-1 overflow-y-auto px-3"><Navegacion /></div>
-        <div className="space-y-2 border-t border-white/[0.06] px-6 py-5 text-sm">
-          <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="block font-semibold text-[#E0703F] hover:underline">Ver mi carta</a>
-          <p className="truncate text-xs text-white/30">{identidad.email}</p>
-          <button onClick={salir} className="text-xs text-white/40 hover:text-white">Cerrar sesión</button>
-          <p className="pt-2 text-[10px] uppercase tracking-[0.2em] text-white/20">DKitchen</p>
+        <div className="flex-1 overflow-y-auto px-3"><Navegacion oscuro /></div>
+        <div className="space-y-2 border-t border-white/10 px-6 py-5 text-sm">
+          <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="block font-semibold text-[#E8592A] hover:underline">Ver mi carta</a>
+          <p className="truncate text-xs text-white/40">{identidad.email}</p>
+          <button onClick={salir} className="text-xs text-white/55 hover:text-white">Cerrar sesión</button>
+          <p className="pt-2 text-[10px] uppercase tracking-[0.2em] text-white/25">DKitchen</p>
         </div>
       </aside>
 
       <div className="min-w-0">
         {/* Barra superior (móvil y tablet) */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-white/[0.06] bg-[#14100C]/95 px-4 py-3 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-[#E6E6E2] bg-[#F7F7F5]/95 px-4 py-3 backdrop-blur lg:hidden">
           <div className="min-w-0">
             <p className="truncate text-[15px] font-semibold">{restaurante.nombre}</p>
-            <p className="text-xs text-white/40">{titulo}</p>
+            <p className="text-xs text-[#6B7079]">{titulo}</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="rounded-lg border border-white/10 px-3 py-2 text-sm">Ver carta</a>
+            <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="rounded-lg border border-[#E6E6E2] px-3 py-2 text-sm">Ver carta</a>
             
           </div>
         </header>
@@ -149,15 +149,15 @@ export default function PanelShell({
         {menu && (
           <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Menú del panel">
             <button aria-label="Cerrar menú" onClick={() => setMenu(false)} className="absolute inset-0 bg-black/60" />
-            <div className="absolute inset-y-0 right-0 flex w-[82%] max-w-xs flex-col bg-[#1A1510] shadow-2xl">
+            <div className="absolute inset-y-0 right-0 flex w-[82%] max-w-xs flex-col bg-white shadow-2xl">
               <div className="flex items-center justify-between px-5 py-4">
                 <p className="font-semibold">{restaurante.nombre}</p>
-                <button onClick={() => setMenu(false)} className="text-sm text-white/50">Cerrar</button>
+                <button onClick={() => setMenu(false)} className="text-sm text-[#6B7079]">Cerrar</button>
               </div>
               <div className="flex-1 overflow-y-auto px-2 pb-4"><Navegacion /></div>
-              <div className="border-t border-white/[0.06] px-5 py-4 text-sm">
-                <p className="truncate text-xs text-white/35">{identidad.email}</p>
-                <button onClick={salir} className="mt-2 text-white/60">Cerrar sesión</button>
+              <div className="border-t border-[#E6E6E2] px-5 py-4 text-sm">
+                <p className="truncate text-xs text-[#9A9EA6]">{identidad.email}</p>
+                <button onClick={salir} className="mt-2 text-[#6B7079]">Cerrar sesión</button>
               </div>
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function PanelShell({
 
       {/* Navegación flotante (móvil y tablet) */}
       <nav aria-label="Navegación principal" className="fixed inset-x-3 bottom-3 z-40 lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <ul className="mx-auto flex max-w-md items-center justify-between rounded-full border border-white/10 bg-[#1A1510]/85 p-1.5 shadow-[0_12px_40px_rgba(0,0,0,.5)] backdrop-blur-xl">
+        <ul className="mx-auto flex max-w-md items-center justify-between rounded-full border border-white/10 bg-[#17191E]/95 p-1.5 shadow-[0_12px_32px_rgba(23,25,30,.28)] backdrop-blur-xl">
           {([
             ['inicio', 'Inicio'], ['carta', 'Carta'],
             restaurante.plan === 'ampliado' ? ['reservas', 'Reservas'] : ['qr', 'Mi QR'],
@@ -195,14 +195,14 @@ export default function PanelShell({
           ] as [Pestana, string][]).map(([id, n]) => (
             <li key={id} className="flex-1">
               <button onClick={() => setPestana(id)} aria-current={pestana === id ? 'page' : undefined}
-                className={`relative w-full rounded-full py-2.5 text-[13px] font-medium ${pestana === id ? 'text-[#14100C]' : 'text-white/65'}`}>
+                className={`relative w-full rounded-full py-2.5 text-[13px] font-medium ${pestana === id ? 'text-[#17191E]' : 'text-white/70'}`}>
                 {pestana === id && <motion.span layoutId="nav-movil" className="absolute inset-0 rounded-full bg-white" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
                 <span className="relative">{n}</span>
               </button>
             </li>
           ))}
           <li className="flex-1">
-            <button onClick={() => setMenu(true)} className="w-full rounded-full py-2.5 text-[13px] font-medium text-white/65">Más</button>
+            <button onClick={() => setMenu(true)} className="w-full rounded-full py-2.5 text-[13px] font-medium text-white/70">Más</button>
           </li>
         </ul>
       </nav>

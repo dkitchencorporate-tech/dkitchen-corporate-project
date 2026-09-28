@@ -42,26 +42,26 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
   ];
 
   return (
-    <div className="px-4 py-6 sm:p-6 lg:p-10 text-white space-y-8">
+    <div className="px-4 py-6 sm:p-6 lg:p-10 text-[#1B1D22] space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black">Clientes QR Menú</h1>
-          <p className="text-sm text-white/40">Datos reales de la base. Se actualiza en cada visita.</p>
+          <p className="text-sm text-[#6B7079]">Datos reales de la base. Se actualiza en cada visita.</p>
         </div>
         <NuevoCliente />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {kpis.map((k) => (
-          <div key={k.t} className="rounded-2xl border border-white/10 bg-[#1c140b] p-5">
-            <p className="text-xs text-white/40">{k.t}</p>
+          <div key={k.t} className="rounded-2xl border border-[#E6E6E2] bg-white p-5">
+            <p className="text-xs text-[#6B7079]">{k.t}</p>
             <p className="mt-1 text-2xl font-black tabular-nums">{k.v}</p>
           </div>
         ))}
       </div>
 
       {listosParaSubir.length > 0 && (
-        <div className="rounded-2xl border border-[#D9531E]/50 bg-[#D9531E]/10 p-4 text-sm">
+        <div className="rounded-2xl border border-[#E8592A]/50 bg-[#E8592A]/10 p-4 text-sm">
           <strong>Listos para subir de peldaño (&gt;600 escaneos/mes):</strong> {listosParaSubir.map((c) => c.nombre).join(', ')}
         </div>
       )}
@@ -71,44 +71,44 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
           <Link
             key={f.id}
             href={f.id === 'todos' ? '/admin-dkitchen/qr' : `/admin-dkitchen/qr?estado=${f.id}`}
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${filtro === f.id ? 'bg-[#D9531E] text-white' : 'bg-white/10 text-white/60 hover:bg-white/15'}`}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${filtro === f.id ? 'bg-[#E8592A] text-white' : 'bg-[#EDEDEA] text-[#6B7079] hover:bg-[#E5E5E1]'}`}
           >
             {f.nombre} ({f.id === 'todos' ? todos.length : todos.filter((c) => c.estadoAcceso === f.id).length})
           </Link>
         ))}
-        <Link href="/admin-dkitchen/soporte" className="ml-auto rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/70 hover:bg-white/15">
+        <Link href="/admin-dkitchen/soporte" className="ml-auto rounded-full bg-[#EDEDEA] px-3 py-1 text-xs font-semibold text-[#3F434B] hover:bg-[#E5E5E1]">
           Soporte y QR físico →
         </Link>
       </div>
 
       {clientes.length === 0 ? (
-        <p className="rounded-2xl border border-white/10 bg-[#1c140b] p-10 text-center text-white/40">{filtro === 'todos' ? 'Todavía no hay clientes QR.' : 'Ningún cliente en este estado.'}</p>
+        <p className="rounded-2xl border border-[#E6E6E2] bg-white p-10 text-center text-[#6B7079]">{filtro === 'todos' ? 'Todavía no hay clientes QR.' : 'Ningún cliente en este estado.'}</p>
       ) : (
         <>
         {/* Móvil: una tarjeta por cliente (sin scroll lateral) */}
         <ul className="space-y-3 md:hidden">
           {clientes.map((c) => (
             <li key={c.restauranteId}>
-              <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="block rounded-2xl border border-white/10 bg-[#1c140b] p-4">
+              <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="block rounded-2xl border border-[#E6E6E2] bg-white p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate font-semibold">{c.nombre}</p>
-                    <p className="truncate text-xs text-white/40">{c.contacto ?? '—'}{c.email ? ` · ${c.email}` : ''}</p>
+                    <p className="truncate text-xs text-[#6B7079]">{c.contacto ?? '—'}{c.email ? ` · ${c.email}` : ''}</p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${COLOR_ESTADO[c.estadoAcceso] ?? 'bg-white/10'}`}>{c.estadoAcceso}</span>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${COLOR_ESTADO[c.estadoAcceso] ?? 'bg-[#EDEDEA]'}`}>{c.estadoAcceso}</span>
                 </div>
                 <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                  <div className="rounded-lg bg-white/5 py-2"><dt className="text-white/40">Plan</dt><dd className="font-semibold capitalize">{c.plan}</dd></div>
-                  <div className="rounded-lg bg-white/5 py-2"><dt className="text-white/40">Escaneos mes</dt><dd className="font-semibold tabular-nums">{c.escaneosMes}</dd></div>
-                  <div className="rounded-lg bg-white/5 py-2"><dt className="text-white/40">Pendientes</dt><dd className={`font-semibold tabular-nums ${c.ticketsAbiertos + c.solicitudesQrPendientes > 0 ? 'text-amber-400' : ''}`}>{c.ticketsAbiertos + c.solicitudesQrPendientes}</dd></div>
+                  <div className="rounded-lg bg-[#F3F3F0] py-2"><dt className="text-[#6B7079]">Plan</dt><dd className="font-semibold capitalize">{c.plan}</dd></div>
+                  <div className="rounded-lg bg-[#F3F3F0] py-2"><dt className="text-[#6B7079]">Escaneos mes</dt><dd className="font-semibold tabular-nums">{c.escaneosMes}</dd></div>
+                  <div className="rounded-lg bg-[#F3F3F0] py-2"><dt className="text-[#6B7079]">Pendientes</dt><dd className={`font-semibold tabular-nums ${c.ticketsAbiertos + c.solicitudesQrPendientes > 0 ? 'text-amber-700' : ''}`}>{c.ticketsAbiertos + c.solicitudesQrPendientes}</dd></div>
                 </dl>
               </Link>
             </li>
           ))}
         </ul>
-        <div className="hidden overflow-x-auto rounded-2xl border border-white/10 md:block">
+        <div className="hidden overflow-x-auto rounded-2xl border border-[#E6E6E2] md:block">
           <table className="w-full text-sm">
-            <thead className="bg-white/5 text-left text-xs uppercase tracking-wider text-white/40">
+            <thead className="bg-[#F3F3F0] text-left text-xs uppercase tracking-wider text-[#6B7079]">
               <tr>
                 <th className="px-4 py-3">Local</th>
                 <th className="px-4 py-3">Contacto</th>
@@ -120,48 +120,48 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
                 <th className="px-4 py-3">Alta</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[#ECECE8]">
               {clientes.map((c) => (
-                <tr key={c.restauranteId} className="hover:bg-white/[0.03]">
+                <tr key={c.restauranteId} className="hover:bg-[#F3F3F0]">
                   <td className="px-4 py-3">
-                    <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="font-semibold hover:text-[#D9531E]">
+                    <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="font-semibold hover:text-[#E8592A]">
                       {c.nombre}
                     </Link>
-                    <p className="text-xs text-white/30">
-                      <a href={`/m/${c.slug}`} target="_blank" rel="noopener" className="hover:text-white">/{c.slug} ↗</a>
+                    <p className="text-xs text-[#9A9EA6]">
+                      <a href={`/m/${c.slug}`} target="_blank" rel="noopener" className="hover:text-[#1B1D22]">/{c.slug} ↗</a>
                       {c.codigoQr ? ` · QR ${c.codigoQr}` : ''}
                     </p>
                   </td>
                   <td className="px-4 py-3">
                     <p>{c.contacto ?? '—'}</p>
                     {c.email && (
-                      <a href={`mailto:${c.email}`} className="text-xs text-white/40 hover:text-white">
+                      <a href={`mailto:${c.email}`} className="text-xs text-[#6B7079] hover:text-[#1B1D22]">
                         {c.email}
                       </a>
                     )}
                   </td>
                   <td className="px-4 py-3 capitalize">
-                    {c.plan} <span className="text-white/30">· {PRECIO[c.plan] ?? '?'} €</span>
+                    {c.plan} <span className="text-[#9A9EA6]">· {PRECIO[c.plan] ?? '?'} €</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${COLOR_ESTADO[c.estadoAcceso] ?? 'bg-white/10'}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${COLOR_ESTADO[c.estadoAcceso] ?? 'bg-[#EDEDEA]'}`}>
                       {c.estadoAcceso}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">{c.platos}</td>
                   <td className="px-4 py-3 text-right tabular-nums">
-                    {c.escaneosMes} <span className="text-white/30">/ {c.escaneosTotal}</span>
+                    {c.escaneosMes} <span className="text-[#9A9EA6]">/ {c.escaneosTotal}</span>
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     {c.ticketsAbiertos + c.solicitudesQrPendientes > 0 ? (
-                      <span className="text-amber-400">
+                      <span className="text-amber-700">
                         {c.ticketsAbiertos} tickets · {c.solicitudesQrPendientes} QR
                       </span>
                     ) : (
-                      <span className="text-white/30">—</span>
+                      <span className="text-[#9A9EA6]">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-white/50">{fecha.format(new Date(c.creadoEn))}</td>
+                  <td className="px-4 py-3 text-[#6B7079]">{fecha.format(new Date(c.creadoEn))}</td>
                 </tr>
               ))}
             </tbody>

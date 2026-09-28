@@ -32,21 +32,21 @@ export default function IniciarSesion() {
   }
 
   return (
-    <div className="min-h-screen bg-[#171008] flex items-center justify-center px-6 py-24">
+    <div className="min-h-screen bg-[#F7F7F5] flex items-center justify-center px-6 py-24">
       <div className="max-w-md w-full">
         <div className="text-center mb-10">
-          <h1 className="text-2xl font-bold text-white">
-            D<span className="text-[#D9531E]">Kitchen</span>
+          <h1 className="text-2xl font-bold text-[#1B1D22]">
+            D<span className="text-[#E8592A]">Kitchen</span>
           </h1>
-          <p className="text-white/50 text-sm mt-2">Entra a tu panel para gestionar tu carta y tu QR</p>
+          <p className="text-[#6B7079] text-sm mt-2">Entra a tu panel para gestionar tu carta y tu QR</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-[#1c140b] border border-white/10 rounded-2xl p-8 space-y-5"
+          className="bg-white border border-[#E6E6E2] rounded-2xl p-8 space-y-5"
         >
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-white/70 mb-1.5">
+            <label htmlFor="email" className="block text-sm font-medium text-[#3F434B] mb-1.5">
               Correo
             </label>
             <input
@@ -55,13 +55,13 @@ export default function IniciarSesion() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg bg-black/30 border border-white/10 px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:border-[#D9531E]"
+              className="w-full rounded-lg bg-white border border-[#E6E6E2] px-4 py-2.5 text-[#1B1D22] placeholder-[#9A9EA6] focus:outline-none focus:border-[#E8592A]"
               placeholder="tu@correo.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-white/70 mb-1.5">
+            <label htmlFor="password" className="block text-sm font-medium text-[#3F434B] mb-1.5">
               Contraseña
             </label>
             <div className="relative">
@@ -71,14 +71,14 @@ export default function IniciarSesion() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg bg-black/30 border border-white/10 px-4 py-2.5 pr-11 text-white placeholder-white/30 focus:outline-none focus:border-[#D9531E]"
+                className="w-full rounded-lg bg-white border border-[#E6E6E2] px-4 py-2.5 pr-11 text-[#1B1D22] placeholder-[#9A9EA6] focus:outline-none focus:border-[#E8592A]"
                 placeholder="••••••••"
               />
               <button
                 type="button"
                 onClick={() => setVerContrasena((v) => !v)}
                 aria-label={verContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7079] hover:text-[#3F434B]"
               >
                 {verContrasena ? (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -95,18 +95,18 @@ export default function IniciarSesion() {
             </div>
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-white/60 cursor-pointer select-none">
+          <label className="flex items-center gap-2 text-sm text-[#6B7079] cursor-pointer select-none">
             <input
               type="checkbox"
               checked={recordarme}
               onChange={(e) => setRecordarme(e.target.checked)}
-              className="w-4 h-4 rounded border-white/20 bg-black/30 accent-[#D9531E]"
+              className="w-4 h-4 rounded border-[#D6D6D1] bg-white accent-[#E8592A]"
             />
             Recordarme en este dispositivo
           </label>
 
           {error && (
-            <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            <p className="text-sm text-red-600 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
               {error}
             </p>
           )}
@@ -114,14 +114,14 @@ export default function IniciarSesion() {
           <button
             type="submit"
             disabled={cargando}
-            className="w-full rounded-lg bg-[#D9531E] hover:bg-[#B8451A] text-white font-bold py-3 transition-colors disabled:opacity-50"
+            className="w-full rounded-lg bg-[#E8592A] hover:bg-[#CF4A1F] text-white font-bold py-3 transition-colors disabled:opacity-50"
           >
             {cargando ? 'Entrando…' : 'Entrar'}
           </button>
 
           <a
             href="/panel/nueva-contrasena"
-            className="block text-center text-sm text-white/40 hover:text-white/70 transition-colors"
+            className="block text-center text-sm text-[#6B7079] hover:text-[#3F434B] transition-colors"
           >
             ¿Olvidaste tu contraseña?
           </a>
