@@ -1,79 +1,86 @@
 'use client';
 
-import Link from 'next/link';
-import { motion, useReducedMotion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { MovilCss } from './Movil3D';
 
-/**
- * Hero de /qr (rediseño 29/09/2026): titular grande, una sola promesa y la
- * carta real dentro de un móvil. Sin 3D ni iconos: el producto es la imagen.
- */
-const PLATOS = [
-  ['Croquetas de jamón', 'Cremosas, seis unidades', '9,50'],
-  ['Arroz meloso de marisco', 'Gamba roja y mejillones', '18'],
-  ['Presa ibérica a la brasa', 'Patata asada y pimientos', '19,50'],
-  ['Tarta de queso', 'Horneada, centro cremoso', '6,50'],
+// El 3D solo se descarga en el navegador; mientras, se ve la versión CSS.
+const Movil3D = dynamic(() => import('./Movil3D'), { ssr: false, loading: () => <MovilCss /> });
+
+const CURVA = [0.22, 1, 0.36, 1] as [number, number, number, number];
+const AVISOS = [
+  { t: 'Mesa 4', d: 'Llama al camarero', color: '#E8592A' },
+  { t: 'Reserva 21:30', d: '4 personas · confirmada', color: '#2F8F6B' },
+  { t: 'Precio actualizado', d: 'Hace 2 min · mismo QR', color: '#F7F7F5' },
+  { t: 'Mesa 9', d: 'Pide la cuenta', color: '#D99A1E' },
 ];
 
-export default function HeroQr() {
+function Titular({ texto, retraso, className }: { texto: string; retraso: number; className?: string }) {
   const quieto = useReducedMotion();
-  const entra = (d: number) => (quieto ? {} : { initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.8, delay: d, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } });
+  return (
+    <span className={className}>
+      {texto.split(' ').map((p, i) => (
+        <span key={i} className="inline-block overflow-hidden pb-[0.08em] align-top">
+          <motion.span className="inline-block" initial={quieto ? false : { y: '110%' }} animate={{ y: 0 }}
+            transition={{ duration: 0.9, delay: retraso + i * 0.07, ease: CURVA }}>{p}&nbsp;</motion.span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** Hero de /qr (rediseño 29/09/2026): promesa, prueba numérica y el producto en 3D. */
+export default function HeroQr() {
+  const [aviso, setAviso] = useState(0);
+  useEffect(() => { const t = setInterval(() => setAviso((a) => (a + 1) % AVISOS.length), 2600); return () => clearInterval(t); }, []);
 
   return (
-    <section className="relative overflow-hidden bg-[#0F0B08] pb-20 pt-32 text-white md:pb-28 md:pt-40">
-      <div aria-hidden="true" className="pointer-events-none absolute -right-40 -top-40 h-[640px] w-[640px] rounded-full bg-[radial-gradient(closest-side,rgba(217,83,30,.28),transparent)]" />
-      <div aria-hidden="true" className="pointer-events-none absolute -bottom-60 -left-40 h-[520px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(197,139,42,.14),transparent)]" />
+    <section className="relative overflow-hidden bg-[#17191E] pb-16 pt-32 text-white md:pb-24 md:pt-40">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:22px_22px]" />
+      <div aria-hidden="true" className="pointer-events-none absolute -right-48 top-10 h-[620px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(232,89,42,.22),transparent)]" />
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-16 px-6 md:grid-cols-[1.1fr_1fr] md:px-8">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 md:grid-cols-[1.15fr_1fr] md:px-8">
         <div>
-          <motion.p {...entra(0)} className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E0703F]">QR Menú</motion.p>
-          <motion.h1 {...entra(0.08)} className="mt-5 text-[44px] font-bold leading-[1.02] tracking-[-0.03em] sm:text-6xl lg:text-7xl">
-            Tu carta, siempre al día.<br /><span className="text-white/45">Sin reimprimir nunca.</span>
-          </motion.h1>
-          <motion.p {...entra(0.16)} className="mt-6 max-w-lg text-lg leading-relaxed text-white/65">
-            Cambias precios, platos y fotos desde el móvil y el QR de tus mesas sigue siendo el mismo. Con alérgenos, idiomas y tu marca.
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/70">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#2F8F6B]" /> Carta digital QR para hostelería
           </motion.p>
-          <motion.div {...entra(0.24)} className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <a href="#planes" className="rounded-full bg-white px-7 py-4 text-center text-[15px] font-semibold text-[#0F0B08] transition hover:bg-white/90">Empieza por 1 €</a>
-            <Link href="/demo/carta" className="rounded-full border border-white/20 px-7 py-4 text-center text-[15px] font-semibold text-white transition hover:border-white/50">Ver una carta real</Link>
+          <h1 className="font-display mt-6 text-[46px] font-semibold leading-[0.98] sm:text-7xl lg:text-[84px]">
+            <Titular texto="Tu carta cambia." retraso={0.15} className="block" />
+            <Titular texto="Tu QR, nunca." retraso={0.45} className="block text-[#E8592A]" />
+          </h1>
+          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8, duration: 0.7, ease: CURVA }}
+            className="mt-7 max-w-lg text-lg leading-relaxed text-white/65">
+            Precios, platos, fotos y alérgenos al día desde tu móvil, en segundos. Sin imprenta, sin diseñador y sin tocar las mesas.
+          </motion.p>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.95, duration: 0.7, ease: CURVA }}
+            className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <a href="#planes" className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#E8592A] px-7 py-4 text-[15px] font-semibold transition hover:bg-[#CF4A1F]">
+              Empieza por 1 € <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
+            </a>
+            <a href="#como-funciona" className="inline-flex items-center justify-center rounded-full border border-white/15 px-7 py-4 text-[15px] font-semibold hover:border-white/40">Ver cómo funciona</a>
           </motion.div>
-          <motion.p {...entra(0.3)} className="mt-5 text-sm text-white/40">Primer mes a 1 €. Después desde 9 €/mes, sin permanencia.</motion.p>
+          <motion.dl initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="mt-12 grid max-w-md grid-cols-3 gap-6 border-t border-white/10 pt-6">
+            {[['1 €', 'el primer mes'], ['0', 'reimpresiones'], ['14', 'alérgenos UE']].map(([n, t]) => (
+              <div key={t}><dt className="font-display text-3xl font-semibold">{n}</dt><dd className="mt-1 text-xs text-white/50">{t}</dd></div>
+            ))}
+          </motion.dl>
         </div>
 
-        <motion.div {...(quieto ? {} : { initial: { opacity: 0, y: 60, rotate: 2 }, animate: { opacity: 1, y: 0, rotate: 0 }, transition: { duration: 1.1, delay: 0.2, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } })}
-          className="relative mx-auto w-[280px] sm:w-[310px]">
-          <div className="rounded-[46px] border border-white/10 bg-[#1b1510] p-3 shadow-[0_40px_120px_rgba(0,0,0,.6)]">
-            <div className="overflow-hidden rounded-[36px] bg-[#F7F3EA] text-[#221D17]">
-              <div className="relative h-44 bg-[url('/images/demo/s1.png')] bg-cover bg-center">
-                <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/65" />
-                <div className="absolute inset-x-0 bottom-4 text-center text-white">
-                  <p className="text-[9px] uppercase tracking-[0.3em] text-white/75">La carta</p>
-                  <p className="mt-1 font-serif text-3xl">Casa Brasa</p>
-                </div>
-              </div>
-              <div className="flex gap-4 border-b border-black/10 px-5 py-3 text-[9px] uppercase tracking-[0.2em] text-black/55">
-                <span className="whitespace-nowrap text-[#D9531E]">Entrantes</span><span>Principales</span><span>Postres</span>
-              </div>
-              <div className="space-y-4 px-5 pb-8 pt-5">
-                <p className="text-center text-[9px] uppercase tracking-[0.3em] text-[#D9531E]">I</p>
-                <p className="-mt-2 text-center font-serif text-2xl">Para compartir</p>
-                {PLATOS.map(([n, d, p]) => (
-                  <div key={n}>
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-serif text-[15px] font-semibold">{n}</span>
-                      <span className="flex-1 border-b border-dotted border-black/25" />
-                      <span className="font-serif text-[15px] font-semibold">{p}</span>
-                    </div>
-                    <p className="font-serif text-[13px] italic text-black/50">{d}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+        <div className="relative">
+          <Movil3D />
+          <div className="pointer-events-none absolute inset-x-0 bottom-10 flex justify-center md:bottom-20 md:justify-start">
+            <AnimatePresence mode="wait">
+              <motion.div key={aviso} initial={{ opacity: 0, y: 14, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.45, ease: CURVA }}
+                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#22252C]/90 px-4 py-3 shadow-2xl backdrop-blur-md">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: AVISOS[aviso].color }} />
+                <span><span className="block text-sm font-semibold">{AVISOS[aviso].t}</span><span className="block text-xs text-white/55">{AVISOS[aviso].d}</span></span>
+              </motion.div>
+            </AnimatePresence>
           </div>
-          <div className="absolute -left-14 bottom-24 hidden rounded-2xl border border-white/10 bg-[#1b1510]/95 px-4 py-3 text-sm shadow-xl backdrop-blur sm:block">
-            <p className="text-white/45 text-xs">Precio actualizado</p>
-            <p className="font-semibold">Hace 2 min · mismo QR</p>
-          </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -41,3 +41,9 @@
 .carta-oscura [class*="border-black/"], .carta-oscura [class*="divide-black/"] > * + *, .carta-oscura .border-b, .carta-oscura .border-y { border-color: rgba(243, 241, 236, 0.12) !important; }
 .carta-oscura [class*="bg-black/"] { background-color: rgba(243, 241, 236, 0.06) !important; }
 .carta-oscura .shadow-sm { box-shadow: none !important; }
+
+/* ---------------------------------------------------------------- identidad DKitchen (29/09/2026) */
+.font-display { font-family: var(--fuente-display), Inter, system-ui, sans-serif; letter-spacing: -0.035em; }
+@keyframes subirCarta { 0%, 8% { transform: translateY(0); } 92%, 100% { transform: translateY(-55%); } }
+@keyframes latido { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.35); opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .animate-\[subirCarta_16s_ease-in-out_infinite_alternate\] { animation: none !important; } }

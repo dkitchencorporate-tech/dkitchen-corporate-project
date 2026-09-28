@@ -37,9 +37,12 @@ export const metadata = {
   }
 };
 
-import { Inter } from "next/font/google";
+import { Inter, Bricolage_Grotesque, Cormorant_Garamond } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
+// Identidad 29/09/2026: titulares en Bricolage Grotesque; Cormorant para las cartas de muestra.
+const display = Bricolage_Grotesque({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--fuente-display", display: "swap" });
+const serifWeb = Cormorant_Garamond({ subsets: ["latin"], weight: ["500", "600"], style: ["normal", "italic"], variable: "--fuente-serif-web", display: "swap" });
 
 const jsonLdOrganizacion = {
   "@context": "https://schema.org",
@@ -68,7 +71,7 @@ const jsonLdOrganizacion = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className={`${inter.className} bg-background text-foreground antialiased`}>
+      <body className={`${inter.className} ${display.variable} ${serifWeb.variable} bg-background text-foreground antialiased`}>
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
