@@ -39,7 +39,7 @@ export function BandaFoto({ src, frase, firma }: { src: string; frase: string; f
   return (
     <section className="relative h-[72svh] min-h-[420px] overflow-hidden bg-[#0A080C] text-white">
       <div className="absolute inset-0 bg-cover bg-center md:bg-fixed" style={{ backgroundImage: `url(${src})` }} aria-hidden="true" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,8,12,.25),rgba(10,8,12,.15)_40%,rgba(10,8,12,.85))]" aria-hidden="true" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,8,12,.2),rgba(10,8,12,.35)_35%,rgba(10,8,12,.92))]" aria-hidden="true" />
       <div className="relative mx-auto flex h-full max-w-6xl flex-col justify-end px-6 pb-14 md:px-8 md:pb-20">
         <TextoRevelado texto={frase} className="font-display max-w-4xl text-4xl font-semibold leading-[1.02] md:text-7xl" />
         {firma && <Aparecer retraso={0.3}><p className="etiqueta-dk mt-6 text-[#D9B25C]">{firma}</p></Aparecer>}
