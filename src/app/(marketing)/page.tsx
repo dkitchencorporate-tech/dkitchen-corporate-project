@@ -13,7 +13,7 @@ import VistaExplosionada from '@/components/dk/VistaExplosionada';
  */
 export const metadata: Metadata = {
   title: 'DKitchen · Carta digital QR, apps propias y sistemas para restaurantes',
-  description: 'Digitalización para hostelería sin comisiones: carta digital QR desde 9 €/mes, tu propia app de pedidos con DKitchen Signature, eventos llave en mano y dark kitchen multimarca.',
+  description: 'Digitalización para hostelería sin comisiones: carta digital QR desde 9 €/mes, tu propia app de pedidos con DKitchen Signature, eventos llave en mano y dark kitchen multimarca.',
   alternates: { canonical: 'https://dkitchencorporate.es' },
 };
 
@@ -24,9 +24,9 @@ const DOLORES = [
   ['Tu carta no dice nada de alérgenos.', 'Y la ley obliga a informar de los 14.'],
 ];
 const ESCALERA = [
-  { n: '01', t: 'Carta QR', d: 'Tu carta digital al día desde el móvil. Estilos propios, alérgenos, reservas y llamada al camarero.', p: 'Desde 9 €/mes · primer mes 1 €', href: '/qr', destacado: true },
-  { n: '02', t: 'DKitchen Signature', d: 'Tu propia app con tu marca: tus clientes piden y pagan, cocina y TPV integrados. Es tuya.', p: 'Entrada 700 € · 69 €/mes', href: '/base-operativa' },
-  { n: '03', t: 'Experience', d: 'Eventos gastronómicos ya diseñados para llenar tus días flojos, con su propia web de reservas.', p: 'Desde 299 € por evento', href: '/experience' },
+  { n: '01', t: 'Carta QR', d: 'Tu carta digital al día desde el móvil. Estilos propios, alérgenos, reservas y llamada al camarero.', p: 'Desde 9 €/mes · primer mes 1 €', href: '/qr', destacado: true },
+  { n: '02', t: 'DKitchen Signature', d: 'Tu propia app con tu marca: tus clientes piden y pagan, cocina y TPV integrados. Es tuya.', p: 'Entrada 700 € · 69 €/mes', href: '/base-operativa' },
+  { n: '03', t: 'Experience', d: 'Eventos gastronómicos ya diseñados para llenar tus días flojos, con su propia web de reservas.', p: 'Desde 299 € por evento', href: '/experience' },
   { n: '04', t: 'Dark Kitchen', d: 'Marcas virtuales ya operadas para vender a domicilio con la cocina que ya tienes.', p: 'A medida', href: '/dark-kitchen' },
 ];
 
@@ -39,9 +39,9 @@ export default function Home() {
           <div>
             <Aparecer><p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/80 backdrop-blur"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#2F8F6B]" /> Tecnología para hostelería · sin comisiones</p></Aparecer>
             <TextoRevelado como="h1" texto="Tu restaurante, con sistema propio." className="font-display mt-6 text-[50px] font-semibold leading-[0.98] sm:text-7xl lg:text-[88px]" />
-            <Aparecer retraso={0.3}><p className="mt-7 max-w-lg text-lg leading-relaxed text-white/70">Empieza con la carta digital por 1 €. Cuando crezcas, tu propia app de pedidos. Sin comisiones por ticket y con tus clientes siempre en tu casa.</p></Aparecer>
+            <Aparecer retraso={0.3}><p className="mt-7 max-w-lg text-lg leading-relaxed text-white/70">Empieza con la carta digital por 1 €. Cuando crezcas, tu propia app de pedidos. Sin comisiones por ticket y con tus clientes siempre en tu casa.</p></Aparecer>
             <Aparecer retraso={0.4} className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <BotonMagnetico href="/qr" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#E8592A] px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(232,89,42,.45)] hover:bg-[#CF4A1F]">Empieza por 1 € →</BotonMagnetico>
+              <BotonMagnetico href="/qr" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#E8592A] px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(232,89,42,.45)] hover:bg-[#CF4A1F]">Empieza por 1 € →</BotonMagnetico>
               <BotonMagnetico href="/base-operativa" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-8 py-4 text-[15px] font-semibold backdrop-blur hover:border-white/50">Quiero mi propia app</BotonMagnetico>
             </Aparecer>
           </div>
@@ -49,7 +49,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Marquesina oscura items={['Sin comisiones por pedido', 'Cambios al momento', 'Alérgenos según la UE', 'Tu marca, tus clientes', 'Primer mes por 1 €', 'Sin permanencia']} />
+      <Marquesina oscura items={['Sin comisiones por pedido', 'Cambios al momento', 'Alérgenos según la UE', 'Tu marca, tus clientes', 'Primer mes por 1 €', 'Sin permanencia']} />
 
       <VistaExplosionada />
 
@@ -68,7 +68,7 @@ export default function Home() {
               </Aparecer>
             ))}
           </div>
-          <Aparecer className="mt-10"><BotonMagnetico href="/qr" className="inline-flex rounded-full bg-[#17191E] px-7 py-4 text-[15px] font-semibold text-white">Arreglarlo por 1 € →</BotonMagnetico></Aparecer>
+          <Aparecer className="mt-10"><BotonMagnetico href="/qr" className="inline-flex rounded-full bg-[#17191E] px-7 py-4 text-[15px] font-semibold text-white">Arreglarlo por 1 € →</BotonMagnetico></Aparecer>
         </div>
       </section>
 
@@ -122,8 +122,8 @@ export default function Home() {
         <FondoVivo />
         <div className="relative mx-auto max-w-3xl px-6">
           <TextoRevelado texto="Empieza por la carta. Hoy." className="font-display text-5xl font-semibold leading-[1.0] md:text-8xl" />
-          <p className="mx-auto mt-6 max-w-lg text-lg text-white/65">Primer mes por 1 €, sin permanencia. Si en un mes no te convence, lo dejas.</p>
-          <div className="mt-10"><BotonMagnetico href="/qr#planes" className="inline-block rounded-full bg-[#E8592A] px-10 py-5 text-base font-semibold shadow-[0_10px_40px_rgba(232,89,42,.45)]">Empezar por 1 €</BotonMagnetico></div>
+          <p className="mx-auto mt-6 max-w-lg text-lg text-white/65">Primer mes por 1 €, sin permanencia. Si en un mes no te convence, lo dejas.</p>
+          <div className="mt-10"><BotonMagnetico href="/qr#planes" className="inline-block rounded-full bg-[#E8592A] px-10 py-5 text-base font-semibold shadow-[0_10px_40px_rgba(232,89,42,.45)]">Empezar por 1 €</BotonMagnetico></div>
         </div>
       </section>
     </div>

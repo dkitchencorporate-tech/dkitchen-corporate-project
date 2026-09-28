@@ -7,7 +7,7 @@ import { TaquillaViva, EscaleraPrecios } from '@/components/dk/PiezasProductos';
 /** DKitchen Experience — rediseño 29/09/2026. Palabra clave: eventos para restaurantes llave en mano. */
 export const metadata: Metadata = {
   title: 'Eventos para restaurantes llave en mano · Llena tus días flojos · DKitchen Experience',
-  description: 'Te entregamos un evento completo: concepto, marketing, anuncios y web de venta de entradas. Tú cocinas y te quedas el 100 % de la taquilla. Desde 299 €, sin comisión.',
+  description: 'Te entregamos un evento completo: concepto, marketing, anuncios y web de venta de entradas. Tú cocinas y te quedas el 100 % de la taquilla. Desde 299 €, sin comisión.',
   alternates: { canonical: 'https://dkitchencorporate.es/experience' },
 };
 
@@ -27,12 +27,12 @@ export default function PaginaExperience() {
     <div className="bg-white text-[#17191E]">
       <HeroPagina etiqueta="DKitchen Experience"
         titulo="Tu martes vacío, convertido en taquilla llena."
-        sub="Te entregamos un evento completo, ya diseñado y probado: concepto, marketing, anuncios y web de venta de entradas. Tú cocinas y te quedas el 100 % de la taquilla."
+        sub="Te entregamos un evento completo, ya diseñado y probado: concepto, marketing, anuncios y web de venta de entradas. Tú cocinas y te quedas el 100 % de la taquilla."
         ctas={[{ href: WA, t: 'Montar mi primer evento' }, { href: '#precios', t: 'Ver precios', secundario: true }]}
         nota="Unas 3 semanas desde la primera reunión hasta el día del evento."
         visual={<TaquillaViva />} />
 
-      <Marquesina oscura items={['0 % de comisión', '100 % de la taquilla para ti', '7 formatos probados', 'QR de entrada único', 'Anuncios gestionados', 'Listo en 3 semanas']} />
+      <Marquesina oscura items={['0 % de comisión', '100 % de la taquilla para ti', '7 formatos probados', 'QR de entrada único', 'Anuncios gestionados', 'Listo en 3 semanas']} />
 
       <section className="bg-[#F7F7F5] py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
@@ -68,7 +68,7 @@ export default function PaginaExperience() {
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Titulo oscuro etiqueta="Quién hace qué" texto="Nosotros montamos. Tú cocinas y cobras." />
           <div className="mt-14 grid gap-4 md:grid-cols-2">
-            {([['Lo hacemos nosotros', ['Concepto y guía del evento', 'Plan operativo: antes, durante y después', 'Diseño de piezas digitales y flyer', 'Web de venta de entradas conectada a tu cobro', 'Campaña de anuncios, montada y gestionada', 'Informe final con entradas e ingresos']], ['Lo haces tú', ['Abrir tu cuenta de cobro (Stripe, SumUp o Revolut Pay)', 'Elegir fecha, aforo y precio', 'Pagar la publicidad y los flyers', 'Escanear las entradas en la puerta', 'Cocinar y dar una noche que se recuerde', 'Quedarte el 100 % de la taquilla']]] as [string, string[]][]).map(([t, l], i) => (
+            {([['Lo hacemos nosotros', ['Concepto y guía del evento', 'Plan operativo: antes, durante y después', 'Diseño de piezas digitales y flyer', 'Web de venta de entradas conectada a tu cobro', 'Campaña de anuncios, montada y gestionada', 'Informe final con entradas e ingresos']], ['Lo haces tú', ['Abrir tu cuenta de cobro (Stripe, SumUp o Revolut Pay)', 'Elegir fecha, aforo y precio', 'Pagar la publicidad y los flyers', 'Escanear las entradas en la puerta', 'Cocinar y dar una noche que se recuerde', 'Quedarte el 100 % de la taquilla']]] as [string, string[]][]).map(([t, l], i) => (
               <Aparecer key={t} retraso={i * 0.1} className={`rounded-[28px] p-8 ${i ? 'border border-white/10' : 'bg-[#E8592A]'}`}>
                 <p className="font-display text-2xl font-semibold">{t}</p>
                 <ul className="mt-5 space-y-2.5">{l.map((x) => <li key={x} className="flex gap-3 text-[15px]"><span>✓</span><span className={i ? 'text-white/75' : ''}>{x}</span></li>)}</ul>
@@ -84,7 +84,7 @@ export default function PaginaExperience() {
           <Titulo etiqueta="Precios" texto="Cuanto más repites, menos pagas." sub="Cuatro tarifas fijas, sin porcentaje ni letra pequeña. El trabajo pesado ya está hecho, así que el precio baja con cada evento." />
           <EscaleraPrecios tramos={[[299, 'Primera vez', 'Cliente nuevo, cualquiera de los 7 formatos.'], [250, 'Nuevo evento', 'Ya trabajaste con nosotros y quieres otro formato.'], [150, 'Reuso', 'El mismo evento, en una fecha nueva.'], [99, 'Reuso fidelizado', 'A partir de tu tercer evento.']]} />
           <Aparecer className="mt-10 rounded-[24px] bg-[#111317] p-6 text-white md:flex md:items-center md:justify-between md:p-8">
-            <p className="text-lg"><strong className="text-[#E8592A]">¿Tienes la Carta QR con nosotros?</strong> Tu primer evento cuesta 199 € en lugar de 299 €. Tarifa publicada, sin negociar.</p>
+            <p className="text-lg"><strong className="text-[#E8592A]">¿Tienes la Carta QR con nosotros?</strong> Tu primer evento cuesta 199 € en lugar de 299 €. Tarifa publicada, sin negociar.</p>
           </Aparecer>
         </div>
       </section>

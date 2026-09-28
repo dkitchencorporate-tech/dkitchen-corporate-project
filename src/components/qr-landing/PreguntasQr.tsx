@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const PREGUNTAS: [string, string][] = [
-  ['¿Qué pasa después del primer mes a 1 €?', 'Se cobra tu plan (9 € o 25 € al mes) a la misma tarjeta. Si no quieres seguir, lo cancelas antes desde tu panel.'],
+  ['¿Qué pasa después del primer mes a 1 €?', 'Se cobra tu plan (9 € o 25 € al mes) a la misma tarjeta. Si no quieres seguir, lo cancelas antes desde tu panel.'],
   ['¿Mis clientes pueden pedir desde la carta?', 'No. La carta QR es para mirar: tus clientes piden a tu equipo como siempre y tu TPV sigue cobrando. Si quieres que pidan y paguen solos, eso es DKitchen Signature.'],
   ['¿Tengo que reimprimir el QR si cambio la carta?', 'Nunca. El QR apunta siempre a tu carta; los cambios se ven al momento.'],
   ['¿Puedo cambiar de plan?', 'Sí, cuando quieras y desde tu panel, sin perder tu carta ni tu QR.'],
@@ -36,7 +36,7 @@ export default function PreguntasQr() {
         <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-[480px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(232,89,42,.22),transparent)]" />
         <div className="relative mx-auto max-w-3xl px-6">
           <h2 className="font-display text-5xl font-semibold leading-[1.0] md:text-7xl">Tu carta digital, hoy mismo.</h2>
-          <p className="mx-auto mt-5 max-w-lg text-lg text-white/60">Actívala por 1 € y súbela en una tarde. Si algo no te convence, lo dejas.</p>
+          <p className="mx-auto mt-5 max-w-lg text-lg text-white/60">Actívala por 1 € y súbela en una tarde. Si algo no te convence, lo dejas.</p>
           <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
             <a href="#planes" className="rounded-full bg-white px-8 py-4 text-[15px] font-semibold text-[#17191E]">Ver planes</a>
             <Link href="/base-operativa" className="rounded-full border border-white/20 px-8 py-4 text-[15px] font-semibold">Conocer DKitchen Signature</Link>

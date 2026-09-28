@@ -51,7 +51,7 @@ export default async function PaginaArticulo({ params }: { params: Promise<{ slu
         ))}
         <aside className="mt-16 rounded-[28px] bg-[#17191E] p-8 text-white md:p-10">
           <p className="font-display text-3xl font-semibold">Tu carta digital, hoy.</p>
-          <p className="mt-3 text-white/60">Alérgenos, estilos propios y cambios al momento. Primer mes por 1 €, sin permanencia.</p>
+          <p className="mt-3 text-white/60">Alérgenos, estilos propios y cambios al momento. Primer mes por 1 €, sin permanencia.</p>
           <Link href="/qr" className="mt-6 inline-block rounded-full bg-[#E8592A] px-6 py-3.5 font-semibold">Ver la carta QR</Link>
         </aside>
         <nav aria-label="Más artículos" className="mt-16">

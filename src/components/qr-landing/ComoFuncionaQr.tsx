@@ -9,7 +9,7 @@ import CartaMini from './CartaMini';
  * cambia con cada paso y enseña la interfaz REAL (alta, panel, carta).
  */
 const PASOS = [
-  { n: '01', t: 'Te das de alta en 2 minutos', d: 'Eliges plan, pagas 1 € y entras en tu panel. Sin instalaciones ni llamadas comerciales.' },
+  { n: '01', t: 'Te das de alta en 2 minutos', d: 'Eliges plan, pagas 1 € y entras en tu panel. Sin instalaciones ni llamadas comerciales.' },
   { n: '02', t: 'Subes tu carta y eliges su estilo', d: 'Platos, precios, fotos y alérgenos desde el móvil. Cuatro estilos, fondos y colores para que sea tuya.' },
   { n: '03', t: 'Imprimes tu QR una sola vez', d: 'Tus clientes escanean y ven la carta al momento. Cambias lo que quieras y el QR sigue valiendo para siempre.' },
 ];
@@ -21,7 +21,7 @@ function PantallaAlta() {
       <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#E8592A]">QR Menú · Plan Ampliado</p>
       <p className="font-display mt-2 text-2xl font-semibold">Activa tu carta</p>
       <div className="mt-4 flex items-baseline justify-between rounded-2xl border border-[#E7E1D8] bg-white px-4 py-3">
-        <span className="text-sm font-semibold">Primer mes</span><span className="font-display text-2xl font-semibold">1 €</span>
+        <span className="text-sm font-semibold">Primer mes</span><span className="font-display text-2xl font-semibold">1 €</span>
       </div>
       {['Nombre del restaurante', 'Tu nombre', 'Tu correo'].map((c, i) => (
         <div key={c} className="mt-3">

@@ -18,7 +18,7 @@ const ESTILOS: EstiloMini[] = [
 ];
 const AVISOS = [
   { t: 'Mesa 4', d: 'Llama al camarero', c: '#E8592A', pos: 'left-[-14%] top-[14%]', r: -4 },
-  { t: 'Precio actualizado', d: 'Croquetas · 9,50 → 9,90 €', c: '#2F8F6B', pos: 'right-[-16%] top-[34%]', r: 3 },
+  { t: 'Precio actualizado', d: 'Croquetas · 9,50 → 9,90 €', c: '#2F8F6B', pos: 'right-[-16%] top-[34%]', r: 3 },
   { t: 'Reserva 21:30', d: '4 personas · confirmada', c: '#3B6EA5', pos: 'left-[-10%] bottom-[20%]', r: 2 },
   { t: 'Carta en inglés', d: 'Traducida por DKitchen', c: '#D99A1E', pos: 'right-[-12%] bottom-[8%]', r: -3 },
 ];

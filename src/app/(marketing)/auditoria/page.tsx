@@ -6,8 +6,8 @@ import { InformeVivo } from '@/components/dk/PiezasProductos';
 
 /** Auditoría de canales — rediseño 29/09/2026. Palabra clave: auditoría ficha Google restaurante. */
 export const metadata: Metadata = {
-  title: 'Auditoría de Google Maps y redes para restaurantes · 47 € · DKitchen',
-  description: 'Diagnóstico 1 a 1 de tu ficha de Google, tus redes y la rentabilidad de tu carta: qué te está costando clientes hoy y cómo arreglarlo. Pago único de 47 €.',
+  title: 'Auditoría de Google Maps y redes para restaurantes · 47 € · DKitchen',
+  description: 'Diagnóstico 1 a 1 de tu ficha de Google, tus redes y la rentabilidad de tu carta: qué te está costando clientes hoy y cómo arreglarlo. Pago único de 47 €.',
   alternates: { canonical: 'https://dkitchencorporate.es/auditoria' },
 };
 
@@ -19,7 +19,7 @@ export default function PaginaAuditoria() {
       <HeroPagina etiqueta="Auditoría de canales"
         titulo="Te están buscando. ¿Te están encontrando?"
         sub="En una reunión 1 a 1 revisamos tu ficha de Google, tus redes y la rentabilidad de tu carta. Sales con un informe claro: qué te está costando clientes y cómo arreglarlo."
-        ctas={[{ href: WA, t: 'Reservar mi auditoría · 47 €' }, { href: '#incluye', t: 'Qué incluye', secundario: true }]}
+        ctas={[{ href: WA, t: 'Reservar mi auditoría · 47 €' }, { href: '#incluye', t: 'Qué incluye', secundario: true }]}
         nota="Pago único. Es un diagnóstico, no una gestión: sin garantía de resultado."
         visual={<InformeVivo />} />
 
@@ -48,7 +48,7 @@ export default function PaginaAuditoria() {
           <Aparecer className="mt-16 grid items-center gap-8 rounded-[32px] bg-[#111317] p-8 text-white md:grid-cols-2 md:p-12">
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-[#E8592A]">Oferta de lanzamiento</p>
-              <p className="mt-3 flex items-baseline gap-4"><span className="font-display text-3xl text-white/40 line-through">297 €</span><span className="font-display text-7xl font-semibold">47 €</span></p>
+              <p className="mt-3 flex items-baseline gap-4"><span className="font-display text-3xl text-white/40 line-through">297 €</span><span className="font-display text-7xl font-semibold">47 €</span></p>
               <p className="mt-2 text-white/60">Pago único · reunión 1 a 1 incluida</p>
             </div>
             <div className="md:text-right"><a href={WA} className="inline-block rounded-full bg-[#E8592A] px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(232,89,42,.45)]">Reservar mi auditoría</a></div>
@@ -62,7 +62,7 @@ export default function PaginaAuditoria() {
         ['¿Y si el problema es más grande que un parche?', 'Te lo diremos. Si hace falta algo estructural, el paso natural es tu propia app con DKitchen Signature.'],
       ]} />
 
-      <Cierre titulo="Tus clientes ya te están buscando." sub="Por 47 € sabrás exactamente por qué algunos no llegan." cta={{ href: WA, t: 'Reservar mi auditoría' }} secundario={{ href: '/base-operativa', t: 'Ver DKitchen Signature' }} />
+      <Cierre titulo="Tus clientes ya te están buscando." sub="Por 47 € sabrás exactamente por qué algunos no llegan." cta={{ href: WA, t: 'Reservar mi auditoría' }} secundario={{ href: '/base-operativa', t: 'Ver DKitchen Signature' }} />
     </div>
   );
 }

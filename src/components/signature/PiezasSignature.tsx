@@ -9,7 +9,7 @@ import { CURVA } from '@/components/dk/Movimiento';
 const FLUJO = [
   { p: 'pedido', t: 'Nuevo pedido #231', d: 'Mesa 6 · 2 pizzas, 1 bebida', c: '#E8592A' },
   { p: 'cocina', t: 'En cocina', d: 'Comanda enviada a la pantalla de cocina', c: '#D99A1E' },
-  { p: 'pagado', t: 'Pagado · 24,50 €', d: 'Cobro en tu app, sin comisión de plataforma', c: '#2F8F6B' },
+  { p: 'pagado', t: 'Pagado · 24,50 €', d: 'Cobro en tu app, sin comisión de plataforma', c: '#2F8F6B' },
   { p: 'puntos', t: '+25 puntos', d: 'Laura sube a cliente VIP', c: '#3B6EA5' },
 ];
 
@@ -105,7 +105,7 @@ export function CalculadoraComisiones() {
         <p className="mt-1 text-sm text-white/50">{fmt(anual)} € al año</p>
         <div className="my-6 h-px bg-white/10" />
         <p className="text-sm text-white/60">Con DKitchen Signature</p>
-        <p className="font-display mt-1 text-3xl font-semibold">69 €<span className="text-base text-white/50">/mes</span></p>
+        <p className="font-display mt-1 text-3xl font-semibold">69 €<span className="text-base text-white/50">/mes</span></p>
         {ahorro > 0 && <p className="mt-4 rounded-xl bg-[#2F8F6B]/15 px-4 py-3 text-sm text-[#7FD1AE]">Te quedarías con <strong className="text-white">{fmt(ahorro)} € más cada mes</strong> por los pedidos que te llegan por tu propia app.</p>}
       </div>
     </div>
@@ -137,8 +137,8 @@ function Pantalla({ n }: { n: number }) {
   if (n === 2) return (
     <div className="h-full bg-[#F7F7F5] p-4 text-[#17191E]">
       <p className="text-xs text-[#6B7079]">Cierre del día</p><p className="font-display text-xl font-semibold">Hoy</p>
-      <div className="mt-3 rounded-xl bg-white p-3"><p className="text-[10px] text-[#6B7079]">Ventas</p><p className="font-display text-3xl font-semibold">1.842 €</p></div>
-      <div className="mt-2 grid grid-cols-2 gap-2 text-xs"><div className="rounded-xl bg-white p-3"><p className="text-[#6B7079]">Pedidos</p><p className="font-semibold">74</p></div><div className="rounded-xl bg-white p-3"><p className="text-[#6B7079]">Comisiones</p><p className="font-semibold text-[#2F8F6B]">0 €</p></div></div>
+      <div className="mt-3 rounded-xl bg-white p-3"><p className="text-[10px] text-[#6B7079]">Ventas</p><p className="font-display text-3xl font-semibold">1.842 €</p></div>
+      <div className="mt-2 grid grid-cols-2 gap-2 text-xs"><div className="rounded-xl bg-white p-3"><p className="text-[#6B7079]">Pedidos</p><p className="font-semibold">74</p></div><div className="rounded-xl bg-white p-3"><p className="text-[#6B7079]">Comisiones</p><p className="font-semibold text-[#2F8F6B]">0 €</p></div></div>
       <div className="mt-3 rounded-xl bg-[#17191E] px-3 py-3 text-center text-xs font-semibold text-white">Enviado a tu sistema fiscal ✓</div>
     </div>
   );
@@ -147,7 +147,7 @@ function Pantalla({ n }: { n: number }) {
       <p className="text-xs text-white/50">Clientes</p><p className="font-display text-xl font-semibold">Laura M.</p>
       <div className="mt-3 rounded-2xl bg-gradient-to-br from-[#E8592A] to-[#C58B2A] p-4"><p className="text-[10px] uppercase tracking-[0.2em]">Nivel VIP</p><p className="font-display text-3xl font-semibold">1.240 pts</p></div>
       <p className="mt-4 text-xs text-white/60">Pedidos este mes: 6 · Último: ayer</p>
-      <div className="mt-3 rounded-xl border border-white/10 p-3 text-xs">Aviso enviado: «Hoy, pizza trufa con un 10 %»</div>
+      <div className="mt-3 rounded-xl border border-white/10 p-3 text-xs">Aviso enviado: «Hoy, pizza trufa con un 10 %»</div>
     </div>
   );
 }

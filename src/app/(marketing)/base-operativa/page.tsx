@@ -11,7 +11,7 @@ import ActivarNucleoOperativoBoton from '@/components/sections/ActivarNucleoOper
  */
 export const metadata: Metadata = {
   title: 'App propia de pedidos para restaurantes, sin comisiones · DKitchen Signature',
-  description: 'Tu propia app con tu marca: tus clientes piden y pagan en mesa, recogida y domicilio; comandas a cocina, fidelización y cierre fiscal conectado a tu TPV. Entrada 700 € y 69 €/mes.',
+  description: 'Tu propia app con tu marca: tus clientes piden y pagan en mesa, recogida y domicilio; comandas a cocina, fidelización y cierre fiscal conectado a tu TPV. Entrada 700 € y 69 €/mes.',
   alternates: { canonical: 'https://dkitchencorporate.es/base-operativa' },
 };
 
@@ -118,8 +118,8 @@ export default function PaginaSignature() {
           </div>
           <Aparecer className="rounded-[32px] border border-white/10 bg-white/[0.05] p-8 backdrop-blur md:p-10">
             <p className="text-sm text-white/60">Entrada</p>
-            <p className="font-display text-7xl font-semibold">700 €</p>
-            <p className="mt-2 text-white/70">o 2 cuotas de 375 € · después 69 €/mes</p>
+            <p className="font-display text-7xl font-semibold">700 €</p>
+            <p className="mt-2 text-white/70">o 2 cuotas de 375 € · después 69 €/mes</p>
             <p className="mt-1 text-sm text-[#7FD1AE]">Los 2 primeros meses de mantenimiento, incluidos</p>
             <ul className="mt-6 space-y-2 text-sm text-white/75">
               {['App con tu marca y dominio', 'Pedidos, cocina, fidelización y cierre fiscal', 'Pack de arranque incluido', 'Soporte en español'].map((x) => <li key={x} className="flex gap-2"><span className="text-[#E8592A]">✓</span>{x}</li>)}
@@ -148,7 +148,7 @@ export default function PaginaSignature() {
 
       <section className="bg-[#F7F7F5] py-20">
         <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-6 px-6 md:flex-row md:items-center md:px-8">
-          <div><p className="font-display text-3xl font-semibold md:text-4xl">¿Aún no estás listo para tu app?</p><p className="mt-2 text-[#6B7079]">Empieza con la carta digital QR por 1 € y da el salto cuando tu negocio lo pida.</p></div>
+          <div><p className="font-display text-3xl font-semibold md:text-4xl">¿Aún no estás listo para tu app?</p><p className="mt-2 text-[#6B7079]">Empieza con la carta digital QR por 1 € y da el salto cuando tu negocio lo pida.</p></div>
           <Link href="/qr" className="rounded-full bg-[#17191E] px-7 py-4 text-[15px] font-semibold text-white">Ver la carta QR →</Link>
         </div>
       </section>

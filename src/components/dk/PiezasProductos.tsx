@@ -38,7 +38,7 @@ export function TaquillaViva() {
             </motion.div>
           </AnimatePresence>
         </div>
-        <p className="mt-4 text-xs text-white/40">0 € de comisión para DKitchen. Cada euro cae en tu cuenta.</p>
+        <p className="mt-4 text-xs text-white/40">0 € de comisión para DKitchen. Cada euro cae en tu cuenta.</p>
       </motion.div>
     </div>
   );

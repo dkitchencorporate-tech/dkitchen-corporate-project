@@ -17,7 +17,7 @@ const CAPAS: Capa[] = [
   { id: 'foto', t: 'Fotos que venden', d: 'Cada plato con su foto, optimizada para cargar rápido.', x: -330, y: -170, xm: -112, ym: -205,
     contenido: <div className="relative h-14 w-full overflow-hidden rounded-xl md:h-24"><Image src="/images/demo/s9.png" alt="" fill sizes="200px" className="object-cover" /></div> },
   { id: 'precio', t: 'Precio al momento', d: 'Lo cambias en el móvil y está en todas las mesas.', x: 330, y: -190, xm: 112, ym: -205,
-    contenido: <p className="font-display text-lg font-semibold md:text-2xl"><span className="text-[#9A9EA6] line-through decoration-2">9,50</span> <span className="text-[#E8592A]">9,90 €</span></p> },
+    contenido: <p className="font-display text-lg font-semibold md:text-2xl"><span className="text-[#9A9EA6] line-through decoration-2">9,50</span> <span className="text-[#E8592A]">9,90 €</span></p> },
   { id: 'alergenos', t: 'Alérgenos UE', d: 'Los 14 obligatorios, por plato y con aviso legal.', x: -360, y: 30, xm: -112, ym: 0,
     contenido: <div className="flex flex-wrap gap-1.5">{['Gluten', 'Pescado', 'Soja', 'Sésamo'].map((a) => <span key={a} className="rounded-full bg-[#F3F3F0] px-2 py-1 text-[11px] font-medium">{a}</span>)}</div> },
   { id: 'qr', t: 'Un QR para siempre', d: 'Lo imprimes una vez. La carta cambia, el QR no.', x: 360, y: 20, xm: 112, ym: 0,

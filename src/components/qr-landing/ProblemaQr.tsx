@@ -27,7 +27,7 @@ function Papel() {
           </div>
         ))}
       </div>
-      <p className="absolute bottom-6 left-7 right-7 text-center text-[11px] text-[#9A9EA6]">Versión 7 · reimpresa el martes · 45 €</p>
+      <p className="absolute bottom-6 left-7 right-7 text-center text-[11px] text-[#9A9EA6]">Versión 7 · reimpresa el martes · 45 €</p>
     </div>
   );
 }
@@ -53,7 +53,7 @@ function Digital() {
 
 const TEXTOS = [
   { eti: 'El problema', color: '#E8592A', t: 'Cada subida de precio te cuesta imprenta.', d: 'Tachones, fotocopias y cartas que no dicen la verdad. El cliente lo nota y tú lo pagas cada vez.' },
-  { eti: 'Con DKitchen', color: '#2F8F6B', t: 'Lo cambias en el móvil. Ya está en todas las mesas.', d: 'El QR no cambia nunca. La carta, cuando tú quieras. Coste de reimprimir: 0 €.' },
+  { eti: 'Con DKitchen', color: '#2F8F6B', t: 'Lo cambias en el móvil. Ya está en todas las mesas.', d: 'El QR no cambia nunca. La carta, cuando tú quieras. Coste de reimprimir: 0 €.' },
 ];
 
 export default function ProblemaQr() {

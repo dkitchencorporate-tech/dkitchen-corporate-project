@@ -44,7 +44,7 @@ export default function HeroQr() {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.95, duration: 0.7, ease: CURVA }}
             className="mt-9 flex flex-col gap-3 sm:flex-row">
             <a href="#planes" className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#E8592A] px-7 py-4 text-[15px] font-semibold transition hover:bg-[#CF4A1F]">
-              Empieza por 1 € <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
+              Empieza por 1 € <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
             </a>
             <a href="#como-funciona" className="inline-flex items-center justify-center rounded-full border border-white/15 px-7 py-4 text-[15px] font-semibold hover:border-white/40">Ver cómo funciona</a>
           </motion.div>

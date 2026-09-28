@@ -9,7 +9,7 @@ import { MARCAS } from '@/lib/marcas-data';
 /** Dark Kitchen multimarca — rediseño 29/09/2026. Palabra clave: dark kitchen multimarca / marcas virtuales. */
 export const metadata: Metadata = {
   title: 'Dark kitchen multimarca y marcas virtuales llave en mano · DKitchen',
-  description: 'Opera hasta 7 marcas virtuales desde tu cocina con recetas, proveedores y procesos ya probados, pedidos propios sin comisión y una sola pantalla de cocina. Inversión desde 3.000 €.',
+  description: 'Opera hasta 7 marcas virtuales desde tu cocina con recetas, proveedores y procesos ya probados, pedidos propios sin comisión y una sola pantalla de cocina. Inversión desde 3.000 €.',
   alternates: { canonical: 'https://dkitchencorporate.es/dark-kitchen' },
 };
 
@@ -34,9 +34,9 @@ export default function PaginaDarkKitchen() {
             <Aparecer className="rounded-[28px] bg-[#111317] p-8 text-white md:p-10">
               <p className="text-sm text-white/60">Si facturas en apps de delivery</p>
               <p className="font-display mt-1 text-5xl font-semibold"><Contador hasta={10000} sufijo=" €" /></p>
-              <p className="mt-6 text-sm text-white/60">con comisiones del 30 %, pierdes</p>
+              <p className="mt-6 text-sm text-white/60">con comisiones del 30 %, pierdes</p>
               <p className="font-display mt-1 text-5xl font-semibold text-[#E8592A]">−<Contador hasta={3000} sufijo=" €" /></p>
-              <p className="mt-6 text-white/65">En tu propio canal, esa misma venta deja 0 € en comisiones de plataforma.</p>
+              <p className="mt-6 text-white/65">En tu propio canal, esa misma venta deja 0 € en comisiones de plataforma.</p>
             </Aparecer>
             <Dolores items={[['Fogones colapsados en cada pico.', 'Y el pase se convierte en una guerra.'], ['Recetas que cambian según quién cocina.', 'Y las reseñas lo notan.']]} />
           </div>
@@ -68,7 +68,7 @@ export default function PaginaDarkKitchen() {
             ))}
           </ol>
           <Aparecer className="mt-10 rounded-[24px] border border-white/10 bg-white/[0.04] p-6 md:flex md:items-center md:justify-between md:p-8">
-            <div><p className="text-sm text-white/60">Inversión</p><p className="font-display text-4xl font-semibold">De 3.000 € a 10.000 €</p><p className="mt-1 text-sm text-white/50">La cifra exacta se cierra en la evaluación. Es un proyecto a medida, no un plan de catálogo.</p></div>
+            <div><p className="text-sm text-white/60">Inversión</p><p className="font-display text-4xl font-semibold">De 3.000 € a 10.000 €</p><p className="mt-1 text-sm text-white/50">La cifra exacta se cierra en la evaluación. Es un proyecto a medida, no un plan de catálogo.</p></div>
             <a href={WA} className="mt-6 inline-block rounded-full bg-[#E8592A] px-7 py-4 font-semibold md:mt-0">Solicitar entrevista</a>
           </Aparecer>
         </div>

@@ -7,7 +7,7 @@ import { useState } from 'react';
  * (o WhatsApp / copiar enlace). El enlace lleva ?ref=invitacion para medirlo.
  */
 const URL_INVITACION = 'https://dkitchencorporate.es/qr?ref=invitacion';
-const TEXTO = 'Mira esto: carta digital QR para el restaurante, la cambias desde el móvil y el primer mes cuesta 1 €.';
+const TEXTO = 'Mira esto: carta digital QR para el restaurante, la cambias desde el móvil y el primer mes cuesta 1 €.';
 
 export default function Invitar({ oscuro = false }: { oscuro?: boolean }) {
   const [copiado, setCopiado] = useState(false);

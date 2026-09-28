@@ -32,7 +32,7 @@ export function BarraCtaMovil() {
     <motion.div initial={false} animate={{ y: ver ? 0 : 120 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       className="fixed inset-x-3 bottom-3 z-[90] md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-[#17191E]/90 py-2 pl-5 pr-2 text-white shadow-2xl backdrop-blur-xl">
-        <span className="text-sm"><span className="font-semibold">1 €</span> <span className="text-white/55">el primer mes</span></span>
+        <span className="text-sm"><span className="font-semibold">1 €</span> <span className="text-white/55">el primer mes</span></span>
         <Link href="#planes" className="rounded-full bg-[#E8592A] px-5 py-2.5 text-sm font-semibold">Empezar</Link>
       </div>
     </motion.div>

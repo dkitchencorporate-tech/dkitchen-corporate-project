@@ -12,13 +12,13 @@ import { Marquesina } from '@/components/dk/Movimiento';
 import VistaExplosionada from '@/components/dk/VistaExplosionada';
 
 export const metadata: Metadata = {
-  title: 'Carta digital QR para restaurantes | Primer mes por 1 € · DKitchen',
+  title: 'Carta digital QR para restaurantes | Primer mes por 1 € · DKitchen',
   description:
-    'Carta digital con QR para bares y restaurantes: cambia precios, platos, fotos y alérgenos desde el móvil sin reimprimir nunca. Reservas y llamada al camarero. Primer mes por 1 €.',
+    'Carta digital con QR para bares y restaurantes: cambia precios, platos, fotos y alérgenos desde el móvil sin reimprimir nunca. Reservas y llamada al camarero. Primer mes por 1 €.',
   alternates: { canonical: 'https://dkitchencorporate.es/qr' },
   openGraph: {
     title: 'Tu carta cambia. Tu QR, nunca. · DKitchen',
-    description: 'Carta digital QR para hostelería. Primer mes por 1 €, sin permanencia.',
+    description: 'Carta digital QR para hostelería. Primer mes por 1 €, sin permanencia.',
     url: 'https://dkitchencorporate.es/qr',
     type: 'website',
   },
@@ -60,7 +60,7 @@ export default function PaginaQr() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datosEstructurados) }} />
       <LineaServicio />
       <HeroQr />
-      <Marquesina oscura items={['Tu carta cambia, tu QR nunca', 'Alérgenos según la UE', 'Cuatro estilos propios', 'Reservas y llamada al camarero', 'Primer mes por 1 €', 'Sin permanencia']} />
+      <Marquesina oscura items={['Tu carta cambia, tu QR nunca', 'Alérgenos según la UE', 'Cuatro estilos propios', 'Reservas y llamada al camarero', 'Primer mes por 1 €', 'Sin permanencia']} />
       <ProblemaQr />
       <VistaExplosionada />
       <ComoFuncionaQr />

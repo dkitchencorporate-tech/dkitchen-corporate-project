@@ -18,16 +18,16 @@ const GRUPOS: { t: string; href: string; p: [string, string][] }[] = [
     ['¿Cómo nos comunicamos?', 'Por un canal directo contigo, sin intermediarios, y con soporte en español.'],
   ] },
   { t: 'Carta QR', href: '/qr', p: [
-    ['¿Qué pasa después del primer mes a 1 €?', 'Se cobra tu plan (9 € o 25 € al mes). Puedes cancelar antes desde tu panel, sin permanencia.'],
+    ['¿Qué pasa después del primer mes a 1 €?', 'Se cobra tu plan (9 € o 25 € al mes). Puedes cancelar antes desde tu panel, sin permanencia.'],
     ['¿Pierdo la carta de papel?', 'No tiene por qué. Muchos locales combinan las dos: la digital para cambiar al momento y la física como apoyo en mesa.'],
     ['¿Y si me voy?', 'Te llevas tu carta y tus datos. No los retenemos.'],
   ] },
   { t: 'DKitchen Signature', href: '/base-operativa', p: [
-    ['¿Cuánto cuesta?', '700 € de entrada en pago único, o en 2 cuotas de 375 € (750 € en total). Los 2 primeros meses de mantenimiento van incluidos; después, 69 €/mes sin permanencia.'],
+    ['¿Cuánto cuesta?', '700 € de entrada en pago único, o en 2 cuotas de 375 € (750 € en total). Los 2 primeros meses de mantenimiento van incluidos; después, 69 €/mes sin permanencia.'],
     ['¿Tengo que dejar las plataformas de delivery?', 'No. Tu app es el canal donde no pagas comisión; puedes seguir en las plataformas para captar clientes nuevos.'],
   ] },
   { t: 'Experience y Dark Kitchen', href: '/experience', p: [
-    ['¿Quién se queda el dinero de las entradas?', 'Tú, el 100 %. Cobras con tu propia pasarela y nosotros nunca tocamos ese dinero.'],
+    ['¿Quién se queda el dinero de las entradas?', 'Tú, el 100 %. Cobras con tu propia pasarela y nosotros nunca tocamos ese dinero.'],
     ['¿Aceptáis cualquier proyecto de dark kitchen?', 'No. Hacemos una evaluación previa y, si los números no salen, te lo decimos antes de que gastes un euro.'],
   ] },
 ];
