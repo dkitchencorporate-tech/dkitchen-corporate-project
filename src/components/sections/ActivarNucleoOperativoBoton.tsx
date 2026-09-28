@@ -39,7 +39,7 @@ export default function ActivarNucleoOperativoBoton({ className }: { className?:
   if (!abierto) {
     return (
       <button type="button" onClick={() => setAbierto(true)} className={className}>
-        Pagar y activar ahora — 700€
+        Pagar y activar ahora · 700 €
       </button>
     );
   }
@@ -49,10 +49,10 @@ export default function ActivarNucleoOperativoBoton({ className }: { className?:
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={activar}
-        className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl"
+        className="bg-white rounded-2xl p-7 max-w-sm w-full shadow-2xl text-gray-900"
       >
-        <h3 className="text-xl font-black mb-1">Activar Núcleo Operativo</h3>
-        <p className="text-gray-500 text-sm mb-6">700€ pago único. Te escribimos para completar la activación.</p>
+        <h3 className="text-xl font-black mb-1">Activar DKitchen Signature</h3>
+        <p className="text-gray-500 text-sm mb-6">Entrada única de 700 € (después, 69 €/mes de mantenimiento). Te escribimos para ponerla en marcha.</p>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del negocio</label>
@@ -91,7 +91,7 @@ export default function ActivarNucleoOperativoBoton({ className }: { className?:
         <button
           type="submit"
           disabled={cargando}
-          className="mt-6 w-full bg-[#D9531E] text-white font-black py-3.5 rounded-full hover:bg-orange-600 transition-colors disabled:opacity-50"
+          className="mt-6 w-full bg-[#D9531E] text-white font-black py-3.5 rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50"
         >
           {cargando ? 'Abriendo pago…' : 'Continuar al pago'}
         </button>
