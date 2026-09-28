@@ -28,7 +28,7 @@ function Telefono() {
       <RoundedBox args={[3.05, 6.25, 0.3]} radius={0.44} smoothness={8}>
         <meshStandardMaterial color="#17191E" metalness={0.75} roughness={0.28} />
       </RoundedBox>
-      <Html transform position={[0, 0, 0.16]} scale={0.1} occlude={false} zIndexRange={[10, 0]}>
+      <Html transform position={[0, 0, 0.16]} scale={0.4} occlude={false} zIndexRange={[10, 0]}>
         <div style={{ width: 272, height: 566, borderRadius: 34, overflow: 'hidden' }}>
           <CartaMini e={ESTILO} desplazar />
         </div>
