@@ -20,12 +20,12 @@ import Sala from './Sala';
 import Idiomas from './Idiomas';
 import OfertaFranja from './OfertaFranja';
 import type { EstadoServicios } from '@/lib/servicios';
-import type { Mesa, Camarero as CamareroSala } from '@/lib/sala';
+import type { MesaPlano, ElementoPlano, FilaInforme, Camarero as CamareroSala } from '@/lib/sala';
 import type { Promocion } from '@/lib/promociones';
 import type { Reserva } from '@/lib/reservas';
 import { authClient } from '@/lib/auth-client';
 
-type Pestana = 'carta' | 'local' | 'promociones' | 'reservas' | 'sala' | 'idiomas' | 'mejoras' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
+type Pestana = 'carta' | 'local' | 'promociones' | 'reservas' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
 
 const PESTANAS: { id: Pestana; nombre: string }[] = [
   { id: 'carta', nombre: 'Mi Carta' },
@@ -38,7 +38,8 @@ const PESTANAS: { id: Pestana; nombre: string }[] = [
   { id: 'qr', nombre: 'Mi QR' },
   { id: 'escaneos', nombre: 'Mis Escaneos' },
   { id: 'plan', nombre: 'Mi Plan' },
-  { id: 'mejoras', nombre: '✨ Mejoras' },
+  { id: 'diseno', nombre: '🎨 Diseño' },
+  { id: 'modulos', nombre: '🧩 Módulos' },
   { id: 'soporte', nombre: 'Soporte' },
 ];
 
@@ -68,7 +69,7 @@ export default function PanelShell({
   promociones: Promocion[];
   reservas: Reserva[];
   servicios: EstadoServicios;
-  sala: { mesas: Mesa[]; camareros: CamareroSala[]; tpv: { proveedor: string; activa: boolean; ultimoEnvio: string | null; ultimoError: string | null } | null; llamadas: string[] };
+  sala: { mesas: (MesaPlano & { id: string })[]; elementos: ElementoPlano[]; informe: FilaInforme[]; camareros: CamareroSala[]; tpv: { proveedor: string; activa: boolean; ultimoEnvio: string | null; ultimoError: string | null } | null; llamadas: string[] };
   traducciones: { entidad: 'plato' | 'seccion'; entidadId: string; idioma: string; campo: 'nombre' | 'descripcion'; texto: string }[];
 }) {
   const tieneServ = (id: string) => servicios.contratados.some((c) => c.servicio === id || (c.servicio === 'pack_sala' && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(id)));
@@ -81,7 +82,8 @@ export default function PanelShell({
 
   // Enlaces directos a una sección (p. ej. desde los correos: /panel?pestana=reservas)
   useEffect(() => {
-    const pedida = new URLSearchParams(window.location.search).get('pestana');
+    const q = new URLSearchParams(window.location.search).get('pestana');
+    const pedida = q === 'mejoras' ? 'modulos' : q;
     if (pedida && PESTANAS.some((x) => x.id === pedida)) setPestana(pedida as Pestana);
   }, []);
 
@@ -127,14 +129,14 @@ export default function PanelShell({
         ))}
       </nav>
 
-      {servicios.oferta && pestana !== 'mejoras' && <OfertaFranja oferta={servicios.oferta.oferta} onVer={() => setPestana('mejoras')} />}
+      {servicios.oferta && pestana !== 'diseno' && pestana !== 'modulos' && <OfertaFranja oferta={servicios.oferta.oferta} onVer={() => setPestana(['setup_experto', 'setup_esencial'].includes(servicios.oferta!.oferta) ? 'diseno' : 'modulos')} />}
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         {pestana === 'carta' && <MiCarta carta={carta} />}
         {pestana === 'local' && <MiLocal restaurante={restaurante} />}
         {pestana === 'promociones' && <Promociones promociones={promociones} secciones={carta.secciones} plan={restaurante.plan} />}
-        {pestana === 'mejoras' && <Mejoras restaurante={restaurante} servicios={servicios} />}
-        {pestana === 'sala' && <Sala mesas={sala.mesas} camareros={sala.camareros} tpv={sala.tpv} modulos={modulos} llamadasPendientes={sala.llamadas} />}
+        {(pestana === 'diseno' || pestana === 'modulos') && <Mejoras key={pestana} restaurante={restaurante} servicios={servicios} vista={pestana} />}
+        {pestana === 'sala' && <Sala mesas={sala.mesas} elementos={sala.elementos} camareros={sala.camareros} tpv={sala.tpv} modulos={modulos} informe={sala.informe} />}
         {pestana === 'idiomas' && <Idiomas activos={restaurante.idiomas ?? []} secciones={carta.secciones} platos={carta.platos} traducciones={traducciones} />}
         {pestana === 'reservas' && <Reservas reservas={reservas} whatsapp={restaurante.whatsapp} />}
         {pestana === 'camarero' && <Camarero slug={restaurante.slug} codigoQr={codigoQr} />}

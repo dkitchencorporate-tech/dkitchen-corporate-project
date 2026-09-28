@@ -27,8 +27,8 @@ import { cambiarEstadoReserva as dbCambiarEstadoReserva, marcarAvisada as dbMarc
 import { avisarEstadoAlCliente, whatsappParaCliente } from '@/lib/correos-reserva';
 import { crearCheckoutServicio, crearCheckoutUpgradeAmpliado } from '@/lib/payments/whop';
 import { estadoServicios, tiene, registrarOferta as dbRegistrarOferta, type Servicio } from '@/lib/servicios';
-import { guardarMesa, eliminarMesa, crearCamarero, desactivarCamarero } from '@/lib/sala';
-import { fijarIdiomas, guardarTraducciones, type Traduccion } from '@/lib/idiomas';
+import { guardarMesa, eliminarMesa, crearCamarero, desactivarCamarero, guardarPlano, cargarPlano, type MesaPlano, type ElementoPlano } from '@/lib/sala';
+import { fijarIdiomas } from '@/lib/idiomas';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -371,14 +371,42 @@ export async function fijarIdiomasAction(idiomas: string[]) {
   revalidatePath(`/m/${restaurante.slug}`);
 }
 
-export async function guardarTraduccionesAction(lista: Traduccion[]) {
+/** Guarda el plano completo de una vez (editor de sala). */
+export async function guardarPlanoAction(mesas: MesaPlano[], elementos: ElementoPlano[]) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
-  const limpia = (lista ?? [])
-    .filter((t) => ['plato', 'seccion'].includes(t.entidad) && UUID.test(t.entidadId) && ['en', 'fr', 'de', 'it', 'pt', 'ca'].includes(t.idioma)
-      && ['nombre', 'descripcion'].includes(t.campo))
-    .slice(0, 600)
-    .map((t) => ({ ...t, texto: String(t.texto ?? '').slice(0, 300) }));
-  await guardarTraducciones(jwt, restaurante.id, limpia).catch(() => { throw new Error('No se pudieron guardar las traducciones.'); });
+  if (!Array.isArray(mesas) || !Array.isArray(elementos) || mesas.length > 200 || elementos.length > 200) throw new Error('Plano demasiado grande.');
+  const acotar = (v: unknown, min: number, max: number) => Math.min(max, Math.max(min, Math.round(Number(v) * 100) / 100 || min));
+  const numeros = new Set<string>();
+  const mesasLimpias = mesas.map((m) => {
+    const numero = String(m.numero ?? '').trim();
+    if (!/^[A-Za-z0-9-]{1,12}$/.test(numero)) throw new Error(`Número de mesa no válido: «${numero}».`);
+    if (numeros.has(numero)) throw new Error(`La mesa ${numero} está repetida.`);
+    numeros.add(numero);
+    return {
+      id: m.id && UUID.test(m.id) ? m.id : undefined, numero, zona: limpio(m.zona, 30) ?? 'Sala',
+      forma: (['cuadrada', 'redonda', 'rectangular'].includes(m.forma) ? m.forma : 'cuadrada') as MesaPlano['forma'],
+      plazas: Math.min(30, Math.max(1, Math.trunc(Number(m.plazas)) || 4)),
+      x: acotar(m.x, 0, 100), y: acotar(m.y, 0, 100), ancho: acotar(m.ancho, 2, 40), alto: acotar(m.alto, 2, 40),
+      camareroId: m.camareroId && UUID.test(m.camareroId) ? m.camareroId : null,
+    };
+  });
+  const elementosLimpios = elementos.map((e) => ({
+    tipo: (['pared', 'division', 'barra', 'puerta', 'zona'].includes(e.tipo) ? e.tipo : 'pared') as ElementoPlano['tipo'],
+    x: acotar(e.x, 0, 100), y: acotar(e.y, 0, 100), ancho: acotar(e.ancho, 0.5, 100), alto: acotar(e.alto, 0.5, 100),
+    etiqueta: limpio(e.etiqueta, 30), color: /^#[0-9a-fA-F]{6}$/.test(e.color ?? '') ? e.color : null,
+    camareroId: e.camareroId && UUID.test(e.camareroId) ? e.camareroId : null,
+  }));
+  await guardarPlano(jwt, restaurante.id, mesasLimpias, elementosLimpios).catch(mensajeSala);
   revalidatePath('/panel');
-  revalidatePath(`/m/${restaurante.slug}`);
+}
+
+/** Asigna un grupo de mesas a un camarero (o las libera con camareroId null). */
+export async function asignarMesasAction(camareroId: string | null, mesaIds: string[]) {
+  if (camareroId && !UUID.test(camareroId)) throw new Error('Camarero no válido.');
+  const ids = (mesaIds ?? []).filter((i) => UUID.test(i)).slice(0, 200);
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  const plano = await cargarPlano(jwt, restaurante.id);
+  const mesas = plano.mesas.map((m) => (ids.includes(m.id) ? { ...m, camareroId } : m.camareroId === camareroId && camareroId ? { ...m, camareroId: null } : m));
+  await guardarPlano(jwt, restaurante.id, mesas, plano.elementos).catch(mensajeSala);
+  revalidatePath('/panel');
 }

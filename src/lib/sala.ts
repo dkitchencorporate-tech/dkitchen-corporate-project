@@ -99,3 +99,58 @@ export async function destinoTpv(token: string, registroId: string) {
 export async function resultadoTpv(token: string, registroId: string, ok: boolean, detalle: string) {
   await comoVisitante((c) => c.query('SELECT dk.sala_resultado_tpv($1, $2, $3, $4)', [huellaToken(token), registroId, ok, detalle]));
 }
+
+// ---------------------------------------------------------------- plano completo (0028)
+export type TipoElemento = 'pared' | 'division' | 'barra' | 'puerta' | 'zona';
+export interface ElementoPlano {
+  id?: string; tipo: TipoElemento; x: number; y: number; ancho: number; alto: number;
+  etiqueta: string | null; color: string | null; camareroId: string | null;
+}
+export interface MesaPlano extends Omit<Mesa, 'id'> { id?: string; ancho: number; alto: number }
+
+export async function cargarPlano(jwt: string, restauranteId: string): Promise<{ mesas: (MesaPlano & { id: string })[]; elementos: ElementoPlano[] }> {
+  return comoCliente(jwt, async (c) => {
+    const [m, e] = await Promise.all([
+      c.query('SELECT id, numero, zona, forma, plazas, x, y, ancho, alto, camarero_id FROM mesas WHERE restaurante_id = $1 ORDER BY zona, numero', [restauranteId]),
+      c.query('SELECT id, tipo, x, y, ancho, alto, etiqueta, color, camarero_id FROM elementos_plano WHERE restaurante_id = $1', [restauranteId]),
+    ]);
+    return {
+      mesas: m.rows.map((r) => ({ id: r.id, numero: r.numero, zona: r.zona, forma: r.forma, plazas: r.plazas, x: Number(r.x), y: Number(r.y), ancho: Number(r.ancho), alto: Number(r.alto), camareroId: r.camarero_id })),
+      elementos: e.rows.map((r) => ({ id: r.id, tipo: r.tipo, x: Number(r.x), y: Number(r.y), ancho: Number(r.ancho), alto: Number(r.alto), etiqueta: r.etiqueta, color: r.color, camareroId: r.camarero_id })),
+    };
+  });
+}
+
+/**
+ * Guarda el plano entero en UNA transacción (antes se guardaba mesa a mesa en
+ * cada arrastre y el panel se recargaba entero: en móvil agotaba la memoria).
+ * Las mesas que ya no están se borran; los elementos se reemplazan.
+ */
+export async function guardarPlano(jwt: string, restauranteId: string, mesas: MesaPlano[], elementos: ElementoPlano[]) {
+  await comoCliente(jwt, async (c) => {
+    const conservar = mesas.filter((m) => m.id).map((m) => m.id);
+    await c.query('DELETE FROM mesas WHERE restaurante_id = $1 AND NOT (id = ANY($2::uuid[]))', [restauranteId, conservar]);
+    for (const m of mesas) {
+      const v = [m.numero, m.zona, m.forma, m.plazas, m.x, m.y, m.ancho, m.alto, m.camareroId];
+      if (m.id) await c.query('UPDATE mesas SET numero=$2, zona=$3, forma=$4, plazas=$5, x=$6, y=$7, ancho=$8, alto=$9, camarero_id=$10 WHERE id=$1', [m.id, ...v]);
+      else await c.query('INSERT INTO mesas (restaurante_id, numero, zona, forma, plazas, x, y, ancho, alto, camarero_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)', [restauranteId, ...v]);
+    }
+    await c.query('DELETE FROM elementos_plano WHERE restaurante_id = $1', [restauranteId]);
+    for (const e of elementos) {
+      await c.query('INSERT INTO elementos_plano (restaurante_id, tipo, x, y, ancho, alto, etiqueta, color, camarero_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+        [restauranteId, e.tipo, e.x, e.y, e.ancho, e.alto, e.etiqueta, e.color, e.camareroId]);
+    }
+  });
+}
+
+export interface FilaInforme { camareroId: string; nombre: string; comandas: number; lineas: number; mesas: number; llamadas: number; respuestaMediaSeg: number | null }
+
+export async function informeCamareros(jwt: string, dias: number): Promise<FilaInforme[]> {
+  return comoCliente(jwt, async (c) => {
+    const { rows } = await c.query('SELECT * FROM dk.informe_camareros((current_date - $1::int))', [dias]);
+    return rows.map((r) => ({
+      camareroId: r.camarero_id, nombre: r.nombre, comandas: Number(r.comandas), lineas: Number(r.lineas), mesas: Number(r.mesas),
+      llamadas: Number(r.llamadas_atendidas), respuestaMediaSeg: r.respuesta_media_seg === null ? null : Number(r.respuesta_media_seg),
+    }));
+  });
+}

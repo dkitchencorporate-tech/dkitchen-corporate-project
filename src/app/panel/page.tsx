@@ -8,7 +8,7 @@ import { listarMisTickets } from '@/lib/tickets';
 import { listarPromociones } from '@/lib/promociones';
 import { listarMisReservas } from '@/lib/reservas';
 import { estadoServicios, tiene } from '@/lib/servicios';
-import { listarMesas, listarCamareros, estadoConexionTpv } from '@/lib/sala';
+import { cargarPlano, listarCamareros, estadoConexionTpv, informeCamareros } from '@/lib/sala';
 import { listarTraducciones } from '@/lib/idiomas';
 import { llamadasPendientes } from '@/lib/llamadas-camarero';
 import PanelShell from '@/components/panel/PanelShell';
@@ -64,12 +64,13 @@ export default async function Panel() {
     const servicios = await estadoServicios(jwt, restaurante.id);
     const c = servicios.contratados;
     const hayPlano = tiene(c, 'plano_mesas'), hayApp = tiene(c, 'app_sala'), hayTpv = tiene(c, 'conexion_tpv');
-    const [mesas, camareros, tpv, llamadas, traducciones] = await Promise.all([
-      hayPlano || hayApp ? listarMesas(jwt, restaurante.id) : Promise.resolve([]),
+    const [plano, camareros, tpv, llamadas, traducciones, informe] = await Promise.all([
+      hayPlano || hayApp ? cargarPlano(jwt, restaurante.id) : Promise.resolve({ mesas: [], elementos: [] }),
       hayApp || hayPlano ? listarCamareros(jwt, restaurante.id) : Promise.resolve([]),
       hayTpv ? estadoConexionTpv(jwt) : Promise.resolve(null),
       hayPlano && restaurante.plan === 'ampliado' ? llamadasPendientes(jwt, restaurante.id).then((l) => l.map((x) => x.mesa)) : Promise.resolve([] as string[]),
       tiene(c, 'idiomas') ? listarTraducciones(jwt, restaurante.id) : Promise.resolve([]),
+      hayApp ? informeCamareros(jwt, 30) : Promise.resolve([]),
     ]);
 
     return (
@@ -85,7 +86,7 @@ export default async function Panel() {
         promociones={promociones}
         reservas={reservas}
         servicios={servicios}
-        sala={{ mesas, camareros, tpv, llamadas }}
+        sala={{ mesas: plano.mesas, elementos: plano.elementos, camareros, tpv, llamadas, informe }}
         traducciones={traducciones}
       />
     );

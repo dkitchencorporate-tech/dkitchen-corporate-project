@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-interface MesaSala { id: string; numero: string; zona: string; forma: string; plazas: number; x: number; y: number; mia: boolean; camarero: string | null }
+interface MesaSala { id: string; numero: string; zona: string; forma: string; plazas: number; x: number; y: number; mia: boolean; camarero: string | null; ancho?: number; alto?: number }
+interface Elemento { tipo: string; x: number; y: number; ancho: number; alto: number; etiqueta: string | null; color: string | null }
 interface Llamada { id: string; mesa: string; motivo: 'camarero' | 'cuenta'; creada_en: string }
 interface Contexto {
   camarero: { id: string; nombre: string };
   restaurante: { nombre: string; color: string | null; tpv: boolean };
   mesas: MesaSala[];
+  elementos?: Elemento[];
   llamadas: Llamada[];
   carta: { id: string; nombre: string; seccion: string | null }[];
 }
@@ -22,6 +24,7 @@ export default function AppSala({ token }: { token: string }) {
   const [ctx, setCtx] = useState<Contexto | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [soloMias, setSoloMias] = useState(true);
+  const [vista, setVista] = useState<'lista' | 'plano'>('lista');
   const [mesaAbierta, setMesaAbierta] = useState<string | null>(null);
   const [sonido, setSonido] = useState(false);
   const previas = useRef<Set<string>>(new Set());
@@ -89,11 +92,37 @@ export default function AppSala({ token }: { token: string }) {
         <section className="space-y-2">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-black/50">Mesas</h2>
-            <button onClick={() => setSoloMias((v) => !v)} className="text-xs font-semibold text-black/55 underline">
-              {soloMias ? 'Ver todas' : 'Solo las mías'}
-            </button>
+            <div className="flex gap-3">
+              {(ctx.elementos?.length ?? 0) + ctx.mesas.length > 0 && (
+                <button onClick={() => setVista((v) => (v === 'lista' ? 'plano' : 'lista'))} className="text-xs font-semibold text-black/55 underline">{vista === 'lista' ? 'Ver plano' : 'Ver lista'}</button>
+              )}
+              <button onClick={() => setSoloMias((v) => !v)} className="text-xs font-semibold text-black/55 underline">
+                {soloMias ? 'Ver todas' : 'Solo las mías'}
+              </button>
+            </div>
           </div>
-          {mesas.length === 0 ? (
+          {vista === 'plano' ? (
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-black/10 bg-white">
+              {(ctx.elementos ?? []).map((e, i) => (
+                <div key={i} className="absolute rounded-sm p-0.5 text-[9px] font-bold text-black/60"
+                  style={{ left: `${e.x}%`, top: `${e.y}%`, width: `${e.ancho}%`, height: `${e.alto}%`,
+                    ...(e.tipo === 'zona' ? { background: `${e.color ?? color}18`, border: `1.5px dashed ${e.color ?? color}` } : { background: e.tipo === 'barra' ? '#8a6a45' : e.tipo === 'puerta' ? '#3a6ea5' : '#9d968e' }) }}>
+                  {e.etiqueta}
+                </div>
+              ))}
+              {ctx.mesas.map((m) => {
+                const aviso = llamadasMesa(m.numero).length > 0;
+                return (
+                  <button key={m.id} onClick={() => setMesaAbierta(m.numero)}
+                    className={`absolute z-10 flex items-center justify-center text-xs font-black shadow ${m.forma === 'redonda' ? 'rounded-full' : 'rounded-md'} ${aviso ? 'animate-pulse text-white' : ''}`}
+                    style={{ left: `${m.x}%`, top: `${m.y}%`, width: `${m.ancho ?? 7}%`, height: `${m.alto ?? 10}%`,
+                      background: aviso ? color : m.mia ? '#fff' : '#ece8e2', outline: m.mia ? `2px solid ${color}` : undefined, opacity: soloMias && !m.mia && m.camarero ? 0.4 : 1 }}>
+                    {m.numero}
+                  </button>
+                );
+              })}
+            </div>
+          ) : mesas.length === 0 ? (
             <p className="rounded-2xl bg-white p-6 text-center text-sm text-black/50">No tienes mesas asignadas todavía.</p>
           ) : (
             <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">

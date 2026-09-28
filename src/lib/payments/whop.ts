@@ -438,7 +438,7 @@ export async function crearCheckoutServicio(datos: {
         restauranteNombre: datos.restauranteNombre,
         email: datos.email,
       },
-      redirect_url: `${datos.origen}/panel?pestana=mejoras&pago=ok`,
+      redirect_url: `${datos.origen}/panel?pestana=modulos&pago=ok`,
     }),
   });
   const json = await respuesta.json().catch(() => null);

@@ -2,6 +2,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { fichaCliente, historialCliente, serviciosCliente, type EntradaHistorial } from '@/lib/admin-clientes';
+import { obtenerCarta } from '@/lib/menu';
+import { listarTraducciones } from '@/lib/idiomas';
+import TraductorCarta from '@/components/admin/TraductorCarta';
 import { cambiarEstadoAction, cambiarPlanAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction } from '../actions';
 
 export const dynamic = 'force-dynamic';
@@ -72,6 +75,11 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
   if (!ficha?.restaurante) notFound();
 
   const r = ficha.restaurante;
+  // Pack de idiomas: DKitchen traduce aquí la carta del cliente (0028).
+  const conIdiomas = servicios.some((x) => x.servicio === 'idiomas');
+  const [cartaCliente, traducciones] = conIdiomas
+    ? await Promise.all([obtenerCarta(r.slug), listarTraducciones(jwt, id)])
+    : [null, []];
   const maxDia = Math.max(1, ...ficha.escaneos_30d.map((d) => d.n));
   const total30 = ficha.escaneos_30d.reduce((s, d) => s + d.n, 0);
   const pago =
@@ -250,6 +258,18 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           <button className="rounded-lg bg-[#D9531E] px-4 py-2 font-bold hover:bg-[#B8451A]">Aplicar diseño</button>
         </form>
       </section>
+
+      {cartaCliente && (
+        <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6">
+          <TraductorCarta
+            restauranteId={id}
+            activos={cartaCliente.idiomas ?? []}
+            secciones={cartaCliente.secciones.map((x) => ({ id: x.id, nombre: x.nombre }))}
+            platos={[...cartaCliente.secciones.flatMap((x) => x.platos), ...cartaCliente.sueltos].map((p) => ({ id: p.id, nombre: p.nombre, descripcion: p.descripcion, seccionId: p.seccionId }))}
+            traducciones={traducciones}
+          />
+        </section>
+      )}
 
       <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6">
         <h2 className="font-bold">Historial de cambios</h2>

@@ -7,16 +7,19 @@ import { comprarServicioAction } from '@/app/panel/actions';
 
 const euros = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: c % 100 ? 2 : 0 }).format(c / 100);
 
-const MODULOS: { id: Servicio; icono: string; titulo: string; resuelve: string; incluye: string[] }[] = [
-  { id: 'plano_mesas', icono: '🗺️', titulo: 'Plano de mesas', resuelve: 'Ves tu local de un vistazo: qué mesa llama, cuál pide la cuenta.',
-    incluye: ['Editor visual de tu sala y terraza', 'Estado de cada mesa en tiempo real', 'Asignación de mesas a camareros'] },
-  { id: 'app_sala', icono: '📱', titulo: 'App de sala', resuelve: 'Adiós a las comandas en papel: cada camarero lleva sus mesas en el móvil.',
-    incluye: ['Acceso personal por camarero (sin contraseñas)', 'Avisos de llamada con sonido y vibración', 'Registra lo que pide cada mesa en segundos'] },
-  { id: 'conexion_tpv', icono: '🔌', titulo: 'Conexión con tu TPV', resuelve: 'Lo que registra el camarero llega solo a tu TPV. Sin teclear dos veces.',
-    incluye: ['Compatible con la gran mayoría de TPV en España', 'Tu TPV sigue facturando (Verifactu, gestoría)', 'Configuración hecha por DKitchen'] },
+const MODULOS: { id: Servicio; icono: string; titulo: string; resuelve: string; como: string; incluye: string[] }[] = [
+  { id: 'plano_mesas', icono: '🗺️', titulo: 'Plano de mesas', resuelve: 'Ves tu local de un vistazo: qué mesa llama, cuál pide la cuenta y de quién es cada mesa.',
+    como: 'Dibujas tu local una vez (paredes, barra, puertas, terraza) y colocas tus mesas. Creas zonas y se las asignas a cada camarero.',
+    incluye: ['Editor de sala en pantalla completa', 'Zonas por camarero con un toque', 'Mesas que llaman, resaltadas en el plano'] },
+  { id: 'app_sala', icono: '📱', titulo: 'App de sala', resuelve: 'Adiós a las comandas en papel y a las mesas olvidadas: cada camarero lleva sus mesas en el móvil.',
+    como: 'Cada camarero recibe un enlace personal (sin contraseñas). Ve sus mesas y llamadas, y anota lo que pide cada mesa en segundos.',
+    incluye: ['Avisos de llamada con sonido y vibración', 'Registro de comandas por mesa', 'Informe por camarero: comandas, productos, llamadas y tiempo de respuesta', 'Mesa sin dueño: la toma quien la atiende'] },
+  { id: 'conexion_tpv', icono: '🔌', titulo: 'Conexión con tu TPV', resuelve: 'Lo que anota el camarero llega solo a tu TPV. Sin teclear dos veces ni errores.',
+    como: 'DKitchen configura la conexión con tu TPV. Tu TPV sigue siendo quien cobra y factura.',
+    incluye: ['Compatible con la mayoría de TPV en España', 'Tu facturación no cambia (Verifactu, gestoría)', 'Instalación y pruebas hechas por DKitchen'] },
 ];
 
-export default function Mejoras({ restaurante, servicios }: { restaurante: MiRestaurante; servicios: EstadoServicios }) {
+export default function Mejoras({ restaurante, servicios, vista }: { restaurante: MiRestaurante; servicios: EstadoServicios; vista: 'diseno' | 'modulos' }) {
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const ampliado = restaurante.plan === 'ampliado';
@@ -50,15 +53,17 @@ export default function Mejoras({ restaurante, servicios }: { restaurante: MiRes
   return (
     <div className="space-y-12">
       <header>
-        <h2 className="text-2xl font-bold">Mejoras para tu local</h2>
-        <p className="mt-1 text-sm text-white/50">Todo lo que puedes añadir a tu carta QR, y cuándo te conviene dar el salto a un sistema propio.</p>
+        <h2 className="text-2xl font-bold">{vista === 'diseno' ? 'Diseño de tu carta' : 'Módulos para tu local'}</h2>
+        <p className="mt-1 text-sm text-white/50">{vista === 'diseno'
+          ? 'Tú gestionas platos, precios y fotos. El diseño lo prepara DKitchen.'
+          : 'Herramientas que se suman a tu carta QR, una a una. Activas solo lo que necesitas.'}</p>
         {error && <p className="mt-3 rounded-lg bg-red-500/10 p-3 text-sm text-red-300">{error}</p>}
       </header>
 
-      {/* 1. DISEÑO */}
+      {vista === 'diseno' && (<>
       <section className="space-y-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-[#D9531E]">1 · El diseño de tu carta</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#D9531E]">Niveles de diseño</p>
           <h3 className="mt-1 text-xl font-bold">Tu carta es tu escaparate. Que se vea a la altura de tu cocina.</h3>
           <p className="mt-1 text-sm text-white/50">Tú gestionas platos, precios y fotos. El diseño lo prepara un experto de DKitchen, una vez, bien hecho.</p>
         </div>
@@ -66,8 +71,8 @@ export default function Mejoras({ restaurante, servicios }: { restaurante: MiRes
           <NivelCard titulo="Esencial" subtitulo="Incluida en tu plan" actual={restaurante.nivelDiseno === 'esencial'}
             puntos={['Carta clara por categorías', 'Tu logo y un color de la paleta', 'Fotos pequeñas por plato']}
             maqueta={<MaquetaEsencial />} />
-          <NivelCard titulo="Carta de Autor" subtitulo="Setup Experto" destacada actual={restaurante.nivelDiseno === 'autor'}
-            puntos={['Portada con tu mejor foto', 'Categorías en tarjetas con imagen', 'Tipografía editorial y tu color exacto', 'Te cargamos toda la carta y optimizamos tus fotos']}
+          <NivelCard titulo="Carta de Autor" subtitulo="Diseño de autor hecho por DKitchen" destacada actual={restaurante.nivelDiseno === 'autor'}
+            puntos={['Portada editorial con tu mejor foto', 'Personalización: tus colores exactos, tipografía y estilo', 'Categorías en tarjetas con imagen', 'Te cargamos toda la carta y optimizamos tus fotos', 'Flyers de mesa y QR físicos con tu diseño', 'Sesión de formación para ti y tu equipo']}
             maqueta={<MaquetaAutor />}
             pie={
               <div className="space-y-2">
@@ -82,28 +87,30 @@ export default function Mejoras({ restaurante, servicios }: { restaurante: MiRes
                 <Boton s="setup_experto" texto="Quiero mi Carta de Autor" />
               </div>
             } />
-          <NivelCard titulo="Signature" subtitulo="A medida" actual={restaurante.nivelDiseno === 'signature'}
-            puntos={['Diseño único de tu marca', 'Animaciones, vídeo y dominio propio', 'Pensada para grupos y locales de referencia']}
+          <NivelCard titulo="A medida" subtitulo="Para grupos y locales de referencia" actual={restaurante.nivelDiseno === 'signature'}
+            puntos={['Diseño único de tu marca', 'Animaciones, vídeo y dominio propio', 'Se presupuesta según el proyecto']}
             maqueta={<MaquetaSignature />}
-            pie={<a href="/panel?pestana=soporte&asunto=Quiero%20una%20carta%20Signature" className="block rounded-xl border border-white/20 py-3 text-center text-sm font-bold hover:border-white/50">Hablar con DKitchen</a>} />
+            pie={<a href="/panel?pestana=soporte&asunto=Quiero%20un%20dise%C3%B1o%20a%20medida" className="block rounded-xl border border-white/20 py-3 text-center text-sm font-bold hover:border-white/50">Hablar con DKitchen</a>} />
         </div>
         {esencial && !tiene('setup_experto') && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#1c140b] p-5">
             <div>
-              <p className="font-bold">¿Prefieres que te montemos la carta sin cambiar el diseño?</p>
-              <p className="text-sm text-white/50">Setup Esencial: te cargamos toda la carta, fotos optimizadas, banner de lanzamiento, Google Business, 50 pegatinas QR y 1 formación.</p>
+              <p className="font-bold">Puesta a punto: te dejamos tu carta perfecta, sin cambiar el diseño</p>
+              <p className="text-sm text-white/50">Un experto de DKitchen revisa y configura tu carta contigo: categorías, textos, alérgenos, fotos, horarios y tu ficha de Google.</p>
             </div>
-            <div className="w-full sm:w-56"><Boton s="setup_esencial" texto={`Setup Esencial · ${euros(esencial.precioCentimos)}`} /></div>
+            <div className="w-full sm:w-56"><Boton s="setup_esencial" texto={`Puesta a punto · ${euros(esencial.precioCentimos)}`} /></div>
           </div>
         )}
       </section>
+      </>)}
 
-      {/* 2. IDIOMAS */}
+      {vista === 'modulos' && (<>
+      {/* IDIOMAS */}
       <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#1c140b] p-6">
         <div className="max-w-md">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#D9531E]">2 · Carta en idiomas</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#D9531E]">Carta en idiomas</p>
           <h3 className="mt-1 text-lg font-bold">🇬🇧 🇫🇷 🇩🇪 Que tus clientes extranjeros lean tu carta en su idioma</h3>
-          <p className="mt-1 text-sm text-white/50">Hasta 3 idiomas, con selector en la carta. Pago único, sin cuota.</p>
+          <p className="mt-1 text-sm text-white/50">Eliges hasta 3 idiomas y <strong className="text-white/80">nosotros traducimos tu carta</strong>. Tus clientes ven un selector de idioma. Pago único, sin cuota.</p>
         </div>
         <div className="w-full sm:w-56"><Boton s="idiomas" texto={`Activar · ${euros(precio('idiomas')?.precioCentimos ?? 2900)}`} /></div>
       </section>
@@ -111,24 +118,28 @@ export default function Mejoras({ restaurante, servicios }: { restaurante: MiRes
       {/* 3. MÓDULOS DE SALA */}
       <section className="space-y-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-[#D9531E]">3 · Módulos de Sala</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#D9531E]">Módulos de Sala</p>
           <h3 className="mt-1 text-xl font-bold">Organiza el servicio en sala sin cambiar tu TPV</h3>
           <p className="mt-1 text-sm text-white/50">
             Tu carta sigue siendo para mirar: el cliente nunca pide desde el móvil. Estos módulos ayudan a tu equipo.
             {!ampliado && ' Requieren el plan Ampliado.'}
           </p>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="space-y-4">
           {MODULOS.map((m) => {
             const p = precio(m.id);
             return (
-              <article key={m.id} className="flex flex-col rounded-2xl border border-white/10 bg-[#1c140b] p-5">
-                <p className="text-3xl">{m.icono}</p>
-                <h4 className="mt-2 font-bold">{m.titulo}</h4>
-                <p className="mt-1 text-sm text-white/60">{m.resuelve}</p>
-                <ul className="mt-3 flex-1 space-y-1 text-sm text-white/70">{m.incluye.map((i) => <li key={i}>✓ {i}</li>)}</ul>
-                <p className="mt-4 text-lg font-black">{p ? euros(p.precioCentimos) : ''}<span className="text-xs font-normal text-white/50"> /mes</span></p>
-                <div className="mt-2">{ampliado ? <Boton s={m.id} /> : <a href="/panel?pestana=plan" className="block rounded-xl border border-white/20 py-3 text-center text-sm font-bold">Pasar a Ampliado</a>}</div>
+              <article key={m.id} className="grid gap-4 rounded-2xl border border-white/10 bg-[#1c140b] p-5 md:grid-cols-[1fr_14rem]">
+                <div>
+                  <h4 className="text-lg font-bold"><span className="mr-2">{m.icono}</span>{m.titulo}</h4>
+                  <p className="mt-1 text-sm text-white/75">{m.resuelve}</p>
+                  <p className="mt-2 text-sm text-white/50"><strong className="text-white/70">Cómo funciona:</strong> {m.como}</p>
+                  <ul className="mt-3 grid gap-1 text-sm text-white/70 sm:grid-cols-2">{m.incluye.map((i) => <li key={i}>✓ {i}</li>)}</ul>
+                </div>
+                <div className="flex flex-col justify-center gap-2">
+                  <p className="text-center text-2xl font-black">{p ? euros(p.precioCentimos) : ''}<span className="text-xs font-normal text-white/50"> /mes</span></p>
+                  {ampliado ? <Boton s={m.id} /> : <a href="/panel?pestana=plan" className="block rounded-xl border border-white/20 py-3 text-center text-sm font-bold">Pasar a Ampliado</a>}
+                </div>
               </article>
             );
           })}
@@ -147,8 +158,10 @@ export default function Mejoras({ restaurante, servicios }: { restaurante: MiRes
         )}
       </section>
 
-      {/* 4. MAPA QR ≠ NÚCLEO */}
-      <MapaNucleo credito={credito ? { euros: euros(credito.centimos), dias: diasCredito } : null} nModulos={nModulos} />
+      </>)}
+
+      {/* QR ≠ DKitchen Signature (Núcleo Operativo), en ambas pestañas */}
+      <MapaNucleo credito={credito ? { euros: euros(credito.centimos), dias: diasCredito } : null} nModulos={nModulos} precioTodo={euros((precio('pack_sala')?.precioCentimos ?? 11900) + 2500)} />
     </div>
   );
 }
@@ -200,7 +213,7 @@ function MaquetaSignature() {
   );
 }
 
-function MapaNucleo({ credito, nModulos }: { credito: { euros: string; dias: number } | null; nModulos: number }) {
+function MapaNucleo({ credito, nModulos, precioTodo }: { credito: { euros: string; dias: number } | null; nModulos: number; precioTodo: string }) {
   const filas: [string, string, string][] = [
     ['Qué es', 'Tu carta digital y herramientas de sala', 'Tu propio sistema operativo del restaurante'],
     ['El cliente final', 'Mira la carta (no pide)', 'Pide y paga: en mesa, para recoger y a domicilio'],
@@ -208,21 +221,21 @@ function MapaNucleo({ credito, nModulos }: { credito: { euros: string; dias: num
     ['Cobros y ventas', 'Los gestiona tu TPV', 'TPV propio, historial de ventas y cierres'],
     ['Marca', 'Plantillas de DKitchen', 'App/web con tu marca, diseño de autor'],
     ['Propiedad', 'Servicio mensual: si lo dejas, se apaga', 'En propiedad: el sistema es tuyo'],
-    ['Precio', 'QR Ampliado + Pack Sala = 124 €/mes', 'Entrada + 69 €/mes de mantenimiento'],
+    ['Precio', `QR Ampliado + Pack Sala = ${precioTodo}/mes`, 'Entrada + 69 €/mes de mantenimiento'],
   ];
   return (
     <section className="space-y-4">
       <div>
-        <p className="text-xs font-bold uppercase tracking-widest text-[#D9531E]">4 · El siguiente nivel</p>
-        <h3 className="mt-1 text-xl font-bold">QR Menú y Núcleo Operativo no son lo mismo</h3>
+        <p className="text-xs font-bold uppercase tracking-widest text-[#D9531E]">El siguiente nivel</p>
+        <h3 className="mt-1 text-xl font-bold">QR Menú y DKitchen Signature no son lo mismo</h3>
         <p className="mt-1 text-sm text-white/50">
-          El QR es una herramienta para tu carta y tu sala. El Núcleo Operativo es el sistema que gestiona todo tu restaurante, y es tuyo.
+          El QR es una herramienta para tu carta y tu sala. DKitchen Signature (nuestro Núcleo Operativo) es el sistema que gestiona todo tu restaurante, y es tuyo.
         </p>
       </div>
       <div className="overflow-x-auto rounded-2xl border border-white/10">
         <table className="w-full min-w-[560px] text-sm">
           <thead className="bg-white/5 text-left text-xs uppercase tracking-wider text-white/45">
-            <tr><th className="p-3"></th><th className="p-3">QR Menú (lo que tienes)</th><th className="p-3 text-[#D9531E]">Núcleo Operativo</th></tr>
+            <tr><th className="p-3"></th><th className="p-3">QR Menú (lo que tienes)</th><th className="p-3 text-[#D9531E]">DKitchen Signature</th></tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {filas.map(([k, a, b]) => (
@@ -232,17 +245,17 @@ function MapaNucleo({ credito, nModulos }: { credito: { euros: string; dias: num
         </table>
       </div>
       <div className="rounded-2xl bg-gradient-to-r from-[#D9531E]/25 to-transparent p-5">
-        <p className="font-bold">Con todos los módulos del QR pagarías 124 €/mes y nunca sería tuyo. Con el Núcleo pagas 69 €/mes y el sistema es tuyo.</p>
+        <p className="font-bold">Con todos los módulos del QR pagarías {precioTodo}/mes y nunca sería tuyo. Con DKitchen Signature pagas 69 €/mes y el sistema es tuyo.</p>
         {credito && nModulos > 0 ? (
           <p className="mt-2 text-sm">
-            🎁 Te descontamos lo que ya llevas pagado en módulos: <strong>{credito.euros}</strong> de la entrada del Núcleo (hasta la mitad).
+            🎁 Te descontamos lo que ya llevas pagado en módulos: <strong>{credito.euros}</strong> de la entrada de Signature (hasta la mitad).
             <strong className="text-[#D9531E]"> Te quedan {credito.dias} días</strong> para aprovecharlo.
           </p>
         ) : (
-          <p className="mt-2 text-sm text-white/60">Si activas módulos de sala, durante 6 meses lo que pagues se descuenta de la entrada del Núcleo (hasta la mitad).</p>
+          <p className="mt-2 text-sm text-white/60">Si activas módulos de sala, durante 6 meses lo que pagues se descuenta de la entrada de Signature (hasta la mitad).</p>
         )}
-        <a href="/panel?pestana=soporte&asunto=Quiero%20conocer%20el%20N%C3%BAcleo%20Operativo" className="mt-4 inline-block rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#1A1714]">
-          Quiero conocer el Núcleo Operativo
+        <a href="/panel?pestana=soporte&asunto=Quiero%20conocer%20DKitchen%20Signature" className="mt-4 inline-block rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#1A1714]">
+          Quiero conocer DKitchen Signature
         </a>
       </div>
     </section>

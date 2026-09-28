@@ -7,6 +7,7 @@ import {
 } from '@/lib/admin-clientes';
 import { enviarCorreoCliente, escaparHtml, escaparTexto } from '@/lib/email';
 import { cifrar } from '@/lib/cifrado';
+import { guardarTraducciones, type Traduccion } from '@/lib/idiomas';
 
 /**
  * Acciones del super admin. Doble cerrojo: exigirAdmin() aquí y dk.es_admin()
@@ -126,4 +127,17 @@ export async function conexionTpvAction(formulario: FormData) {
   // La credencial (cabecera Authorization completa, p. ej. "Bearer xxx") se cifra aquí; vacía = mantener la actual
   await adminConexionTpv(jwt, id, proveedor, endpoint, credencial ? cifrar(credencial) : null, formulario.get('activa') === 'on');
   revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
+/** Traducciones del Pack de idiomas: solo DKitchen escribe (0028). */
+export async function guardarTraduccionesAdminAction(restauranteId: string, lista: Traduccion[]) {
+  if (!UUID.test(restauranteId)) throw new Error('Identificador no válido.');
+  const jwt = await exigirAdmin();
+  const limpia = (lista ?? [])
+    .filter((t) => ['plato', 'seccion'].includes(t.entidad) && UUID.test(t.entidadId) && ['en', 'fr', 'de', 'it', 'pt', 'ca'].includes(t.idioma)
+      && ['nombre', 'descripcion'].includes(t.campo))
+    .slice(0, 600)
+    .map((t) => ({ ...t, texto: String(t.texto ?? '').slice(0, 300) }));
+  await guardarTraducciones(jwt, restauranteId, limpia).catch(() => { throw new Error('No se pudieron guardar las traducciones.'); });
+  revalidatePath(`/admin-dkitchen/qr/${restauranteId}`);
 }
