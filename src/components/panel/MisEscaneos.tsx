@@ -1,6 +1,7 @@
 'use client';
 
 import type { EscaneosPorDia } from '@/lib/escaneos-cliente';
+import { motion } from 'framer-motion';
 
 export default function MisEscaneos({
   escaneosMes,
@@ -36,12 +37,14 @@ export default function MisEscaneos({
       <div className="bg-white border border-[#E6E6E2] rounded-2xl p-6">
         <p className="text-[#6B7079] text-sm mb-4">Últimos 30 días</p>
         <div className="flex items-end gap-0.5 h-32">
-          {dias.map((d) => (
-            <div
+          {dias.map((d, i) => (
+            <motion.div
               key={d.fecha}
               title={`${d.fecha}: ${d.total}`}
-              className="flex-1 bg-[#E8592A] rounded-t-sm min-h-[2px]"
-              style={{ height: `${Math.max(2, (d.total / maximo) * 100)}%` }}
+              className="flex-1 rounded-t-md bg-[#E8592A] min-h-[2px]"
+              initial={{ height: 0 }}
+              animate={{ height: `${Math.max(2, (d.total / maximo) * 100)}%` }}
+              transition={{ duration: 0.7, delay: i * 0.02, ease: [0.22, 1, 0.36, 1] }}
             />
           ))}
         </div>

@@ -8,6 +8,7 @@ import type { Reserva } from '@/lib/reservas';
 import type { EstadoServicios } from '@/lib/servicios';
 import { registrarOfertaAction } from '@/app/panel/actions';
 import { TEXTOS_OFERTA } from './OfertaFranja';
+import { Contador } from '@/components/dk/Movimiento';
 
 /**
  * Inicio del panel (rediseño 29/09/2026, ref. REFERENCIAS_DASHBOARD_Y_WEB):
@@ -52,7 +53,7 @@ export default function Inicio({ restaurante, escaneosMes, escaneos30d, reservas
     <div className="space-y-6">
       <header>
         <p className="text-sm text-[#6B7079]">{saludo}</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{restaurante.nombre}</h1>
+        <h1 className="font-display mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">{restaurante.nombre}</h1>
       </header>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -60,7 +61,7 @@ export default function Inicio({ restaurante, escaneosMes, escaneos30d, reservas
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs text-[#6B7079]">Escaneos este mes</p>
-              <p className="mt-2 text-4xl font-semibold tabular-nums tracking-tight">{escaneosMes}</p>
+              <p className="font-display mt-2 text-5xl font-semibold tabular-nums tracking-tight"><Contador hasta={escaneosMes} /></p>
               <p className="mt-1 text-xs text-[#6B7079]">{semana} en los últimos 7 días</p>
             </div>
             <Mini datos={serie.length ? serie : [0, 0]} />
@@ -69,7 +70,7 @@ export default function Inicio({ restaurante, escaneosMes, escaneos30d, reservas
         {ampliado ? (
           <motion.button {...entra(1)} onClick={() => ir('reservas')} className={`${tarjeta} text-left`}>
             <p className="text-xs text-[#6B7079]">Reservas por confirmar</p>
-            <p className={`mt-2 text-3xl font-semibold tabular-nums ${pendientes ? 'text-[#E8592A]' : ''}`}>{pendientes}</p>
+            <p className={`mt-2 font-display text-4xl font-semibold tabular-nums ${pendientes ? 'text-[#E8592A]' : ''}`}><Contador hasta={pendientes} /></p>
             <p className="mt-1 text-xs text-[#6B7079]">{deHoy.length} para hoy</p>
           </motion.button>
         ) : (
@@ -81,7 +82,7 @@ export default function Inicio({ restaurante, escaneosMes, escaneos30d, reservas
         )}
         <motion.button {...entra(2)} onClick={() => ir('carta')} className={`${tarjeta} text-left`}>
           <p className="text-xs text-[#6B7079]">Platos en tu carta</p>
-          <p className="mt-2 text-3xl font-semibold tabular-nums">{activos}</p>
+          <p className="font-display mt-2 text-4xl font-semibold tabular-nums"><Contador hasta={activos} /></p>
           <p className="mt-1 text-xs text-[#6B7079]">{sinFoto ? `${sinFoto} sin foto` : 'Todos con foto'}</p>
         </motion.button>
       </div>
