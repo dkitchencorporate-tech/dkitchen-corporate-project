@@ -4,7 +4,7 @@ const PELDANOS: Record<string, { href: string; etiqueta: string; descripcion: st
   qr: { href: '/qr', etiqueta: 'QR Menú', descripcion: 'La puerta de entrada, con checkout propio.' },
   experience: { href: '/experience', etiqueta: 'DKitchen Experience', descripcion: 'Un evento ya definido, listo para replicar.' },
   auditoria: { href: '/auditoria', etiqueta: 'Auditoría de canales', descripcion: 'Diagnóstico de tu presencia digital.' },
-  'base-operativa': { href: '/base-operativa', etiqueta: 'Núcleo Operativo', descripcion: 'La PWA completa como sistema operativo del negocio.' },
+  'base-operativa': { href: '/base-operativa', etiqueta: 'DKitchen Signature', descripcion: 'Tu propia app: tus clientes piden y pagan, y el sistema es tuyo.' },
   'dark-kitchen': { href: '/dark-kitchen', etiqueta: 'Dark Kitchen Multimarca', descripcion: 'Suma marcas virtuales a tu cocina.' },
   marcas: { href: '/marcas', etiqueta: 'Catálogo de marcas', descripcion: 'Seis marcas ya operadas, listas para tu cocina.' },
   'casos-de-exito': { href: '/casos-de-exito', etiqueta: 'Casos de éxito', descripcion: 'Negocios reales que ya usan el sistema.' },
