@@ -8,6 +8,8 @@ import PlanesQr from '@/components/qr-landing/PlanesQr';
 import ComparativaQr from '@/components/qr-landing/ComparativaQr';
 import PreguntasQr, { PREGUNTAS } from '@/components/qr-landing/PreguntasQr';
 import { LineaServicio } from '@/components/qr-landing/Extras';
+import { Marquesina } from '@/components/dk/Movimiento';
+import Invitar from '@/components/dk/Invitar';
 
 export const metadata: Metadata = {
   title: 'Carta digital QR para restaurantes | Primer mes por 1 € · DKitchen',
@@ -58,12 +60,14 @@ export default function PaginaQr() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datosEstructurados) }} />
       <LineaServicio />
       <HeroQr />
+      <Marquesina oscura items={['Tu carta cambia, tu QR nunca', 'Alérgenos según la UE', 'Cuatro estilos propios', 'Reservas y llamada al camarero', 'Primer mes por 1 €', 'Sin permanencia']} />
       <ProblemaQr />
       <ComoFuncionaQr />
       <PruebaloQr />
       <SalaViva />
       <PlanesQr />
       <ComparativaQr />
+      <section className="bg-[#F7F7F5] py-20"><div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-6 px-6 md:flex-row md:items-center md:px-8"><div><p className="font-display text-3xl font-semibold text-[#17191E] md:text-4xl">¿Otro hostelero sigue con cartas de papel?</p><p className="mt-2 text-[#6B7079]">Pásale DKitchen en un toque.</p></div><Invitar /></div></section>
       <PreguntasQr />
     </div>
   );

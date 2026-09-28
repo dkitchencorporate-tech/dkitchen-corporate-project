@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { TextoRevelado } from '@/components/dk/Movimiento';
 
 /**
  * Tu sala, organizada: plano animado con mesas que llaman, el camarero que las
@@ -33,7 +34,7 @@ export default function SalaViva() {
       <div className="mx-auto max-w-6xl px-6 md:px-8">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Módulos de sala</p>
-          <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl">Ninguna mesa esperando. Ninguna comanda perdida.</h2>
+          <TextoRevelado texto="Ninguna mesa esperando. Ninguna comanda perdida." className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl" />
           <p className="mt-5 text-lg text-[#6B7079]">Cuando tu sala crece, la carta se conecta con tu equipo. Se activan desde tu panel, cuando los necesites.</p>
         </div>
         <div className="mt-14 grid gap-8 lg:grid-cols-[1.3fr_1fr]">

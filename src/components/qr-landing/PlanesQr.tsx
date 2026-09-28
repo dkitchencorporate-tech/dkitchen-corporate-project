@@ -1,4 +1,5 @@
 import ActivarPlanBoton from '@/components/sections/ActivarPlanBoton';
+import { TextoRevelado } from '@/components/dk/Movimiento';
 
 /**
  * Precios de /qr (rediseño 29/09/2026): Ampliado más grande, elevado y con la
@@ -18,7 +19,7 @@ export default function PlanesQr() {
       <div className="mx-auto max-w-6xl px-6 md:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Precios</p>
-          <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl">Empieza por 1 €. Quédate si te sirve.</h2>
+          <TextoRevelado texto="Empieza por 1 €. Quédate si te sirve." className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl" />
           <p className="mt-5 text-lg text-[#6B7079]">Menos de lo que cuesta reimprimir una carta. Y la cambias todas las veces que quieras.</p>
         </div>
 

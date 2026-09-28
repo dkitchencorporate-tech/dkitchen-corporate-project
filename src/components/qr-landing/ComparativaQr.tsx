@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { TextoRevelado } from '@/components/dk/Movimiento';
 
 /** QR Menú ≠ DKitchen Signature: sube de peldaño al cliente sin confundir productos. */
 const FILAS: [string, string, string][] = [
@@ -13,7 +14,7 @@ export default function ComparativaQr() {
     <section className="bg-[#F7F7F5] py-24 md:py-32">
       <div className="mx-auto max-w-5xl px-6 md:px-8">
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">El siguiente nivel</p>
-        <h2 className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl">Empieza con la carta. Crece hasta tu propia app.</h2>
+        <TextoRevelado texto="Empieza con la carta. Crece hasta tu propia app." className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl" />
         <div className="mt-12 overflow-hidden rounded-[28px] border border-[#E6E6E2] bg-white">
           <div className="grid grid-cols-2 text-sm font-semibold">
             <p className="p-5 text-[#6B7079]">Carta QR</p>
