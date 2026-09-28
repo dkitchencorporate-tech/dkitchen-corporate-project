@@ -64,7 +64,7 @@ export default function Solicitud() {
   return (
     <AnimatePresence>
       {abierto && info && (
-        <motion.div className="fixed inset-0 z-[300] flex items-end justify-center bg-[#0A080C]/70 backdrop-blur-sm sm:items-center sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAbierto(null)}>
+        <motion.div className="fixed inset-0 z-[300] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAbierto(null)}>
           <motion.div role="dialog" aria-modal="true" aria-labelledby="solicitud-titulo" onClick={(e) => e.stopPropagation()}
             initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }} transition={{ duration: 0.45, ease: CURVA }}
             className="relative max-h-[92svh] w-full max-w-lg overflow-y-auto rounded-t-[28px] bg-[#F7F5F2] p-6 text-[#17191E] shadow-2xl sm:rounded-[28px] sm:p-8">
