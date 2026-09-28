@@ -20,6 +20,7 @@ export interface MiRestaurante {
   nivelDiseno: string;
   idiomas: string[];
   whatsapp: string | null;
+  creadoEn: string;
 }
 
 /** El restaurante del cliente que ha iniciado sesión — nunca de otro. */
@@ -44,9 +45,10 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       nivel_diseno: string;
       idiomas: string[];
       whatsapp: string | null;
+      creado_en: Date;
     }>(
       `SELECT id, slug, nombre, logo_url, plan, activo, color_marca, estado_acceso,
-              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp
+              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en
          FROM restaurantes
         WHERE propietario = dk.identidad_actual()`
     );
@@ -71,6 +73,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       nivelDiseno: fila.nivel_diseno,
       idiomas: fila.idiomas ?? [],
       whatsapp: fila.whatsapp,
+      creadoEn: new Date(fila.creado_en).toISOString(),
     };
   });
 }
@@ -97,6 +100,7 @@ export interface DatosLocal {
   instagram: string | null;
   urlResenas: string | null;
   whatsapp: string | null;
+  creadoEn: string;
 }
 
 /** Solo columnas con GRANT UPDATE a dk_auth (plan y estado quedan fuera por diseño). */

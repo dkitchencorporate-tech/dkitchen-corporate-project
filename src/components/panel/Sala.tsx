@@ -46,8 +46,8 @@ export default function Sala({
         <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="font-bold">🗺️ Plano de tu local</h3>
-              <p className="text-sm text-white/50">{mesas.length} mesas · {zonas.length} zonas · {mesas.filter((m) => m.camareroId).length} mesas con camarero</p>
+              <h3 className="font-bold">Plano de tu local</h3>
+              <p className="text-sm text-white/50">{mesas.length} {mesas.length === 1 ? 'mesa' : 'mesas'} · {zonas.length} {zonas.length === 1 ? 'zona' : 'zonas'} · {mesas.filter((m) => m.camareroId).length} con camarero asignado</p>
             </div>
             <button onClick={() => setEditor(true)} className="rounded-lg bg-[#D9531E] px-4 py-2 text-sm font-bold">{mesas.length ? 'Abrir editor de sala' : 'Dibujar mi sala'}</button>
           </div>
@@ -67,7 +67,7 @@ export default function Sala({
 
       {modulos.app && (
         <section className="space-y-4 rounded-2xl border border-white/10 bg-[#1c140b] p-5">
-          <h3 className="font-bold">📱 Camareros</h3>
+          <h3 className="font-bold">Camareros</h3>
           <p className="text-sm text-white/50">Cada camarero entra desde su móvil con su enlace personal, sin contraseña. Si deja el equipo, desactívalo y el enlace deja de funcionar.</p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input value={nombreCam} onChange={(e) => setNombreCam(e.target.value)} maxLength={40} placeholder="Nombre del camarero" className={`flex-1 ${campo}`} />
@@ -96,12 +96,25 @@ export default function Sala({
           </ul>
 
           <div className="space-y-2 pt-2">
-            <h4 className="text-sm font-bold">📊 Informe del equipo · últimos 30 días</h4>
+            <h4 className="text-sm font-bold">Informe del equipo · últimos 30 días</h4>
             {informe.length === 0 ? (
               <p className="text-sm text-white/40">Aún no hay actividad registrada.</p>
             ) : (
-              <div className="overflow-x-auto rounded-xl border border-white/10">
-                <table className="w-full min-w-[480px] text-sm">
+              <>
+              <ul className="space-y-2 sm:hidden">
+                {informe.map((f) => (
+                  <li key={f.camareroId} className="rounded-xl border border-white/10 p-3">
+                    <p className="font-semibold">{f.nombre}</p>
+                    <dl className="mt-2 grid grid-cols-3 gap-2 text-center">
+                      {([['Comandas', f.comandas], ['Productos', f.lineas], ['Mesas', f.mesas], ['Llamadas', f.llamadas], ['Respuesta', duracion(f.respuestaMediaSeg)]] as const).map(([k, v]) => (
+                        <div key={k} className="rounded-lg bg-white/5 py-2"><dt className="text-[10px] uppercase tracking-wide text-white/40">{k}</dt><dd className="font-bold">{v}</dd></div>
+                      ))}
+                    </dl>
+                  </li>
+                ))}
+              </ul>
+              <div className="hidden rounded-xl border border-white/10 sm:block">
+                <table className="w-full text-sm">
                   <thead className="bg-white/5 text-left text-xs text-white/45">
                     <tr><th className="p-2.5">Camarero</th><th className="p-2.5 text-right">Comandas</th><th className="p-2.5 text-right">Productos</th><th className="p-2.5 text-right">Mesas</th><th className="p-2.5 text-right">Llamadas</th><th className="p-2.5 text-right">Respuesta media</th></tr>
                   </thead>
@@ -112,6 +125,7 @@ export default function Sala({
                   </tbody>
                 </table>
               </div>
+              </>
             )}
             <p className="text-[11px] text-white/35">Todo lo que registra cada camarero queda guardado 6 meses (sin importes: la facturación la lleva tu TPV).</p>
           </div>
@@ -120,7 +134,7 @@ export default function Sala({
 
       {modulos.tpv && (
         <section className="space-y-2 rounded-2xl border border-white/10 bg-[#1c140b] p-5">
-          <h3 className="font-bold">🔌 Conexión con tu TPV</h3>
+          <h3 className="font-bold">Conexión con tu TPV</h3>
           {tpv ? (
             <p className="text-sm text-white/70">
               Conectado con <strong>{tpv.proveedor}</strong> · {tpv.activa ? '🟢 activa' : '⚪ pausada'}

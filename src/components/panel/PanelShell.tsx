@@ -38,8 +38,8 @@ const PESTANAS: { id: Pestana; nombre: string }[] = [
   { id: 'qr', nombre: 'Mi QR' },
   { id: 'escaneos', nombre: 'Mis Escaneos' },
   { id: 'plan', nombre: 'Mi Plan' },
-  { id: 'diseno', nombre: '🎨 Diseño' },
-  { id: 'modulos', nombre: '🧩 Módulos' },
+  { id: 'diseno', nombre: 'Diseño' },
+  { id: 'modulos', nombre: 'Módulos' },
   { id: 'soporte', nombre: 'Soporte' },
 ];
 
@@ -144,7 +144,7 @@ export default function PanelShell({
           <MiQr codigoQr={codigoQr} restauranteNombre={restaurante.nombre} solicitudes={solicitudesQr} />
         )}
         {pestana === 'escaneos' && <MisEscaneos escaneosMes={escaneosMes} escaneos30d={escaneos30d} />}
-        {pestana === 'plan' && <MiPlan restaurante={restaurante} />}
+        {pestana === 'plan' && <MiPlan restaurante={restaurante} servicios={servicios} />}
         {pestana === 'soporte' && <Soporte tickets={tickets} />}
       </main>
     </div>

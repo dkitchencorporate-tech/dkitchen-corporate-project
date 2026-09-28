@@ -4,17 +4,20 @@ import { useState, useTransition } from 'react';
 import type { EstadoServicios, Servicio } from '@/lib/servicios';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import { comprarServicioAction } from '@/app/panel/actions';
+import ActivarNucleoOperativoBoton from '@/components/sections/ActivarNucleoOperativoBoton';
+
+const WHATSAPP_DK = 'https://wa.me/34622652659?text=' + encodeURIComponent('Hola, tengo la carta QR y quiero saber más de DKitchen Signature.');
 
 const euros = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: c % 100 ? 2 : 0 }).format(c / 100);
 
-const MODULOS: { id: Servicio; icono: string; titulo: string; resuelve: string; como: string; incluye: string[] }[] = [
-  { id: 'plano_mesas', icono: '🗺️', titulo: 'Plano de mesas', resuelve: 'Ves tu local de un vistazo: qué mesa llama, cuál pide la cuenta y de quién es cada mesa.',
+const MODULOS: { id: Servicio; titulo: string; resuelve: string; como: string; incluye: string[] }[] = [
+  { id: 'plano_mesas', titulo: 'Plano de mesas', resuelve: 'Ves tu local de un vistazo: qué mesa llama, cuál pide la cuenta y de quién es cada mesa.',
     como: 'Dibujas tu local una vez (paredes, barra, puertas, terraza) y colocas tus mesas. Creas zonas y se las asignas a cada camarero.',
     incluye: ['Editor de sala en pantalla completa', 'Zonas por camarero con un toque', 'Mesas que llaman, resaltadas en el plano'] },
-  { id: 'app_sala', icono: '📱', titulo: 'App de sala', resuelve: 'Adiós a las comandas en papel y a las mesas olvidadas: cada camarero lleva sus mesas en el móvil.',
+  { id: 'app_sala', titulo: 'App de sala', resuelve: 'Adiós a las comandas en papel y a las mesas olvidadas: cada camarero lleva sus mesas en el móvil.',
     como: 'Cada camarero recibe un enlace personal (sin contraseñas). Ve sus mesas y llamadas, y anota lo que pide cada mesa en segundos.',
     incluye: ['Avisos de llamada con sonido y vibración', 'Registro de comandas por mesa', 'Informe por camarero: comandas, productos, llamadas y tiempo de respuesta', 'Mesa sin dueño: la toma quien la atiende'] },
-  { id: 'conexion_tpv', icono: '🔌', titulo: 'Conexión con tu TPV', resuelve: 'Lo que anota el camarero llega solo a tu TPV. Sin teclear dos veces ni errores.',
+  { id: 'conexion_tpv', titulo: 'Conexión con tu TPV', resuelve: 'Lo que anota el camarero llega solo a tu TPV. Sin teclear dos veces ni errores.',
     como: 'DKitchen configura la conexión con tu TPV. Tu TPV sigue siendo quien cobra y factura.',
     incluye: ['Compatible con la mayoría de TPV en España', 'Tu facturación no cambia (Verifactu, gestoría)', 'Instalación y pruebas hechas por DKitchen'] },
 ];
@@ -83,14 +86,20 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
                   </p>
                 )}
                 {servicios.plazasExperto > 0 && <p className="text-center text-xs font-semibold text-[#D9531E]">Precio de lanzamiento · quedan {servicios.plazasExperto} de 20 plazas</p>}
-                <a href="/panel/vista-previa" target="_blank" rel="noopener" className="block rounded-xl border border-white/20 py-2.5 text-center text-sm font-semibold hover:border-white/50">👀 Ver MI carta así</a>
+                <a href="/panel/vista-previa" target="_blank" rel="noopener" className="block rounded-xl border border-white/20 py-2.5 text-center text-sm font-semibold hover:border-white/50">Ver mi carta con este diseño</a>
                 <Boton s="setup_experto" texto="Quiero mi Carta de Autor" />
               </div>
             } />
-          <NivelCard titulo="A medida" subtitulo="Para grupos y locales de referencia" actual={restaurante.nivelDiseno === 'signature'}
-            puntos={['Diseño único de tu marca', 'Animaciones, vídeo y dominio propio', 'Se presupuesta según el proyecto']}
+          <NivelCard titulo="DKitchen Signature" subtitulo="Tu propia app, con tu marca y en propiedad" actual={restaurante.nivelDiseno === 'signature'}
+            puntos={['App instalable (PWA) con tu marca y tu dominio', 'Tus clientes piden y pagan: en mesa, recogida y domicilio', 'Comandas a cocina, TPV propio e historial de ventas', 'Es tuya: pagas la entrada y 69 €/mes de mantenimiento']}
             maqueta={<MaquetaSignature />}
-            pie={<a href="/panel?pestana=soporte&asunto=Quiero%20un%20dise%C3%B1o%20a%20medida" className="block rounded-xl border border-white/20 py-3 text-center text-sm font-bold hover:border-white/50">Hablar con DKitchen</a>} />
+            pie={
+              <div className="space-y-2">
+                <a href="/base-operativa" target="_blank" rel="noopener" className="block rounded-xl border border-white/20 py-2.5 text-center text-sm font-semibold hover:border-white/50">Ver cómo es DKitchen Signature</a>
+                <a href={WHATSAPP_DK} target="_blank" rel="noopener" className="block rounded-xl border border-white/20 py-2.5 text-center text-sm font-semibold hover:border-white/50">Hablar directamente con nosotros</a>
+                <ActivarNucleoOperativoBoton className="w-full rounded-xl bg-white py-3 text-sm font-bold text-[#1A1714]" />
+              </div>
+            } />
         </div>
         {esencial && !tiene('setup_experto') && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#1c140b] p-5">
@@ -131,7 +140,7 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
             return (
               <article key={m.id} className="grid gap-4 rounded-2xl border border-white/10 bg-[#1c140b] p-5 md:grid-cols-[1fr_14rem]">
                 <div>
-                  <h4 className="text-lg font-bold"><span className="mr-2">{m.icono}</span>{m.titulo}</h4>
+                  <h4 className="text-lg font-bold">{m.titulo}</h4>
                   <p className="mt-1 text-sm text-white/75">{m.resuelve}</p>
                   <p className="mt-2 text-sm text-white/50"><strong className="text-white/70">Cómo funciona:</strong> {m.como}</p>
                   <ul className="mt-3 grid gap-1 text-sm text-white/70 sm:grid-cols-2">{m.incluye.map((i) => <li key={i}>✓ {i}</li>)}</ul>
@@ -144,7 +153,12 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
             );
           })}
         </div>
-        {pack && (
+        {nModulos === MODULOS.length ? (
+          <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-5">
+            <p className="font-bold text-green-300">Tienes todos los Módulos de Sala activos</p>
+            <p className="mt-1 text-sm text-white/60">Plano, App de sala y Conexión TPV ya funcionan en tu cuenta. Los gestionas en la pestaña Sala; el resumen de lo que pagas está en Mi Plan.</p>
+          </div>
+        ) : pack && (
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#D9531E]/50 bg-[#D9531E]/10 p-5">
             <div>
               <p className="font-bold">Pack Sala Completo: los 3 módulos</p>
@@ -208,7 +222,7 @@ function MaquetaSignature() {
   return (
     <div className="flex h-40 flex-col justify-end bg-gradient-to-br from-[#111] via-[#2a1d12] to-[#5c3a1e] p-3" aria-hidden="true">
       <p className="font-serif text-lg text-white">Tu marca</p>
-      <p className="text-[10px] uppercase tracking-[0.3em] text-white/60">diseño único · vídeo · dominio propio</p>
+      <p className="text-[10px] uppercase tracking-[0.3em] text-white/60">tu app · tus pedidos · tu propiedad</p>
     </div>
   );
 }
@@ -232,17 +246,20 @@ function MapaNucleo({ credito, nModulos, precioTodo }: { credito: { euros: strin
           El QR es una herramienta para tu carta y tu sala. DKitchen Signature (nuestro Núcleo Operativo) es el sistema que gestiona todo tu restaurante, y es tuyo.
         </p>
       </div>
-      <div className="overflow-x-auto rounded-2xl border border-white/10">
-        <table className="w-full min-w-[560px] text-sm">
-          <thead className="bg-white/5 text-left text-xs uppercase tracking-wider text-white/45">
-            <tr><th className="p-3"></th><th className="p-3">QR Menú (lo que tienes)</th><th className="p-3 text-[#D9531E]">DKitchen Signature</th></tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {filas.map(([k, a, b]) => (
-              <tr key={k}><td className="p-3 font-semibold text-white/60">{k}</td><td className="p-3 text-white/70">{a}</td><td className="p-3 font-medium">{b}</td></tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="overflow-hidden rounded-2xl border border-white/10">
+        <div className="grid grid-cols-2 bg-white/5 text-xs font-semibold uppercase tracking-wider">
+          <p className="p-3 text-white/50">QR Menú · lo que tienes</p>
+          <p className="border-l border-white/10 p-3 text-[#D9531E]">DKitchen Signature</p>
+        </div>
+        {filas.map(([k, a, b]) => (
+          <div key={k} className="border-t border-white/5">
+            <p className="px-3 pt-3 text-[11px] font-semibold uppercase tracking-wider text-white/35">{k}</p>
+            <div className="grid grid-cols-2 text-sm">
+              <p className="p-3 pt-1 text-white/65">{a}</p>
+              <p className="border-l border-white/10 p-3 pt-1 font-medium">{b}</p>
+            </div>
+          </div>
+        ))}
       </div>
       <div className="rounded-2xl bg-gradient-to-r from-[#D9531E]/25 to-transparent p-5">
         <p className="font-bold">Con todos los módulos del QR pagarías {precioTodo}/mes y nunca sería tuyo. Con DKitchen Signature pagas 69 €/mes y el sistema es tuyo.</p>

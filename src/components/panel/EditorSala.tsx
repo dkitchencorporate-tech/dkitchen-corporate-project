@@ -9,14 +9,25 @@ type ElemE = ElementoPlano & { clave: string };
 type Sel = { tipo: 'mesa' | 'elemento'; clave: string } | null;
 
 const COLORES_ZONA = ['#D9531E', '#2F5D50', '#1F4E79', '#C58B2A', '#5B3E8A', '#B23A48'];
-const HERRAMIENTAS: { tipo: TipoElemento | 'mesa'; nombre: string; icono: string }[] = [
-  { tipo: 'mesa', nombre: 'Mesa', icono: '🪑' },
-  { tipo: 'zona', nombre: 'Zona', icono: '🟧' },
-  { tipo: 'pared', nombre: 'Pared', icono: '🧱' },
-  { tipo: 'division', nombre: 'División', icono: '▭' },
-  { tipo: 'barra', nombre: 'Barra', icono: '🍸' },
-  { tipo: 'puerta', nombre: 'Puerta', icono: '🚪' },
+const HERRAMIENTAS: { tipo: TipoElemento | 'mesa'; nombre: string }[] = [
+  { tipo: 'mesa', nombre: 'Mesa' },
+  { tipo: 'zona', nombre: 'Zona' },
+  { tipo: 'pared', nombre: 'Pared' },
+  { tipo: 'division', nombre: 'División' },
+  { tipo: 'barra', nombre: 'Barra' },
+  { tipo: 'puerta', nombre: 'Puerta' },
 ];
+/** El lienzo es 4:3: un % de ancho equivale a 4/3 de % de alto. */
+const girar = <T extends { ancho: number; alto: number }>(e: T): T => ({ ...e, ancho: e.alto * 0.75, alto: e.ancho * (4 / 3) });
+/** Nada puede salir del lienzo: se recorta tamaño y posición. */
+const dentro = <T extends { x: number; y: number; ancho: number; alto: number }>(e: T): T => {
+  const ancho = Math.min(100, Math.max(0.5, e.ancho)), alto = Math.min(100, Math.max(0.5, e.alto));
+  return { ...e, ancho, alto, x: Math.min(100 - ancho, Math.max(0, e.x)), y: Math.min(100 - alto, Math.max(0, e.y)) };
+};
+const contiene = (z: { x: number; y: number; ancho: number; alto: number }, m: { x: number; y: number; ancho: number; alto: number }) => {
+  const cx = m.x + m.ancho / 2, cy = m.y + m.alto / 2;
+  return cx >= z.x && cx <= z.x + z.ancho && cy >= z.y && cy <= z.y + z.alto;
+};
 let contador = 0;
 const nueva = () => `n${Date.now()}${contador++}`;
 
@@ -70,17 +81,22 @@ export default function EditorSala({
   function mover(e: React.PointerEvent) {
     const a = arrastre.current; if (!a) return;
     const p = pct(e);
-    const x = Math.min(99, Math.max(0, p.x - a.dx)); const y = Math.min(99, Math.max(0, p.y - a.dy));
-    if (a.tipo === 'mesa') setMesas((l) => l.map((m) => (m.clave === a.clave ? { ...m, x, y } : m)));
-    else setElementos((l) => l.map((el) => (el.clave === a.clave ? { ...el, x, y } : el)));
+    const x = p.x - a.dx, y = p.y - a.dy;
+    if (a.tipo === 'mesa') setMesas((l) => l.map((m) => (m.clave === a.clave ? dentro({ ...m, x, y }) : m)));
+    else setElementos((l) => l.map((el) => (el.clave === a.clave ? dentro({ ...el, x, y }) : el)));
     setCambios(true);
   }
   const soltar = () => { arrastre.current = null; };
 
   const mesaSel = sel?.tipo === 'mesa' ? mesas.find((m) => m.clave === sel.clave) : undefined;
   const elemSel = sel?.tipo === 'elemento' ? elementos.find((e) => e.clave === sel.clave) : undefined;
-  const cambiarMesa = (c: Partial<MesaE>) => { marcar(); setMesas((l) => l.map((m) => (m.clave === mesaSel?.clave ? { ...m, ...c } : m))); };
-  const cambiarElem = (c: Partial<ElemE>) => { marcar(); setElementos((l) => l.map((e) => (e.clave === elemSel?.clave ? { ...e, ...c } : e))); };
+  const cambiarMesa = (c: Partial<MesaE>) => { marcar(); setMesas((l) => l.map((m) => (m.clave === mesaSel?.clave ? dentro({ ...m, ...c }) : m))); };
+  const cambiarElem = (c: Partial<ElemE>) => { marcar(); setElementos((l) => l.map((e) => (e.clave === elemSel?.clave ? dentro({ ...e, ...c }) : e))); };
+  const girarSel = () => {
+    marcar();
+    if (mesaSel) setMesas((l) => l.map((m) => (m.clave === mesaSel.clave ? dentro(girar(m)) : m)));
+    if (elemSel) setElementos((l) => l.map((e) => (e.clave === elemSel.clave ? dentro(girar(e)) : e)));
+  };
   const borrar = () => {
     marcar();
     if (mesaSel) setMesas((l) => l.filter((m) => m.clave !== mesaSel.clave));
@@ -92,7 +108,14 @@ export default function EditorSala({
     setAviso(null);
     iniciar(async () => {
       try {
-        await guardarPlanoAction(mesas.map(({ clave: _c, ...m }) => m), elementos.map(({ clave: _c, id: _i, ...e }) => e));
+        const zonas = elementos.filter((e) => e.tipo === 'zona' && e.camareroId);
+        const finales = mesas.map((m) => {
+          if (m.camareroId) return m;
+          const z = zonas.find((zz) => contiene(zz, m));
+          return z ? { ...m, camareroId: z.camareroId } : m;
+        });
+        setMesas(finales);
+        await guardarPlanoAction(finales.map(({ clave: _c, ...m }) => m), elementos.map(({ clave: _c, id: _i, ...e }) => e));
         setCambios(false); setAviso({ ok: true, texto: 'Plano guardado.' });
       } catch (e) { setAviso({ ok: false, texto: e instanceof Error ? e.message : 'No se pudo guardar.' }); }
     });
@@ -107,7 +130,7 @@ export default function EditorSala({
   const nombreCam = (id: string | null) => camareros.find((c) => c.id === id)?.nombre;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#120d08] text-white" role="dialog" aria-modal="true" aria-label="Editor de sala">
+    <div className="fixed inset-0 z-[100] flex h-[100dvh] flex-col bg-[#120d08] text-white" role="dialog" aria-modal="true" aria-label="Editor de sala">
       <header className="flex flex-wrap items-center gap-2 border-b border-white/10 px-4 py-3">
         <h2 className="mr-auto font-bold">Editor de sala</h2>
         {aviso && <span className={`text-sm ${aviso.ok ? 'text-green-400' : 'text-red-400'}`}>{aviso.texto}</span>}
@@ -119,8 +142,8 @@ export default function EditorSala({
 
       <div className="flex gap-2 overflow-x-auto border-b border-white/10 px-4 py-2">
         {HERRAMIENTAS.map((h) => (
-          <button key={h.tipo} onClick={() => anadir(h.tipo)} className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-sm hover:bg-white/15">
-            <span>{h.icono}</span> + {h.nombre}
+          <button key={h.tipo} onClick={() => anadir(h.tipo)} className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-sm text-white/80 hover:border-white/30">
+            + {h.nombre}
           </button>
         ))}
       </div>
@@ -128,7 +151,7 @@ export default function EditorSala({
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <div className="min-h-0 flex-1 overflow-auto p-3">
           <div ref={lienzo} onPointerMove={mover} onPointerUp={soltar} onPointerCancel={soltar} onPointerDown={() => setSel(null)}
-            className="relative mx-auto aspect-[4/3] w-full max-w-4xl touch-none select-none rounded-xl border border-white/15 bg-[#1c140b] bg-[linear-gradient(rgba(255,255,255,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.04)_1px,transparent_1px)] bg-[size:4%_5.33%]">
+            className="relative mx-auto aspect-[4/3] w-full max-w-4xl touch-none select-none overflow-hidden rounded-xl border border-white/15 bg-[#1c140b] bg-[linear-gradient(rgba(255,255,255,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.04)_1px,transparent_1px)] bg-[size:4%_5.33%]">
             {elementos.map((e) => {
               const s = sel?.clave === e.clave;
               const estilo = e.tipo === 'zona'
@@ -182,11 +205,14 @@ export default function EditorSala({
                   <option value="">Sin asignar (la toma quien atienda)</option>
                   {activos.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                 </select></label>
-              <button onClick={borrar} className="text-sm text-red-400">Eliminar mesa</button>
+              <div className="flex gap-4"><button onClick={girarSel} className="text-sm text-white/70 underline">Girar 90°</button><button onClick={borrar} className="text-sm text-red-400">Eliminar mesa</button></div>
             </div>
           ) : elemSel ? (
             <div className="space-y-3">
-              <h3 className="font-bold capitalize">{elemSel.tipo}</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold">{{ pared: 'Pared', division: 'División', barra: 'Barra', puerta: 'Puerta', zona: 'Zona' }[elemSel.tipo]}</h3>
+                <button onClick={girarSel} className="rounded-lg border border-white/15 px-3 py-1.5 text-sm">Girar 90° {elemSel.ancho >= elemSel.alto * 0.75 ? '(ponerla vertical)' : '(ponerla horizontal)'}</button>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <label className="space-y-1"><span className="text-xs text-white/50">Ancho</span><input type="range" min={0.5} max={100} step={0.5} value={elemSel.ancho} onChange={(e) => cambiarElem({ ancho: Number(e.target.value) })} className="w-full" /></label>
                 <label className="space-y-1"><span className="text-xs text-white/50">Alto</span><input type="range" min={0.5} max={100} step={0.5} value={elemSel.alto} onChange={(e) => cambiarElem({ alto: Number(e.target.value) })} className="w-full" /></label>
@@ -215,7 +241,8 @@ export default function EditorSala({
               <p className="font-bold text-white">Cómo funciona</p>
               <p>1. Añade paredes, barra y puertas para dibujar tu local.</p>
               <p>2. Añade las mesas y arrástralas a su sitio.</p>
-              <p>3. Crea zonas (Terraza, Salón…) y asígnales un camarero: con un toque, todas sus mesas pasan a ser suyas.</p>
+              <p>3. Crea zonas (Terraza, Salón…) y asígnales un camarero: al guardar, las mesas de la zona sin camarero pasan a ser suyas.</p>
+              <p>Paredes, divisiones y barras se ponen en vertical u horizontal con «Girar 90°».</p>
               <p>4. Pulsa <strong>Guardar plano</strong>. Tus camareros lo verán en su móvil.</p>
               <p className="pt-2 text-xs">{mesas.length} mesas · {elementos.length} elementos</p>
             </div>

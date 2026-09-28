@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
+import type { EstadoServicios } from '@/lib/servicios';
 import { iniciarUpgradeAmpliadoAction } from '@/app/panel/actions';
 
 const PLANES = {
@@ -29,7 +30,7 @@ const ESTADOS: Record<string, { texto: string; color: string }> = {
   suspendido: { texto: 'Suspendida por impago', color: 'text-red-400' },
 };
 
-export default function MiPlan({ restaurante }: { restaurante: MiRestaurante }) {
+export default function MiPlan({ restaurante, servicios }: { restaurante: MiRestaurante; servicios: EstadoServicios }) {
   const esAmpliado = restaurante.plan === 'ampliado';
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +52,8 @@ export default function MiPlan({ restaurante }: { restaurante: MiRestaurante }) 
   return (
     <div className="space-y-8">
       <h2 className="text-xl font-bold">Mi Plan</h2>
+
+      <ResumenCuenta restaurante={restaurante} servicios={servicios} precioPlan={actual.precio} nombrePlan={actual.nombre} />
 
       <div className="bg-[#1c140b] border border-white/10 rounded-2xl p-6 flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -107,5 +110,68 @@ export default function MiPlan({ restaurante }: { restaurante: MiRestaurante }) 
         </p>
       )}
     </div>
+  );
+}
+
+const fechaLarga = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+const eur = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: c % 100 ? 2 : 0 }).format(c / 100);
+const QUE_ES: Record<string, string> = {
+  setup_esencial: 'Revisión y configuración de tu carta por un experto',
+  setup_experto: 'Diseño de autor de tu carta, flyers, QR físicos y formación',
+  idiomas: 'Tu carta traducida por DKitchen a hasta 3 idiomas',
+  plano_mesas: 'Plano de tu local con zonas y mesas por camarero',
+  app_sala: 'Tus camareros con sus mesas y comandas en el móvil',
+  conexion_tpv: 'Lo que anota el camarero llega solo a tu TPV',
+  pack_sala: 'Plano de mesas + App de sala + Conexión TPV',
+};
+
+/** Todo lo contratado en una sola vista: qué es, cuánto cuesta, desde cuándo y cuánto pagas al mes. */
+function ResumenCuenta({ restaurante, servicios, precioPlan, nombrePlan }: {
+  restaurante: MiRestaurante; servicios: EstadoServicios; precioPlan: number; nombrePlan: string;
+}) {
+  const alta = new Date(restaurante.creadoEn);
+  const filas = servicios.contratados.map((c) => {
+    const cat = servicios.catalogo.find((x) => x.servicio === c.servicio);
+    const mensual = cat?.tipo === 'mensual';
+    const pagas = c.origen === 'pago' ? cat?.precioCentimos ?? 0 : 0;
+    return {
+      id: c.servicio, nombre: cat?.nombre ?? c.servicio, desde: c.contratadoEn, mensual,
+      precio: c.origen === 'regalo' ? 'Incluido por DKitchen' : c.origen === 'demo' ? 'Prueba' : `${eur(pagas)}${mensual ? '/mes' : ' · pago único'}`,
+      cuota: mensual ? pagas : 0,
+      estado: c.estado === 'entregado' ? 'Entregado' : 'Activo',
+    };
+  });
+  const cuotaMensual = precioPlan * 100 + filas.reduce((t, x) => t + x.cuota, 0);
+  return (
+    <section className="rounded-2xl border border-white/10 bg-[#1c140b]">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-white/10 p-6">
+        <div>
+          <p className="text-sm text-white/50">Pagas cada mes</p>
+          <p className="mt-1 text-4xl font-black">{eur(cuotaMensual)}</p>
+          <p className="mt-1 text-sm text-white/40">Se renueva el día {alta.getDate()} de cada mes · sin permanencia</p>
+        </div>
+        <p className="text-sm text-white/50">Cliente desde el {fechaLarga.format(alta)}</p>
+      </div>
+      <ul className="divide-y divide-white/5">
+        <li className="flex flex-wrap items-start justify-between gap-2 p-5">
+          <div>
+            <p className="font-semibold">Plan {nombrePlan}</p>
+            <p className="text-sm text-white/50">Tu carta QR{restaurante.plan === 'ampliado' ? ' con reservas, llamada al camarero y banners' : ''}</p>
+          </div>
+          <p className="text-sm font-semibold">{precioPlan} €/mes</p>
+        </li>
+        {filas.map((x) => (
+          <li key={x.id} className="flex flex-wrap items-start justify-between gap-2 p-5">
+            <div>
+              <p className="font-semibold">{x.nombre} <span className="ml-1 text-xs font-normal text-green-400">{x.estado}</span></p>
+              <p className="text-sm text-white/50">{QUE_ES[x.id] ?? ''}</p>
+              <p className="text-xs text-white/35">Desde el {fechaLarga.format(new Date(x.desde))}</p>
+            </div>
+            <p className="text-sm font-semibold">{x.precio}</p>
+          </li>
+        ))}
+      </ul>
+      {filas.length === 0 && <p className="px-5 pb-5 text-sm text-white/40">Aún no tienes servicios añadidos. Los encontrarás en las pestañas Diseño y Módulos.</p>}
+    </section>
   );
 }
