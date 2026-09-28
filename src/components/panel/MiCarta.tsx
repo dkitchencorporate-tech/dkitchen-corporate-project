@@ -157,10 +157,23 @@ function SeccionCard({
         <ul className="divide-y divide-white/5">
           {platos.map((plato) => (
             <li key={plato.id} className="py-3 flex items-center justify-between gap-3">
-              <div className="min-w-0">
+              {plato.fotoUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={plato.fotoUrl} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+              ) : (
+                <button onClick={() => onEditarPlato(plato)} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-dashed border-white/15 text-[10px] text-white/35" title="Añadir foto">
+                  + foto
+                </button>
+              )}
+              <div className="min-w-0 flex-1">
                 <p className={`font-medium truncate ${!plato.disponible ? 'text-white/30 line-through' : ''}`}>
                   {plato.nombre}
                 </p>
+                {plato.descripcion ? (
+                  <p className="text-xs text-white/45 mt-0.5 line-clamp-1">{plato.descripcion}</p>
+                ) : (
+                  <button onClick={() => onEditarPlato(plato)} className="text-xs text-[#D9531E]/80 hover:text-[#D9531E] mt-0.5">+ Añadir descripción</button>
+                )}
                 {plato.alergenos.length > 0 && (
                   <p className="text-xs text-white/30 mt-0.5">
                     {plato.alergenos.map((c) => ALERGENOS[c] ?? c).join(', ')}
@@ -257,13 +270,17 @@ function FormularioPlato({
         />
       </div>
 
-      <textarea
-        value={descripcion}
-        onChange={(e) => setDescripcion(e.target.value)}
-        placeholder="Descripción (opcional)"
-        rows={2}
-        className="w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white placeholder-white/30"
-      />
+      <label className="block space-y-1">
+        <span className="text-xs text-white/50">Descripción del plato ({descripcion.length}/300)</span>
+        <textarea
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value.slice(0, 300))}
+          placeholder="Ej: Croquetas caseras de jamón ibérico, cremosas por dentro y crujientes por fuera. 6 unidades."
+          rows={3}
+          className="w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white placeholder-white/30"
+        />
+        <span className="block text-[11px] text-white/35">Se ve en la carta y completa al abrir el plato. Una buena descripción vende más.</span>
+      </label>
 
       <SubirImagen valor={fotoUrl || null} onCambio={(url) => setFotoUrl(url ?? '')} etiqueta="Foto" />
 

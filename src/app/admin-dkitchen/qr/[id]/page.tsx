@@ -1,11 +1,19 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
-import { fichaCliente, historialCliente, type EntradaHistorial } from '@/lib/admin-clientes';
-import { cambiarEstadoAction, cambiarPlanAction, asignarDisenoAction } from '../actions';
+import { fichaCliente, historialCliente, serviciosCliente, type EntradaHistorial } from '@/lib/admin-clientes';
+import { cambiarEstadoAction, cambiarPlanAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction } from '../actions';
 
 export const dynamic = 'force-dynamic';
 
+const CATALOGO_SERVICIOS: [string, string][] = [
+  ['setup_esencial', 'Setup Esencial'], ['setup_experto', 'Setup Experto · Carta de Autor'], ['idiomas', 'Pack de idiomas'],
+  ['plano_mesas', 'Plano de mesas'], ['app_sala', 'App de sala'], ['conexion_tpv', 'Conexión TPV'], ['pack_sala', 'Pack Sala Completo'],
+];
+const PUNTOS_SETUP: [string, string][] = [
+  ['carta', 'Carta completa cargada'], ['imagenes', 'Imágenes optimizadas'], ['banner', 'Banner de lanzamiento'], ['google', 'Google Business optimizado'],
+  ['redes', 'Contenido redes 1.er mes'], ['material', 'Pegatinas / flyers enviados'], ['soporte', 'Soporte premium activo'], ['formacion', 'Formaciones realizadas'],
+];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const fechaHora = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 const fecha = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -21,6 +29,9 @@ const ACCION: Record<string, string> = {
   'admin.cambiar_estado': 'DKitchen cambió el estado de la cuenta',
   'admin.cambiar_plan': 'DKitchen cambió el plan',
   'admin.asignar_diseno': 'DKitchen asignó el diseño de la carta',
+  'admin.servicio': 'DKitchen gestionó un servicio',
+  'admin.conexion_tpv': 'DKitchen configuró la conexión TPV',
+  'pago.servicio': 'Contrató un servicio (pago)',
   'admin.responder_ticket': 'DKitchen respondió un ticket',
   'admin.estado_solicitud_qr': 'DKitchen actualizó un pedido de QR físico',
   aprovisionamiento_stripe: 'Alta tras el pago',
@@ -57,7 +68,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
   const { id } = await params;
   if (!UUID.test(id)) notFound();
   const jwt = await exigirAdmin();
-  const [ficha, historial] = await Promise.all([fichaCliente(jwt, id), historialCliente(jwt, id)]);
+  const [ficha, historial, servicios] = await Promise.all([fichaCliente(jwt, id), historialCliente(jwt, id), serviciosCliente(jwt, id)]);
   if (!ficha?.restaurante) notFound();
 
   const r = ficha.restaurante;
@@ -145,6 +156,68 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             Soporte y QR físico
           </Link>
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6 space-y-4">
+        <div>
+          <h2 className="font-bold">Servicios y módulos</h2>
+          <p className="text-xs text-white/40">"Demo" activa sin cobro (para enseñar o grabar vídeos). "Regalar" = cortesía comercial. Todo queda en el historial.</p>
+        </div>
+        <ul className="divide-y divide-white/5 text-sm">
+          {CATALOGO_SERVICIOS.map(([clave, nombre]) => {
+            const s = servicios.find((x) => x.servicio === clave);
+            return (
+              <li key={clave} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                <span>
+                  <strong>{nombre}</strong>
+                  {s ? <span className="ml-2 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] text-green-300">{s.estado} · {s.origen}</span>
+                     : <span className="ml-2 text-xs text-white/35">no contratado</span>}
+                </span>
+                <span className="flex gap-2">
+                  {(s ? ['entregado', 'cancelar'] : ['demo', 'regalar']).map((accion) => (
+                    <form key={accion} action={servicioAdminAction}>
+                      <input type="hidden" name="restauranteId" value={r.id} />
+                      <input type="hidden" name="servicio" value={clave} />
+                      <input type="hidden" name="accion" value={accion} />
+                      <button className={`rounded-md px-2.5 py-1 text-xs font-semibold ${accion === 'cancelar' ? 'bg-red-500/15 text-red-300' : 'bg-white/10 hover:bg-white/15'}`}>
+                        {accion === 'entregado' ? 'Marcar entregado' : accion === 'cancelar' ? 'Cancelar' : accion === 'demo' ? 'Activar demo' : 'Regalar'}
+                      </button>
+                    </form>
+                  ))}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+
+        {servicios.filter((x) => x.servicio === 'setup_esencial' || x.servicio === 'setup_experto').map((s) => (
+          <form key={s.servicio} action={checklistSetupAction} className="rounded-xl bg-black/20 p-4 text-sm">
+            <input type="hidden" name="restauranteId" value={r.id} />
+            <input type="hidden" name="servicio" value={s.servicio} />
+            <p className="mb-2 font-bold">Entrega del {s.servicio === 'setup_experto' ? 'Setup Experto' : 'Setup Esencial'}</p>
+            <div className="grid gap-1.5 sm:grid-cols-2">
+              {PUNTOS_SETUP.filter(([k]) => s.servicio === 'setup_experto' || !['redes', 'soporte'].includes(k)).map(([k, t]) => (
+                <label key={k} className="flex items-center gap-2"><input type="checkbox" name={k} defaultChecked={s.checklist[k] === true} className="accent-[#D9531E]" /> {t}</label>
+              ))}
+            </div>
+            <button className="mt-3 rounded-md bg-white/10 px-3 py-1.5 text-xs font-bold">Guardar progreso</button>
+          </form>
+        ))}
+
+        {servicios.some((x) => x.servicio === 'conexion_tpv' || x.servicio === 'pack_sala') && (
+          <form action={conexionTpvAction} className="space-y-2 rounded-xl bg-black/20 p-4 text-sm">
+            <input type="hidden" name="restauranteId" value={r.id} />
+            <p className="font-bold">Conexión con el TPV</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <input name="proveedor" required placeholder="TPV (Revo, Ágora, Last.app…)" className="rounded-lg border border-white/10 bg-black/30 px-3 py-2" />
+              <input name="endpoint" required type="url" placeholder="https://… (endpoint del fabricante)" className="rounded-lg border border-white/10 bg-black/30 px-3 py-2" />
+            </div>
+            <input name="credencial" type="password" autoComplete="off" placeholder="Cabecera Authorization (p. ej. Bearer xxx). Vacío = mantener" className="w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2" />
+            <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="activa" defaultChecked className="accent-[#D9531E]" /> Activa</label>
+            <p className="text-[11px] text-white/35">La credencial se cifra (AES-256-GCM) antes de guardarse; nadie puede volver a leerla desde el panel.</p>
+            <button className="rounded-md bg-[#D9531E] px-3 py-1.5 text-xs font-bold">Guardar conexión</button>
+          </form>
+        )}
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6">

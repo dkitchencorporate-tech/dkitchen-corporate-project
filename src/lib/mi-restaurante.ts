@@ -18,6 +18,7 @@ export interface MiRestaurante {
   urlResenas: string | null;
   plantilla: string;
   nivelDiseno: string;
+  idiomas: string[];
   whatsapp: string | null;
 }
 
@@ -41,10 +42,11 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       url_resenas: string | null;
       plantilla: string;
       nivel_diseno: string;
+      idiomas: string[];
       whatsapp: string | null;
     }>(
       `SELECT id, slug, nombre, logo_url, plan, activo, color_marca, estado_acceso,
-              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, whatsapp
+              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp
          FROM restaurantes
         WHERE propietario = dk.identidad_actual()`
     );
@@ -67,6 +69,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       urlResenas: fila.url_resenas,
       plantilla: fila.plantilla,
       nivelDiseno: fila.nivel_diseno,
+      idiomas: fila.idiomas ?? [],
       whatsapp: fila.whatsapp,
     };
   });

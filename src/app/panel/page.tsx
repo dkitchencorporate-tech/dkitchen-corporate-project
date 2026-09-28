@@ -7,6 +7,10 @@ import { listarMisSolicitudesQrFisico } from '@/lib/solicitudes-qr-fisico';
 import { listarMisTickets } from '@/lib/tickets';
 import { listarPromociones } from '@/lib/promociones';
 import { listarMisReservas } from '@/lib/reservas';
+import { estadoServicios, tiene } from '@/lib/servicios';
+import { listarMesas, listarCamareros, estadoConexionTpv } from '@/lib/sala';
+import { listarTraducciones } from '@/lib/idiomas';
+import { llamadasPendientes } from '@/lib/llamadas-camarero';
 import PanelShell from '@/components/panel/PanelShell';
 import { SesionNoValida } from '@/lib/db';
 import { estadoAdmin } from '@/lib/guard-admin';
@@ -57,6 +61,16 @@ export default async function Panel() {
       listarPromociones(jwt, restaurante.id),
       restaurante.plan === 'ampliado' ? listarMisReservas(jwt, restaurante.id) : Promise.resolve([]),
     ]);
+    const servicios = await estadoServicios(jwt, restaurante.id);
+    const c = servicios.contratados;
+    const hayPlano = tiene(c, 'plano_mesas'), hayApp = tiene(c, 'app_sala'), hayTpv = tiene(c, 'conexion_tpv');
+    const [mesas, camareros, tpv, llamadas, traducciones] = await Promise.all([
+      hayPlano || hayApp ? listarMesas(jwt, restaurante.id) : Promise.resolve([]),
+      hayApp || hayPlano ? listarCamareros(jwt, restaurante.id) : Promise.resolve([]),
+      hayTpv ? estadoConexionTpv(jwt) : Promise.resolve(null),
+      hayPlano && restaurante.plan === 'ampliado' ? llamadasPendientes(jwt, restaurante.id).then((l) => l.map((x) => x.mesa)) : Promise.resolve([] as string[]),
+      tiene(c, 'idiomas') ? listarTraducciones(jwt, restaurante.id) : Promise.resolve([]),
+    ]);
 
     return (
       <PanelShell
@@ -70,6 +84,9 @@ export default async function Panel() {
         tickets={tickets}
         promociones={promociones}
         reservas={reservas}
+        servicios={servicios}
+        sala={{ mesas, camareros, tpv, llamadas }}
+        traducciones={traducciones}
       />
     );
   } catch (error) {

@@ -393,3 +393,57 @@ export async function crearCheckoutUpgradeAmpliado(datos: {
   if (!url) throw new Error('Whop no devolvió purchase_url en la configuración de checkout.');
   return { url };
 }
+
+/**
+ * Servicios del QR (0027): Setup, idiomas y Módulos de Sala. El importe llega
+ * ya decidido por la base (dk.precio_servicio: el Experto pasa de 199 € a
+ * 280 € cuando se agotan las 20 plazas). Pago único o mensual según catálogo.
+ * El webhook (producto 'servicio-qr') da de alta el servicio con
+ * dk.registrar_pago_servicio, idempotente por id de pago.
+ */
+export async function crearCheckoutServicio(datos: {
+  servicio: string;
+  nombre: string;
+  tipo: 'unico' | 'mensual';
+  precioCentimos: number;
+  restauranteId: string;
+  restauranteNombre: string;
+  email: string;
+  origen: string;
+}): Promise<{ url: string }> {
+  const apiKey = requerirEnv('WHOP_API_KEY');
+  const companyId = requerirEnv('WHOP_COMPANY_ID');
+  const precio = Math.round(datos.precioCentimos) / 100;
+
+  const plan =
+    datos.tipo === 'mensual'
+      ? { plan_type: 'renewal', initial_price: precio, renewal_price: precio, billing_period: 30 }
+      : { plan_type: 'one_time', initial_price: precio };
+
+  const respuesta = await fetch(`${BASE}/checkout_configurations`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      mode: 'payment',
+      plan: {
+        company_id: companyId,
+        currency: 'eur',
+        ...plan,
+        product: { title: `QR Menú — ${datos.nombre}`, external_identifier: `dk-qr-${datos.servicio}-${Math.round(datos.precioCentimos)}` },
+      },
+      metadata: {
+        producto: 'servicio-qr',
+        servicio: datos.servicio,
+        restauranteId: datos.restauranteId,
+        restauranteNombre: datos.restauranteNombre,
+        email: datos.email,
+      },
+      redirect_url: `${datos.origen}/panel?pestana=mejoras&pago=ok`,
+    }),
+  });
+  const json = await respuesta.json().catch(() => null);
+  if (!respuesta.ok) throw new Error(`Whop respondió ${respuesta.status}: ${json?.message ?? 'sin detalle'}`);
+  const url = (json as RespuestaCheckoutConfiguration | null)?.purchase_url;
+  if (!url) throw new Error('Whop no devolvió purchase_url en la configuración de checkout.');
+  return { url };
+}

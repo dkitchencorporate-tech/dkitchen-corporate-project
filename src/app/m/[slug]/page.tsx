@@ -10,6 +10,7 @@ import CarruselBanners from '@/components/carta/CarruselBanners';
 import CartaAutor from '@/components/carta/CartaAutor';
 import FichaPlato from '@/components/carta/FichaPlato';
 import Reservar from '@/components/carta/Reservar';
+import { traducirCarta, IDIOMAS } from '@/lib/idiomas';
 
 /**
  * LA CARTA VIVA
@@ -58,11 +59,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function CartaPublica({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CartaPublica({
+  params, searchParams,
+}: { params: Promise<{ slug: string }>; searchParams: Promise<{ lang?: string }> }) {
   const { slug } = await params;
+  const { lang } = await searchParams;
   const resultado = await obtenerCartaConRespaldo(slug);
   if (!resultado) notFound();
-  const { carta, desdeRespaldo } = resultado;
+  const { desdeRespaldo } = resultado;
+  // Pack de idiomas (0027): ?lang=en muestra la carta traducida (lo no traducido, en español)
+  const idioma = lang && (resultado.carta.idiomas ?? []).includes(lang) ? lang : 'es';
+  const carta = idioma === 'es' ? resultado.carta : await traducirCarta(resultado.carta, idioma);
+  const selector = <SelectorIdioma slug={carta.slug} idiomas={carta.idiomas ?? []} actual={idioma} />;
 
   let banners: Banner[] = [];
   try {
@@ -73,7 +81,7 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
 
   // Nivel 2 / 3 (asignado por DKitchen): Carta de Autor
   if (carta.nivelDiseno === 'autor' || carta.nivelDiseno === 'signature') {
-    return <CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} />;
+    return <>{selector}<CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} /></>;
   }
 
   const plantilla = carta.plantilla === 'visual' || carta.plantilla === 'express' ? carta.plantilla : 'clasica';
@@ -106,6 +114,7 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
         </p>
       )}
 
+      {selector}
       <CarruselBanners banners={banners} color={color} />
 
       {grupos.length > 1 && <IndiceSecciones grupos={grupos} plantilla={plantilla} ancho={ancho} />}
@@ -404,5 +413,22 @@ function PlatoExpress({ plato }: { plato: PlatoCarta }) {
       {plato.descripcion && <span className="line-clamp-1 block text-xs leading-relaxed text-black/50">{plato.descripcion}</span>}
       <Alergenos plato={plato} compacto />
     </span>
+  );
+}
+
+/** Selector de idioma (solo si el local tiene el Pack de idiomas con idiomas activos). */
+function SelectorIdioma({ slug, idiomas, actual }: { slug: string; idiomas: string[]; actual: string }) {
+  if (idiomas.length === 0) return null;
+  const opciones = ['es', ...idiomas];
+  return (
+    <nav aria-label="Idioma" className="fixed bottom-5 left-4 z-20 flex gap-1 rounded-full bg-white/95 p-1 shadow-lg backdrop-blur">
+      {opciones.map((i) => (
+        <a key={i} href={i === 'es' ? `/m/${slug}` : `/m/${slug}?lang=${i}`} hrefLang={i} aria-current={i === actual ? 'true' : undefined}
+           className={`rounded-full px-2.5 py-1.5 text-xs font-bold uppercase ${i === actual ? 'bg-[#1a1a1a] text-white' : 'text-black/60'}`}
+           title={i === 'es' ? 'Español' : IDIOMAS[i]?.nombre}>
+          {i}
+        </a>
+      ))}
+    </nav>
   );
 }

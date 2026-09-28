@@ -3,9 +3,10 @@
 import { revalidatePath } from 'next/cache';
 import { exigirAdmin } from '@/lib/guard-admin';
 import {
-  cambiarEstadoCliente, cambiarPlanCliente, responderTicket, cambiarEstadoSolicitudQr, asignarDiseno,
+  cambiarEstadoCliente, cambiarPlanCliente, responderTicket, cambiarEstadoSolicitudQr, asignarDiseno, adminServicio, adminConexionTpv,
 } from '@/lib/admin-clientes';
 import { enviarCorreoCliente, escaparHtml, escaparTexto } from '@/lib/email';
+import { cifrar } from '@/lib/cifrado';
 
 /**
  * Acciones del super admin. Doble cerrojo: exigirAdmin() aquí y dk.es_admin()
@@ -89,5 +90,40 @@ export async function asignarDisenoAction(formulario: FormData) {
   }
   const color = /^#[0-9a-fA-F]{6}$/.test(colorBruto) ? colorBruto.toUpperCase() : null;
   await asignarDiseno(jwt, id, plantilla, nivel, color);
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
+const SERVICIOS_ADMIN = ['setup_esencial', 'setup_experto', 'idiomas', 'plano_mesas', 'app_sala', 'conexion_tpv', 'pack_sala'];
+const PUNTOS_SETUP = ['carta', 'imagenes', 'banner', 'google', 'redes', 'material', 'soporte', 'formacion'];
+
+export async function servicioAdminAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  const servicio = String(formulario.get('servicio'));
+  const accion = String(formulario.get('accion'));
+  if (!SERVICIOS_ADMIN.includes(servicio) || !['demo', 'regalar', 'cancelar', 'entregado'].includes(accion)) throw new Error('Acción no válida.');
+  await adminServicio(jwt, id, servicio, accion);
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
+export async function checklistSetupAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  const servicio = String(formulario.get('servicio'));
+  if (!['setup_esencial', 'setup_experto'].includes(servicio)) throw new Error('Servicio no válido.');
+  const lista = Object.fromEntries(PUNTOS_SETUP.map((p) => [p, formulario.get(p) === 'on']));
+  await adminServicio(jwt, id, servicio, 'checklist', lista);
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
+export async function conexionTpvAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  const proveedor = String(formulario.get('proveedor') ?? '').trim().slice(0, 40);
+  const endpoint = String(formulario.get('endpoint') ?? '').trim();
+  const credencial = String(formulario.get('credencial') ?? '').trim();
+  if (proveedor.length < 2 || !/^https:\/\/[^\s]+$/.test(endpoint)) throw new Error('Proveedor y URL https obligatorios.');
+  // La credencial (cabecera Authorization completa, p. ej. "Bearer xxx") se cifra aquí; vacía = mantener la actual
+  await adminConexionTpv(jwt, id, proveedor, endpoint, credencial ? cifrar(credencial) : null, formulario.get('activa') === 'on');
   revalidatePath(`/admin-dkitchen/qr/${id}`);
 }

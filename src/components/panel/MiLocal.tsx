@@ -31,65 +31,6 @@ const NIVELES: Record<string, { nombre: string }> = {
   signature: { nombre: 'Signature' },
 };
 
-/**
- * Upsell de diseño (QR_ANALISIS_DISENO_NIVELES §3.2). La vista previa con su
- * propia carta en diseño de autor llega con el Nivel 2; mientras, el modal
- * explica los niveles y lleva a contratar el Setup.
- */
-function ModalNiveles({ onCerrar, slug }: { onCerrar: () => void; slug: string }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-4" onClick={onCerrar} role="presentation">
-      <div role="dialog" aria-modal="true" aria-labelledby="niveles-titulo" onClick={(e) => e.stopPropagation()}
-           className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-[#1c140b] p-6 text-white sm:rounded-3xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 id="niveles-titulo" className="text-lg font-bold">Tu carta, a otro nivel</h2>
-          <button onClick={onCerrar} aria-label="Cerrar" className="text-white/40 hover:text-white">✕</button>
-        </div>
-        <div className="space-y-3">
-          <div className="rounded-2xl border border-[#D9531E]/60 bg-[#D9531E]/10 p-4">
-            <div className="flex items-baseline justify-between gap-3">
-              <p className="font-bold">Setup Experto · Carta de Autor</p>
-              <p className="text-right"><span className="text-xs text-white/40 line-through">280 €</span> <span className="text-lg font-black">199 €</span></p>
-            </div>
-            <p className="text-[11px] font-semibold text-[#D9531E]">Precio de lanzamiento · solo para los primeros 20 locales</p>
-            <ul className="mt-2 space-y-1 text-sm text-white/75">
-              <li>✓ Diseño de autor: portada con tu imagen, categorías con foto y tipografía editorial</li>
-              <li>✓ Te cargamos toda la carta y optimizamos tus fotos</li>
-              <li>✓ Banner de lanzamiento y ficha de Google Business optimizada</li>
-              <li>✓ Contenido para tus redes del primer mes</li>
-              <li>✓ 100 pegatinas QR + 100 flyers</li>
-              <li>✓ Soporte premium el primer mes y 3 formaciones para tu equipo</li>
-            </ul>
-          </div>
-          <div className="rounded-2xl border border-white/10 p-4">
-            <div className="flex items-baseline justify-between gap-3">
-              <p className="font-bold">Setup Esencial</p>
-              <p className="text-lg font-black">149 €</p>
-            </div>
-            <ul className="mt-2 space-y-1 text-sm text-white/65">
-              <li>✓ Te cargamos toda la carta, fotos optimizadas y paleta ajustada</li>
-              <li>✓ Banner de lanzamiento y ficha de Google Business</li>
-              <li>✓ 50 pegatinas QR y 1 formación</li>
-            </ul>
-          </div>
-          <a href="/panel/vista-previa" target="_blank" rel="noopener"
-             className="block rounded-xl border border-white/15 py-3 text-center font-semibold hover:border-white/40">
-            👀 Ver MI carta con el diseño de autor
-          </a>
-          <p className="text-xs text-white/40">Pago único. Tu diseño lo prepara un experto de DKitchen y lo ves antes de publicarlo.</p>
-          <a
-            href={`/panel?pestana=soporte&asunto=${encodeURIComponent('Quiero el Setup para mi carta')}`}
-            className="block rounded-xl bg-[#D9531E] py-3 text-center font-bold hover:bg-[#B8451A]"
-          >
-            Lo quiero
-          </a>
-          <a href={`/m/${slug}`} target="_blank" rel="noopener" className="block text-center text-xs text-white/40 hover:text-white">Ver mi carta actual ↗</a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /** Miniatura esquemática de cada plantilla, con el color de marca elegido. */
 function MiniPlantilla({ tipo, color }: { tipo: string; color: string }) {
   const barra = 'h-1.5 rounded bg-black/15';
@@ -158,7 +99,6 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
     urlResenas: restaurante.urlResenas ?? '',
     whatsapp: restaurante.whatsapp ?? '',
   });
-  const [verNiveles, setVerNiveles] = useState(false);
   const esencial = restaurante.nivelDiseno === 'esencial';
   const plantillaActual = PLANTILLAS.find((p) => p.id === restaurante.plantilla) ?? PLANTILLAS[0];
   const ampliado = restaurante.plan === 'ampliado';
@@ -208,20 +148,18 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
           </div>
         </div>
         {esencial ? (
-          <button
-            type="button"
-            onClick={() => setVerNiveles(true)}
-            className="w-full rounded-xl border border-[#D9531E]/50 bg-[#D9531E]/10 p-4 text-left hover:bg-[#D9531E]/15"
+          <a
+            href="/panel?pestana=mejoras"
+            className="block w-full rounded-xl border border-[#D9531E]/50 bg-[#D9531E]/10 p-4 text-left hover:bg-[#D9531E]/15"
           >
             <p className="font-semibold">✨ Sube tu carta al diseño de autor</p>
-            <p className="text-xs text-white/60">Portada con tu imagen, categorías con foto, tipografía editorial… y te la dejamos cargada y optimizada.</p>
-          </button>
+            <p className="text-xs text-white/60">Portada con tu imagen, categorías con foto, tipografía editorial… y te la dejamos cargada y optimizada. Ver niveles de diseño →</p>
+          </a>
         ) : (
           <p className="text-xs text-white/40">¿Quieres un cambio en el diseño? Pídelo en Soporte y lo revisamos contigo.</p>
         )}
       </section>
 
-      {verNiveles && <ModalNiveles onCerrar={() => setVerNiveles(false)} slug={restaurante.slug} />}
 
       <section className="bg-[#1c140b] border border-white/10 rounded-2xl p-6 space-y-5">
         <h3 className="font-bold">Identidad</h3>

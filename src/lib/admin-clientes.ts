@@ -147,3 +147,25 @@ export async function cambiarEstadoSolicitudQr(jwt: string, solicitudId: string,
 export async function asignarDiseno(jwt: string, restauranteId: string, plantilla: string, nivel: string, color: string | null) {
   await comoCliente(jwt, (c) => c.query('SELECT dk.admin_asignar_diseno($1, $2, $3, $4)', [restauranteId, plantilla, nivel, color]));
 }
+
+// ---------------------------------------------------------------------------
+// Servicios y conexión TPV (0027)
+// ---------------------------------------------------------------------------
+export interface ServicioAdmin { servicio: string; estado: string; origen: string; contratadoEn: string; checklist: Record<string, boolean> }
+
+export async function serviciosCliente(jwt: string, restauranteId: string): Promise<ServicioAdmin[]> {
+  return comoCliente(jwt, async (c) => {
+    const { rows } = await c.query(
+      `SELECT servicio, estado, origen, contratado_en, checklist FROM servicios_contratados
+        WHERE restaurante_id = $1 AND estado <> 'cancelado' ORDER BY contratado_en`, [restauranteId]);
+    return rows.map((r) => ({ servicio: r.servicio, estado: r.estado, origen: r.origen, contratadoEn: new Date(r.contratado_en).toISOString(), checklist: r.checklist ?? {} }));
+  });
+}
+
+export async function adminServicio(jwt: string, restauranteId: string, servicio: string, accion: string, checklist?: Record<string, boolean>) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_servicio($1, $2, $3, $4)', [restauranteId, servicio, accion, checklist ? JSON.stringify(checklist) : null]));
+}
+
+export async function adminConexionTpv(jwt: string, restauranteId: string, proveedor: string, endpoint: string, credencialCifrada: string | null, activa: boolean) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_conexion_tpv($1, $2, $3, $4, $5)', [restauranteId, proveedor, endpoint, credencialCifrada, activa]));
+}

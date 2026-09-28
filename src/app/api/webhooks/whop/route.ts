@@ -206,6 +206,36 @@ export async function POST(request: Request) {
   // confirma que el cobro recurrente entró. Un fallo aquí queda para una
   // futura Sección de gracia/impago propia de este producto (no construida
   // todavía, es un ciclo de Whop distinto al de QR Menú).
+  // Servicios del QR (0027): Setup, idiomas, Módulos de Sala. El precio lo
+  // fijó el servidor al crear el checkout; aquí solo se da de alta, idempotente.
+  if (evento.data.metadata?.producto === 'servicio-qr') {
+    if (evento.type === 'payment.succeeded') {
+      const meta = evento.data.metadata;
+      try {
+        const resultado = await comoAprovisionamiento(async (c) => {
+          const { rows } = await c.query<{ r: string }>('SELECT dk.registrar_pago_servicio($1, $2, $3) AS r', [
+            meta.restauranteId,
+            meta.servicio,
+            evento.data.id,
+          ]);
+          return rows[0]?.r;
+        });
+        if (resultado === 'ok') {
+          await enviarCorreoInterno(
+            `NUEVO SERVICIO: ${meta.servicio} · ${meta.restauranteNombre}`,
+            `<p><strong>${escaparHtml(meta.restauranteNombre)}</strong> (${escaparHtml(meta.email)}) ha contratado <strong>${escaparHtml(meta.servicio)}</strong>.</p>
+             <p>Revisa la entrega en la Central: ficha del cliente → Servicios.</p>
+             <p>Id de pago (Whop): ${escaparHtml(evento.data.id)}</p>`
+          ).catch((error) => console.error('Servicio registrado, pero falló el correo interno:', error));
+        }
+      } catch (error) {
+        console.error(`No se pudo registrar el servicio (evento ${evento.data.id}):`, error);
+        return NextResponse.json({ error: 'Fallo registrando servicio' }, { status: 500 });
+      }
+    }
+    return NextResponse.json({ recibido: true });
+  }
+
   // Upgrade QR Básico → Ampliado (0019). Va antes de la comprobación de
   // cliente existente: el miembro de Whop ya existe y se trataría como renovación.
   if (evento.data.metadata?.producto === 'qr-upgrade') {
