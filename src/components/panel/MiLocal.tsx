@@ -13,6 +13,79 @@ const PLANTILLAS = [
   { id: 'express', nombre: 'Express', para: 'Bar, cafetería, terraza: rápida y compacta' },
 ];
 
+/** Paleta curada del nivel Esencial: la misma lista blanca que dk.paleta_esencial() (0026). */
+const PALETA = [
+  { hex: '#D9531E', nombre: 'Naranja teja' },
+  { hex: '#B23A48', nombre: 'Burdeos' },
+  { hex: '#C58B2A', nombre: 'Mostaza' },
+  { hex: '#2F5D50', nombre: 'Verde oliva' },
+  { hex: '#1F4E79', nombre: 'Azul marino' },
+  { hex: '#5B3E8A', nombre: 'Ciruela' },
+  { hex: '#6B4E2E', nombre: 'Café' },
+  { hex: '#1A1714', nombre: 'Carbón' },
+];
+
+const NIVELES: Record<string, { nombre: string }> = {
+  esencial: { nombre: 'Esencial' },
+  autor: { nombre: 'Carta de Autor' },
+  signature: { nombre: 'Signature' },
+};
+
+/**
+ * Upsell de diseño (QR_ANALISIS_DISENO_NIVELES §3.2). La vista previa con su
+ * propia carta en diseño de autor llega con el Nivel 2; mientras, el modal
+ * explica los niveles y lleva a contratar el Setup.
+ */
+function ModalNiveles({ onCerrar, slug }: { onCerrar: () => void; slug: string }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-4" onClick={onCerrar} role="presentation">
+      <div role="dialog" aria-modal="true" aria-labelledby="niveles-titulo" onClick={(e) => e.stopPropagation()}
+           className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-[#1c140b] p-6 text-white sm:rounded-3xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 id="niveles-titulo" className="text-lg font-bold">Tu carta, a otro nivel</h2>
+          <button onClick={onCerrar} aria-label="Cerrar" className="text-white/40 hover:text-white">✕</button>
+        </div>
+        <div className="space-y-3">
+          <div className="rounded-2xl border border-[#D9531E]/60 bg-[#D9531E]/10 p-4">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="font-bold">Setup Experto · Carta de Autor</p>
+              <p className="text-right"><span className="text-xs text-white/40 line-through">280 €</span> <span className="text-lg font-black">199 €</span></p>
+            </div>
+            <p className="text-[11px] font-semibold text-[#D9531E]">Precio de lanzamiento · solo para los primeros 20 locales</p>
+            <ul className="mt-2 space-y-1 text-sm text-white/75">
+              <li>✓ Diseño de autor: portada con tu imagen, categorías con foto y tipografía editorial</li>
+              <li>✓ Te cargamos toda la carta y optimizamos tus fotos</li>
+              <li>✓ Banner de lanzamiento y ficha de Google Business optimizada</li>
+              <li>✓ Contenido para tus redes del primer mes</li>
+              <li>✓ 100 pegatinas QR + 100 flyers</li>
+              <li>✓ Soporte premium el primer mes y 3 formaciones para tu equipo</li>
+            </ul>
+          </div>
+          <div className="rounded-2xl border border-white/10 p-4">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="font-bold">Setup Esencial</p>
+              <p className="text-lg font-black">149 €</p>
+            </div>
+            <ul className="mt-2 space-y-1 text-sm text-white/65">
+              <li>✓ Te cargamos toda la carta, fotos optimizadas y paleta ajustada</li>
+              <li>✓ Banner de lanzamiento y ficha de Google Business</li>
+              <li>✓ 50 pegatinas QR y 1 formación</li>
+            </ul>
+          </div>
+          <p className="text-xs text-white/40">Pago único. Tu diseño lo prepara un experto de DKitchen y lo ves antes de publicarlo.</p>
+          <a
+            href={`/panel?pestana=soporte&asunto=${encodeURIComponent('Quiero el Setup para mi carta')}`}
+            className="block rounded-xl bg-[#D9531E] py-3 text-center font-bold hover:bg-[#B8451A]"
+          >
+            Lo quiero
+          </a>
+          <a href={`/m/${slug}`} target="_blank" rel="noopener" className="block text-center text-xs text-white/40 hover:text-white">Ver mi carta actual ↗</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Miniatura esquemática de cada plantilla, con el color de marca elegido. */
 function MiniPlantilla({ tipo, color }: { tipo: string; color: string }) {
   const barra = 'h-1.5 rounded bg-black/15';
@@ -79,9 +152,11 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
     horario: restaurante.horario ?? '',
     instagram: restaurante.instagram ?? '',
     urlResenas: restaurante.urlResenas ?? '',
-    plantilla: restaurante.plantilla ?? 'clasica',
     whatsapp: restaurante.whatsapp ?? '',
   });
+  const [verNiveles, setVerNiveles] = useState(false);
+  const esencial = restaurante.nivelDiseno === 'esencial';
+  const plantillaActual = PLANTILLAS.find((p) => p.id === restaurante.plantilla) ?? PLANTILLAS[0];
   const ampliado = restaurante.plan === 'ampliado';
   const urlCarta = `https://dkitchencorporate.es/m/${restaurante.slug}`;
   const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -117,32 +192,32 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
       </div>
 
       <section className="bg-[#1c140b] border border-white/10 rounded-2xl p-6 space-y-4">
-        <div>
-          <h3 className="font-bold">Diseño de tu carta</h3>
-          <p className="text-xs text-white/40">Elige el estilo. Todos usan tu logo y tu color de marca. Puedes cambiarlo cuando quieras.</p>
+        <div className="flex items-start gap-4">
+          <div className="w-32 shrink-0"><MiniPlantilla tipo={plantillaActual.id} color={d.colorMarca} /></div>
+          <div className="min-w-0 space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/40">Tu diseño</p>
+            <h3 className="font-bold">{NIVELES[restaurante.nivelDiseno]?.nombre ?? 'Esencial'} · {plantillaActual.nombre}</h3>
+            <p className="text-xs text-white/50">
+              El diseño de tu carta lo prepara DKitchen para que se vea profesional en cualquier móvil. Tú gestionas el contenido: platos,
+              fotos, precios, banners y datos del local.
+            </p>
+          </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Plantilla de la carta">
-          {PLANTILLAS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              role="radio"
-              aria-checked={d.plantilla === p.id}
-              onClick={() => setD((prev) => ({ ...prev, plantilla: p.id }))}
-              className={`rounded-xl border p-3 text-left transition-colors ${
-                d.plantilla === p.id ? 'border-[#D9531E] bg-[#D9531E]/10' : 'border-white/10 hover:border-white/30'
-              }`}
-            >
-              <MiniPlantilla tipo={p.id} color={d.colorMarca} />
-              <p className="mt-2 text-sm font-semibold">{p.nombre}</p>
-              <p className="text-xs text-white/40">{p.para}</p>
-            </button>
-          ))}
-        </div>
-        <p className="text-xs text-white/40">
-          Guarda y pulsa <strong>Ver mi carta</strong> para verla en vivo.
-        </p>
+        {esencial ? (
+          <button
+            type="button"
+            onClick={() => setVerNiveles(true)}
+            className="w-full rounded-xl border border-[#D9531E]/50 bg-[#D9531E]/10 p-4 text-left hover:bg-[#D9531E]/15"
+          >
+            <p className="font-semibold">✨ Sube tu carta al diseño de autor</p>
+            <p className="text-xs text-white/60">Portada con tu imagen, categorías con foto, tipografía editorial… y te la dejamos cargada y optimizada.</p>
+          </button>
+        ) : (
+          <p className="text-xs text-white/40">¿Quieres un cambio en el diseño? Pídelo en Soporte y lo revisamos contigo.</p>
+        )}
       </section>
+
+      {verNiveles && <ModalNiveles onCerrar={() => setVerNiveles(false)} slug={restaurante.slug} />}
 
       <section className="bg-[#1c140b] border border-white/10 rounded-2xl p-6 space-y-5">
         <h3 className="font-bold">Identidad</h3>
@@ -152,10 +227,30 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
             <span className="text-xs text-white/50">Nombre del local *</span>
             <input value={d.nombre} onChange={set('nombre')} maxLength={80} className={campo} />
           </label>
-          <label className="space-y-1">
-            <span className="text-xs text-white/50">Color de marca</span>
-            <input type="color" value={d.colorMarca} onChange={set('colorMarca')} className="h-[42px] w-20 rounded-lg bg-black/30 border border-white/10 p-1" />
-          </label>
+        </div>
+        <div className="space-y-1.5">
+          <span className="text-xs text-white/50">Color de tu carta</span>
+          {esencial ? (
+            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Color de la carta">
+              {PALETA.map((c) => (
+                <button
+                  key={c.hex}
+                  type="button"
+                  role="radio"
+                  aria-checked={d.colorMarca.toUpperCase() === c.hex}
+                  aria-label={c.nombre}
+                  title={c.nombre}
+                  onClick={() => setD((p) => ({ ...p, colorMarca: c.hex }))}
+                  className={`h-9 w-9 rounded-full border-2 ${d.colorMarca.toUpperCase() === c.hex ? 'border-white' : 'border-transparent'}`}
+                  style={{ background: c.hex }}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="flex items-center gap-2 text-xs text-white/50">
+              <span className="inline-block h-5 w-5 rounded-full" style={{ background: d.colorMarca }} /> Fijado por DKitchen en tu diseño de autor.
+            </p>
+          )}
         </div>
         <label className="block space-y-1">
           <span className="text-xs text-white/50">Descripción corta ({d.descripcion.length}/280)</span>

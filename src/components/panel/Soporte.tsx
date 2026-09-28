@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import type { Ticket } from '@/lib/tickets';
 import { crearTicketAction } from '@/app/panel/actions';
 
@@ -15,6 +15,15 @@ export default function Soporte({ tickets }: { tickets: Ticket[] }) {
   const [asunto, setAsunto] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [enviado, setEnviado] = useState(false);
+
+  // Asunto precargado desde un enlace del panel (p. ej. «Lo quiero» del Setup)
+  useEffect(() => {
+    const a = new URLSearchParams(window.location.search).get('asunto');
+    if (a) {
+      setAsunto(a.slice(0, 120));
+      setMensaje((m) => m || 'Hola, me interesa. ¿Me contáis los siguientes pasos?');
+    }
+  }, []);
 
   function enviar() {
     if (!asunto.trim() || !mensaje.trim()) return;

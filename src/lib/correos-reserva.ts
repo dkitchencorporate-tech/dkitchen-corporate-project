@@ -37,7 +37,7 @@ export async function avisarNuevaReservaAlNegocio(email: string, marca: MarcaLoc
       titulo: 'Nueva reserva',
       preencabezado: `${d.nombre} · ${personas(d.personas)} · ${fechaLarga(d.fecha)} a las ${d.hora}`,
       marca,
-      boton: { texto: 'Gestionar en mi panel', url: 'https://dkitchencorporate.es/panel' },
+      boton: { texto: 'Gestionar en mi panel', url: 'https://dkitchencorporate.es/panel?pestana=reservas' },
     }
   );
 }

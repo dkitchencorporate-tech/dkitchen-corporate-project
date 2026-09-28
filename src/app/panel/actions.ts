@@ -155,8 +155,12 @@ export async function actualizarLocalAction(d: DatosLocal) {
     horario: limpio(d.horario, 200),
     instagram: limpio(d.instagram?.replace(/^@/, ''), 60),
     urlResenas: urlSegura(d.urlResenas),
-    plantilla: ['clasica', 'visual', 'express'].includes(d.plantilla) ? d.plantilla : 'clasica',
     whatsapp: normalizarWhatsapp(d.whatsapp),
+  }).catch((e: unknown) => {
+    const m = e instanceof Error ? e.message : '';
+    // Mensajes de 0026 (paleta / diseño asignado por DKitchen) ya redactados para el cliente
+    if (/paleta|DKitchen/.test(m)) throw new Error(m);
+    throw new Error('No se pudo guardar. Revisa los datos e inténtalo de nuevo.');
   });
   revalidatePath('/panel');
   revalidatePath(`/m/${restaurante.slug}`);

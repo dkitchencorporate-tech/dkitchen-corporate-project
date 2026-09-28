@@ -53,6 +53,7 @@ export interface FichaCliente {
     creado_en: string; pago_fallido_desde: string | null; logo_url: string | null; color_marca: string | null;
     descripcion: string | null; telefono: string | null; direccion: string | null; horario: string | null;
     instagram: string | null; url_resenas: string | null;
+    plantilla?: string; nivel_diseno?: string;
   };
   email: string | null;
   contacto: string | null;
@@ -140,4 +141,9 @@ export async function responderTicket(
 
 export async function cambiarEstadoSolicitudQr(jwt: string, solicitudId: string, estado: string) {
   await comoCliente(jwt, (c) => c.query('SELECT dk.admin_estado_solicitud_qr($1, $2)', [solicitudId, estado]));
+}
+
+/** Asigna plantilla, nivel y color de la carta (0026: solo DKitchen puede). */
+export async function asignarDiseno(jwt: string, restauranteId: string, plantilla: string, nivel: string, color: string | null) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_asignar_diseno($1, $2, $3, $4)', [restauranteId, plantilla, nivel, color]));
 }

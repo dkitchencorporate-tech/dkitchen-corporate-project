@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { exigirAdmin } from '@/lib/guard-admin';
 import {
-  cambiarEstadoCliente, cambiarPlanCliente, responderTicket, cambiarEstadoSolicitudQr,
+  cambiarEstadoCliente, cambiarPlanCliente, responderTicket, cambiarEstadoSolicitudQr, asignarDiseno,
 } from '@/lib/admin-clientes';
 import { enviarCorreoCliente, escaparHtml, escaparTexto } from '@/lib/email';
 
@@ -59,7 +59,7 @@ export async function responderTicketAction(formulario: FormData) {
         `<p style="margin:0 0 12px">Hola, hemos respondido a tu consulta <strong>«${escaparHtml(destino.asunto)}»</strong> sobre ${escaparHtml(destino.restaurante)}:</p>` +
           `<div style="border-left:3px solid #D9531E;background:#F6F5F3;border-radius:8px;padding:14px 16px;white-space:pre-wrap">${escaparTexto(respuesta, 4000)}</div>` +
           `<p style="margin:16px 0 0;font-size:14px;color:#6B6560">También la tienes en tu panel, en Soporte. Si necesitas algo más, responde a este correo.</p>`,
-        { titulo: 'Te hemos respondido', boton: { texto: 'Abrir mi panel', url: 'https://dkitchencorporate.es/panel' } }
+        { titulo: 'Te hemos respondido', boton: { texto: 'Ver en mi panel', url: 'https://dkitchencorporate.es/panel?pestana=soporte' } }
       );
     } catch (error) {
       // La respuesta ya quedó guardada y visible en el panel del cliente.
@@ -76,4 +76,18 @@ export async function estadoSolicitudAction(formulario: FormData) {
   if (!ESTADOS_SOLICITUD.includes(estado)) throw new Error('Estado no válido.');
   await cambiarEstadoSolicitudQr(jwt, id, estado);
   revalidatePath('/admin-dkitchen/soporte');
+}
+
+export async function asignarDisenoAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  const plantilla = String(formulario.get('plantilla'));
+  const nivel = String(formulario.get('nivel'));
+  const colorBruto = String(formulario.get('color') ?? '').trim();
+  if (!['clasica', 'visual', 'express'].includes(plantilla) || !['esencial', 'autor', 'signature'].includes(nivel)) {
+    throw new Error('Diseño no válido.');
+  }
+  const color = /^#[0-9a-fA-F]{6}$/.test(colorBruto) ? colorBruto.toUpperCase() : null;
+  await asignarDiseno(jwt, id, plantilla, nivel, color);
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
 }

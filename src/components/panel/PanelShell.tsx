@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
 import type { EscaneosPorDia } from '@/lib/escaneos-cliente';
@@ -57,6 +57,12 @@ export default function PanelShell({
   reservas: Reserva[];
 }) {
   const [pestana, setPestana] = useState<Pestana>('carta');
+
+  // Enlaces directos a una sección (p. ej. desde los correos: /panel?pestana=reservas)
+  useEffect(() => {
+    const pedida = new URLSearchParams(window.location.search).get('pestana');
+    if (pedida && PESTANAS.some((x) => x.id === pedida)) setPestana(pedida as Pestana);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#171008] text-white">

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { fichaCliente, historialCliente, type EntradaHistorial } from '@/lib/admin-clientes';
-import { cambiarEstadoAction, cambiarPlanAction } from '../actions';
+import { cambiarEstadoAction, cambiarPlanAction, asignarDisenoAction } from '../actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +20,7 @@ const ACCION: Record<string, string> = {
   'menu_secciones.delete': 'Eliminó una sección',
   'admin.cambiar_estado': 'DKitchen cambió el estado de la cuenta',
   'admin.cambiar_plan': 'DKitchen cambió el plan',
+  'admin.asignar_diseno': 'DKitchen asignó el diseño de la carta',
   'admin.responder_ticket': 'DKitchen respondió un ticket',
   'admin.estado_solicitud_qr': 'DKitchen actualizó un pedido de QR físico',
   aprovisionamiento_stripe: 'Alta tras el pago',
@@ -144,6 +145,37 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             Soporte y QR físico
           </Link>
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6">
+        <h2 className="font-bold">Diseño de la carta</h2>
+        <p className="text-xs text-white/40">
+          Solo DKitchen lo asigna (el cliente administra contenido). Esencial = incluido · Autor = Setup Experto · Signature = a medida.
+        </p>
+        <form action={asignarDisenoAction} className="mt-4 flex flex-wrap items-end gap-3 text-sm">
+          <input type="hidden" name="restauranteId" value={r.id} />
+          <label className="space-y-1">
+            <span className="block text-xs text-white/50">Plantilla</span>
+            <select name="plantilla" defaultValue={r.plantilla ?? 'clasica'} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2">
+              <option value="clasica">Clásica</option>
+              <option value="visual">Visual</option>
+              <option value="express">Express</option>
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="block text-xs text-white/50">Nivel</span>
+            <select name="nivel" defaultValue={r.nivel_diseno ?? 'esencial'} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2">
+              <option value="esencial">Esencial</option>
+              <option value="autor">Carta de Autor</option>
+              <option value="signature">Signature</option>
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="block text-xs text-white/50">Color (libre)</span>
+            <input type="color" name="color" defaultValue={r.color_marca ?? '#D9531E'} className="h-[38px] w-16 rounded-lg border border-white/10 bg-black/30 p-1" />
+          </label>
+          <button className="rounded-lg bg-[#D9531E] px-4 py-2 font-bold hover:bg-[#B8451A]">Aplicar diseño</button>
+        </form>
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-[#1c140b] p-6">
