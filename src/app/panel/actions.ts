@@ -304,8 +304,8 @@ export async function comprarServicioAction(servicio: Servicio): Promise<{ url: 
   });
 }
 
-export async function registrarOfertaAction(oferta: string, tipo: 'mostrada' | 'cerrada') {
-  if (!/^[a-z_]{3,30}$/.test(oferta) || !['mostrada', 'cerrada'].includes(tipo)) return;
+export async function registrarOfertaAction(oferta: string, tipo: 'mostrada' | 'cerrada' | 'aceptada') {
+  if (!/^[a-z_]{3,30}$/.test(oferta) || !['mostrada', 'cerrada', 'aceptada'].includes(tipo)) return;
   const { jwt } = await requerirSesionYRestaurante();
   await dbRegistrarOferta(jwt, oferta, tipo);
   if (tipo === 'cerrada') revalidatePath('/panel');

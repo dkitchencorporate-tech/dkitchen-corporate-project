@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import Inicio from './Inicio';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
 import type { EscaneosPorDia } from '@/lib/escaneos-cliente';
@@ -18,18 +20,17 @@ import Reservas from './Reservas';
 import Mejoras from './Mejoras';
 import Sala from './Sala';
 import Idiomas from './Idiomas';
-import OfertaFranja from './OfertaFranja';
 import type { EstadoServicios } from '@/lib/servicios';
 import type { MesaPlano, ElementoPlano, FilaInforme, Camarero as CamareroSala } from '@/lib/sala';
 import type { Promocion } from '@/lib/promociones';
 import type { Reserva } from '@/lib/reservas';
 import { authClient } from '@/lib/auth-client';
 
-type Pestana = 'carta' | 'local' | 'promociones' | 'reservas' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
+type Pestana = 'inicio' | 'carta' | 'local' | 'promociones' | 'reservas' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
 
 const GRUPOS: { titulo: string; items: { id: Pestana; nombre: string }[] }[] = [
   { titulo: 'Tu carta', items: [
-    { id: 'carta', nombre: 'Mi carta' }, { id: 'diseno', nombre: 'Diseño' }, { id: 'idiomas', nombre: 'Idiomas' },
+    { id: 'inicio', nombre: 'Inicio' }, { id: 'carta', nombre: 'Mi carta' }, { id: 'diseno', nombre: 'Diseño' }, { id: 'idiomas', nombre: 'Idiomas' },
     { id: 'promociones', nombre: 'Banners' }, { id: 'qr', nombre: 'Mi QR' },
   ] },
   { titulo: 'Servicio', items: [
@@ -77,7 +78,7 @@ export default function PanelShell({
     id === 'sala' ? modulos.plano || modulos.app || modulos.tpv
     : id === 'idiomas' ? tieneServ('idiomas')
     : (id !== 'camarero' && id !== 'reservas') || restaurante.plan === 'ampliado';
-  const [pestana, setPestanaBase] = useState<Pestana>('carta');
+  const [pestana, setPestanaBase] = useState<Pestana>('inicio');
   const [menu, setMenu] = useState(false);
   const setPestana = (p: Pestana) => { setPestanaBase(p); setMenu(false); window.scrollTo({ top: 0 }); };
 
@@ -102,8 +103,9 @@ export default function PanelShell({
               {items.map((p) => (
                 <li key={p.id}>
                   <button onClick={() => setPestana(p.id)} aria-current={pestana === p.id ? 'page' : undefined}
-                    className={`w-full rounded-lg px-3 py-2 text-left text-[15px] transition-colors ${pestana === p.id ? 'bg-white/[0.07] font-semibold text-white' : 'text-white/55 hover:bg-white/[0.04] hover:text-white'}`}>
-                    {p.nombre}
+                    className={`relative w-full rounded-xl px-3 py-2 text-left text-[15px] transition-colors ${pestana === p.id ? 'font-semibold text-white' : 'text-white/55 hover:text-white'}`}>
+                    {pestana === p.id && <motion.span layoutId="pestana-activa" className="absolute inset-0 rounded-xl bg-white/[0.08]" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                    <span className="relative">{p.nombre}</span>
                   </button>
                 </li>
               ))}
@@ -140,7 +142,7 @@ export default function PanelShell({
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="rounded-lg border border-white/10 px-3 py-2 text-sm">Ver carta</a>
-            <button onClick={() => setMenu(true)} aria-expanded={menu} className="rounded-lg bg-white/[0.08] px-3 py-2 text-sm font-semibold">Menú</button>
+            
           </div>
         </header>
 
@@ -161,9 +163,10 @@ export default function PanelShell({
           </div>
         )}
 
-      {servicios.oferta && pestana !== 'diseno' && pestana !== 'modulos' && <OfertaFranja oferta={servicios.oferta.oferta} onVer={() => setPestana(['setup_experto', 'setup_esencial'].includes(servicios.oferta!.oferta) ? 'diseno' : 'modulos')} />}
-
-      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+      <main className="mx-auto max-w-5xl px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:py-10">
+        <AnimatePresence mode="wait">
+        <motion.div key={pestana} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
+        {pestana === 'inicio' && <Inicio restaurante={restaurante} escaneosMes={escaneosMes} escaneos30d={escaneos30d} reservas={reservas} platos={carta.platos} servicios={servicios} ir={(p) => setPestana(p)} />}
         {pestana === 'carta' && <MiCarta carta={carta} />}
         {pestana === 'local' && <MiLocal restaurante={restaurante} />}
         {pestana === 'promociones' && <Promociones promociones={promociones} secciones={carta.secciones} plan={restaurante.plan} />}
@@ -178,7 +181,31 @@ export default function PanelShell({
         {pestana === 'escaneos' && <MisEscaneos escaneosMes={escaneosMes} escaneos30d={escaneos30d} />}
         {pestana === 'plan' && <MiPlan restaurante={restaurante} servicios={servicios} />}
         {pestana === 'soporte' && <Soporte tickets={tickets} />}
+        </motion.div>
+        </AnimatePresence>
       </main>
+
+      {/* Navegación flotante (móvil y tablet) */}
+      <nav aria-label="Navegación principal" className="fixed inset-x-3 bottom-3 z-40 lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <ul className="mx-auto flex max-w-md items-center justify-between rounded-full border border-white/10 bg-[#1A1510]/85 p-1.5 shadow-[0_12px_40px_rgba(0,0,0,.5)] backdrop-blur-xl">
+          {([
+            ['inicio', 'Inicio'], ['carta', 'Carta'],
+            restaurante.plan === 'ampliado' ? ['reservas', 'Reservas'] : ['qr', 'Mi QR'],
+            ['plan', 'Plan'],
+          ] as [Pestana, string][]).map(([id, n]) => (
+            <li key={id} className="flex-1">
+              <button onClick={() => setPestana(id)} aria-current={pestana === id ? 'page' : undefined}
+                className={`relative w-full rounded-full py-2.5 text-[13px] font-medium ${pestana === id ? 'text-[#14100C]' : 'text-white/65'}`}>
+                {pestana === id && <motion.span layoutId="nav-movil" className="absolute inset-0 rounded-full bg-white" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                <span className="relative">{n}</span>
+              </button>
+            </li>
+          ))}
+          <li className="flex-1">
+            <button onClick={() => setMenu(true)} className="w-full rounded-full py-2.5 text-[13px] font-medium text-white/65">Más</button>
+          </li>
+        </ul>
+      </nav>
       </div>
     </div>
   );

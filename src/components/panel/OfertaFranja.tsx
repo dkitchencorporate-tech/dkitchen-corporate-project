@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { registrarOfertaAction } from '@/app/panel/actions';
 
-const TEXTOS: Record<string, string> = {
+export const TEXTOS_OFERTA: Record<string, string> = {
   plan_ampliado: 'Tu carta ya tiene movimiento: con el plan Ampliado activas reservas, llamada al camarero y 3 banners.',
   setup_experto: 'Dale a tu carta el diseño que merece tu cocina: Carta de Autor a precio de lanzamiento.',
   idiomas: '¿Recibes turistas? Traducimos tu carta a 3 idiomas por un pago único.',
@@ -18,11 +18,11 @@ const TEXTOS: Record<string, string> = {
 export default function OfertaFranja({ oferta, onVer }: { oferta: string; onVer: () => void }) {
   const [visible, setVisible] = useState(true);
   useEffect(() => { registrarOfertaAction(oferta, 'mostrada').catch(() => {}); }, [oferta]);
-  if (!visible || !TEXTOS[oferta]) return null;
+  if (!visible || !TEXTOS_OFERTA[oferta]) return null;
   return (
     <div className="border-b border-[#D9531E]/20 bg-[#D9531E]/[0.07] px-4 py-3 sm:px-6 lg:px-10">
       <div className="mx-auto flex max-w-4xl items-center gap-3 text-sm">
-        <p className="flex-1 text-white/85">{TEXTOS[oferta]}</p>
+        <p className="flex-1 text-white/85">{TEXTOS_OFERTA[oferta]}</p>
         <button onClick={onVer} className="shrink-0 rounded-lg bg-[#D9531E] px-3 py-1.5 font-bold">Ver</button>
         <button onClick={() => { setVisible(false); registrarOfertaAction(oferta, 'cerrada').catch(() => {}); }} aria-label="Cerrar" className="shrink-0 text-white/40 hover:text-white">✕</button>
       </div>
