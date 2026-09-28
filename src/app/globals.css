@@ -71,5 +71,4 @@ a.hover\:bg-\[\#4A0819\]:hover, button.hover\:bg-\[\#4A0819\]:hover { background
 /* Sobre fondo oscuro el acento pasa a oro (el vino no se leería) */
 [class*="bg-[#0A080C]"] .text-\[\#6E0C2B\], [class*="bg-[#17191E]"] .text-\[\#6E0C2B\], [class*="bg-[#1B1D22]"] .text-\[\#6E0C2B\], [class*="bg-[#0B0C0F]"] .text-\[\#6E0C2B\] { color: #D9B25C; }
 [class*="bg-[#0A080C]"] .border-\[\#6E0C2B\], [class*="bg-[#17191E]"] .border-\[\#6E0C2B\] { border-color: #D9B25C; }
-.bg-white .text-\[\#6E0C2B\], [class*="bg-[#F7F5F2]"] .text-\[\#6E0C2B\] { color: #6E0C2B; }
 .oro-metal { background: linear-gradient(100deg, #8A6420 0%, #E9C877 22%, #FFF1C4 34%, #C99A3E 52%, #8A6420 70%, #E2BC6A 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }

@@ -126,7 +126,7 @@ export default function PanelShell({
         </div>
         <div className="flex-1 overflow-y-auto px-3"><Navegacion oscuro /></div>
         <div className="space-y-2 border-t border-white/10 px-6 py-5 text-sm">
-          <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="block font-semibold text-[#6E0C2B] hover:underline">Ver mi carta</a>
+          <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="block font-semibold text-[#D9B25C] hover:underline">Ver mi carta</a>
           <p className="truncate text-xs text-white/40">{identidad.email}</p>
           <button onClick={salir} className="text-xs text-white/55 hover:text-white">Cerrar sesión</button>
           <p className="pt-2 text-[10px] uppercase tracking-[0.2em] text-white/25">DKitchen</p>
