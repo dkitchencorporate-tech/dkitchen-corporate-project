@@ -10,9 +10,9 @@ const fechaLarga = (iso: string) =>
   new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`));
 
 const ESTILO: Record<Reserva['estado'], string> = {
-  pendiente: 'bg-amber-500/15 text-amber-300',
-  confirmada: 'bg-green-500/15 text-green-300',
-  cancelada: 'bg-white/10 text-white/40',
+  pendiente: 'bg-amber-500/15 text-amber-700',
+  confirmada: 'bg-green-500/15 text-green-700',
+  cancelada: 'bg-[#EDEDEA] text-[#6B7079]',
 };
 
 /** Reservas recibidas desde la carta (plan Ampliado). */

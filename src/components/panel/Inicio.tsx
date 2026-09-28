@@ -27,7 +27,7 @@ function Mini({ datos }: { datos: number[] }) {
   );
 }
 
-const tarjeta = 'rounded-[22px] border border-white/[0.07] bg-[#1A1510] p-5 transition-colors hover:border-white/[0.14]';
+const tarjeta = 'rounded-[22px] border border-[#E6E6E2] bg-white p-5 transition-colors hover:border-[#D6D6D1]';
 
 export default function Inicio({ restaurante, escaneosMes, escaneos30d, reservas, platos, servicios, ir }: {
   restaurante: MiRestaurante; escaneosMes: number; escaneos30d: EscaneosPorDia[]; reservas: Reserva[];
@@ -106,11 +106,11 @@ export default function Inicio({ restaurante, escaneosMes, escaneos30d, reservas
 
         {oferta && TEXTOS_OFERTA[oferta] ? (
           <motion.section {...entra(4)} className="relative overflow-hidden rounded-[22px] bg-[#E8592A] p-5 text-white">
-            <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#E5E5E1] blur-2xl" />
-            <p className="relative text-xs font-medium uppercase tracking-[0.18em] text-[#3F434B]">Para tu local</p>
+            <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/15 blur-2xl" />
+            <p className="relative text-xs font-medium uppercase tracking-[0.18em] text-white/75">Para tu local</p>
             <p className="relative mt-3 text-lg font-semibold leading-snug">{TEXTOS_OFERTA[oferta]}</p>
             <button onClick={() => { registrarOfertaAction(oferta, 'aceptada').catch(() => {}); ir(['setup_experto', 'setup_esencial'].includes(oferta) ? 'diseno' : 'modulos'); }}
-              className="relative mt-5 rounded-full bg-[#17191E] px-5 py-2.5 text-sm font-semibold text-white">
+              className="relative mt-5 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[#17191E]">
               Ver cómo funciona
             </button>
           </motion.section>

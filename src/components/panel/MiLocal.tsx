@@ -5,7 +5,7 @@ import type { MiRestaurante } from '@/lib/mi-restaurante';
 import { actualizarLocalAction } from '@/app/panel/actions';
 import SubirImagen from './SubirImagen';
 
-const campo = 'w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white placeholder-white/30';
+const campo = 'w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]';
 
 const PLANTILLAS = [
   { id: 'clasica', nombre: 'Clásica', para: 'Restaurante, menú del día, cartas largas' },
@@ -33,7 +33,7 @@ const NIVELES: Record<string, { nombre: string }> = {
 
 /** Miniatura esquemática de cada plantilla, con el color de marca elegido. */
 function MiniPlantilla({ tipo, color }: { tipo: string; color: string }) {
-  const barra = 'h-1.5 rounded bg-black/15';
+  const barra = 'h-1.5 rounded bg-white';
   return (
     <div className="h-24 overflow-hidden rounded-lg bg-[#fbfaf8] p-2" aria-hidden="true">
       {tipo === 'visual' ? (

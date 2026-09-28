@@ -25,9 +25,9 @@ const PLANES = {
 } as const;
 
 const ESTADOS: Record<string, { texto: string; color: string }> = {
-  activo: { texto: 'Activa', color: 'text-green-400' },
-  gracia: { texto: 'Pago pendiente (periodo de gracia)', color: 'text-amber-400' },
-  suspendido: { texto: 'Suspendida por impago', color: 'text-red-400' },
+  activo: { texto: 'Activa', color: 'text-green-700' },
+  gracia: { texto: 'Pago pendiente (periodo de gracia)', color: 'text-amber-700' },
+  suspendido: { texto: 'Suspendida por impago', color: 'text-red-600' },
 };
 
 export default function MiPlan({ restaurante, servicios }: { restaurante: MiRestaurante; servicios: EstadoServicios }) {
@@ -35,7 +35,7 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const actual = esAmpliado ? PLANES.ampliado : PLANES.basico;
-  const estado = ESTADOS[restaurante.estadoAcceso] ?? { texto: restaurante.estadoAcceso, color: 'text-white/60' };
+  const estado = ESTADOS[restaurante.estadoAcceso] ?? { texto: restaurante.estadoAcceso, color: 'text-[#6B7079]' };
 
   function mejorar() {
     setError(null);

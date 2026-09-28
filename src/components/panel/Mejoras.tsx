@@ -197,7 +197,7 @@ function NivelCard({ titulo, subtitulo, puntos, maqueta, pie, actual, destacada 
   );
 }
 
-const barra = 'h-1.5 rounded bg-black/15';
+const barra = 'h-1.5 rounded bg-white';
 function MaquetaEsencial() {
   return (
     <div className="h-40 space-y-2 bg-[#fbfaf8] p-3" aria-hidden="true">

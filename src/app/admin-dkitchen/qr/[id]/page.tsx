@@ -341,7 +341,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             {historial.map((e, i) => (
               <li key={i} className="border-l-2 border-[#E6E6E2] pl-4">
                 <p className="text-sm">
-                  <span className={e.quien === 'DKitchen' ? 'text-[#D9531E]' : e.quien === 'sistema' ? 'text-white/50' : 'text-white'}>
+                  <span className={e.quien === 'DKitchen' ? 'text-[#E8592A]' : e.quien === 'sistema' ? 'text-[#6B7079]' : 'text-[#1B1D22]'}>
                     {ACCION[e.accion] ?? e.accion}
                   </span>
                   <span className="ml-2 text-xs text-[#9A9EA6]">{fechaHora.format(new Date(e.ocurridoEn))}</span>

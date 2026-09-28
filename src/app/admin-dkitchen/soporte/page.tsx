@@ -7,9 +7,9 @@ export const dynamic = 'force-dynamic';
 
 const fechaHora = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 const COLOR: Record<string, string> = {
-  abierto: 'bg-amber-500/15 text-amber-300',
-  respondido: 'bg-green-500/15 text-green-300',
-  cerrado: 'bg-white/10 text-white/50',
+  abierto: 'bg-amber-500/15 text-amber-700',
+  respondido: 'bg-green-500/15 text-green-700',
+  cerrado: 'bg-[#EDEDEA] text-[#6B7079]',
 };
 const ESTADOS_SOLICITUD = ['solicitado', 'presupuestado', 'pagado', 'en_produccion', 'enviado'];
 

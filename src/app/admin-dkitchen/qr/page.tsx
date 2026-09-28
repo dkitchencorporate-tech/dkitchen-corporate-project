@@ -8,9 +8,9 @@ export const dynamic = 'force-dynamic';
 const PRECIO: Record<string, number> = { basico: 9, ampliado: 25 };
 const fecha = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
 const COLOR_ESTADO: Record<string, string> = {
-  activo: 'bg-green-500/15 text-green-400',
-  gracia: 'bg-amber-500/15 text-amber-400',
-  suspendido: 'bg-red-500/15 text-red-400',
+  activo: 'bg-green-500/15 text-green-700',
+  gracia: 'bg-amber-500/15 text-amber-700',
+  suspendido: 'bg-red-500/15 text-red-600',
 };
 
 const FILTROS = [

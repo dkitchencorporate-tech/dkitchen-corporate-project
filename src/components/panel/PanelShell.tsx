@@ -187,7 +187,7 @@ export default function PanelShell({
 
       {/* Navegación flotante (móvil y tablet) */}
       <nav aria-label="Navegación principal" className="fixed inset-x-3 bottom-3 z-40 lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <ul className="mx-auto flex max-w-md items-center justify-between rounded-full border border-white/10 bg-[#17191E]/95 p-1.5 shadow-[0_12px_32px_rgba(23,25,30,.28)] backdrop-blur-xl">
+        <ul className="mx-auto flex max-w-md items-center justify-between rounded-full border border-[#E6E6E2] bg-[#17191E]/95 p-1.5 shadow-[0_12px_32px_rgba(23,25,30,.28)] backdrop-blur-xl">
           {([
             ['inicio', 'Inicio'], ['carta', 'Carta'],
             restaurante.plan === 'ampliado' ? ['reservas', 'Reservas'] : ['qr', 'Mi QR'],

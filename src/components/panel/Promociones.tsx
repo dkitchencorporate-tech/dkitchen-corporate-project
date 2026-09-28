@@ -6,7 +6,7 @@ import type { SeccionPropia } from '@/lib/menu-propietario';
 import { crearPromocionAction, editarPromocionAction, eliminarPromocionAction } from '@/app/panel/actions';
 import SubirImagen from './SubirImagen';
 
-const campo = 'w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white placeholder-white/30';
+const campo = 'w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]';
 const DIAS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
 const VACIA: DatosPromocion = {

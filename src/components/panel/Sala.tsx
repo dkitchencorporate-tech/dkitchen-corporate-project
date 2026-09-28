@@ -32,7 +32,7 @@ export default function Sala({
     });
   };
   const zonas = elementos.filter((e) => e.tipo === 'zona');
-  const campo = 'rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-white placeholder-white/30';
+  const campo = 'rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]';
 
   return (
     <div className="space-y-8">
@@ -87,7 +87,7 @@ export default function Sala({
           <ul className="divide-y divide-[#ECECE8]">
             {camareros.map((c) => (
               <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
-                <span className={c.activo ? '' : 'text-white/30 line-through'}>
+                <span className={c.activo ? '' : 'text-[#9A9EA6] line-through'}>
                   {c.nombre} <span className="text-xs text-[#9A9EA6]">· {mesas.filter((m) => m.camareroId === c.id).length} mesas · {c.ultimoAcceso ? `última vez ${new Date(c.ultimoAcceso).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : 'sin usar'}</span>
                 </span>
                 {c.activo && <button onClick={() => accion(() => desactivarCamareroAction(c.id), 'Acceso desactivado.')} className="text-xs text-red-600">Desactivar</button>}

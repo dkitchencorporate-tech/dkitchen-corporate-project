@@ -126,7 +126,7 @@ export default function EditorSala({
     onCerrar();
   }
 
-  const campo = 'w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-sm text-white';
+  const campo = 'w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-sm text-[#1B1D22]';
   const nombreCam = (id: string | null) => camareros.find((c) => c.id === id)?.nombre;
 
   return (
@@ -151,13 +151,13 @@ export default function EditorSala({
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <div className="min-h-0 flex-1 overflow-auto p-3">
           <div ref={lienzo} onPointerMove={mover} onPointerUp={soltar} onPointerCancel={soltar} onPointerDown={() => setSel(null)}
-            className="relative mx-auto aspect-[4/3] w-full max-w-4xl touch-none select-none overflow-hidden rounded-xl border border-[#D6D6D1] bg-white bg-[linear-gradient(rgba(255,255,255,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.04)_1px,transparent_1px)] bg-[size:4%_5.33%]">
+            className="relative mx-auto aspect-[4/3] w-full max-w-4xl touch-none select-none overflow-hidden rounded-xl border border-[#D6D6D1] bg-white bg-[linear-gradient(rgba(23,25,30,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(23,25,30,.06)_1px,transparent_1px)] bg-[size:4%_5.33%]">
             {elementos.map((e) => {
               const s = sel?.clave === e.clave;
               const estilo = e.tipo === 'zona'
                 ? { background: `${e.color ?? '#D9531E'}22`, border: `2px dashed ${e.color ?? '#D9531E'}` }
-                : e.tipo === 'pared' ? { background: '#d6d0c8' }
-                : e.tipo === 'division' ? { background: '#8c857d' }
+                : e.tipo === 'pared' ? { background: '#3F434B' }
+                : e.tipo === 'division' ? { background: '#9A9EA6' }
                 : e.tipo === 'barra' ? { background: '#6B4E2E' }
                 : { background: '#3a6ea5' };
               return (
