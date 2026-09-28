@@ -95,7 +95,7 @@ export default function CartaAutor({
           <p className={`${serif.className} py-24 text-center text-2xl italic text-black/50`}>Muy pronto, nuestra carta.</p>
         ) : (
           grupos.map((g, i) => {
-            const destacado = g.platos.find((p) => p.fotoUrl);
+            const destacado = g.platos.find((p) => p.fotoUrl && p.fotoUrl !== portada);
             return (
               <section key={g.id} id={`s-${g.id}`} className="scroll-mt-16 pt-16">
                 <div className="text-center">
