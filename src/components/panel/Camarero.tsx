@@ -73,7 +73,7 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
           <p className="text-sm text-[#6B7079]">Deja esta pantalla abierta en la barra. Se actualiza sola cada 8 segundos.</p>
         </div>
         {!sonido ? (
-          <button onClick={activarSonido} className="shrink-0 bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-4 py-2 rounded-full">
+          <button onClick={activarSonido} className="shrink-0 bg-[#6E0C2B] hover:bg-[#4A0819] text-white text-sm font-bold px-4 py-2 rounded-full">
             🔔 Activar alarma sonora
           </button>
         ) : (
@@ -88,7 +88,7 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
       ) : (
         <ul className="grid sm:grid-cols-2 gap-3">
           {llamadas.map((l) => (
-            <li key={l.id} className="flex items-center justify-between gap-3 rounded-2xl border-2 border-[#E8592A] bg-[#E8592A]/10 p-5 animate-pulse">
+            <li key={l.id} className="flex items-center justify-between gap-3 rounded-2xl border-2 border-[#6E0C2B] bg-[#6E0C2B]/10 p-5 animate-pulse">
               <div>
                 <p className="text-2xl font-black">Mesa {l.mesa}</p>
                 <p className="text-sm text-[#6B7079]">
@@ -124,7 +124,7 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
             <a
               key={n}
               href={`/api/mi-qr/imagen?mesa=${n}`}
-              className="rounded-lg border border-[#E6E6E2] py-2 text-center text-sm font-semibold hover:border-[#E8592A] hover:text-[#E8592A]"
+              className="rounded-lg border border-[#E6E6E2] py-2 text-center text-sm font-semibold hover:border-[#6E0C2B] hover:text-[#6E0C2B]"
             >
               Mesa {n}
             </a>

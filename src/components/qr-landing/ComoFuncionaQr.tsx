@@ -18,7 +18,7 @@ const CURVA = [0.22, 1, 0.36, 1] as [number, number, number, number];
 function PantallaAlta() {
   return (
     <div className="flex h-full flex-col bg-[#FBF8F3] p-6 text-[#1A1714]">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#E8592A]">QR Menú · Plan Ampliado</p>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6E0C2B]">QR Menú · Plan Ampliado</p>
       <p className="font-display mt-2 text-2xl font-semibold">Activa tu carta</p>
       <div className="mt-4 flex items-baseline justify-between rounded-2xl border border-[#E7E1D8] bg-white px-4 py-3">
         <span className="text-sm font-semibold">Primer mes</span><span className="font-display text-2xl font-semibold">1 €</span>
@@ -37,18 +37,18 @@ function PantallaAlta() {
 function PantallaPanel() {
   const platos: [string, string, boolean][] = [['Croquetas de jamón', '9,50', true], ['Arroz meloso', '18', true], ['Presa ibérica', '19,50', false]];
   return (
-    <div className="flex h-full flex-col bg-[#F7F7F5] p-5 text-[#1B1D22]">
+    <div className="flex h-full flex-col bg-[#F7F5F2] p-5 text-[#1B1D22]">
       <p className="text-xs text-[#6B7079]">Buenas tardes</p>
       <p className="font-display text-xl font-semibold">Casa Brasa</p>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <div className="rounded-2xl border border-[#E6E6E2] bg-white p-3"><p className="text-[10px] text-[#6B7079]">Escaneos</p><p className="font-display text-2xl font-semibold">1.284</p></div>
-        <div className="rounded-2xl bg-[#E8592A] p-3 text-white"><p className="text-[10px] text-white/80">Estilo</p><p className="text-sm font-semibold">Editorial · papel</p></div>
+        <div className="rounded-2xl bg-[#6E0C2B] p-3 text-white"><p className="text-[10px] text-white/80">Estilo</p><p className="text-sm font-semibold">Editorial · papel</p></div>
       </div>
       <p className="mt-4 text-xs font-semibold">Mi carta</p>
       <div className="mt-2 space-y-2">
         {platos.map(([n, pr, foto]) => (
           <div key={n} className="flex items-center gap-3 rounded-xl border border-[#E6E6E2] bg-white p-2.5">
-            <div className={`h-9 w-9 rounded-lg ${foto ? 'bg-[linear-gradient(135deg,#E8592A55,#C58B2A44)]' : 'border border-dashed border-[#D6D6D1]'}`} />
+            <div className={`h-9 w-9 rounded-lg ${foto ? 'bg-[linear-gradient(135deg,#6E0C2B55,#C58B2A44)]' : 'border border-dashed border-[#D6D6D1]'}`} />
             <span className="flex-1 text-sm">{n}</span><span className="text-sm font-semibold tabular-nums">{pr} €</span>
           </div>
         ))}
@@ -72,7 +72,7 @@ export default function ComoFuncionaQr() {
   useMotionValueEvent(scrollYProgress, 'change', (v) => setPaso(v < 0.34 ? 0 : v < 0.67 ? 1 : 2));
   const cabecera = (
     <>
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Cómo funciona</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Cómo funciona</p>
       <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl">De cero a tu carta en las mesas, hoy.</h2>
     </>
   );
@@ -87,8 +87,8 @@ export default function ComoFuncionaQr() {
               {cabecera}
               <ol className="mt-10 space-y-2">
                 {PASOS.map((s, i) => (
-                  <li key={s.n} className={`rounded-3xl border p-6 transition-all duration-500 ${paso === i ? 'border-[#17191E] bg-[#F7F7F5]' : 'border-transparent opacity-40'}`}>
-                    <div className="flex gap-5"><span className="font-display text-sm font-semibold text-[#E8592A]">{s.n}</span>
+                  <li key={s.n} className={`rounded-3xl border p-6 transition-all duration-500 ${paso === i ? 'border-[#17191E] bg-[#F7F5F2]' : 'border-transparent opacity-40'}`}>
+                    <div className="flex gap-5"><span className="font-display text-sm font-semibold text-[#6E0C2B]">{s.n}</span>
                       <div><h3 className="text-xl font-semibold text-[#17191E]">{s.t}</h3><p className="mt-2 text-[#6B7079]">{s.d}</p></div></div>
                   </li>
                 ))}
@@ -112,7 +112,7 @@ export default function ComoFuncionaQr() {
         {cabecera}
         {PASOS.map((s, i) => (
           <div key={s.n} className="mt-14">
-            <p className="font-display text-sm font-semibold text-[#E8592A]">{s.n}</p>
+            <p className="font-display text-sm font-semibold text-[#6E0C2B]">{s.n}</p>
             <h3 className="mt-1 text-2xl font-semibold text-[#17191E]">{s.t}</h3>
             <p className="mt-2 text-[#6B7079]">{s.d}</p>
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.25 }} transition={{ duration: 0.6, ease: CURVA }} className="mx-auto mt-8 w-[270px]">

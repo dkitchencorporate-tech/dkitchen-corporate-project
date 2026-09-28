@@ -23,7 +23,7 @@ function Mini({ datos }: { datos: number[] }) {
   const pts = datos.map((v, i) => `${(i / Math.max(1, datos.length - 1)) * w},${h - (v / max) * (h - 4) - 2}`).join(' ');
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="h-9 w-28" aria-hidden="true">
-      <polyline points={pts} fill="none" stroke="#E8592A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points={pts} fill="none" stroke="#6E0C2B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -70,7 +70,7 @@ export default function Inicio({ restaurante, escaneosMes, escaneos30d, reservas
         {ampliado ? (
           <motion.button {...entra(1)} onClick={() => ir('reservas')} className={`${tarjeta} text-left`}>
             <p className="text-xs text-[#6B7079]">Reservas por confirmar</p>
-            <p className={`mt-2 font-display text-4xl font-semibold tabular-nums ${pendientes ? 'text-[#E8592A]' : ''}`}><Contador hasta={pendientes} /></p>
+            <p className={`mt-2 font-display text-4xl font-semibold tabular-nums ${pendientes ? 'text-[#6E0C2B]' : ''}`}><Contador hasta={pendientes} /></p>
             <p className="mt-1 text-xs text-[#6B7079]">{deHoy.length} para hoy</p>
           </motion.button>
         ) : (
@@ -106,7 +106,7 @@ export default function Inicio({ restaurante, escaneosMes, escaneos30d, reservas
         </motion.section>
 
         {oferta && TEXTOS_OFERTA[oferta] ? (
-          <motion.section {...entra(4)} className="relative overflow-hidden rounded-[22px] bg-[#E8592A] p-5 text-white">
+          <motion.section {...entra(4)} className="relative overflow-hidden rounded-[22px] bg-[#6E0C2B] p-5 text-white">
             <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/15 blur-2xl" />
             <p className="relative text-xs font-medium uppercase tracking-[0.18em] text-white/75">Para tu local</p>
             <p className="relative mt-3 text-lg font-semibold leading-snug">{TEXTOS_OFERTA[oferta]}</p>

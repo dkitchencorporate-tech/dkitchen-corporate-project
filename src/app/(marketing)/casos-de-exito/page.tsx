@@ -38,19 +38,19 @@ export default function CasosDeExito() {
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Titulo etiqueta="Canilés, Granada · DKitchen Signature" texto="Néstor Pizzas: de pedir por teléfono a tener su propia app." />
           <div className="mt-14 grid gap-5 md:grid-cols-2">
-            <Aparecer className="rounded-[28px] border border-[#E6E6E2] bg-[#F7F7F5] p-8"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A9EA6]">Antes</p><p className="font-display mt-3 text-3xl font-semibold">Pedidos solo por teléfono, sin carta digital propia.</p></Aparecer>
-            <Aparecer retraso={0.1} className="rounded-[28px] bg-[#111317] p-8 text-white"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#E8592A]">Ahora</p><p className="font-display mt-3 text-3xl font-semibold">Su propia app en producción: pedido, catálogo y club de fidelización.</p></Aparecer>
+            <Aparecer className="rounded-[28px] border border-[#E6E6E2] bg-[#F7F5F2] p-8"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A9EA6]">Antes</p><p className="font-display mt-3 text-3xl font-semibold">Pedidos solo por teléfono, sin carta digital propia.</p></Aparecer>
+            <Aparecer retraso={0.1} className="rounded-[28px] bg-[#0A080C] p-8 text-white"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#6E0C2B]">Ahora</p><p className="font-display mt-3 text-3xl font-semibold">Su propia app en producción: pedido, catálogo y club de fidelización.</p></Aparecer>
           </div>
           <div className="mt-5 grid gap-5 md:grid-cols-3">
             {([[50, '+', 'productos en su carta, con ingredientes y precio'], [0, ' %', 'de comisión de plataforma por pedido'], [1, '', 'club de fidelización propio con puntos y canje']] as [number, string, string][]).map(([n, s, t], i) => (
-              <Aparecer key={t} retraso={i * 0.08}><TarjetaTilt className="h-full rounded-[28px] border border-[#E6E6E2] p-7"><p className="font-display text-5xl font-semibold text-[#E8592A]"><Contador hasta={n} sufijo={s} /></p><p className="mt-2 text-[#6B7079]">{t}</p></TarjetaTilt></Aparecer>
+              <Aparecer key={t} retraso={i * 0.08}><TarjetaTilt className="h-full rounded-[28px] border border-[#E6E6E2] p-7"><p className="font-display text-5xl font-semibold text-[#6E0C2B]"><Contador hasta={n} sufijo={s} /></p><p className="mt-2 text-[#6B7079]">{t}</p></TarjetaTilt></Aparecer>
             ))}
           </div>
-          <Aparecer className="mt-10"><a href="https://nestorpizzas.es/" target="_blank" rel="noopener" className="inline-flex items-center gap-2 font-semibold">Ver su app en vivo <span className="text-[#E8592A]">↗</span></a></Aparecer>
+          <Aparecer className="mt-10"><a href="https://nestorpizzas.es/" target="_blank" rel="noopener" className="inline-flex items-center gap-2 font-semibold">Ver su app en vivo <span className="text-[#6E0C2B]">↗</span></a></Aparecer>
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-[#111317] py-24 text-white md:py-32">
+      <section className="relative overflow-hidden bg-[#0A080C] py-24 text-white md:py-32">
         <FondoVivo className="opacity-50" />
         <div className="relative mx-auto max-w-6xl px-6 md:px-8">
           <Titulo oscuro etiqueta="Desarrollos" texto="Más apps hechas con DKitchen." sub="Modelos reales que puedes probar ahora mismo. Si te gusta uno, lo adaptamos a tu marca." />
@@ -58,13 +58,13 @@ export default function CasosDeExito() {
         </div>
       </section>
 
-      <section className="bg-[#F7F7F5] py-20">
+      <section className="bg-[#F7F5F2] py-20">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Aparecer className="rounded-[28px] border border-[#E6E6E2] bg-white p-8 md:p-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#E8592A]">Velocidad real</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#6E0C2B]">Velocidad real</p>
             <p className="font-display mt-2 text-3xl font-semibold md:text-4xl">Bokadipan: una app completa en menos de 3 horas.</p>
             <p className="mt-3 max-w-2xl text-[#6B7079]">Carta, club de puntos, idiomas y pedido directo, montados sobre la misma base que Seven Food Fries y Wing Boss. Tu app no empieza de cero: empieza de algo que ya funciona.</p>
-            <a href="https://bokadipan.dkitchencorporate.es/" target="_blank" rel="noopener" className="mt-5 inline-flex items-center gap-2 font-semibold">Ver Bokadipan en vivo <span className="text-[#E8592A]">↗</span></a>
+            <a href="https://bokadipan.dkitchencorporate.es/" target="_blank" rel="noopener" className="mt-5 inline-flex items-center gap-2 font-semibold">Ver Bokadipan en vivo <span className="text-[#6E0C2B]">↗</span></a>
           </Aparecer>
         </div>
       </section>

@@ -12,17 +12,17 @@ export function Boton({ c }: { c: Cta }) {
   return (
     <BotonMagnetico href={c.href} className={c.secundario
       ? 'inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-8 py-4 text-[15px] font-semibold backdrop-blur hover:border-white/50'
-      : 'inline-flex items-center justify-center rounded-full bg-[#E8592A] px-8 py-4 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(232,89,42,.45)] hover:bg-[#CF4A1F]'}>{c.t}</BotonMagnetico>
+      : 'inline-flex items-center justify-center rounded-full bg-[#6E0C2B] px-8 py-4 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(163,24,74,.45)] hover:bg-[#4A0819]'}>{c.t}</BotonMagnetico>
   );
 }
 
 export function HeroPagina({ etiqueta, titulo, sub, ctas, visual, nota }: { etiqueta: string; titulo: string; sub: string; ctas: Cta[]; visual: React.ReactNode; nota?: string }) {
   return (
-    <section className="relative overflow-hidden bg-[#111317] pb-24 pt-36 text-white md:pb-32 md:pt-44">
+    <section className="relative overflow-hidden bg-[#0A080C] pb-24 pt-36 text-white md:pb-32 md:pt-44">
       <FondoVivo />
       <div className="relative mx-auto grid max-w-6xl items-center gap-16 px-6 md:grid-cols-[1.1fr_1fr] md:px-8">
         <div>
-          <Aparecer><p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/80 backdrop-blur"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#E8592A]" /> {etiqueta}</p></Aparecer>
+          <Aparecer><p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/80 backdrop-blur"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#6E0C2B]" /> {etiqueta}</p></Aparecer>
           <TextoRevelado como="h1" texto={titulo} className="font-display mt-6 text-[46px] font-semibold leading-[0.98] sm:text-7xl lg:text-[80px]" />
           <Aparecer retraso={0.3}><p className="mt-7 max-w-lg text-lg leading-relaxed text-white/70">{sub}</p></Aparecer>
           <Aparecer retraso={0.4} className="mt-9 flex flex-col gap-3 sm:flex-row">{ctas.map((c) => <Boton key={c.t} c={c} />)}</Aparecer>
@@ -37,7 +37,7 @@ export function HeroPagina({ etiqueta, titulo, sub, ctas, visual, nota }: { etiq
 export function Titulo({ etiqueta, texto, sub, oscuro = false, centrado = false }: { etiqueta: string; texto: string; sub?: string; oscuro?: boolean; centrado?: boolean }) {
   return (
     <div className={centrado ? 'mx-auto max-w-3xl text-center' : 'max-w-3xl'}>
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">{etiqueta}</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">{etiqueta}</p>
       <TextoRevelado texto={texto} className={`font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-6xl ${oscuro ? 'text-white' : 'text-[#17191E]'}`} />
       {sub && <Aparecer retraso={0.2}><p className={`mt-5 text-lg ${oscuro ? 'text-white/60' : 'text-[#6B7079]'}`}>{sub}</p></Aparecer>}
     </div>
@@ -50,7 +50,7 @@ export function Dolores({ items, cta }: { items: [string, string][]; cta?: Cta }
       <div className="mt-14 grid gap-4 md:grid-cols-2">
         {items.map(([a, b], i) => (
           <Aparecer key={a} retraso={(i % 2) * 0.08} className="rounded-[28px] border border-[#E6E6E2] bg-white p-7 transition duration-500 hover:-translate-y-1 hover:border-[#17191E]">
-            <span className="font-display text-sm font-semibold text-[#E8592A]">0{i + 1}</span>
+            <span className="font-display text-sm font-semibold text-[#6E0C2B]">0{i + 1}</span>
             <p className="mt-3 text-xl font-semibold leading-snug text-[#17191E]">{a}</p>
             <p className="mt-2 text-[#6B7079]">{b}</p>
           </Aparecer>
@@ -83,7 +83,7 @@ export function Faq({ preguntas }: { preguntas: [string, string][] }) {
 
 export function Cierre({ titulo, sub, cta, secundario }: { titulo: string; sub: string; cta: Cta; secundario?: Cta }) {
   return (
-    <section className="relative overflow-hidden bg-[#111317] py-28 text-center text-white md:py-36">
+    <section className="relative overflow-hidden bg-[#0A080C] py-28 text-center text-white md:py-36">
       <FondoVivo />
       <div className="relative mx-auto max-w-3xl px-6">
         <TextoRevelado texto={titulo} className="font-display text-5xl font-semibold leading-[1.0] md:text-7xl" />

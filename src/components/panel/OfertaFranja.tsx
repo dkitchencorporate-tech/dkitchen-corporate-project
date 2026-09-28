@@ -20,10 +20,10 @@ export default function OfertaFranja({ oferta, onVer }: { oferta: string; onVer:
   useEffect(() => { registrarOfertaAction(oferta, 'mostrada').catch(() => {}); }, [oferta]);
   if (!visible || !TEXTOS_OFERTA[oferta]) return null;
   return (
-    <div className="border-b border-[#E8592A]/20 bg-[#E8592A]/[0.07] px-4 py-3 sm:px-6 lg:px-10">
+    <div className="border-b border-[#6E0C2B]/20 bg-[#6E0C2B]/[0.07] px-4 py-3 sm:px-6 lg:px-10">
       <div className="mx-auto flex max-w-4xl items-center gap-3 text-sm">
         <p className="flex-1 text-[#3F434B]">{TEXTOS_OFERTA[oferta]}</p>
-        <button onClick={onVer} className="shrink-0 rounded-full bg-[#E8592A] px-3 py-1.5 font-bold">Ver</button>
+        <button onClick={onVer} className="shrink-0 rounded-full bg-[#6E0C2B] px-3 py-1.5 font-bold">Ver</button>
         <button onClick={() => { setVisible(false); registrarOfertaAction(oferta, 'cerrada').catch(() => {}); }} aria-label="Cerrar" className="shrink-0 text-[#6B7079] hover:text-[#1B1D22]">✕</button>
       </div>
     </div>

@@ -38,7 +38,7 @@ function Formulario({ tipo, onCerrar }: { tipo: Tipo; onCerrar: () => void }) {
           {SERVICIOS.map(([h, t, d]) => (
             <Link key={h} href={h} onClick={onCerrar} className="group flex items-center justify-between rounded-2xl border border-[#E6E6E2] px-4 py-3.5 hover:border-[#17191E]">
               <span><span className="block font-semibold">{t}</span><span className="block text-sm text-[#6B7079]">{d}</span></span>
-              <span className="text-[#E8592A] transition-transform group-hover:translate-x-1">→</span>
+              <span className="text-[#6E0C2B] transition-transform group-hover:translate-x-1">→</span>
             </Link>
           ))}
         </div>
@@ -48,7 +48,7 @@ function Formulario({ tipo, onCerrar }: { tipo: Tipo; onCerrar: () => void }) {
   return (
     <form onSubmit={enviar} className="space-y-4 p-7">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#E8592A]">{tipo === 'partner' ? 'Programa de partners' : 'Entre hosteleros'}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#6E0C2B]">{tipo === 'partner' ? 'Programa de partners' : 'Entre hosteleros'}</p>
         <p className="font-display mt-2 text-2xl font-semibold">{tipo === 'partner' ? 'Gana con DKitchen' : 'Recomienda a un hostelero'}</p>
         <p className="mt-1 text-sm text-[#6B7079]">{tipo === 'partner' ? 'Comerciales de TPV, distribuidores HORECA e independientes: cuéntanos quién eres y te contamos las condiciones.' : '¿Conoces un local que siga reimprimiendo cartas? Déjanos sus datos y los tuyos, y nosotros hacemos el resto.'}</p>
       </div>
@@ -72,7 +72,7 @@ function Formulario({ tipo, onCerrar }: { tipo: Tipo; onCerrar: () => void }) {
       <label className="block text-sm font-medium">{tipo === 'partner' ? '¿Con qué clientes trabajas?' : 'Comentario'}<textarea name="mensaje" rows={2} maxLength={600} className={campo} /></label>
       <label className="flex items-start gap-2 text-sm text-[#6B7079]"><input type="checkbox" name="consentimiento" required className="mt-1" /> Acepto que DKitchen use estos datos para contactarme (ver <a href="/privacy" className="underline">privacidad</a>).</label>
       {estado === 'error' && <p className="text-sm text-red-600">{error}</p>}
-      <button disabled={estado === 'enviando'} className="w-full rounded-full bg-[#E8592A] py-4 text-[15px] font-semibold text-white disabled:opacity-50">{estado === 'enviando' ? 'Enviando…' : 'Enviar'}</button>
+      <button disabled={estado === 'enviando'} className="w-full rounded-full bg-[#6E0C2B] py-4 text-[15px] font-semibold text-white disabled:opacity-50">{estado === 'enviando' ? 'Enviando…' : 'Enviar'}</button>
     </form>
   );
 }

@@ -27,7 +27,7 @@ export default function MisEscaneos({
 
       <div className="bg-white border border-[#E6E6E2] rounded-2xl p-6">
         <p className="text-[#6B7079] text-sm">Este mes</p>
-        <p className="text-4xl font-black text-[#E8592A] mt-1">{escaneosMes}</p>
+        <p className="text-4xl font-black text-[#6E0C2B] mt-1">{escaneosMes}</p>
         <p className="text-[#6B7079] text-xs mt-1">
           Cuenta cada vez que alguien escanea tu QR — el umbral que usamos para saber si conviene subir
           de plan es 600/mes sostenido.
@@ -41,7 +41,7 @@ export default function MisEscaneos({
             <motion.div
               key={d.fecha}
               title={`${d.fecha}: ${d.total}`}
-              className="flex-1 rounded-t-md bg-[#E8592A] min-h-[2px]"
+              className="flex-1 rounded-t-md bg-[#6E0C2B] min-h-[2px]"
               initial={{ height: 0 }}
               animate={{ height: `${Math.max(2, (d.total / maximo) * 100)}%` }}
               transition={{ duration: 0.7, delay: i * 0.02, ease: [0.22, 1, 0.36, 1] }}

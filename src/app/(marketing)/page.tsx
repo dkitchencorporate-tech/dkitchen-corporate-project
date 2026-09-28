@@ -33,7 +33,7 @@ const ESCALERA = [
 export default function Home() {
   return (
     <div className="bg-white text-[#17191E]">
-      <section className="relative overflow-hidden bg-[#111317] pb-24 pt-36 text-white md:pb-32 md:pt-44">
+      <section className="relative overflow-hidden bg-[#0A080C] pb-24 pt-36 text-white md:pb-32 md:pt-44">
         <FondoVivo />
         <div className="relative mx-auto grid max-w-6xl items-center gap-16 px-6 md:grid-cols-[1.15fr_1fr] md:px-8">
           <div>
@@ -41,7 +41,7 @@ export default function Home() {
             <TextoRevelado como="h1" texto="Tu restaurante, con sistema propio." className="font-display mt-6 text-[50px] font-semibold leading-[0.98] sm:text-7xl lg:text-[88px]" />
             <Aparecer retraso={0.3}><p className="mt-7 max-w-lg text-lg leading-relaxed text-white/70">Empieza con la carta digital por 1 €. Cuando crezcas, tu propia app de pedidos. Sin comisiones por ticket y con tus clientes siempre en tu casa.</p></Aparecer>
             <Aparecer retraso={0.4} className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <BotonMagnetico href="/qr" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#E8592A] px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(232,89,42,.45)] hover:bg-[#CF4A1F]">Empieza por 1 € →</BotonMagnetico>
+              <BotonMagnetico href="/qr" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#6E0C2B] px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(163,24,74,.45)] hover:bg-[#4A0819]">Empieza por 1 € →</BotonMagnetico>
               <BotonMagnetico href="/base-operativa" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-8 py-4 text-[15px] font-semibold backdrop-blur hover:border-white/50">Quiero mi propia app</BotonMagnetico>
             </Aparecer>
           </div>
@@ -53,15 +53,15 @@ export default function Home() {
 
       <VistaExplosionada />
 
-      <section className="bg-[#F7F7F5] py-24 md:py-32">
+      <section className="bg-[#F7F5F2] py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">¿Te suena?</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">¿Te suena?</p>
           <TextoRevelado texto="Lo que le está costando dinero a tu local cada semana." className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] md:text-6xl" />
           <div className="mt-14 grid gap-4 md:grid-cols-2">
             {DOLORES.map(([a, b], i) => (
               <Aparecer key={a} retraso={i * 0.08}>
                 <TarjetaTilt className="h-full rounded-[28px] border border-[#E6E6E2] bg-white p-7">
-                  <span className="font-display text-sm font-semibold text-[#E8592A]">0{i + 1}</span>
+                  <span className="font-display text-sm font-semibold text-[#6E0C2B]">0{i + 1}</span>
                   <p className="mt-3 text-xl font-semibold leading-snug">{a}</p>
                   <p className="mt-2 text-[#6B7079]">{b}</p>
                 </TarjetaTilt>
@@ -74,21 +74,21 @@ export default function Home() {
 
       <section className="py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Qué hacemos</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Qué hacemos</p>
           <TextoRevelado texto="Cuatro escalones. Subes cuando tu negocio lo pide." className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] md:text-6xl" />
           <div className="mt-14 space-y-4">
             {ESCALERA.map((e, i) => (
               <Aparecer key={e.n} retraso={i * 0.06}>
-                <Link href={e.href} className={`group relative grid items-center gap-6 overflow-hidden rounded-[28px] border p-7 transition duration-500 md:grid-cols-[80px_1fr_auto] md:p-9 ${e.destacado ? 'border-[#17191E] bg-[#111317] text-white' : 'border-[#E6E6E2] bg-white hover:-translate-y-1 hover:border-[#17191E] hover:shadow-[0_20px_60px_rgba(23,25,30,.12)]'}`}>
-                  {e.destacado && <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(232,89,42,.45),transparent)] animate-[deriva2_16s_ease-in-out_infinite_alternate]" />}
-                  <span className={`relative font-display text-2xl font-semibold ${e.destacado ? 'text-[#E8592A]' : 'text-[#9A9EA6]'}`}>{e.n}</span>
+                <Link href={e.href} className={`group relative grid items-center gap-6 overflow-hidden rounded-[28px] border p-7 transition duration-500 md:grid-cols-[80px_1fr_auto] md:p-9 ${e.destacado ? 'border-[#17191E] bg-[#0A080C] text-white' : 'border-[#E6E6E2] bg-white hover:-translate-y-1 hover:border-[#17191E] hover:shadow-[0_20px_60px_rgba(23,25,30,.12)]'}`}>
+                  {e.destacado && <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.45),transparent)] animate-[deriva2_16s_ease-in-out_infinite_alternate]" />}
+                  <span className={`relative font-display text-2xl font-semibold ${e.destacado ? 'text-[#6E0C2B]' : 'text-[#9A9EA6]'}`}>{e.n}</span>
                   <div className="relative">
-                    <h3 className="font-display text-3xl font-semibold">{e.t}{e.destacado && <span className="ml-3 inline-block whitespace-nowrap rounded-full bg-[#E8592A] px-3 py-1 align-middle font-sans text-xs font-semibold uppercase tracking-[0.16em] text-white">Empieza aquí</span>}</h3>
+                    <h3 className="font-display text-3xl font-semibold">{e.t}{e.destacado && <span className="ml-3 inline-block whitespace-nowrap rounded-full bg-[#6E0C2B] px-3 py-1 align-middle font-sans text-xs font-semibold uppercase tracking-[0.16em] text-white">Empieza aquí</span>}</h3>
                     <p className={`mt-2 max-w-2xl ${e.destacado ? 'text-white/65' : 'text-[#6B7079]'}`}>{e.d}</p>
                   </div>
                   <div className="relative md:text-right">
                     <p className={`text-sm ${e.destacado ? 'text-white/70' : 'text-[#3F434B]'}`}>{e.p}</p>
-                    <p className={`mt-2 font-semibold ${e.destacado ? 'text-[#E8592A]' : ''}`}>Ver más <span className="inline-block transition-transform group-hover:translate-x-1.5">→</span></p>
+                    <p className={`mt-2 font-semibold ${e.destacado ? 'text-[#6E0C2B]' : ''}`}>Ver más <span className="inline-block transition-transform group-hover:translate-x-1.5">→</span></p>
                   </div>
                 </Link>
               </Aparecer>
@@ -97,11 +97,11 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-[#111317] py-24 text-white md:py-32">
+      <section className="relative overflow-hidden bg-[#0A080C] py-24 text-white md:py-32">
         <FondoVivo className="opacity-60" />
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 md:grid-cols-2 md:px-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Caso real</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Caso real</p>
             <TextoRevelado texto="Néstor Pizzas vende con su propia app, no con la de otros." className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl" />
             <Aparecer retraso={0.2}><p className="mt-5 text-lg text-white/65">Carta, pedidos, programa de puntos y avisos a sus clientes con su marca. Sin comisiones por pedido y con sus datos en su casa.</p></Aparecer>
             <dl className="mt-10 grid grid-cols-3 gap-6 border-t border-white/10 pt-6">
@@ -109,7 +109,7 @@ export default function Home() {
               <div><dt className="font-display text-4xl font-semibold"><Contador hasta={100} sufijo=" %" /></dt><dd className="mt-1 text-xs text-white/50">clientes propios</dd></div>
               <div><dt className="font-display text-4xl font-semibold"><Contador hasta={1} /></dt><dd className="mt-1 text-xs text-white/50">app con su marca</dd></div>
             </dl>
-            <Link href="/casos-de-exito" className="mt-10 inline-flex items-center gap-2 font-semibold">Ver casos de éxito <span className="text-[#E8592A]">→</span></Link>
+            <Link href="/casos-de-exito" className="mt-10 inline-flex items-center gap-2 font-semibold">Ver casos de éxito <span className="text-[#6E0C2B]">→</span></Link>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Aparecer><TarjetaTilt className="relative aspect-[9/16] overflow-hidden rounded-[28px] ring-1 ring-white/15"><Image src="/images/casos-de-exito/nestor-pizza-home.jpg" alt="App de Néstor Pizzas, portada" fill sizes="300px" className="object-cover" /></TarjetaTilt></Aparecer>
@@ -118,12 +118,12 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-[#111317] py-28 text-center text-white md:py-36">
+      <section className="relative overflow-hidden bg-[#0A080C] py-28 text-center text-white md:py-36">
         <FondoVivo />
         <div className="relative mx-auto max-w-3xl px-6">
           <TextoRevelado texto="Empieza por la carta. Hoy." className="font-display text-5xl font-semibold leading-[1.0] md:text-8xl" />
           <p className="mx-auto mt-6 max-w-lg text-lg text-white/65">Primer mes por 1 €, sin permanencia. Si en un mes no te convence, lo dejas.</p>
-          <div className="mt-10"><BotonMagnetico href="/qr#planes" className="inline-block rounded-full bg-[#E8592A] px-10 py-5 text-base font-semibold shadow-[0_10px_40px_rgba(232,89,42,.45)]">Empezar por 1 €</BotonMagnetico></div>
+          <div className="mt-10"><BotonMagnetico href="/qr#planes" className="inline-block rounded-full bg-[#6E0C2B] px-10 py-5 text-base font-semibold shadow-[0_10px_40px_rgba(163,24,74,.45)]">Empezar por 1 €</BotonMagnetico></div>
         </div>
       </section>
     </div>

@@ -130,7 +130,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
           href={`/m/${restaurante.slug}`}
           target="_blank"
           rel="noopener"
-          className="shrink-0 rounded-lg border border-[#D6D6D1] px-3 py-2 text-sm font-semibold hover:border-[#E8592A] hover:text-[#E8592A]"
+          className="shrink-0 rounded-lg border border-[#D6D6D1] px-3 py-2 text-sm font-semibold hover:border-[#6E0C2B] hover:text-[#6E0C2B]"
         >
           Ver mi carta ↗
         </a>
@@ -151,7 +151,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
         {esencial ? (
           <a
             href="/panel?pestana=diseno"
-            className="block w-full rounded-full border border-[#E8592A]/50 bg-[#E8592A]/10 p-4 text-left hover:bg-[#E8592A]/15"
+            className="block w-full rounded-full border border-[#6E0C2B]/50 bg-[#6E0C2B]/10 p-4 text-left hover:bg-[#6E0C2B]/15"
           >
             <p className="font-semibold">Sube tu carta al diseño de autor</p>
             <p className="text-xs text-[#6B7079]">Portada con tu imagen, categorías con foto, tipografía editorial… y te la dejamos cargada y optimizada. Ver niveles de diseño →</p>
@@ -171,7 +171,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
             <input value={d.nombre} onChange={set('nombre')} maxLength={80} className={campo} />
           </label>
         </div>
-        <p className="text-xs text-[#6B7079]">El estilo, el fondo, la letra y el color de tu carta se eligen en la pestaña <a href="/panel?pestana=diseno" className="font-semibold text-[#E8592A] underline">Diseño</a>.</p>
+        <p className="text-xs text-[#6B7079]">El estilo, el fondo, la letra y el color de tu carta se eligen en la pestaña <a href="/panel?pestana=diseno" className="font-semibold text-[#6E0C2B] underline">Diseño</a>.</p>
         <label className="block space-y-1">
           <span className="text-xs text-[#6B7079]">Descripción corta ({d.descripcion.length}/280)</span>
           <textarea value={d.descripcion} onChange={set('descripcion')} maxLength={280} rows={2} placeholder="Ej: Cocina mediterránea de mercado desde 1998" className={campo} />
@@ -252,7 +252,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
         <button
           onClick={guardar}
           disabled={pendiente}
-          className="bg-[#E8592A] hover:bg-[#CF4A1F] disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-full"
+          className="bg-[#6E0C2B] hover:bg-[#4A0819] disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-full"
         >
           {pendiente ? 'Guardando…' : 'Guardar cambios'}
         </button>

@@ -11,9 +11,9 @@ const FILAS: [string, string, string][] = [
 
 export default function ComparativaQr() {
   return (
-    <section className="bg-[#F7F7F5] py-24 md:py-32">
+    <section className="bg-[#F7F5F2] py-24 md:py-32">
       <div className="mx-auto max-w-5xl px-6 md:px-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">El siguiente nivel</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">El siguiente nivel</p>
         <TextoRevelado texto="Empieza con la carta. Crece hasta tu propia app." className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl" />
         <div className="mt-12 overflow-hidden rounded-[28px] border border-[#E6E6E2] bg-white">
           <div className="grid grid-cols-2 text-sm font-semibold">
@@ -31,7 +31,7 @@ export default function ComparativaQr() {
           ))}
         </div>
         <Link href="/base-operativa" className="mt-8 inline-flex items-center gap-2 font-semibold text-[#17191E]">
-          Conocer DKitchen Signature <span aria-hidden="true" className="text-[#E8592A]">→</span>
+          Conocer DKitchen Signature <span aria-hidden="true" className="text-[#6E0C2B]">→</span>
         </Link>
       </div>
     </section>

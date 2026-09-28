@@ -117,7 +117,7 @@ export default function PanelShell({
   );
 
   return (
-    <div className="min-h-screen bg-[#F7F7F5] text-[#1B1D22] lg:grid lg:grid-cols-[16rem_1fr]">
+    <div className="min-h-screen bg-[#F7F5F2] text-[#1B1D22] lg:grid lg:grid-cols-[16rem_1fr]">
       {/* Lateral (escritorio) */}
       <aside className="hidden bg-[#17191E] text-white lg:flex lg:h-screen lg:sticky lg:top-0 lg:flex-col">
         <div className="px-6 pb-6 pt-7">
@@ -126,7 +126,7 @@ export default function PanelShell({
         </div>
         <div className="flex-1 overflow-y-auto px-3"><Navegacion oscuro /></div>
         <div className="space-y-2 border-t border-white/10 px-6 py-5 text-sm">
-          <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="block font-semibold text-[#E8592A] hover:underline">Ver mi carta</a>
+          <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="block font-semibold text-[#6E0C2B] hover:underline">Ver mi carta</a>
           <p className="truncate text-xs text-white/40">{identidad.email}</p>
           <button onClick={salir} className="text-xs text-white/55 hover:text-white">Cerrar sesión</button>
           <p className="pt-2 text-[10px] uppercase tracking-[0.2em] text-white/25">DKitchen</p>
@@ -135,7 +135,7 @@ export default function PanelShell({
 
       <div className="min-w-0">
         {/* Barra superior (móvil y tablet) */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-[#E6E6E2] bg-[#F7F7F5]/95 px-4 py-3 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-[#E6E6E2] bg-[#F7F5F2]/95 px-4 py-3 backdrop-blur lg:hidden">
           <div className="min-w-0">
             <p className="truncate text-[15px] font-semibold">{restaurante.nombre}</p>
             <p className="text-xs text-[#6B7079]">{titulo}</p>

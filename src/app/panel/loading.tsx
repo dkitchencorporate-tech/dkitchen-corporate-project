@@ -5,11 +5,11 @@
  */
 export default function CargandoPanel() {
   return (
-    <div className="min-h-screen bg-[#F7F7F5] text-[#1B1D22]" aria-busy="true" aria-live="polite">
+    <div className="min-h-screen bg-[#F7F5F2] text-[#1B1D22]" aria-busy="true" aria-live="polite">
       <header className="border-b border-[#E6E6E2] px-6 py-4 flex items-center justify-between">
         <div>
           <h1 className="font-bold text-lg">
-            D<span className="text-[#E8592A]">Kitchen</span>
+            D<span className="text-[#6E0C2B]">Kitchen</span>
           </h1>
           <div className="mt-1 h-3 w-28 rounded bg-[#EDEDEA] animate-pulse" />
         </div>

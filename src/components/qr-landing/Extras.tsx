@@ -16,7 +16,7 @@ export function LineaServicio() {
   return (
     <div aria-hidden="true" className="pointer-events-none fixed left-6 top-1/2 z-40 hidden h-[46vh] -translate-y-1/2 xl:block">
       <div className="h-full w-px border-l border-dotted border-[#9A9EA6]/60" />
-      <motion.div className="absolute left-0 top-0 h-full w-[2px] -translate-x-[0.5px] origin-top rounded-full bg-[#E8592A]" style={{ scaleY: y }} />
+      <motion.div className="absolute left-0 top-0 h-full w-[2px] -translate-x-[0.5px] origin-top rounded-full bg-[#6E0C2B]" style={{ scaleY: y }} />
     </div>
   );
 }
@@ -33,7 +33,7 @@ export function BarraCtaMovil() {
       className="fixed inset-x-3 bottom-3 z-[90] md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-[#17191E]/90 py-2 pl-5 pr-2 text-white shadow-2xl backdrop-blur-xl">
         <span className="text-sm"><span className="font-semibold">1 €</span> <span className="text-white/55">el primer mes</span></span>
-        <Link href="#planes" className="rounded-full bg-[#E8592A] px-5 py-2.5 text-sm font-semibold">Empezar</Link>
+        <Link href="#planes" className="rounded-full bg-[#6E0C2B] px-5 py-2.5 text-sm font-semibold">Empezar</Link>
       </div>
     </motion.div>
   );

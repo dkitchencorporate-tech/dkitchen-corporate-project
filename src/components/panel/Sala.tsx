@@ -49,7 +49,7 @@ export default function Sala({
               <h3 className="text-lg font-semibold">Plano de tu local</h3>
               <p className="text-sm text-[#6B7079]">{mesas.length} {mesas.length === 1 ? 'mesa' : 'mesas'} · {zonas.length} {zonas.length === 1 ? 'zona' : 'zonas'} · {mesas.filter((m) => m.camareroId).length} con camarero asignado</p>
             </div>
-            <button onClick={() => setEditor(true)} className="rounded-full bg-[#E8592A] px-4 py-2 text-sm font-bold">{mesas.length ? 'Abrir editor de sala' : 'Dibujar mi sala'}</button>
+            <button onClick={() => setEditor(true)} className="rounded-full bg-[#6E0C2B] px-4 py-2 text-sm font-bold">{mesas.length ? 'Abrir editor de sala' : 'Dibujar mi sala'}</button>
           </div>
           {zonas.length > 0 && (
             <ul className="mt-4 flex flex-wrap gap-2 text-xs">
@@ -72,7 +72,7 @@ export default function Sala({
           <div className="flex flex-col gap-2 sm:flex-row">
             <input value={nombreCam} onChange={(e) => setNombreCam(e.target.value)} maxLength={40} placeholder="Nombre del camarero" className={`flex-1 ${campo}`} />
             <button disabled={pendiente || !nombreCam.trim()} onClick={() => accion(async () => { const r = await crearCamareroAction(nombreCam); setEnlace(r.enlace); setNombreCam(''); }, 'Acceso creado.')}
-              className="rounded-full bg-[#E8592A] px-4 py-2 text-sm font-bold disabled:opacity-50">Crear acceso</button>
+              className="rounded-full bg-[#6E0C2B] px-4 py-2 text-sm font-bold disabled:opacity-50">Crear acceso</button>
           </div>
           {enlace && (
             <div className="space-y-2 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-sm">
@@ -142,7 +142,7 @@ export default function Sala({
               {tpv.ultimoError && <span className="block text-red-600">Último error: {tpv.ultimoError}</span>}
             </p>
           ) : (
-            <p className="text-sm text-[#6B7079]">DKitchen está configurando la conexión con tu TPV. <a href="/panel?pestana=soporte&asunto=Conexi%C3%B3n%20TPV" className="text-[#E8592A] underline">Dinos qué TPV usas</a>.</p>
+            <p className="text-sm text-[#6B7079]">DKitchen está configurando la conexión con tu TPV. <a href="/panel?pestana=soporte&asunto=Conexi%C3%B3n%20TPV" className="text-[#6E0C2B] underline">Dinos qué TPV usas</a>.</p>
           )}
         </section>
       )}

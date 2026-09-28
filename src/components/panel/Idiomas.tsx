@@ -42,7 +42,7 @@ export default function Idiomas({ activos, platos, traducciones }: {
             return (
               <button key={c} type="button" aria-pressed={on} disabled={!on && idiomas.length >= 3}
                 onClick={() => setIdiomas((l) => (on ? l.filter((x) => x !== c) : [...l, c]))}
-                className={`rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-30 ${on ? 'bg-[#E8592A]' : 'bg-[#EDEDEA]'}`}>{n}</button>
+                className={`rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-30 ${on ? 'bg-[#6E0C2B]' : 'bg-[#EDEDEA]'}`}>{n}</button>
             );
           })}
         </div>
@@ -57,7 +57,7 @@ export default function Idiomas({ activos, platos, traducciones }: {
             return (
               <div key={i} className="space-y-1">
                 <div className="flex justify-between text-sm"><span>{DISPONIBLES[i]}</span><span className="text-[#6B7079]">{pct === 100 ? '✓ Lista' : `DKitchen está traduciendo · ${n}/${total}`}</span></div>
-                <div className="h-2 overflow-hidden rounded-full bg-[#EDEDEA]"><div className="h-full bg-[#E8592A]" style={{ width: `${pct}%` }} /></div>
+                <div className="h-2 overflow-hidden rounded-full bg-[#EDEDEA]"><div className="h-full bg-[#6E0C2B]" style={{ width: `${pct}%` }} /></div>
               </div>
             );
           })}

@@ -52,7 +52,7 @@ export default function TraductorCarta({ restauranteId, activos, secciones, plat
         <section className="space-y-4 rounded-2xl border border-[#E6E6E2] bg-white p-5">
           <div className="flex flex-wrap items-center gap-2">
             {activos.map((c) => (
-              <button key={c} onClick={() => setIdioma(c)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${idioma === c ? 'bg-[#E8592A]' : 'bg-[#EDEDEA]'}`}>{DISPONIBLES[c]}</button>
+              <button key={c} onClick={() => setIdioma(c)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${idioma === c ? 'bg-[#6E0C2B]' : 'bg-[#EDEDEA]'}`}>{DISPONIBLES[c]}</button>
             ))}
             <span className="ml-auto text-xs text-[#6B7079]">{pendientes > 0 ? `${pendientes} platos sin traducir` : '✓ Todo traducido'}</span>
           </div>
@@ -73,7 +73,7 @@ export default function TraductorCarta({ restauranteId, activos, secciones, plat
               ))}
             </div>
           ))}
-          <button disabled={pendiente} onClick={guardarTraducciones} className="rounded-full bg-[#E8592A] px-5 py-2.5 text-sm font-bold disabled:opacity-50">
+          <button disabled={pendiente} onClick={guardarTraducciones} className="rounded-full bg-[#6E0C2B] px-5 py-2.5 text-sm font-bold disabled:opacity-50">
             {pendiente ? 'Guardando…' : 'Guardar traducciones'}
           </button>
         </section>

@@ -24,7 +24,7 @@ function Titular({ texto, retraso, className }: { texto: string; retraso: number
 export default function HeroQr() {
 
   return (
-    <section className="relative overflow-hidden bg-[#111317] pb-16 pt-32 text-white md:pb-24 md:pt-40">
+    <section className="relative overflow-hidden bg-[#0A080C] pb-16 pt-32 text-white md:pb-24 md:pt-40">
       <FondoVivo />
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 md:grid-cols-[1.15fr_1fr] md:px-8">
@@ -35,7 +35,7 @@ export default function HeroQr() {
           </motion.p>
           <h1 className="font-display mt-6 text-[46px] font-semibold leading-[0.98] sm:text-7xl lg:text-[84px]">
             <Titular texto="Tu carta cambia." retraso={0.15} className="block" />
-            <Titular texto="Tu QR, nunca." retraso={0.45} className="block text-[#E8592A]" />
+            <Titular texto="Tu QR, nunca." retraso={0.45} className="block text-[#6E0C2B]" />
           </h1>
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8, duration: 0.7, ease: CURVA }}
             className="mt-7 max-w-lg text-lg leading-relaxed text-white/65">
@@ -43,7 +43,7 @@ export default function HeroQr() {
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.95, duration: 0.7, ease: CURVA }}
             className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <a href="#planes" className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#E8592A] px-7 py-4 text-[15px] font-semibold transition hover:bg-[#CF4A1F]">
+            <a href="#planes" className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#6E0C2B] px-7 py-4 text-[15px] font-semibold transition hover:bg-[#4A0819]">
               Empieza por 1 € <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
             </a>
             <a href="#como-funciona" className="inline-flex items-center justify-center rounded-full border border-white/15 px-7 py-4 text-[15px] font-semibold hover:border-white/40">Ver cómo funciona</a>

@@ -21,7 +21,7 @@ export default function Invitar({ oscuro = false }: { oscuro?: boolean }) {
   const borde = oscuro ? 'border-white/15 text-white hover:border-white/40' : 'border-[#D6D6D1] text-[#17191E] hover:border-[#17191E]';
   return (
     <div className="flex flex-wrap gap-3">
-      <button onClick={compartir} className="rounded-full bg-[#E8592A] px-6 py-3.5 text-[15px] font-semibold text-white hover:bg-[#CF4A1F]">{copiado ? 'Enlace copiado' : 'Invitar a otro hostelero'}</button>
+      <button onClick={compartir} className="rounded-full bg-[#6E0C2B] px-6 py-3.5 text-[15px] font-semibold text-white hover:bg-[#4A0819]">{copiado ? 'Enlace copiado' : 'Invitar a otro hostelero'}</button>
       <a href={`https://wa.me/?text=${encodeURIComponent(`${TEXTO} ${URL_INVITACION}`)}`} target="_blank" rel="noopener" className={`rounded-full border px-6 py-3.5 text-[15px] font-semibold ${borde}`}>Enviar por WhatsApp</a>
     </div>
   );

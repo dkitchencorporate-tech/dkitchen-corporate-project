@@ -54,3 +54,22 @@
 @keyframes reflejo { 0%, 60% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
 @media (prefers-reduced-motion: reduce) { [class*="animate-[deriva"], [class*="animate-[marquesina"], [class*="animate-[reflejo"] { animation: none !important; } }
 @keyframes recorrido { 0%, 6% { transform: translateY(0); } 94%, 100% { transform: translateY(calc(-100% + 460px)); } }
+
+/* ── Gran Reserva (29/09/2026): vino metalizado, oro técnico y negro profundo ── */
+:root { --vino: #6E0C2B; --vino-reflejo: #A3184A; --vino-fondo: #3E0515; --oro: #D9B25C; --plata: #C9CCD3; }
+.bg-\[\#6E0C2B\] { background-image: linear-gradient(160deg, #A3184A 0%, #6E0C2B 40%, #3E0515 74%, #6E0C2B 100%); }
+a.bg-\[\#6E0C2B\], button.bg-\[\#6E0C2B\] { box-shadow: inset 0 1px 0 rgba(255,255,255,.24), inset 0 -2px 6px rgba(0,0,0,.3), 0 10px 28px -10px rgba(160,20,70,.6), 0 0 0 1px rgba(255,120,160,.12); }
+a.hover\:bg-\[\#4A0819\]:hover, button.hover\:bg-\[\#4A0819\]:hover { background-image: linear-gradient(160deg, #8E1540 0%, #5A0A22 45%, #300410 100%); }
+.web-dk a.rounded-full.bg-\[\#6E0C2B\], .web-dk button.rounded-full.bg-\[\#6E0C2B\] { position: relative; overflow: hidden; isolation: isolate; }
+.web-dk a.rounded-full.bg-\[\#6E0C2B\]::after, .web-dk button.rounded-full.bg-\[\#6E0C2B\]::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.28) 50%, transparent 65%);
+  transform: translateX(-120%); animation: destello 4.2s ease-in-out infinite;
+}
+@keyframes destello { 55%, 100% { transform: translateX(120%); } }
+@media (prefers-reduced-motion: reduce) { .web-dk a.rounded-full.bg-\[\#6E0C2B\]::after, .web-dk button.rounded-full.bg-\[\#6E0C2B\]::after { animation: none; } }
+/* Sobre fondo oscuro el acento pasa a oro (el vino no se leería) */
+[class*="bg-[#0A080C]"] .text-\[\#6E0C2B\], [class*="bg-[#17191E]"] .text-\[\#6E0C2B\], [class*="bg-[#1B1D22]"] .text-\[\#6E0C2B\], [class*="bg-[#0B0C0F]"] .text-\[\#6E0C2B\] { color: #D9B25C; }
+[class*="bg-[#0A080C]"] .border-\[\#6E0C2B\], [class*="bg-[#17191E]"] .border-\[\#6E0C2B\] { border-color: #D9B25C; }
+.bg-white .text-\[\#6E0C2B\], [class*="bg-[#F7F5F2]"] .text-\[\#6E0C2B\] { color: #6E0C2B; }
+.oro-metal { background: linear-gradient(100deg, #8A6420 0%, #E9C877 22%, #FFF1C4 34%, #C99A3E 52%, #8A6420 70%, #E2BC6A 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }

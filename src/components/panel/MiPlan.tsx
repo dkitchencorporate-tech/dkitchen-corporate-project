@@ -73,7 +73,7 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
           return (
             <div
               key={id}
-              className={`rounded-2xl p-6 border ${id === 'ampliado' ? 'border-[#E8592A]/60 bg-[#E8592A]/5' : 'border-[#E6E6E2] bg-white'}`}
+              className={`rounded-2xl p-6 border ${id === 'ampliado' ? 'border-[#6E0C2B]/60 bg-[#6E0C2B]/5' : 'border-[#E6E6E2] bg-white'}`}
             >
               <div className="flex items-baseline justify-between">
                 <h3 className="text-lg font-semibold">{p.nombre}</h3>
@@ -84,7 +84,7 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
               <ul className="mt-4 space-y-2">
                 {p.funciones.map((f) => (
                   <li key={f} className="flex gap-2 text-sm text-[#3F434B]">
-                    <span className="text-[#E8592A]">✓</span> {f}
+                    <span className="text-[#6E0C2B]">✓</span> {f}
                   </li>
                 ))}
               </ul>
@@ -94,7 +94,7 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
                 <button
                   onClick={mejorar}
                   disabled={pendiente}
-                  className="mt-5 w-full bg-[#E8592A] hover:bg-[#CF4A1F] disabled:opacity-50 text-white font-bold py-2.5 rounded-full"
+                  className="mt-5 w-full bg-[#6E0C2B] hover:bg-[#4A0819] disabled:opacity-50 text-white font-bold py-2.5 rounded-full"
                 >
                   {pendiente ? 'Abriendo pago seguro…' : 'Pasar a Ampliado'}
                 </button>

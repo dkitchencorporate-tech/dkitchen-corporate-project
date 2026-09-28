@@ -12,7 +12,7 @@ import type { EstiloMini } from './CartaMini';
  */
 const ESTILOS: [EstiloMini['plantilla'], string][] = [['editorial', 'Editorial'], ['visual', 'Visual'], ['clasica', 'Clásico'], ['express', 'Express']];
 const FONDOS: [EstiloMini['fondo'], string, string][] = [['papel', 'Papel', '#F7F3EA'], ['blanco', 'Blanco', '#FFFFFF'], ['oscuro', 'Oscuro', '#15161A']];
-const COLORES = ['#E8592A', '#B23A48', '#C58B2A', '#2F5D50', '#1F4E79', '#5B3E8A'];
+const COLORES = ['#6E0C2B', '#B23A48', '#C58B2A', '#2F5D50', '#1F4E79', '#5B3E8A'];
 const CURVA = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
 export default function PruebaloQr() {
@@ -28,10 +28,10 @@ export default function PruebaloQr() {
 
   return (
     <section className="relative overflow-hidden bg-[#17191E] py-24 text-white md:py-32">
-      <div aria-hidden="true" className="pointer-events-none absolute -left-40 bottom-0 h-[520px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(232,89,42,.18),transparent)]" />
+      <div aria-hidden="true" className="pointer-events-none absolute -left-40 bottom-0 h-[520px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.18),transparent)]" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 md:grid-cols-[1fr_320px] md:px-8">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Pruébalo tú</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Pruébalo tú</p>
           <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-6xl">Tu carta no se parece a la de nadie.</h2>
           <p className="mt-5 max-w-lg text-lg text-white/60">Toca y mira cómo cambia. Después ábrela en grande, como la verán tus clientes.</p>
           <div className="mt-10 space-y-6">
@@ -69,7 +69,7 @@ export default function PruebaloQr() {
               </div>
               <div className="flex-1 overflow-y-auto" data-lenis-prevent><CartaDemo e={e} completa /></div>
               <div className="absolute inset-x-0 bottom-0 flex gap-2 bg-gradient-to-t from-black/40 to-transparent p-4 pt-10">
-                <button onClick={quiero} className="flex-1 rounded-full bg-[#E8592A] py-4 text-[15px] font-semibold text-white shadow-lg">Quiero esta carta</button>
+                <button onClick={quiero} className="flex-1 rounded-full bg-[#6E0C2B] py-4 text-[15px] font-semibold text-white shadow-lg">Quiero esta carta</button>
                 <button onClick={quiero} className="rounded-full bg-white px-5 py-4 text-[15px] font-semibold text-[#17191E] shadow-lg">Ver precios</button>
               </div>
             </motion.div>

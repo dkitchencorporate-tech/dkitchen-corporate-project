@@ -52,12 +52,12 @@ export default async function PaginaArticulo({ params }: { params: Promise<{ slu
         <aside className="mt-16 rounded-[28px] bg-[#17191E] p-8 text-white md:p-10">
           <p className="font-display text-3xl font-semibold">Tu carta digital, hoy.</p>
           <p className="mt-3 text-white/60">Alérgenos, estilos propios y cambios al momento. Primer mes por 1 €, sin permanencia.</p>
-          <Link href="/qr" className="mt-6 inline-block rounded-full bg-[#E8592A] px-6 py-3.5 font-semibold">Ver la carta QR</Link>
+          <Link href="/qr" className="mt-6 inline-block rounded-full bg-[#6E0C2B] px-6 py-3.5 font-semibold">Ver la carta QR</Link>
         </aside>
         <nav aria-label="Más artículos" className="mt-16">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9A9EA6]">Sigue leyendo</p>
           <ul className="mt-4 space-y-3">
-            {otros.map((o) => <li key={o.slug}><Link href={`/blog/${o.slug}`} className="font-semibold hover:text-[#E8592A]">{o.titulo} →</Link></li>)}
+            {otros.map((o) => <li key={o.slug}><Link href={`/blog/${o.slug}`} className="font-semibold hover:text-[#6E0C2B]">{o.titulo} →</Link></li>)}
           </ul>
         </nav>
       </div>

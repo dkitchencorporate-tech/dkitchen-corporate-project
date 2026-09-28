@@ -30,7 +30,7 @@ export default function Reservas({ reservas, whatsapp }: { reservas: Reserva[]; 
           <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTILO[r.estado]}`}>{r.estado}</span>
         </div>
         <p className="mt-1 text-sm text-[#3F434B]">{r.nombre}</p>
-        <p className="mt-2 text-xs font-semibold text-[#E8592A]">Ver detalles →</p>
+        <p className="mt-2 text-xs font-semibold text-[#6E0C2B]">Ver detalles →</p>
       </button>
     </li>
   );
@@ -108,8 +108,8 @@ function FichaReserva({ reserva, pasada, onCerrar }: { reserva: Reserva; pasada:
           {fila('Día', fechaLarga(reserva.fecha))}
           {fila('Hora', reserva.hora)}
           {fila('Personas', reserva.personas)}
-          {fila('Teléfono', <a href={`tel:${reserva.telefono.replace(/\s/g, '')}`} className="text-[#E8592A] hover:underline">{reserva.telefono}</a>)}
-          {fila('Correo', reserva.email ? <a href={`mailto:${reserva.email}`} className="text-[#E8592A] hover:underline">{reserva.email}</a> : <span className="text-[#9A9EA6]">No indicado</span>)}
+          {fila('Teléfono', <a href={`tel:${reserva.telefono.replace(/\s/g, '')}`} className="text-[#6E0C2B] hover:underline">{reserva.telefono}</a>)}
+          {fila('Correo', reserva.email ? <a href={`mailto:${reserva.email}`} className="text-[#6E0C2B] hover:underline">{reserva.email}</a> : <span className="text-[#9A9EA6]">No indicado</span>)}
           {reserva.notas && fila('Notas', <span className="whitespace-pre-line">{reserva.notas}</span>)}
         </div>
 

@@ -79,7 +79,7 @@ export default function NuevoCliente() {
       {paso === 2 && (
         <div className="mt-6 space-y-3">
           {MODOS.map((m) => (
-            <label key={m.id} className={`flex cursor-pointer gap-3 rounded-2xl border p-4 transition ${d.modo === m.id ? 'border-[#17191E] bg-[#F7F7F5]' : 'border-[#E6E6E2]'}`}>
+            <label key={m.id} className={`flex cursor-pointer gap-3 rounded-2xl border p-4 transition ${d.modo === m.id ? 'border-[#17191E] bg-[#F7F5F2]' : 'border-[#E6E6E2]'}`}>
               <input type="radio" name="modo" checked={d.modo === m.id} onChange={() => setD({ ...d, modo: m.id })} className="mt-1" />
               <span><span className="block font-semibold">{m.titulo}</span><span className="mt-0.5 block text-sm text-[#6B7079]">{m.texto}</span></span>
             </label>
@@ -108,7 +108,7 @@ export default function NuevoCliente() {
         {paso < 3 ? (
           <button disabled={paso === 1 && !paso1Ok} onClick={() => setPaso(paso + 1)} className="rounded-full bg-[#17191E] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-35">Continuar</button>
         ) : (
-          <button disabled={pendiente} onClick={crear} className="rounded-full bg-[#E8592A] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{pendiente ? 'Creando…' : d.modo === 'pago' ? 'Crear y preparar el pago' : 'Crear cliente'}</button>
+          <button disabled={pendiente} onClick={crear} className="rounded-full bg-[#6E0C2B] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{pendiente ? 'Creando…' : d.modo === 'pago' ? 'Crear y preparar el pago' : 'Crear cliente'}</button>
         )}
       </div>
     </div>

@@ -103,7 +103,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             {ficha.ultimo_acceso ? fechaHora.format(new Date(ficha.ultimo_acceso)) : 'nunca'}
           </p>
         </div>
-        <a href={`/m/${r.slug}`} target="_blank" rel="noopener" className="rounded-lg border border-[#D6D6D1] px-4 py-2 text-sm font-semibold hover:border-[#E8592A]">
+        <a href={`/m/${r.slug}`} target="_blank" rel="noopener" className="rounded-lg border border-[#D6D6D1] px-4 py-2 text-sm font-semibold hover:border-[#6E0C2B]">
           Ver su carta ↗
         </a>
       </div>
@@ -136,7 +136,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
               <div
                 key={d.dia}
                 title={`${d.dia}: ${d.n}`}
-                className="flex-1 rounded-t bg-[#E8592A]"
+                className="flex-1 rounded-t bg-[#6E0C2B]"
                 style={{ height: `${Math.max(3, (d.n / maxDia) * 100)}%`, opacity: d.n ? 1 : 0.25 }}
               />
             ))}
@@ -146,7 +146,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         <section className="rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6 space-y-3 text-sm">
           <h2 className="font-display text-xl font-semibold tracking-tight">Contacto y carta</h2>
           <p>{ficha.contacto ?? '—'}</p>
-          {ficha.email && <a href={`mailto:${ficha.email}`} className="block text-[#E8592A] hover:underline">{ficha.email}</a>}
+          {ficha.email && <a href={`mailto:${ficha.email}`} className="block text-[#6E0C2B] hover:underline">{ficha.email}</a>}
           <p className="text-[#6B7079]">{r.telefono ?? 'Sin teléfono'} · {r.direccion ?? 'Sin dirección'}</p>
           <p className="text-[#6B7079]">{ficha.secciones} secciones · {ficha.platos} platos</p>
           <p className="text-[#6B7079]">QR: {ficha.codigos.join(', ') || '—'}</p>
@@ -159,7 +159,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         <div className="mt-4 flex flex-wrap gap-3">
           <form action={regalarTodoAction}>
             <input type="hidden" name="restauranteId" value={r.id} />
-            <button className="rounded-full bg-[#E8592A] px-4 py-2 text-sm font-bold hover:bg-[#CF4A1F]">Darle todo gratis</button>
+            <button className="rounded-full bg-[#6E0C2B] px-4 py-2 text-sm font-bold hover:bg-[#4A0819]">Darle todo gratis</button>
           </form>
           {ficha.platos === 0 && (
             <form action={cartaDemoAction}>
@@ -284,7 +284,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             <input name="credencial" type="password" autoComplete="off" placeholder="Cabecera Authorization (p. ej. Bearer xxx). Vacío = mantener" className="w-full rounded-lg border border-[#E6E6E2] bg-white px-3 py-2" />
             <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="activa" defaultChecked className="accent-[#D9531E]" /> Activa</label>
             <p className="text-[11px] text-[#9A9EA6]">La credencial se cifra (AES-256-GCM) antes de guardarse; nadie puede volver a leerla desde el panel.</p>
-            <button className="rounded-md bg-[#E8592A] px-3 py-1.5 text-xs font-bold">Guardar conexión</button>
+            <button className="rounded-md bg-[#6E0C2B] px-3 py-1.5 text-xs font-bold">Guardar conexión</button>
           </form>
         )}
       </section>
@@ -316,7 +316,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             <span className="block text-xs text-[#6B7079]">Color (libre)</span>
             <input type="color" name="color" defaultValue={r.color_marca ?? '#D9531E'} className="h-[38px] w-16 rounded-lg border border-[#E6E6E2] bg-white p-1" />
           </label>
-          <button className="rounded-full bg-[#E8592A] px-4 py-2 font-bold hover:bg-[#CF4A1F]">Aplicar diseño</button>
+          <button className="rounded-full bg-[#6E0C2B] px-4 py-2 font-bold hover:bg-[#4A0819]">Aplicar diseño</button>
         </form>
       </section>
 
@@ -341,7 +341,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             {historial.map((e, i) => (
               <li key={i} className="border-l-2 border-[#E6E6E2] pl-4">
                 <p className="text-sm">
-                  <span className={e.quien === 'DKitchen' ? 'text-[#E8592A]' : e.quien === 'sistema' ? 'text-[#6B7079]' : 'text-[#1B1D22]'}>
+                  <span className={e.quien === 'DKitchen' ? 'text-[#6E0C2B]' : e.quien === 'sistema' ? 'text-[#6B7079]' : 'text-[#1B1D22]'}>
                     {ACCION[e.accion] ?? e.accion}
                   </span>
                   <span className="ml-2 text-xs text-[#9A9EA6]">{fechaHora.format(new Date(e.ocurridoEn))}</span>

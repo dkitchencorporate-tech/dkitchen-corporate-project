@@ -36,7 +36,7 @@ export default function CookieConsent() {
         </p>
         <div className="mt-3 flex gap-2">
           <button onClick={rejectNonEssential} className="flex-1 rounded-full border border-white/15 px-4 py-2.5 text-sm font-semibold hover:border-white/40">Solo esenciales</button>
-          <button onClick={acceptAll} className="flex-1 rounded-full bg-[#E8592A] px-4 py-2.5 text-sm font-semibold hover:bg-[#CF4A1F]">Aceptar</button>
+          <button onClick={acceptAll} className="flex-1 rounded-full bg-[#6E0C2B] px-4 py-2.5 text-sm font-semibold hover:bg-[#4A0819]">Aceptar</button>
         </div>
       </div>
     </div>

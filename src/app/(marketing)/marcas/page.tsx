@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://dkitchencorporate.es/marcas' },
 };
 
-const COLORES = ['#B23A48', '#2F8F6B', '#E8592A', '#5B3E8A', '#3B6EA5', '#D99A1E'];
+const COLORES = ['#B23A48', '#2F8F6B', '#6E0C2B', '#5B3E8A', '#3B6EA5', '#D99A1E'];
 const wa = (n: string) => `https://wa.me/34622652659?text=${encodeURIComponent(`Hola, quiero sumar la marca ${n} a mi cocina.`)}`;
 
 export default function PaginaMarcas() {
@@ -32,7 +32,7 @@ export default function PaginaMarcas() {
           <div className="mt-14 grid gap-5 md:grid-cols-2">
             {MARCAS.map((m, i) => (
               <Aparecer key={m.slug} retraso={(i % 2) * 0.08}>
-                <TarjetaTilt className="group relative h-full overflow-hidden rounded-[32px] bg-[#111317] p-8 text-white">
+                <TarjetaTilt className="group relative h-full overflow-hidden rounded-[32px] bg-[#0A080C] p-8 text-white">
                   <div aria-hidden="true" className="absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-60 blur-2xl transition-transform duration-700 group-hover:scale-125" style={{ background: `radial-gradient(closest-side, ${COLORES[i % COLORES.length]}, transparent)` }} />
                   <p className="relative text-xs uppercase tracking-[0.22em]" style={{ color: COLORES[i % COLORES.length] }}>{m.concepto}</p>
                   <p className="font-display relative mt-2 text-4xl font-semibold">{m.nombre}</p>

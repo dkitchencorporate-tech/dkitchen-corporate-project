@@ -34,7 +34,7 @@ export default function PaginaExperience() {
 
       <Marquesina oscura items={['0 % de comisión', '100 % de la taquilla para ti', '7 formatos probados', 'QR de entrada único', 'Anuncios gestionados', 'Listo en 3 semanas']} />
 
-      <section className="bg-[#F7F7F5] py-24 md:py-32">
+      <section className="bg-[#F7F5F2] py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Titulo etiqueta="El problema" texto="Cada mesa vacía es dinero que no vuelve." sub="El local, el equipo y el alquiler cuestan lo mismo lleno que vacío. La diferencia es quién decide venir." />
           <Dolores items={[
@@ -52,9 +52,9 @@ export default function PaginaExperience() {
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {FORMATOS.map(([t, m, d], i) => (
               <Aparecer key={t} retraso={(i % 3) * 0.07}>
-                <TarjetaTilt className="group relative h-full overflow-hidden rounded-[28px] bg-[#111317] p-7 text-white">
-                  <div aria-hidden="true" className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[radial-gradient(closest-side,rgba(232,89,42,.4),transparent)] transition-transform duration-700 group-hover:scale-150" />
-                  <p className="relative text-xs uppercase tracking-[0.2em] text-[#E8592A]">{m}</p>
+                <TarjetaTilt className="group relative h-full overflow-hidden rounded-[28px] bg-[#0A080C] p-7 text-white">
+                  <div aria-hidden="true" className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.4),transparent)] transition-transform duration-700 group-hover:scale-150" />
+                  <p className="relative text-xs uppercase tracking-[0.2em] text-[#6E0C2B]">{m}</p>
                   <p className="font-display relative mt-3 text-3xl font-semibold">{t}</p>
                   <p className="relative mt-2 text-white/60">{d}</p>
                 </TarjetaTilt>
@@ -64,12 +64,12 @@ export default function PaginaExperience() {
         </div>
       </section>
 
-      <section className="bg-[#111317] py-24 text-white md:py-32">
+      <section className="bg-[#0A080C] py-24 text-white md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Titulo oscuro etiqueta="Quién hace qué" texto="Nosotros montamos. Tú cocinas y cobras." />
           <div className="mt-14 grid gap-4 md:grid-cols-2">
             {([['Lo hacemos nosotros', ['Concepto y guía del evento', 'Plan operativo: antes, durante y después', 'Diseño de piezas digitales y flyer', 'Web de venta de entradas conectada a tu cobro', 'Campaña de anuncios, montada y gestionada', 'Informe final con entradas e ingresos']], ['Lo haces tú', ['Abrir tu cuenta de cobro (Stripe, SumUp o Revolut Pay)', 'Elegir fecha, aforo y precio', 'Pagar la publicidad y los flyers', 'Escanear las entradas en la puerta', 'Cocinar y dar una noche que se recuerde', 'Quedarte el 100 % de la taquilla']]] as [string, string[]][]).map(([t, l], i) => (
-              <Aparecer key={t} retraso={i * 0.1} className={`rounded-[28px] p-8 ${i ? 'border border-white/10' : 'bg-[#E8592A]'}`}>
+              <Aparecer key={t} retraso={i * 0.1} className={`rounded-[28px] p-8 ${i ? 'border border-white/10' : 'bg-[#6E0C2B]'}`}>
                 <p className="font-display text-2xl font-semibold">{t}</p>
                 <ul className="mt-5 space-y-2.5">{l.map((x) => <li key={x} className="flex gap-3 text-[15px]"><span>✓</span><span className={i ? 'text-white/75' : ''}>{x}</span></li>)}</ul>
               </Aparecer>
@@ -79,12 +79,12 @@ export default function PaginaExperience() {
         </div>
       </section>
 
-      <section id="precios" className="scroll-mt-20 bg-[#F7F7F5] py-24 md:py-32">
+      <section id="precios" className="scroll-mt-20 bg-[#F7F5F2] py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Titulo etiqueta="Precios" texto="Cuanto más repites, menos pagas." sub="Cuatro tarifas fijas, sin porcentaje ni letra pequeña. El trabajo pesado ya está hecho, así que el precio baja con cada evento." />
           <EscaleraPrecios tramos={[[299, 'Primera vez', 'Cliente nuevo, cualquiera de los 7 formatos.'], [250, 'Nuevo evento', 'Ya trabajaste con nosotros y quieres otro formato.'], [150, 'Reuso', 'El mismo evento, en una fecha nueva.'], [99, 'Reuso fidelizado', 'A partir de tu tercer evento.']]} />
-          <Aparecer className="mt-10 rounded-[24px] bg-[#111317] p-6 text-white md:flex md:items-center md:justify-between md:p-8">
-            <p className="text-lg"><strong className="text-[#E8592A]">¿Tienes la Carta QR con nosotros?</strong> Tu primer evento cuesta 199 € en lugar de 299 €. Tarifa publicada, sin negociar.</p>
+          <Aparecer className="mt-10 rounded-[24px] bg-[#0A080C] p-6 text-white md:flex md:items-center md:justify-between md:p-8">
+            <p className="text-lg"><strong className="text-[#6E0C2B]">¿Tienes la Carta QR con nosotros?</strong> Tu primer evento cuesta 199 € en lugar de 299 €. Tarifa publicada, sin negociar.</p>
           </Aparecer>
         </div>
       </section>

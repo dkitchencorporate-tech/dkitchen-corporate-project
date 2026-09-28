@@ -49,7 +49,7 @@ export default function AdminSidebar() {
 
   const Marca = () => (
     <div>
-      <p className="text-[17px] font-semibold tracking-tight text-white">D<span className="text-[#E8592A]">Kitchen</span></p>
+      <p className="text-[17px] font-semibold tracking-tight text-white">D<span className="text-[#6E0C2B]">Kitchen</span></p>
       <p className="mt-0.5 text-xs text-white/40">Central</p>
     </div>
   );

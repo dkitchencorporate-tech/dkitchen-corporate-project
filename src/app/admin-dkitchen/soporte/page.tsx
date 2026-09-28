@@ -44,7 +44,7 @@ export default async function SoporteQr() {
             </div>
             <p className="whitespace-pre-wrap text-sm text-[#3F434B]">{t.mensaje}</p>
             {t.respuesta && (
-              <div className="rounded-lg border-l-2 border-[#E8592A] bg-[#F3F3F0] p-3 text-sm">
+              <div className="rounded-lg border-l-2 border-[#6E0C2B] bg-[#F3F3F0] p-3 text-sm">
                 <p className="text-xs text-[#6B7079]">Respuesta {t.respondidoEn ? `· ${fechaHora.format(new Date(t.respondidoEn))}` : ''}</p>
                 <p className="whitespace-pre-wrap">{t.respuesta}</p>
               </div>
@@ -58,13 +58,13 @@ export default async function SoporteQr() {
                   maxLength={4000}
                   rows={3}
                   placeholder={t.respuesta ? 'Añadir otra respuesta (sustituye a la anterior)…' : 'Escribe la respuesta. El cliente la recibirá por correo y en su panel.'}
-                  className="w-full rounded-lg border border-[#E6E6E2] bg-white px-3 py-2 text-sm focus:border-[#E8592A] focus:outline-none"
+                  className="w-full rounded-lg border border-[#E6E6E2] bg-white px-3 py-2 text-sm focus:border-[#6E0C2B] focus:outline-none"
                 />
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-2 text-xs text-[#6B7079]">
                     <input type="checkbox" name="cerrar" className="accent-[#D9531E]" /> Cerrar el ticket
                   </label>
-                  <button className="rounded-full bg-[#E8592A] px-4 py-2 text-sm font-bold hover:bg-[#CF4A1F]">Responder</button>
+                  <button className="rounded-full bg-[#6E0C2B] px-4 py-2 text-sm font-bold hover:bg-[#4A0819]">Responder</button>
                 </div>
               </form>
             )}
@@ -91,7 +91,7 @@ export default async function SoporteQr() {
                 {solicitudes.map((s) => (
                   <tr key={s.id}>
                     <td className="px-4 py-3">
-                      <Link href={`/admin-dkitchen/qr/${s.restauranteId}`} className="font-semibold hover:text-[#E8592A]">{s.restaurante}</Link>
+                      <Link href={`/admin-dkitchen/qr/${s.restauranteId}`} className="font-semibold hover:text-[#6E0C2B]">{s.restaurante}</Link>
                       <p className="text-xs text-[#9A9EA6]">{fechaHora.format(new Date(s.creadoEn))}</p>
                     </td>
                     <td className="px-4 py-3">{s.cantidad} × {s.tipo}{s.notas ? <p className="text-xs text-[#6B7079]">{s.notas}</p> : null}</td>

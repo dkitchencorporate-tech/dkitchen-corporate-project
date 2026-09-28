@@ -41,7 +41,7 @@ export default function MiQr({
             <a
               href="/api/mi-qr/imagen"
               download
-              className="inline-block mt-3 bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
+              className="inline-block mt-3 bg-[#6E0C2B] hover:bg-[#4A0819] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors"
             >
               Descargar PNG en alta resolución
             </a>
@@ -114,7 +114,7 @@ function FormularioQrFisico() {
     return (
       <button
         onClick={() => setAbierto(true)}
-        className="w-full sm:w-auto border-2 border-dashed border-[#D6D6D1] hover:border-[#E8592A]/50 rounded-2xl p-6 text-center text-[#6B7079] hover:text-[#1B1D22] transition-colors"
+        className="w-full sm:w-auto border-2 border-dashed border-[#D6D6D1] hover:border-[#6E0C2B]/50 rounded-2xl p-6 text-center text-[#6B7079] hover:text-[#1B1D22] transition-colors"
       >
         + Pide tu QR físico profesional
       </button>
@@ -148,7 +148,7 @@ function FormularioQrFisico() {
             key={t.id}
             onClick={() => setTipo(t.id)}
             className={`rounded-lg border px-3 py-2.5 text-left transition-colors ${
-              tipo === t.id ? 'border-[#E8592A] bg-[#E8592A]/10' : 'border-[#E6E6E2] hover:border-[#D6D6D1]'
+              tipo === t.id ? 'border-[#6E0C2B] bg-[#6E0C2B]/10' : 'border-[#E6E6E2] hover:border-[#D6D6D1]'
             }`}
           >
             <p className="text-sm font-semibold">{t.nombre}</p>
@@ -186,7 +186,7 @@ function FormularioQrFisico() {
         <button
           onClick={enviar}
           disabled={pendiente}
-          className="bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
+          className="bg-[#6E0C2B] hover:bg-[#4A0819] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
         >
           {pendiente ? 'Enviando…' : 'Pedir presupuesto'}
         </button>

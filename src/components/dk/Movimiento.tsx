@@ -14,9 +14,9 @@ export const CURVA = [0.22, 1, 0.36, 1] as [number, number, number, number];
 export function FondoVivo({ className = '' }: { className?: string }) {
   return (
     <div aria-hidden="true" className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}>
-      <div className="absolute -right-[15%] bottom-[-35%] h-[70vmax] w-[70vmax] rounded-full opacity-45 blur-[100px] [background:radial-gradient(closest-side,rgba(232,89,42,.5),transparent)] animate-[deriva1_22s_ease-in-out_infinite_alternate]" />
-      <div className="absolute -left-[25%] -top-[30%] h-[80vmax] w-[80vmax] rounded-full opacity-55 blur-[100px] [background:radial-gradient(closest-side,rgba(59,110,165,.5),transparent)] animate-[deriva2_26s_ease-in-out_infinite_alternate]" />
-      <div className="absolute bottom-[-40%] left-[30%] h-[60vmax] w-[60vmax] rounded-full opacity-30 blur-[100px] [background:radial-gradient(closest-side,rgba(47,143,107,.5),transparent)] animate-[deriva3_30s_ease-in-out_infinite_alternate]" />
+      <div className="absolute -right-[15%] bottom-[-35%] h-[70vmax] w-[70vmax] rounded-full opacity-45 blur-[100px] [background:radial-gradient(closest-side,rgba(163,24,74,.5),transparent)] animate-[deriva1_22s_ease-in-out_infinite_alternate]" />
+      <div className="absolute -left-[25%] -top-[30%] h-[80vmax] w-[80vmax] rounded-full opacity-55 blur-[100px] [background:radial-gradient(closest-side,rgba(110,12,43,.6),transparent)] animate-[deriva2_26s_ease-in-out_infinite_alternate]" />
+      <div className="absolute bottom-[-40%] left-[30%] h-[60vmax] w-[60vmax] rounded-full opacity-30 blur-[100px] [background:radial-gradient(closest-side,rgba(217,178,92,.28),transparent)] animate-[deriva3_30s_ease-in-out_infinite_alternate]" />
       <div className="absolute inset-0 opacity-[0.08] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
       <div className="absolute inset-0 opacity-[0.06] mix-blend-overlay [background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22160%22><filter id=%22n%22><feTurbulence baseFrequency=%220.9%22 numOctaves=%222%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/></svg>')]" />
     </div>
@@ -27,11 +27,11 @@ export function FondoVivo({ className = '' }: { className?: string }) {
 export function Marquesina({ items, oscura = false }: { items: string[]; oscura?: boolean }) {
   const fila = [...items, ...items];
   return (
-    <div className={`relative overflow-hidden border-y py-5 ${oscura ? 'border-white/10 bg-[#111317] text-white' : 'border-[#E6E6E2] bg-white text-[#17191E]'}`}>
+    <div className={`relative overflow-hidden border-y py-5 ${oscura ? 'border-white/10 bg-[#0A080C] text-white' : 'border-[#E6E6E2] bg-white text-[#17191E]'}`}>
       <div className="flex w-max animate-[marquesina_38s_linear_infinite] gap-10 whitespace-nowrap">
         {fila.map((t, i) => (
           <span key={i} className="font-display flex items-center gap-10 text-2xl font-semibold md:text-3xl">
-            {t}<span className="h-2 w-2 rounded-full bg-[#E8592A]" aria-hidden="true" />
+            {t}<span className="h-2 w-2 rounded-full bg-[#6E0C2B]" aria-hidden="true" />
           </span>
         ))}
       </div>

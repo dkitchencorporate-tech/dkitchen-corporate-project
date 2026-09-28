@@ -15,7 +15,7 @@ export default function PreguntasQr() {
       <section className="bg-white py-20 md:py-28">
         <div className="mx-auto grid max-w-5xl gap-12 px-6 md:grid-cols-[1fr_1.4fr] md:px-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Preguntas</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Preguntas</p>
             <h2 className="mt-4 font-display text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-5xl">Lo que suelen preguntarnos.</h2>
           </div>
           <div className="divide-y divide-black/10 border-y border-black/10">
@@ -33,7 +33,7 @@ export default function PreguntasQr() {
       </section>
 
       <section className="relative overflow-hidden bg-[#17191E] py-24 text-center text-white md:py-32">
-        <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-[480px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(232,89,42,.22),transparent)]" />
+        <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-[480px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.22),transparent)]" />
         <div className="relative mx-auto max-w-3xl px-6">
           <h2 className="font-display text-5xl font-semibold leading-[1.0] md:text-7xl">Tu carta digital, hoy mismo.</h2>
           <p className="mx-auto mt-5 max-w-lg text-lg text-white/60">Actívala por 1 € y súbela en una tarde. Si algo no te convence, lo dejas.</p>

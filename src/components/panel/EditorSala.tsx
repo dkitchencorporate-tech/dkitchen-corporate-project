@@ -130,11 +130,11 @@ export default function EditorSala({
   const nombreCam = (id: string | null) => camareros.find((c) => c.id === id)?.nombre;
 
   return (
-    <div className="fixed inset-0 z-[100] flex h-[100dvh] flex-col bg-[#F7F7F5] text-[#1B1D22]" role="dialog" aria-modal="true" aria-label="Editor de sala">
+    <div className="fixed inset-0 z-[100] flex h-[100dvh] flex-col bg-[#F7F5F2] text-[#1B1D22]" role="dialog" aria-modal="true" aria-label="Editor de sala">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#E6E6E2] px-4 py-3">
         <h2 className="mr-auto font-bold">Editor de sala</h2>
         {aviso && <span className={`text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</span>}
-        <button disabled={pendiente || !cambios} onClick={guardar} className="rounded-lg bg-[#E8592A] px-4 py-2 text-sm font-bold disabled:opacity-40">
+        <button disabled={pendiente || !cambios} onClick={guardar} className="rounded-lg bg-[#6E0C2B] px-4 py-2 text-sm font-bold disabled:opacity-40">
           {pendiente ? 'Guardando…' : cambios ? 'Guardar plano' : 'Guardado'}
         </button>
         <button onClick={cerrar} className="rounded-lg bg-[#EDEDEA] px-3 py-2 text-sm">Cerrar</button>
@@ -174,7 +174,7 @@ export default function EditorSala({
               const s = sel?.clave === m.clave;
               return (
                 <div key={m.clave} onPointerDown={(ev) => empezar(ev, 'mesa', m.clave, m.x, m.y)}
-                  className={`absolute z-10 flex cursor-move flex-col items-center justify-center text-[11px] font-black text-[#1A1714] shadow-md ${m.forma === 'redonda' ? 'rounded-full' : 'rounded-md'} ${s ? 'outline outline-2 outline-[#E8592A]' : ''}`}
+                  className={`absolute z-10 flex cursor-move flex-col items-center justify-center text-[11px] font-black text-[#1A1714] shadow-md ${m.forma === 'redonda' ? 'rounded-full' : 'rounded-md'} ${s ? 'outline outline-2 outline-[#6E0C2B]' : ''}`}
                   style={{ left: `${m.x}%`, top: `${m.y}%`, width: `${m.ancho}%`, height: `${m.alto}%`, background: m.camareroId ? '#fff' : '#e7e1d8' }}>
                   {m.numero}
                   <span className="text-[8px] font-medium opacity-60">{m.plazas}p{m.camareroId ? ` · ${nombreCam(m.camareroId)?.slice(0, 6) ?? ''}` : ''}</span>

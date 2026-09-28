@@ -29,15 +29,15 @@ export default function PaginaDarkKitchen() {
 
       <Marquesina oscura items={['6 marcas probadas', 'Hasta 7 marcas por cocina', 'Pedidos propios sin comisión', 'Una sola pantalla de cocina', 'Recetas y proveedores cerrados']} />
 
-      <section className="bg-[#F7F7F5] py-24 md:py-32">
+      <section className="bg-[#F7F5F2] py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Titulo etiqueta="El precio de improvisar" texto="Más pedidos con caos es más ruina, no más dinero." sub="Abrir cinco apps de delivery a la vez colapsa los fogones, quema al equipo y se lleva el margen en comisiones." />
           <div className="mt-14 grid gap-4 md:grid-cols-[1.2fr_1fr]">
-            <Aparecer className="rounded-[28px] bg-[#111317] p-8 text-white md:p-10">
+            <Aparecer className="rounded-[28px] bg-[#0A080C] p-8 text-white md:p-10">
               <p className="text-sm text-white/60">Si facturas en apps de delivery</p>
               <p className="font-display mt-1 text-5xl font-semibold"><Contador hasta={10000} sufijo=" €" /></p>
               <p className="mt-6 text-sm text-white/60">con comisiones del 30 %, pierdes</p>
-              <p className="font-display mt-1 text-5xl font-semibold text-[#E8592A]">−<Contador hasta={3000} sufijo=" €" /></p>
+              <p className="font-display mt-1 text-5xl font-semibold text-[#6E0C2B]">−<Contador hasta={3000} sufijo=" €" /></p>
               <p className="mt-6 text-white/65">En tu propio canal, esa misma venta deja 0 € en comisiones de plataforma.</p>
             </Aparecer>
             <Dolores items={[['Fogones colapsados en cada pico.', 'Y el pase se convierte en una guerra.'], ['Recetas que cambian según quién cocina.', 'Y las reseñas lo notan.']]} />
@@ -50,7 +50,7 @@ export default function PaginaDarkKitchen() {
           <Titulo etiqueta="Qué te llevas" texto="Todo lo difícil, ya resuelto." />
           <div className="mt-14 grid gap-4 md:grid-cols-3">
             {([['Marcas llave en mano', 'Seis marcas ya operadas en una cocina real: fichas técnicas, proveedores y tiempos. Tu equipo sigue el protocolo y empaqueta.'], ['Pedidos propios', 'Tu propia app de pedidos: el cliente pide en dos toques, el dinero va a tu banco y la base de clientes es tuya.'], ['Una sola pantalla de cocina', 'Todos los pedidos de todas las marcas, ordenados en una pantalla. El chef solo ve qué cocinar y en qué orden.']] as [string, string][]).map(([t, d], i) => (
-              <Aparecer key={t} retraso={i * 0.08}><TarjetaTilt className="h-full rounded-[28px] border border-[#E6E6E2] p-7"><span className="font-display text-sm font-semibold text-[#E8592A]">0{i + 1}</span><p className="mt-3 text-xl font-semibold">{t}</p><p className="mt-2 text-[#6B7079]">{d}</p></TarjetaTilt></Aparecer>
+              <Aparecer key={t} retraso={i * 0.08}><TarjetaTilt className="h-full rounded-[28px] border border-[#E6E6E2] p-7"><span className="font-display text-sm font-semibold text-[#6E0C2B]">0{i + 1}</span><p className="mt-3 text-xl font-semibold">{t}</p><p className="mt-2 text-[#6B7079]">{d}</p></TarjetaTilt></Aparecer>
             ))}
           </div>
           <div className="mt-14 flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none]">
@@ -61,7 +61,7 @@ export default function PaginaDarkKitchen() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-[#111317] py-24 text-white md:py-32">
+      <section className="relative overflow-hidden bg-[#0A080C] py-24 text-white md:py-32">
         <FondoVivo className="opacity-50" />
         <div className="relative mx-auto max-w-6xl px-6 md:px-8">
           <Titulo oscuro etiqueta="Desarrollos reales" texto="Tres marcas del catálogo, ya con su app de pedidos." sub="Seven Food Fries, Wing Boss y Bokadipan venden con su propia app, lista para replicar en tu cocina." />
@@ -69,17 +69,17 @@ export default function PaginaDarkKitchen() {
         </div>
       </section>
 
-      <section className="bg-[#111317] py-24 text-white md:py-32">
+      <section className="bg-[#0A080C] py-24 text-white md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Titulo oscuro etiqueta="Proceso de admisión" texto="No aceptamos todos los proyectos. Y eso te protege." sub="Si los números de tu cocina no garantizan rentabilidad, te lo decimos antes de que gastes un euro." />
           <ol className="mt-14 grid gap-4 md:grid-cols-3">
             {([['Evaluación', 'Analizamos tu cocina, tu radio de reparto y tu coste de producto. Si no sale rentable, paramos aquí.'], ['Ingeniería de carta', 'Adaptamos las recetas a tu equipo, diseñamos el flujo de trabajo y elegimos el envase para que llegue perfecto.'], ['Lanzamiento', 'Montamos los pedidos propios, el cobro y la conexión de repartidores con tu pantalla de cocina.']] as [string, string][]).map(([t, d], i) => (
-              <Aparecer key={t} retraso={i * 0.1}><li className="h-full rounded-[28px] border border-white/10 p-7"><p className="font-display text-5xl font-semibold text-[#E8592A]">{i + 1}</p><p className="mt-3 text-xl font-semibold">{t}</p><p className="mt-2 text-white/60">{d}</p></li></Aparecer>
+              <Aparecer key={t} retraso={i * 0.1}><li className="h-full rounded-[28px] border border-white/10 p-7"><p className="font-display text-5xl font-semibold text-[#6E0C2B]">{i + 1}</p><p className="mt-3 text-xl font-semibold">{t}</p><p className="mt-2 text-white/60">{d}</p></li></Aparecer>
             ))}
           </ol>
           <Aparecer className="mt-10 rounded-[24px] border border-white/10 bg-white/[0.04] p-6 md:flex md:items-center md:justify-between md:p-8">
             <div><p className="text-sm text-white/60">Inversión</p><p className="font-display text-4xl font-semibold">De 3.000 € a 10.000 €</p><p className="mt-1 text-sm text-white/50">La cifra exacta se cierra en la evaluación. Es un proyecto a medida, no un plan de catálogo.</p></div>
-            <a href={WA} className="mt-6 inline-block rounded-full bg-[#E8592A] px-7 py-4 font-semibold md:mt-0">Solicitar entrevista</a>
+            <a href={WA} className="mt-6 inline-block rounded-full bg-[#6E0C2B] px-7 py-4 font-semibold md:mt-0">Solicitar entrevista</a>
           </Aparecer>
         </div>
       </section>

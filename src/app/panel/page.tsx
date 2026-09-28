@@ -39,7 +39,7 @@ export default async function Panel() {
       // El super admin no tiene restaurante: su sitio es la central (con 2FA).
       if ((await estadoAdmin(jwt)) !== 'no_admin') redirect('/acceso-seguro');
       return (
-        <div className="min-h-screen bg-[#F7F7F5] flex items-center justify-center px-6 text-center">
+        <div className="min-h-screen bg-[#F7F5F2] flex items-center justify-center px-6 text-center">
           <div className="max-w-md">
             <h1 className="text-xl font-bold text-[#1B1D22] mb-2">Todavía no tienes un restaurante activo</h1>
             <p className="text-[#6B7079] text-sm">
@@ -96,7 +96,7 @@ export default async function Panel() {
     if (error instanceof SesionNoValida) redirect('/panel/iniciar-sesion');
     console.error('Panel: fallo al cargar los datos', error);
     return (
-      <div className="min-h-screen bg-[#F7F7F5] flex items-center justify-center px-6 text-center">
+      <div className="min-h-screen bg-[#F7F5F2] flex items-center justify-center px-6 text-center">
         <div className="max-w-md">
           <h1 className="text-xl font-bold text-[#1B1D22] mb-2">No hemos podido cargar tu panel</h1>
           <p className="text-[#6B7079] text-sm">Recarga la página en unos segundos. Si persiste, escríbenos por WhatsApp.</p>

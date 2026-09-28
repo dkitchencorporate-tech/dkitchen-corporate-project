@@ -30,7 +30,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         AggressiveHero con `pt-32 md:pt-20`). Ponerlo aquí también lo
         duplicaría en la home.
       */}
-      <main>
+      <main className="web-dk">
         <PageTransition>{children}</PageTransition>
       </main>
       <Footer />

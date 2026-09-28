@@ -77,7 +77,7 @@ export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId
               {catalogo.map((c) => {
                 const on = servicios.includes(c.servicio);
                 return (
-                  <label key={c.servicio} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${on ? 'border-[#17191E] bg-[#F7F7F5]' : 'border-[#E6E6E2]'}`}>
+                  <label key={c.servicio} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${on ? 'border-[#17191E] bg-[#F7F5F2]' : 'border-[#E6E6E2]'}`}>
                     <input type="checkbox" checked={on} onChange={(e) => setServicios((l) => (e.target.checked ? [...l, c.servicio] : l.filter((x) => x !== c.servicio)))} />
                     <span className="min-w-0 flex-1 font-medium">{c.nombre}</span>
                     <span className="shrink-0 text-xs text-[#6B7079]">{eur(c.precio)}{c.tipo === 'mensual' ? '/mes' : ''}</span>
@@ -91,7 +91,7 @@ export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId
 
       {paso === 2 && (
         <div className="space-y-4">
-          <div className="rounded-2xl bg-[#F7F7F5] p-4 text-sm">
+          <div className="rounded-2xl bg-[#F7F5F2] p-4 text-sm">
             <p className="text-[#6B7079]">Precio normal</p>
             <p className="mt-1 font-semibold">Primer pago {eur(normal.primer)}{normal.mensual ? ` · después ${eur(normal.mensual)}/mes` : ' · pago único'}</p>
             <p className="mt-1 text-xs text-[#9A9EA6]">Déjalo en blanco para cobrar el precio normal, o escribe otro importe para aplicar un descuento.</p>
@@ -131,7 +131,7 @@ export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId
           <button disabled={(paso === 1 && !hayAlgo) || (paso === 2 && !importesOk)} onClick={() => setPaso(paso + 1)} className="rounded-full bg-[#17191E] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-35">Continuar</button>
         ) : (
           <button disabled={pendiente} onClick={() => { setResultado(null); iniciar(async () => setResultado(await crearEnlaceAction({ restauranteId, plan, servicios, primer: primerFinal, mensual: mensualFinal, nota, enviar }))); }}
-            className="rounded-full bg-[#E8592A] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{pendiente ? 'Creando enlace…' : 'Crear enlace de pago'}</button>
+            className="rounded-full bg-[#6E0C2B] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{pendiente ? 'Creando enlace…' : 'Crear enlace de pago'}</button>
         )}
       </div>
     </div>

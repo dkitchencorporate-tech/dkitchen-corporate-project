@@ -729,7 +729,7 @@ function CartaContent() {
             <button onClick={() => setIsSwitcherModalOpen(true)} className="flex-1 rounded-full px-4 py-3 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
               Cambiar diseño
             </button>
-            <button onClick={() => setIsSalesModalOpen(true)} className="flex-1 rounded-full bg-[#E8592A] px-4 py-3 text-sm font-semibold text-white hover:bg-[#CF4A1F]">
+            <button onClick={() => setIsSalesModalOpen(true)} className="flex-1 rounded-full bg-[#6E0C2B] px-4 py-3 text-sm font-semibold text-white hover:bg-[#4A0819]">
               Quiero esta carta
             </button>
           </div>
@@ -751,15 +751,15 @@ function CartaContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsSwitcherModalOpen(false)}></div>
           <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin bg-[#17191E] border border-white/10 rounded-[28px] p-6 md:p-10 shadow-2xl animate-fade-in" style={{ fontFamily: 'var(--fuente-display), Inter, sans-serif' }}>
-            <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Tres cartas de autor</p><h3 className="mt-3 mb-8 text-center text-3xl font-semibold text-white">{t.select_design}</h3>
+            <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Tres cartas de autor</p><h3 className="mt-3 mb-8 text-center text-3xl font-semibold text-white">{t.select_design}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <button onClick={() => { setActiveTemplate('sushi'); setIsSwitcherModalOpen(false); }} className={`p-8 text-left rounded-2xl border transition-all ${activeTemplate === 'sushi' ? 'border-[#E8592A] bg-[#E8592A]/10' : 'border-white/10 hover:border-white/30'}`}>
+              <button onClick={() => { setActiveTemplate('sushi'); setIsSwitcherModalOpen(false); }} className={`p-8 text-left rounded-2xl border transition-all ${activeTemplate === 'sushi' ? 'border-[#6E0C2B] bg-[#6E0C2B]/10' : 'border-white/10 hover:border-white/30'}`}>
                 <div className="font-serif text-white text-2xl mb-2">Alta Cocina</div><div className="text-sm text-gray-500">Diseño Editorial y Minimalista.</div>
               </button>
-              <button onClick={() => { setActiveTemplate('tapas'); setIsSwitcherModalOpen(false); }} className={`p-8 text-left rounded-2xl border transition-all ${activeTemplate === 'tapas' ? 'border-[#E8592A] bg-[#E8592A]/10' : 'border-white/10 hover:border-white/30'}`}>
+              <button onClick={() => { setActiveTemplate('tapas'); setIsSwitcherModalOpen(false); }} className={`p-8 text-left rounded-2xl border transition-all ${activeTemplate === 'tapas' ? 'border-[#6E0C2B] bg-[#6E0C2B]/10' : 'border-white/10 hover:border-white/30'}`}>
                 <div className="font-serif text-white text-2xl mb-2">Bar & Tapas</div><div className="text-sm text-gray-500">Diseño Lista. Tradición y Cuchareo.</div>
               </button>
-              <button onClick={() => { setActiveTemplate('burger'); setIsSwitcherModalOpen(false); }} className={`p-8 text-left rounded-2xl border transition-all ${activeTemplate === 'burger' ? 'border-[#E8592A] bg-[#E8592A]/10' : 'border-white/10 hover:border-white/30'}`}>
+              <button onClick={() => { setActiveTemplate('burger'); setIsSwitcherModalOpen(false); }} className={`p-8 text-left rounded-2xl border transition-all ${activeTemplate === 'burger' ? 'border-[#6E0C2B] bg-[#6E0C2B]/10' : 'border-white/10 hover:border-white/30'}`}>
                 <div className="font-sans font-black uppercase text-white text-2xl mb-2">Fast Food App</div><div className="text-sm text-gray-500">Diseño en cuadrícula. Compra por impulso.</div>
               </button>
             </div>
@@ -778,7 +778,7 @@ function CartaContent() {
               {t.sales_desc}
             </p>
             <div className="space-y-4">
-              <a href="/qr#planes" className="block w-full rounded-full bg-[#E8592A] py-4 text-[15px] font-semibold text-white hover:bg-[#CF4A1F]">
+              <a href="/qr#planes" className="block w-full rounded-full bg-[#6E0C2B] py-4 text-[15px] font-semibold text-white hover:bg-[#4A0819]">
                 Quiero mi carta · primer mes 1 €
               </a>
               <a href="https://wa.me/34622652659?text=Hola,%20he%20visto%20las%20cartas%20de%20autor%20y%20quiero%20una%20para%20mi%20local." target="_blank" rel="noopener noreferrer" className="block w-full rounded-full border border-white/20 py-4 text-[15px] font-semibold text-white hover:border-white/50">

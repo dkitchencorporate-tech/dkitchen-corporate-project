@@ -32,11 +32,11 @@ export default function IniciarSesion() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F7F5] flex items-center justify-center px-6 py-24">
+    <div className="min-h-screen bg-[#F7F5F2] flex items-center justify-center px-6 py-24">
       <div className="max-w-md w-full">
         <div className="text-center mb-10">
           <h1 className="text-2xl font-bold text-[#1B1D22]">
-            D<span className="text-[#E8592A]">Kitchen</span>
+            D<span className="text-[#6E0C2B]">Kitchen</span>
           </h1>
           <p className="text-[#6B7079] text-sm mt-2">Entra a tu panel para gestionar tu carta y tu QR</p>
         </div>
@@ -55,7 +55,7 @@ export default function IniciarSesion() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg bg-white border border-[#E6E6E2] px-4 py-2.5 text-[#1B1D22] placeholder-[#9A9EA6] focus:outline-none focus:border-[#E8592A]"
+              className="w-full rounded-lg bg-white border border-[#E6E6E2] px-4 py-2.5 text-[#1B1D22] placeholder-[#9A9EA6] focus:outline-none focus:border-[#6E0C2B]"
               placeholder="tu@correo.com"
             />
           </div>
@@ -71,7 +71,7 @@ export default function IniciarSesion() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg bg-white border border-[#E6E6E2] px-4 py-2.5 pr-11 text-[#1B1D22] placeholder-[#9A9EA6] focus:outline-none focus:border-[#E8592A]"
+                className="w-full rounded-lg bg-white border border-[#E6E6E2] px-4 py-2.5 pr-11 text-[#1B1D22] placeholder-[#9A9EA6] focus:outline-none focus:border-[#6E0C2B]"
                 placeholder="••••••••"
               />
               <button
@@ -100,7 +100,7 @@ export default function IniciarSesion() {
               type="checkbox"
               checked={recordarme}
               onChange={(e) => setRecordarme(e.target.checked)}
-              className="w-4 h-4 rounded border-[#D6D6D1] bg-white accent-[#E8592A]"
+              className="w-4 h-4 rounded border-[#D6D6D1] bg-white accent-[#6E0C2B]"
             />
             Recordarme en este dispositivo
           </label>
@@ -114,7 +114,7 @@ export default function IniciarSesion() {
           <button
             type="submit"
             disabled={cargando}
-            className="w-full rounded-lg bg-[#E8592A] hover:bg-[#CF4A1F] text-white font-bold py-3 transition-colors disabled:opacity-50"
+            className="w-full rounded-lg bg-[#6E0C2B] hover:bg-[#4A0819] text-white font-bold py-3 transition-colors disabled:opacity-50"
           >
             {cargando ? 'Entrando…' : 'Entrar'}
           </button>

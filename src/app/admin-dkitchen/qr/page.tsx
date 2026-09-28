@@ -61,7 +61,7 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
       </div>
 
       {listosParaSubir.length > 0 && (
-        <div className="rounded-2xl border border-[#E8592A]/50 bg-[#E8592A]/10 p-4 text-sm">
+        <div className="rounded-2xl border border-[#6E0C2B]/50 bg-[#6E0C2B]/10 p-4 text-sm">
           <strong>Listos para subir de peldaño (&gt;600 escaneos/mes):</strong> {listosParaSubir.map((c) => c.nombre).join(', ')}
         </div>
       )}
@@ -71,7 +71,7 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
           <Link
             key={f.id}
             href={f.id === 'todos' ? '/admin-dkitchen/qr' : `/admin-dkitchen/qr?estado=${f.id}`}
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${filtro === f.id ? 'bg-[#E8592A] text-white' : 'bg-[#EDEDEA] text-[#6B7079] hover:bg-[#E5E5E1]'}`}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${filtro === f.id ? 'bg-[#6E0C2B] text-white' : 'bg-[#EDEDEA] text-[#6B7079] hover:bg-[#E5E5E1]'}`}
           >
             {f.nombre} ({f.id === 'todos' ? todos.length : todos.filter((c) => c.estadoAcceso === f.id).length})
           </Link>
@@ -124,7 +124,7 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
               {clientes.map((c) => (
                 <tr key={c.restauranteId} className="hover:bg-[#F3F3F0]">
                   <td className="px-4 py-3">
-                    <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="font-semibold hover:text-[#E8592A]">
+                    <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="font-semibold hover:text-[#6E0C2B]">
                       {c.nombre}
                     </Link>
                     <p className="text-xs text-[#9A9EA6]">

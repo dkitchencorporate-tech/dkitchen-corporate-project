@@ -16,7 +16,7 @@ export const ESTILOS = [
 ] as const;
 export const FONDOS = [
   { id: 'papel', nombre: 'Papel', fondo: '#F7F3EA', tinta: '#221D17', tarjeta: '#FFFFFF' },
-  { id: 'blanco', nombre: 'Blanco', fondo: '#FFFFFF', tinta: '#1B1D22', tarjeta: '#F7F7F5' },
+  { id: 'blanco', nombre: 'Blanco', fondo: '#FFFFFF', tinta: '#1B1D22', tarjeta: '#F7F5F2' },
   { id: 'oscuro', nombre: 'Oscuro', fondo: '#15161A', tinta: '#F3F1EC', tarjeta: '#1F2126' },
 ] as const;
 export const COLORES = [
@@ -80,7 +80,7 @@ export default function EstiloCarta({ inicial, nombre, bloqueado }: { inicial: E
   const [pendiente, iniciar] = useTransition();
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
   const cambiado = JSON.stringify(e) !== JSON.stringify(inicial);
-  const opcion = (activa: boolean) => `rounded-2xl border p-3 text-left transition ${activa ? 'border-[#17191E] bg-[#F7F7F5]' : 'border-[#E6E6E2] hover:border-[#D6D6D1]'}`;
+  const opcion = (activa: boolean) => `rounded-2xl border p-3 text-left transition ${activa ? 'border-[#17191E] bg-[#F7F5F2]' : 'border-[#E6E6E2] hover:border-[#D6D6D1]'}`;
 
   if (bloqueado) {
     return (

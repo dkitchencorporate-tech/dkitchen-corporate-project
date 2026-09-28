@@ -60,7 +60,7 @@ export default function Soporte({ tickets }: { tickets: Ticket[] }) {
           <button
             onClick={enviar}
             disabled={pendiente}
-            className="ml-auto bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
+            className="ml-auto bg-[#6E0C2B] hover:bg-[#4A0819] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
           >
             {pendiente ? 'Enviando…' : 'Enviar ticket'}
           </button>

@@ -57,7 +57,7 @@ export function ModelosReales({ oscuro = true }: { oscuro?: boolean }) {
               <p className="font-display mt-2 text-3xl font-semibold">{x.nombre}</p>
               <ul className={`mt-4 space-y-2 text-[15px] ${oscuro ? 'text-white/70' : 'text-[#3F434B]'}`}>{x.puntos.map((p) => <li key={p} className="flex gap-2"><span style={{ color: x.color }}>✓</span>{p}</li>)}</ul>
               <div className="mt-6 flex flex-col gap-2">
-                <a href={wa(x.nombre)} className="rounded-full bg-[#E8592A] px-5 py-3 text-center text-sm font-semibold text-white">Quiero este modelo</a>
+                <a href={wa(x.nombre)} className="rounded-full bg-[#6E0C2B] px-5 py-3 text-center text-sm font-semibold text-white">Quiero este modelo</a>
                 <div className="flex gap-2">
                   <button onClick={() => setAbierto(x.id)} className={`flex-1 rounded-full border px-4 py-3 text-sm font-semibold ${oscuro ? 'border-white/20 hover:border-white/50' : 'border-[#D6D6D1] hover:border-[#17191E]'}`}>Abrir en grande</button>
                   <a href={x.url} target="_blank" rel="noopener" className={`flex-1 rounded-full border px-4 py-3 text-center text-sm font-semibold ${oscuro ? 'border-white/20 hover:border-white/50' : 'border-[#D6D6D1] hover:border-[#17191E]'}`}>Ver web real ↗</a>
@@ -75,7 +75,7 @@ export function ModelosReales({ oscuro = true }: { oscuro?: boolean }) {
               <div className="flex items-center justify-between bg-[#17191E] px-5 py-3 text-sm text-white"><span>{m.nombre} · así lo ve tu cliente</span><button onClick={() => setAbierto(null)} className="rounded-full bg-white/10 px-3 py-1.5 font-semibold">Cerrar</button></div>
               <div className="relative flex-1"><PantallaDesplazable id={m.id} alt={`Web de ${m.nombre}`} activa={false} /></div>
               <div className="absolute inset-x-0 bottom-0 flex gap-2 bg-gradient-to-t from-black/60 to-transparent p-4 pt-10">
-                <a href={wa(m.nombre)} className="flex-1 rounded-full bg-[#E8592A] py-4 text-center text-[15px] font-semibold text-white shadow-lg">Quiero este modelo</a>
+                <a href={wa(m.nombre)} className="flex-1 rounded-full bg-[#6E0C2B] py-4 text-center text-[15px] font-semibold text-white shadow-lg">Quiero este modelo</a>
                 <a href={m.url} target="_blank" rel="noopener" className="rounded-full bg-white px-5 py-4 text-[15px] font-semibold text-[#17191E] shadow-lg">Web real ↗</a>
               </div>
             </motion.div>
@@ -108,13 +108,13 @@ export function CartasAutorDemo() {
           <p className="mt-1 text-sm text-white/55">{c.d}</p>
           <div className="mt-4 flex justify-center gap-2">
             <a href={`/demo/carta?plantilla=${c.id}`} className="rounded-full border border-white/20 px-4 py-2.5 text-sm font-semibold hover:border-white/50">Abrir en grande</a>
-            <a href="#planes" className="rounded-full bg-[#E8592A] px-4 py-2.5 text-sm font-semibold">Quiero esta</a>
+            <a href="#planes" className="rounded-full bg-[#6E0C2B] px-4 py-2.5 text-sm font-semibold">Quiero esta</a>
           </div>
         </motion.div>
       ))}
       <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.4 }} transition={{ duration: 0.7, ease: CURVA }}
         className="rounded-[32px] border border-white/10 bg-white/[0.04] p-8 text-center md:col-span-3 md:p-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#E8592A]">¿Tienes otra idea?</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#6E0C2B]">¿Tienes otra idea?</p>
         <p className="font-display mx-auto mt-3 max-w-2xl text-3xl font-semibold leading-tight md:text-4xl">Diseñamos tu carta desde cero, con tu marca.</p>
         <p className="mx-auto mt-3 max-w-xl text-[15px] text-white/60">Si ninguno de estos estilos es tu local, cuéntanos cómo lo imaginas: colores, tipografía, fotos, ambiente. La creamos a medida y la ves antes de publicarla.</p>
         <a href={`https://wa.me/34622652659?text=${encodeURIComponent('Hola, quiero mi propio diseño de autor para la carta de mi local.')}`} className="mt-6 inline-block rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-[#17191E] hover:bg-white/90">Quiero mi propio diseño de autor</a>

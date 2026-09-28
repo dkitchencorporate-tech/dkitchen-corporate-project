@@ -38,7 +38,7 @@ export default function MiCarta({
         <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Mi Carta</h2>
         <button
           onClick={() => setPlatoEnEdicion('nuevo')}
-          className="bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-4 py-2 rounded-full transition-colors"
+          className="bg-[#6E0C2B] hover:bg-[#4A0819] text-white text-sm font-bold px-4 py-2 rounded-full transition-colors"
         >
           + Añadir plato
         </button>
@@ -57,7 +57,7 @@ export default function MiCarta({
           value={nuevaSeccion}
           onChange={(e) => setNuevaSeccion(e.target.value)}
           placeholder="Nombre de la nueva sección (ej. Entrantes)"
-          className="flex-1 rounded-lg bg-white border border-[#E6E6E2] px-4 py-2.5 text-[#1B1D22] placeholder-[#9A9EA6] focus:outline-none focus:border-[#E8592A]"
+          className="flex-1 rounded-lg bg-white border border-[#E6E6E2] px-4 py-2.5 text-[#1B1D22] placeholder-[#9A9EA6] focus:outline-none focus:border-[#6E0C2B]"
         />
         <button
           onClick={agregarSeccion}
@@ -172,7 +172,7 @@ function SeccionCard({
                 {plato.descripcion ? (
                   <p className="text-xs text-[#6B7079] mt-0.5 line-clamp-1">{plato.descripcion}</p>
                 ) : (
-                  <button onClick={() => onEditarPlato(plato)} className="text-xs text-[#E8592A]/80 hover:text-[#E8592A] mt-0.5">+ Añadir descripción</button>
+                  <button onClick={() => onEditarPlato(plato)} className="text-xs text-[#6E0C2B]/80 hover:text-[#6E0C2B] mt-0.5">+ Añadir descripción</button>
                 )}
                 {plato.alergenos.length > 0 && (
                   <p className="text-xs text-[#9A9EA6] mt-0.5">
@@ -244,7 +244,7 @@ function FormularioPlato({
   }
 
   return (
-    <div className="bg-white border border-[#E8592A]/40 rounded-2xl p-5 space-y-4">
+    <div className="bg-white border border-[#6E0C2B]/40 rounded-2xl p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">{plato ? 'Editar plato' : 'Nuevo plato'}</h3>
         <button onClick={onCerrar} className="text-[#6B7079] hover:text-[#3F434B] text-sm">
@@ -309,7 +309,7 @@ function FormularioPlato({
               onClick={() => alternarAlergeno(codigo)}
               className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                 alergenos.includes(codigo)
-                  ? 'bg-[#E8592A] border-[#E8592A] text-white'
+                  ? 'bg-[#6E0C2B] border-[#6E0C2B] text-white'
                   : 'border-[#D6D6D1] text-[#6B7079] hover:border-[#D6D6D1]'
               }`}
             >
@@ -343,7 +343,7 @@ function FormularioPlato({
         <button
           onClick={guardar}
           disabled={pendiente}
-          className="ml-auto bg-[#E8592A] hover:bg-[#CF4A1F] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
+          className="ml-auto bg-[#6E0C2B] hover:bg-[#4A0819] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
         >
           {pendiente ? 'Guardando…' : 'Guardar'}
         </button>
