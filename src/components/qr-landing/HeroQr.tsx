@@ -51,7 +51,7 @@ export default function HeroQr() {
                 </div>
               </div>
               <div className="flex gap-4 border-b border-black/10 px-5 py-3 text-[9px] uppercase tracking-[0.2em] text-black/55">
-                <span className="text-[#D9531E]">Para compartir</span><span>Principales</span><span>Postres</span>
+                <span className="whitespace-nowrap text-[#D9531E]">Entrantes</span><span>Principales</span><span>Postres</span>
               </div>
               <div className="space-y-4 px-5 pb-8 pt-5">
                 <p className="text-center text-[9px] uppercase tracking-[0.3em] text-[#D9531E]">I</p>
@@ -69,7 +69,7 @@ export default function HeroQr() {
               </div>
             </div>
           </div>
-          <div className="absolute -left-10 top-24 hidden rounded-2xl border border-white/10 bg-[#1b1510]/95 px-4 py-3 text-sm shadow-xl backdrop-blur sm:block">
+          <div className="absolute -left-14 bottom-24 hidden rounded-2xl border border-white/10 bg-[#1b1510]/95 px-4 py-3 text-sm shadow-xl backdrop-blur sm:block">
             <p className="text-white/45 text-xs">Precio actualizado</p>
             <p className="font-semibold">Hace 2 min · mismo QR</p>
           </div>
