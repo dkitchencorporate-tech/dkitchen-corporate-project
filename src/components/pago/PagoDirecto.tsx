@@ -71,7 +71,7 @@ export default function PagoDirecto({ producto, precio, boton, detalle = '' }: {
       </label>
       {error && <p role="alert" className="rounded-xl bg-[#6E0C2B]/10 px-4 py-3 text-sm text-[#6E0C2B]">{error}</p>}
       <button type="submit" disabled={estado === 'enviando'} className="mt-1 rounded-full bg-[#6E0C2B] px-7 py-4 text-[16px] font-semibold text-white disabled:opacity-60">
-        {estado === 'enviando' ? 'Abriendo el pago seguro…' : `${boton} · ${precio} €`}
+        {estado === 'enviando' ? 'Abriendo el pago seguro…' : `${boton} · ${precio} € + IVA`}
       </button>
       <p className="text-center text-xs text-[#9A9EA6]">Te llevamos a la pasarela segura de Whop para pagar con tarjeta.</p>
     </form>

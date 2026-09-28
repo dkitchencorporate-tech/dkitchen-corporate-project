@@ -109,7 +109,7 @@ export async function POST(request: Request) {
     if (productoDirecto.metadataWhop !== 'nucleo-operativo' && metaEmbudo.email) {
       await enviarCorreoCliente(String(metaEmbudo.email), `Pago confirmado · ${productoDirecto.nombre}`,
         `<p>Hola ${escaparHtml(metaEmbudo.nombreContacto)},</p>
-         <p>Hemos recibido tu pago de <strong>${productoDirecto.precio} €</strong> por <strong>${escaparHtml(productoDirecto.nombre)}</strong>. Gracias por confiar en DKitchen.</p>
+         <p>Hemos recibido tu pago de <strong>${productoDirecto.precio} € + IVA</strong> por <strong>${escaparHtml(productoDirecto.nombre)}</strong>. Gracias por confiar en DKitchen.</p>
          <p><strong>Qué pasa ahora:</strong></p>
          <ul>${productoDirecto.despues.map(([c, t]) => `<li><strong>${escaparHtml(c)}:</strong> ${escaparHtml(t)}</li>`).join('')}</ul>
          <p>Si tienes cualquier duda, responde a este correo.</p><p>Un saludo,<br>El equipo de DKitchen</p>`).catch((e) =>

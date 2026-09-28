@@ -67,8 +67,9 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
         <div className="md:sticky md:top-28 md:self-start">
           <div className="rounded-[28px] border border-[#E4E1DC] bg-white p-6 shadow-[0_30px_80px_-40px_rgba(62,5,21,.45)] md:p-8">
             <p className="text-sm text-[#6B7079]">{p.nombre}</p>
-            <p className="font-display mt-1 text-6xl font-semibold tracking-tight">{p.precio} €</p>
+            <p className="font-display mt-1 text-6xl font-semibold tracking-tight">{p.precio} €<span className="ml-2 align-middle font-sans text-base font-medium text-[#6B7079]">+ IVA</span></p>
             <p className="mt-2 text-sm text-[#6B7079]">{p.nota}</p>
+            <p className="mt-1 text-sm text-[#6B7079]">Total con IVA (21 %): <strong className="text-[#17191E]">{(p.precio * 1.21).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</strong></p>
             <div className="my-6 h-px bg-[#E4E1DC]" />
             <PagoDirecto producto={p.id} precio={p.precio} boton="Pagar y empezar" detalle={modelo} />
           </div>
