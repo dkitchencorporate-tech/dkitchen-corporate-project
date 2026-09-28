@@ -66,7 +66,7 @@ export default function AppSala({ token }: { token: string }) {
             <p className="font-bold">Hola, {ctx.camarero.nombre}</p>
           </div>
           <button onClick={() => setSonido((s) => !s)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${sonido ? 'text-white' : 'bg-black/5'}`} style={sonido ? { background: color } : undefined}>
-            {sonido ? '🔔 Aviso activo' : '🔕 Activar aviso'}
+            {sonido ? 'Aviso sonoro activo' : 'Activar aviso sonoro'}
           </button>
         </div>
       </header>
@@ -79,7 +79,7 @@ export default function AppSala({ token }: { token: string }) {
               <div key={l.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-sm" style={{ borderLeft: `5px solid ${color}` }}>
                 <div>
                   <p className="text-lg font-bold">Mesa {l.mesa}</p>
-                  <p className="text-sm text-black/55">{l.motivo === 'cuenta' ? '🧾 Pide la cuenta' : '🔔 Llama al camarero'} · hace {Math.max(0, Math.round((Date.now() - new Date(l.creada_en).getTime()) / 60000))} min</p>
+                  <p className="text-sm text-black/55">{l.motivo === 'cuenta' ? 'Pide la cuenta' : 'Llama al camarero'} · hace {Math.max(0, Math.round((Date.now() - new Date(l.creada_en).getTime()) / 60000))} min</p>
                 </div>
                 <button onClick={async () => { await pedir({ accion: 'atender', llamadaId: l.id }); cargar(); }} className="rounded-xl px-4 py-2.5 text-sm font-bold text-white" style={{ background: color }}>
                   Atendida

@@ -41,7 +41,7 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
   ];
 
   return (
-    <div className="p-6 lg:p-10 text-white space-y-8">
+    <div className="px-4 py-6 sm:p-6 lg:p-10 text-white space-y-8">
       <div>
         <h1 className="text-2xl font-black">Clientes QR Menú</h1>
         <p className="text-sm text-white/40">Datos reales de la base. Se actualiza en cada visita.</p>
@@ -80,7 +80,29 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
       {clientes.length === 0 ? (
         <p className="rounded-2xl border border-white/10 bg-[#1c140b] p-10 text-center text-white/40">{filtro === 'todos' ? 'Todavía no hay clientes QR.' : 'Ningún cliente en este estado.'}</p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-white/10">
+        <>
+        {/* Móvil: una tarjeta por cliente (sin scroll lateral) */}
+        <ul className="space-y-3 md:hidden">
+          {clientes.map((c) => (
+            <li key={c.restauranteId}>
+              <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="block rounded-2xl border border-white/10 bg-[#1c140b] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{c.nombre}</p>
+                    <p className="truncate text-xs text-white/40">{c.contacto ?? '—'}{c.email ? ` · ${c.email}` : ''}</p>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${COLOR_ESTADO[c.estadoAcceso] ?? 'bg-white/10'}`}>{c.estadoAcceso}</span>
+                </div>
+                <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="rounded-lg bg-white/5 py-2"><dt className="text-white/40">Plan</dt><dd className="font-semibold capitalize">{c.plan}</dd></div>
+                  <div className="rounded-lg bg-white/5 py-2"><dt className="text-white/40">Escaneos mes</dt><dd className="font-semibold tabular-nums">{c.escaneosMes}</dd></div>
+                  <div className="rounded-lg bg-white/5 py-2"><dt className="text-white/40">Pendientes</dt><dd className={`font-semibold tabular-nums ${c.ticketsAbiertos + c.solicitudesQrPendientes > 0 ? 'text-amber-400' : ''}`}>{c.ticketsAbiertos + c.solicitudesQrPendientes}</dd></div>
+                </dl>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="hidden overflow-x-auto rounded-2xl border border-white/10 md:block">
           <table className="w-full text-sm">
             <thead className="bg-white/5 text-left text-xs uppercase tracking-wider text-white/40">
               <tr>
@@ -141,6 +163,7 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );

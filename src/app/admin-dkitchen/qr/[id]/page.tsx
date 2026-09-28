@@ -88,7 +88,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
     : r.estado_acceso;
 
   return (
-    <div className="p-6 lg:p-10 text-white space-y-8">
+    <div className="px-4 py-6 sm:p-6 lg:p-10 text-white space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <Link href="/admin-dkitchen/qr" className="text-xs text-white/40 hover:text-white">← Clientes QR</Link>

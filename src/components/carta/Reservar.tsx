@@ -55,7 +55,7 @@ export default function Reservar({ slug, color, nombreLocal }: { slug: string; c
         className="inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-bold text-white shadow-sm"
         style={{ backgroundColor: color }}
       >
-        📅 Reservar mesa
+        Reservar mesa
       </button>
 
       {abierto && (
@@ -69,7 +69,7 @@ export default function Reservar({ slug, color, nombreLocal }: { slug: string; c
 
             {estado === 'ok' ? (
               <div className="space-y-4 text-center">
-                <p className="text-4xl">✅</p>
+                <p className="text-sm font-medium uppercase tracking-[0.2em] text-black/45">Solicitud enviada</p>
                 <p className="font-semibold text-[#1a1a1a]">¡Solicitud enviada!</p>
                 <p className="text-sm text-black/60">El local ha recibido tu reserva y te la confirmará en breve (por correo si lo has indicado, o por teléfono).</p>
                 {whatsappUrl && (

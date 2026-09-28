@@ -152,7 +152,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
             href="/panel?pestana=diseno"
             className="block w-full rounded-xl border border-[#D9531E]/50 bg-[#D9531E]/10 p-4 text-left hover:bg-[#D9531E]/15"
           >
-            <p className="font-semibold">✨ Sube tu carta al diseño de autor</p>
+            <p className="font-semibold">Sube tu carta al diseño de autor</p>
             <p className="text-xs text-white/60">Portada con tu imagen, categorías con foto, tipografía editorial… y te la dejamos cargada y optimizada. Ver niveles de diseño →</p>
           </a>
         ) : (

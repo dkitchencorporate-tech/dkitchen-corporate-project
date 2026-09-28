@@ -64,7 +64,7 @@ export default function BotonesMesa({ slug, color }: { slug: string; color: stri
         setTimeout(() => { setAbierto(false); setEstado('idle'); }, 3500);
       } else {
         setEstado('error');
-        setMensaje(j.resultado === 'limite' ? 'Demasiadas llamadas seguidas. Espera un momento.' : 'No se pudo avisar. Llama al camarero con la mano 🙂');
+        setMensaje(j.resultado === 'limite' ? 'Demasiadas llamadas seguidas. Espera un momento.' : 'No se pudo avisar. Avisa a nuestro equipo con la mano, por favor.');
       }
     } catch {
       setEstado('error');
@@ -79,7 +79,7 @@ export default function BotonesMesa({ slug, color }: { slug: string; color: stri
         className="fixed bottom-5 right-5 z-20 flex items-center gap-2 rounded-full px-5 py-3.5 text-sm font-bold text-white shadow-lg"
         style={{ backgroundColor: color }}
       >
-        🔔 Llamar camarero{mesa ? ` · Mesa ${mesa}` : ''}
+        Llamar al camarero{mesa ? ` · Mesa ${mesa}` : ''}
       </button>
 
       {abierto && (
@@ -106,10 +106,10 @@ export default function BotonesMesa({ slug, color }: { slug: string; color: stri
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 <button disabled={estado === 'enviando'} onClick={() => llamar('camarero')} className="rounded-xl py-3.5 text-sm font-bold text-white disabled:opacity-60" style={{ backgroundColor: color }}>
-                  🔔 Llamar camarero
+                  Llamar al camarero
                 </button>
                 <button disabled={estado === 'enviando'} onClick={() => llamar('cuenta')} className="rounded-xl border border-black/15 py-3.5 text-sm font-bold text-[#1a1a1a] disabled:opacity-60">
-                  🧾 Pedir la cuenta
+                  Pedir la cuenta
                 </button>
               </div>
             )}
