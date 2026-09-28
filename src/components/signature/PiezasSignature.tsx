@@ -29,7 +29,7 @@ function PantallaApp({ fase }: { fase: number }) {
         {[['Búfala', '12,50', 'b13_pizza_bufala'], ['Detroit', '13,90', 'b14_pizza_detroit'], ['Trufa', '14,50', 'b15_pizza_trufa']].map(([n, p, f]) => (
           <div key={n} className="flex items-center gap-3 rounded-xl bg-white/5 p-2">
             <div className="relative h-10 w-10 overflow-hidden rounded-lg"><Image src={`/images/demo/burger/${f}.jpeg`} alt="" fill sizes="40px" className="object-cover" /></div>
-            <span className="flex-1 text-xs font-medium">{n}</span><span className="text-xs font-semibold">{p} €</span>
+            <span className="flex-1 text-xs font-medium">{n}</span><span className="whitespace-nowrap text-xs font-semibold">{p} €</span>
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E8592A] text-sm">+</span>
           </div>
         ))}
