@@ -180,3 +180,37 @@ export async function regalarTodo(jwt: string, restauranteId: string) {
 export async function cargarCartaDemo(jwt: string, restauranteId: string): Promise<number> {
   return comoCliente(jwt, async (c) => (await c.query('SELECT dk.admin_carta_demo($1) AS n', [restauranteId])).rows[0].n);
 }
+
+// ---------------------------------------------------------------------------
+// Enlaces de pago preparados en Central (0030)
+// ---------------------------------------------------------------------------
+export interface EnlacePago {
+  id: string; plan: string | null; servicios: string[]; primerCentimos: number; mensualCentimos: number;
+  nota: string | null; url: string | null; estado: 'pendiente' | 'pagado' | 'anulado'; creadoEn: string; pagadoEn: string | null;
+}
+
+export async function listarEnlaces(jwt: string, restauranteId: string): Promise<EnlacePago[]> {
+  return comoCliente(jwt, async (c) => {
+    const { rows } = await c.query('SELECT * FROM enlaces_pago WHERE restaurante_id = $1 ORDER BY creado_en DESC LIMIT 20', [restauranteId]);
+    return rows.map((r) => ({
+      id: r.id, plan: r.plan, servicios: r.servicios ?? [], primerCentimos: r.primer_cobro_centimos, mensualCentimos: r.mensual_centimos,
+      nota: r.nota, url: r.url, estado: r.estado, creadoEn: new Date(r.creado_en).toISOString(), pagadoEn: r.pagado_en ? new Date(r.pagado_en).toISOString() : null,
+    }));
+  });
+}
+
+export async function crearEnlace(jwt: string, restauranteId: string, e: { plan: string | null; servicios: string[]; primer: number; mensual: number; nota: string }): Promise<string> {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT dk.admin_crear_enlace($1, $2, $3, $4, $5, $6) AS id', [restauranteId, e.plan, e.servicios, e.primer, e.mensual, e.nota])).rows[0].id);
+}
+
+export async function fijarUrlEnlace(jwt: string, enlaceId: string, url: string) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_enlace_url($1, $2)', [enlaceId, url]));
+}
+
+export async function anularEnlace(jwt: string, enlaceId: string) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_anular_enlace($1)', [enlaceId]));
+}
+
+export async function catalogoPrecios(jwt: string): Promise<{ servicio: string; nombre: string; tipo: string; precio: number }[]> {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT servicio, nombre, tipo, dk.precio_servicio(servicio) AS precio FROM catalogo_servicios ORDER BY precio_centimos')).rows);
+}

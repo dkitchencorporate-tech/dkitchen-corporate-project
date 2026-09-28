@@ -4,9 +4,10 @@ import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { crearCuentaCliente, enviarEnlaceDeContrasena } from '@/lib/neon-auth';
 import { comoAprovisionamiento } from '@/lib/db';
+import { crearCheckoutEnlaceAdmin } from '@/lib/payments/whop';
 import { exigirAdmin } from '@/lib/guard-admin';
 import {
-  cambiarEstadoCliente, cambiarPlanCliente, regalarTodo, cargarCartaDemo, responderTicket, cambiarEstadoSolicitudQr, asignarDiseno, adminServicio, adminConexionTpv,
+  cambiarEstadoCliente, cambiarPlanCliente, regalarTodo, cargarCartaDemo, crearEnlace, fijarUrlEnlace, anularEnlace, fichaCliente, responderTicket, cambiarEstadoSolicitudQr, asignarDiseno, adminServicio, adminConexionTpv,
 } from '@/lib/admin-clientes';
 import { enviarCorreoCliente, escaparHtml, escaparTexto } from '@/lib/email';
 import { cifrar } from '@/lib/cifrado';
@@ -202,4 +203,59 @@ export async function reenviarAccesoAction(formulario: FormData) {
   const email = String(formulario.get('email') ?? '').trim();
   if (!CORREO.test(email)) throw new Error('Correo no válido.');
   await enviarEnlaceDeContrasena(email);
+}
+
+// ---------------------------------------------------------------------------
+// Enlaces de pago a medida (0030): el super admin decide qué y cuánto
+// ---------------------------------------------------------------------------
+const NOMBRES: Record<string, string> = {
+  setup_esencial: 'Puesta a punto', setup_experto: 'Carta de Autor', idiomas: 'Idiomas', plano_mesas: 'Plano de mesas',
+  app_sala: 'App de sala', conexion_tpv: 'Conexión TPV', pack_sala: 'Pack Sala',
+};
+
+export async function crearEnlaceAction(d: { restauranteId: string; plan: string; servicios: string[]; primer: number; mensual: number; nota: string; enviar: boolean }): Promise<{ url?: string; error?: string }> {
+  if (!UUID.test(d.restauranteId)) return { error: 'Cliente no válido.' };
+  const jwt = await exigirAdmin();
+  const plan = d.plan === 'basico' || d.plan === 'ampliado' ? d.plan : null;
+  const servicios = [...new Set((d.servicios ?? []).filter((s) => SERVICIOS_ADMIN.includes(s)))];
+  const primer = Math.round(Number(d.primer) * 100), mensual = Math.round(Number(d.mensual || 0) * 100);
+  if (!plan && servicios.length === 0) return { error: 'Elige un plan o al menos un servicio.' };
+  if (!Number.isFinite(primer) || primer < 100 || primer > 1000000) return { error: 'El primer cobro debe estar entre 1 € y 10.000 €.' };
+  if (!Number.isFinite(mensual) || mensual < 0 || mensual > 1000000) return { error: 'La cuota mensual no es válida.' };
+  const ficha = await fichaCliente(jwt, d.restauranteId);
+  if (!ficha?.restaurante || !ficha.email) return { error: 'El cliente no tiene correo.' };
+
+  const id = await crearEnlace(jwt, d.restauranteId, { plan, servicios, primer, mensual, nota: String(d.nota ?? '').slice(0, 300) });
+  const concepto = [plan ? `Plan ${plan === 'ampliado' ? 'Ampliado' : 'Básico'}` : null, ...servicios.map((s) => NOMBRES[s])].filter(Boolean).join(' + ');
+  let url: string;
+  try {
+    ({ url } = await crearCheckoutEnlaceAdmin({
+      enlaceId: id, restauranteId: d.restauranteId, restauranteNombre: ficha.restaurante.nombre, email: ficha.email,
+      concepto, primerCentimos: primer, mensualCentimos: mensual, origen: process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es',
+    }));
+  } catch (e) {
+    await anularEnlace(jwt, id).catch(() => {});
+    return { error: e instanceof Error ? e.message : 'Whop no respondió.' };
+  }
+  await fijarUrlEnlace(jwt, id, url);
+  if (d.enviar) {
+    const importe = (c: number) => (c / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+    await enviarCorreoCliente(ficha.email, `Tu enlace de pago · ${ficha.restaurante.nombre}`,
+      `<p>Hola${ficha.contacto ? ' ' + escaparHtml(ficha.contacto) : ''},</p>
+       <p>Te dejamos preparado el enlace para activar <strong>${escaparHtml(concepto)}</strong> en ${escaparHtml(ficha.restaurante.nombre)}.</p>
+       <p>Primer pago: <strong>${importe(primer)}</strong>${mensual ? ` · después ${importe(mensual)}/mes, sin permanencia` : ' · pago único'}.</p>
+       ${d.nota ? `<p>${escaparHtml(d.nota)}</p>` : ''}
+       <p><a href="${url}" style="display:inline-block;background:#D9531E;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:bold">Pagar de forma segura</a></p>
+       <p>En cuanto se confirme el pago, se activa solo en tu panel.</p>`).catch((e) => console.error('Enlace creado, pero no se pudo enviar el correo', e));
+  }
+  revalidatePath(`/admin-dkitchen/qr/${d.restauranteId}`);
+  return { url };
+}
+
+export async function anularEnlaceAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('enlaceId'));
+  const rest = uuid(formulario.get('restauranteId'));
+  await anularEnlace(jwt, id);
+  revalidatePath(`/admin-dkitchen/qr/${rest}`);
 }

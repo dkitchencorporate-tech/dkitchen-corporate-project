@@ -447,3 +447,54 @@ export async function crearCheckoutServicio(datos: {
   if (!url) throw new Error('Whop no devolvió purchase_url en la configuración de checkout.');
   return { url };
 }
+
+/**
+ * Enlace de pago preparado por DKitchen desde Central (0030). Los importes
+ * vienen de la fila enlaces_pago (los fija el super admin en la base), nunca
+ * del navegador. Primer cobro + cuota mensual opcional.
+ */
+export async function crearCheckoutEnlaceAdmin(datos: {
+  enlaceId: string;
+  restauranteId: string;
+  restauranteNombre: string;
+  email: string;
+  concepto: string;
+  primerCentimos: number;
+  mensualCentimos: number;
+  origen: string;
+}): Promise<{ url: string }> {
+  const apiKey = requerirEnv('WHOP_API_KEY');
+  const companyId = requerirEnv('WHOP_COMPANY_ID');
+  const primer = Math.round(datos.primerCentimos) / 100;
+  const mensual = Math.round(datos.mensualCentimos) / 100;
+  const plan = mensual > 0
+    ? { plan_type: 'renewal', initial_price: primer, renewal_price: mensual, billing_period: 30 }
+    : { plan_type: 'one_time', initial_price: primer };
+
+  const respuesta = await fetch(`${BASE}/checkout_configurations`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      mode: 'payment',
+      plan: {
+        company_id: companyId,
+        currency: 'eur',
+        ...plan,
+        product: { title: `DKitchen — ${datos.concepto}`.slice(0, 80), external_identifier: `dk-enlace-${datos.enlaceId}` },
+      },
+      metadata: {
+        producto: 'enlace-admin',
+        enlaceId: datos.enlaceId,
+        restauranteId: datos.restauranteId,
+        restauranteNombre: datos.restauranteNombre,
+        email: datos.email,
+      },
+      redirect_url: `${datos.origen}/panel?pestana=plan&pago=ok`,
+    }),
+  });
+  const json = await respuesta.json().catch(() => null);
+  if (!respuesta.ok) throw new Error(`Whop respondió ${respuesta.status}: ${json?.message ?? 'sin detalle'}`);
+  const url = (json as RespuestaCheckoutConfiguration | null)?.purchase_url;
+  if (!url) throw new Error('Whop no devolvió purchase_url en la configuración de checkout.');
+  return { url };
+}

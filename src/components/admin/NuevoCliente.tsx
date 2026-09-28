@@ -26,17 +26,17 @@ export default function NuevoCliente() {
         iniciar(async () => {
           const r = await crearClienteAction({
             email: String(f.get('email')), contacto: String(f.get('contacto')), local: String(f.get('local')),
-            plan: String(f.get('plan')), todo: f.get('todo') === 'on', demo: f.get('demo') === 'on',
+            plan: String(f.get('plan')), todo: f.get('modo') === 'gratis', demo: f.get('demo') === 'on',
           });
-          if (r.error) setError(r.error); else if (r.id) router.push('/admin-dkitchen/qr/' + r.id);
+          if (r.error) setError(r.error); else if (r.id) router.push('/admin-dkitchen/qr/' + r.id + (f.get('modo') === 'pago' ? '#enlace' : ''));
         });
       }}
     >
       <div className="flex items-center justify-between">
-        <h2 className="font-bold">Nuevo cliente sin pago</h2>
+        <h2 className="font-bold">Nuevo cliente</h2>
         <button type="button" onClick={() => setAbierto(false)} className="text-sm text-white/50">Cancelar</button>
       </div>
-      <p className="text-xs text-white/45">Para demostraciones comerciales o clientes de cortesía. El cliente recibe un correo para fijar su contraseña y entrar en su panel.</p>
+      <p className="text-xs text-white/45">Para demos, clientes de cortesía o ventas cerradas en persona. El cliente recibe un correo para fijar su contraseña y entrar en su panel.</p>
       <div className="grid gap-3 sm:grid-cols-3">
         <input name="local" required maxLength={80} placeholder="Nombre del local" className={campo} />
         <input name="contacto" required maxLength={80} placeholder="Nombre del contacto" className={campo} />
@@ -46,7 +46,11 @@ export default function NuevoCliente() {
         <select name="plan" defaultValue="ampliado" className="rounded-lg border border-white/10 bg-black/30 px-3 py-2">
           <option value="ampliado">Plan Ampliado</option><option value="basico">Plan Básico</option>
         </select>
-        <label className="flex items-center gap-2"><input type="checkbox" name="todo" defaultChecked /> Darle todo gratis (Carta de Autor, idiomas, Pack Sala)</label>
+        <fieldset className="flex flex-wrap gap-x-5 gap-y-2">
+          <label className="flex items-center gap-2"><input type="radio" name="modo" value="pago" defaultChecked /> Preparar enlace de pago (precio a medida)</label>
+          <label className="flex items-center gap-2"><input type="radio" name="modo" value="gratis" /> Darle todo gratis</label>
+          <label className="flex items-center gap-2"><input type="radio" name="modo" value="solo" /> Solo crear la cuenta</label>
+        </fieldset>
         <label className="flex items-center gap-2"><input type="checkbox" name="demo" /> Cargar carta de demostración</label>
       </div>
       {error && <p className="text-sm text-red-400">{error}</p>}

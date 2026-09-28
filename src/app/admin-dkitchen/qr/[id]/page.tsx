@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
-import { fichaCliente, historialCliente, serviciosCliente, type EntradaHistorial } from '@/lib/admin-clientes';
+import { fichaCliente, historialCliente, serviciosCliente, listarEnlaces, catalogoPrecios, type EntradaHistorial } from '@/lib/admin-clientes';
+import EnlacesPago from '@/components/admin/EnlacesPago';
 import { obtenerCarta } from '@/lib/menu';
 import { listarTraducciones } from '@/lib/idiomas';
 import TraductorCarta from '@/components/admin/TraductorCarta';
-import { regalarTodoAction, cartaDemoAction, reenviarAccesoAction, cambiarEstadoAction, cambiarPlanAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction } from '../actions';
+import { anularEnlaceAction, regalarTodoAction, cartaDemoAction, reenviarAccesoAction, cambiarEstadoAction, cambiarPlanAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction } from '../actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,7 +72,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
   const { id } = await params;
   if (!UUID.test(id)) notFound();
   const jwt = await exigirAdmin();
-  const [ficha, historial, servicios] = await Promise.all([fichaCliente(jwt, id), historialCliente(jwt, id), serviciosCliente(jwt, id)]);
+  const [ficha, historial, servicios, enlaces, catalogo] = await Promise.all([fichaCliente(jwt, id), historialCliente(jwt, id), serviciosCliente(jwt, id), listarEnlaces(jwt, id), catalogoPrecios(jwt)]);
   if (!ficha?.restaurante) notFound();
 
   const r = ficha.restaurante;
@@ -273,6 +274,40 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           </label>
           <button className="rounded-lg bg-[#D9531E] px-4 py-2 font-bold hover:bg-[#B8451A]">Aplicar diseño</button>
         </form>
+      </section>
+
+      <section id="enlace" className="scroll-mt-20 rounded-2xl border border-white/10 bg-[#1c140b] p-6 space-y-5">
+        <div>
+          <h2 className="font-bold">Enlace de pago a medida</h2>
+          <p className="text-xs text-white/40">Plan y/o servicios al precio que decidas. Al pagarlo se activa solo y queda en el historial.</p>
+        </div>
+        <EnlacesPago restauranteId={r.id} catalogo={catalogo} />
+        {enlaces.length > 0 && (
+          <ul className="divide-y divide-white/5 border-t border-white/10 pt-2 text-sm">
+            {enlaces.map((e) => (
+              <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <div className="min-w-0">
+                  <p className="font-medium">{[e.plan ? `Plan ${e.plan}` : null, ...e.servicios].filter(Boolean).join(' + ')}</p>
+                  <p className="text-xs text-white/40">
+                    {(e.primerCentimos / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                    {e.mensualCentimos ? ` + ${(e.mensualCentimos / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}/mes` : ''} · {fecha.format(new Date(e.creadoEn))}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${e.estado === 'pagado' ? 'bg-green-500/15 text-green-300' : e.estado === 'anulado' ? 'bg-white/10 text-white/40' : 'bg-amber-500/15 text-amber-300'}`}>{e.estado}</span>
+                  {e.estado === 'pendiente' && e.url && <a href={e.url} target="_blank" rel="noopener" className="text-xs text-white/60 underline">Abrir</a>}
+                  {e.estado === 'pendiente' && (
+                    <form action={anularEnlaceAction}>
+                      <input type="hidden" name="enlaceId" value={e.id} />
+                      <input type="hidden" name="restauranteId" value={r.id} />
+                      <button className="text-xs text-red-400">Anular</button>
+                    </form>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {cartaCliente && (

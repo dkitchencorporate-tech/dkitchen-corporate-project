@@ -236,6 +236,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ recibido: true });
   }
 
+  // Enlace de pago preparado por DKitchen en Central (0030). Solo el cobro
+  // correcto; los fallos siguen al calendario de gracia común de más abajo.
+  if (evento.data.metadata?.producto === 'enlace-admin' && evento.type === 'payment.succeeded') {
+    const meta = evento.data.metadata;
+    try {
+      const r = await comoAprovisionamiento(async (c) => {
+        const { rows } = await c.query<{ r: string }>('SELECT dk.aplicar_enlace_pago($1, $2, $3) AS r', [
+          meta.enlaceId, evento.data.id, evento.data.member?.id ?? null,
+        ]);
+        return rows[0]?.r;
+      });
+      if (r === 'renovacion' && evento.data.member?.id) await registrarPagoRecuperado(evento.data.member.id);
+      if (r === 'ok') {
+        await enviarCorreoInterno(
+          `PAGO DE ENLACE: ${meta.restauranteNombre}`,
+          `<p><strong>${escaparHtml(meta.restauranteNombre)}</strong> (${escaparHtml(meta.email)}) ha pagado el enlace preparado en Central. Ya está aplicado.</p>
+           <p>Id de pago (Whop): ${escaparHtml(evento.data.id)}</p>`
+        ).catch((error) => console.error('Enlace aplicado, pero falló el correo interno:', error));
+      }
+    } catch (error) {
+      console.error(`No se pudo aplicar el enlace de pago (evento ${evento.data.id}):`, error);
+      return NextResponse.json({ error: 'Fallo aplicando enlace' }, { status: 500 });
+    }
+    return NextResponse.json({ recibido: true });
+  }
+
   // Upgrade QR Básico → Ampliado (0019). Va antes de la comprobación de
   // cliente existente: el miembro de Whop ya existe y se trataría como renovación.
   if (evento.data.metadata?.producto === 'qr-upgrade') {
