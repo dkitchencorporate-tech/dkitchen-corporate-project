@@ -1,9 +1,10 @@
 import Link from 'next/link';
+import RegistroRed from '@/components/dk/RegistroRed';
 
 /** Pie de la web (rediseño 29/09/2026): enlaces agrupados para SEO interno y contacto directo. */
 const COLUMNAS: [string, [string, string][]][] = [
   ['Productos', [['/qr', 'Carta digital QR'], ['/base-operativa', 'DKitchen Signature'], ['/experience', 'Experience'], ['/dark-kitchen', 'Dark Kitchen'], ['/marcas', 'Marcas'], ['/auditoria', 'Auditoría']]],
-  ['Aprende', [['/blog', 'Blog'], ['/partners', 'Programa de partners'], ['/casos-de-exito', 'Casos de éxito'], ['/faq', 'Preguntas frecuentes']]],
+  ['Aprende', [['/blog', 'Blog'], ['/casos-de-exito', 'Casos de éxito'], ['/faq', 'Preguntas frecuentes']]],
   ['Cuenta', [['/panel/iniciar-sesion', 'Entrar en mi panel'], ['/qr#planes', 'Empezar por 1 €']]],
   ['Legal', [['/privacy', 'Privacidad'], ['/terms', 'Términos']]],
 ];
@@ -17,6 +18,8 @@ export default function Footer() {
             <Link href="/" className="font-display text-2xl font-bold">D<span className="text-[#E8592A]">Kitchen</span></Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/50">Tecnología para hostelería sin comisiones. Tus clientes y tus datos, siempre en tu casa.</p>
             <a href="https://wa.me/34622652659" className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm hover:border-white/40">Escríbenos por WhatsApp</a>
+            <p className="mt-8 text-xs font-semibold uppercase tracking-[0.2em] text-white/35">Únete a la red DKitchen</p>
+            <div className="mt-3"><RegistroRed /></div>
           </div>
           {COLUMNAS.map(([t, enlaces]) => (
             <nav key={t} aria-label={t}>

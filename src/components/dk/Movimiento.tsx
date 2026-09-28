@@ -49,18 +49,24 @@ export function Contador({ hasta, prefijo = '', sufijo = '', decimales = 0 }: { 
     const c = animate(0, hasta, { duration: 1.6, ease: CURVA, onUpdate: setV });
     return () => c.stop();
   }, [visto, hasta]);
-  return <span ref={ref} className="tabular-nums">{prefijo}{v.toLocaleString('es-ES', { maximumFractionDigits: decimales, minimumFractionDigits: decimales })}{sufijo}</span>;
+  return <span ref={ref} className="whitespace-nowrap tabular-nums">{prefijo}{v.toLocaleString('es-ES', { maximumFractionDigits: decimales, minimumFractionDigits: decimales })}{sufijo}</span>;
 }
 
-/** Título que se revela palabra a palabra al entrar en pantalla. */
+/**
+ * Título que se revela palabra a palabra. El disparador es el TÍTULO entero
+ * (antes lo era cada palabra, que al estar oculta bajo su máscara nunca
+ * llegaba a «entrar en pantalla» y el título se quedaba invisible en móvil).
+ */
 export function TextoRevelado({ texto, className, como: Etiqueta = 'h2' }: { texto: string; className?: string; como?: 'h1' | 'h2' | 'h3' | 'p' }) {
   const quieto = useReducedMotion();
+  const ref = useRef<HTMLElement>(null);
+  const visto = useInView(ref, { once: true, amount: 0.2 });
   return (
-    <Etiqueta className={className}>
+    <Etiqueta ref={ref as never} className={className} aria-label={texto}>
       {texto.split(' ').map((p, i) => (
-        <span key={i} className="inline-block overflow-hidden pb-[0.1em] align-top">
-          <motion.span className="inline-block" initial={quieto ? false : { y: '105%', opacity: 0 }} whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.8, delay: i * 0.045, ease: CURVA }}>{p}&nbsp;</motion.span>
+        <span key={i} aria-hidden="true" className="inline-block overflow-hidden pb-[0.1em] align-top">
+          <motion.span className="inline-block" initial={quieto ? false : { y: '105%' }} animate={visto || quieto ? { y: 0 } : undefined}
+            transition={{ duration: 0.8, delay: i * 0.05, ease: CURVA }}>{p}&nbsp;</motion.span>
         </span>
       ))}
     </Etiqueta>

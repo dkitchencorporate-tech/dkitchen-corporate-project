@@ -9,11 +9,6 @@ import { TextoRevelado } from '@/components/dk/Movimiento';
  * atiende y la comanda que viaja al TPV. Presenta los Módulos de Sala sin
  * precios públicos (se contratan desde el panel).
  */
-const MESAS = [
-  { n: '1', x: 8, y: 14 }, { n: '2', x: 30, y: 14 }, { n: '3', x: 52, y: 14 },
-  { n: '4', x: 8, y: 50 }, { n: '5', x: 30, y: 50 }, { n: '6', x: 52, y: 50 },
-  { n: '7', x: 78, y: 22 }, { n: '8', x: 78, y: 58 },
-];
 const SECUENCIA = [
   { mesa: '4', texto: 'Mesa 4 llama al camarero', quien: 'Lucía la atiende' },
   { mesa: '7', texto: 'Mesa 7 pide la cuenta', quien: 'Marcos la atiende' },
@@ -38,19 +33,34 @@ export default function SalaViva() {
           <p className="mt-5 text-lg text-[#6B7079]">Cuando tu sala crece, la carta se conecta con tu equipo. Se activan desde tu panel, cuando los necesites.</p>
         </div>
         <div className="mt-14 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
-          <div className="relative aspect-[16/11] overflow-hidden rounded-[28px] border border-[#E6E6E2] bg-white [background-image:linear-gradient(rgba(23,25,30,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(23,25,30,.04)_1px,transparent_1px)] [background-size:5%_7%]">
-            <div className="absolute left-[4%] top-[6%] h-[82%] w-[66%] rounded-2xl border-2 border-dashed border-[#E8592A]/40"><span className="m-3 inline-block rounded-md bg-[#E8592A]/10 px-2 py-1 text-[11px] font-semibold text-[#E8592A]">Salón · Lucía</span></div>
-            <div className="absolute right-[4%] top-[10%] h-[76%] w-[22%] rounded-2xl border-2 border-dashed border-[#2F8F6B]/40"><span className="m-3 inline-block rounded-md bg-[#2F8F6B]/10 px-2 py-1 text-[11px] font-semibold text-[#2F8F6B]">Terraza · Marcos</span></div>
-            <div className="absolute bottom-[4%] left-[4%] h-[6%] w-[40%] rounded bg-[#3F434B]" />
-            {MESAS.map((m) => {
-              const activa = m.n === ev.mesa;
-              return (
-                <div key={m.n} className="absolute flex h-[17%] w-[13%] items-center justify-center" style={{ left: `${m.x + 4}%`, top: `${m.y + 12}%` }}>
-                  {activa && <span className="absolute inset-0 rounded-xl bg-[#E8592A]" style={{ animation: 'latido 1.4s ease-in-out infinite' }} />}
-                  <span className={`relative flex h-full w-full items-center justify-center rounded-xl text-sm font-bold shadow-sm transition-colors ${activa ? 'bg-[#E8592A] text-white' : 'bg-[#F3F3F0] text-[#1B1D22]'}`}>{m.n}</span>
-                </div>
-              );
-            })}
+          <div className="rounded-[28px] border border-[#E6E6E2] bg-white p-4 [background-image:linear-gradient(rgba(23,25,30,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(23,25,30,.04)_1px,transparent_1px)] [background-size:24px_24px] sm:p-6">
+            <div className="grid grid-cols-[2fr_1fr] gap-3 sm:gap-4">
+              <div className="rounded-2xl border-2 border-dashed border-[#E8592A]/40 p-3 sm:p-4">
+                <span className="inline-block rounded-md bg-[#E8592A]/10 px-2 py-1 text-[11px] font-semibold text-[#E8592A]">Salón · Lucía</span>
+                <div className="mt-3 grid grid-cols-3 gap-2.5 sm:gap-4">{['1', '2', '3', '4', '5', '6'].map((n: string) => {
+                const activa = n === ev.mesa;
+                return (
+                  <div key={n} className="relative aspect-square">
+                    {activa && <span className="absolute inset-0 rounded-xl bg-[#E8592A]" style={{ animation: 'latido 1.4s ease-in-out infinite' }} />}
+                    <span className={`relative flex h-full w-full items-center justify-center rounded-xl text-sm font-bold shadow-sm transition-colors duration-500 ${activa ? 'bg-[#E8592A] text-white' : 'bg-[#F3F3F0] text-[#1B1D22]'}`}>{n}</span>
+                  </div>
+                );
+              })}</div>
+              </div>
+              <div className="rounded-2xl border-2 border-dashed border-[#2F8F6B]/40 p-3 sm:p-4">
+                <span className="inline-block rounded-md bg-[#2F8F6B]/10 px-2 py-1 text-[11px] font-semibold text-[#2F8F6B]">Terraza · Marcos</span>
+                <div className="mt-3 grid grid-cols-1 gap-2.5 sm:gap-4">{['7', '8'].map((n: string) => {
+                const activa = n === ev.mesa;
+                return (
+                  <div key={n} className="relative aspect-square">
+                    {activa && <span className="absolute inset-0 rounded-xl bg-[#E8592A]" style={{ animation: 'latido 1.4s ease-in-out infinite' }} />}
+                    <span className={`relative flex h-full w-full items-center justify-center rounded-xl text-sm font-bold shadow-sm transition-colors duration-500 ${activa ? 'bg-[#E8592A] text-white' : 'bg-[#F3F3F0] text-[#1B1D22]'}`}>{n}</span>
+                  </div>
+                );
+              })}</div>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-3"><div className="h-3 flex-1 rounded bg-[#3F434B]" /><span className="text-[11px] text-[#6B7079]">Barra</span></div>
           </div>
           <div className="flex flex-col gap-4">
             <div className="rounded-[24px] bg-[#17191E] p-5 text-white">

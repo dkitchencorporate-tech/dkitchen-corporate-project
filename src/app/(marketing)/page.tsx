@@ -4,7 +4,6 @@ import Link from 'next/link';
 import DispositivoVivo from '@/components/dk/DispositivoVivo';
 import { FondoVivo, Marquesina, Contador, TextoRevelado, BotonMagnetico, TarjetaTilt } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
-import Invitar from '@/components/dk/Invitar';
 
 /**
  * Portada v2 (29/09/2026): fondo vivo, dispositivo con la carta real, cinta de
@@ -113,23 +112,6 @@ export default function Home() {
             <Aparecer><TarjetaTilt className="relative aspect-[9/16] overflow-hidden rounded-[28px] ring-1 ring-white/15"><Image src="/images/casos-de-exito/nestor-pizza-home.jpg" alt="App de Néstor Pizzas, portada" fill sizes="300px" className="object-cover" /></TarjetaTilt></Aparecer>
             <Aparecer retraso={0.15}><TarjetaTilt className="relative mt-12 aspect-[9/16] overflow-hidden rounded-[28px] ring-1 ring-white/15"><Image src="/images/casos-de-exito/nestor-pizza-menu.jpg" alt="App de Néstor Pizzas, carta" fill sizes="300px" className="object-cover" /></TarjetaTilt></Aparecer>
           </div>
-        </div>
-      </section>
-
-      <section className="py-24 md:py-32">
-        <div className="mx-auto grid max-w-6xl gap-6 px-6 md:grid-cols-2 md:px-8">
-          <Aparecer className="flex flex-col rounded-[32px] border border-[#E6E6E2] bg-[#F7F7F5] p-8 md:p-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Entre hosteleros</p>
-            <h2 className="font-display mt-4 text-3xl font-semibold leading-[1.05] md:text-4xl">¿Conoces a otro hostelero que siga reimprimiendo cartas?</h2>
-            <p className="mt-4 flex-1 text-[#6B7079]">Pásale DKitchen en un toque. Así funcionan las mejores recomendaciones: de barra a barra.</p>
-            <div className="mt-8"><Invitar /></div>
-          </Aparecer>
-          <Aparecer retraso={0.1} className="flex flex-col rounded-[32px] bg-[#111317] p-8 text-white md:p-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Partners</p>
-            <h2 className="font-display mt-4 text-3xl font-semibold leading-[1.05] md:text-4xl">¿Vendes a hostelería? Gana con DKitchen.</h2>
-            <p className="mt-4 flex-1 text-white/60">Comerciales de TPV, distribuidores HORECA e independientes: suma un producto que tus clientes necesitan y cobra comisiones por cada cliente que traigas.</p>
-            <div className="mt-8"><BotonMagnetico href="/partners" className="inline-flex rounded-full bg-white px-7 py-4 text-[15px] font-semibold text-[#17191E]">Ser partner →</BotonMagnetico></div>
-          </Aparecer>
         </div>
       </section>
 

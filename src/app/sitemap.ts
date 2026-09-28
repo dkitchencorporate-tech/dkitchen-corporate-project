@@ -24,7 +24,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { ruta: '/casos-de-exito', prioridad: 0.8, frecuencia: 'weekly' },
     { ruta: '/faq', prioridad: 0.6, frecuencia: 'monthly' },
     { ruta: '/blog', prioridad: 0.7, frecuencia: 'weekly' },
-    { ruta: '/partners', prioridad: 0.6, frecuencia: 'monthly' },
     ...ARTICULOS.map((a) => ({ ruta: `/blog/${a.slug}`, prioridad: 0.7, frecuencia: 'monthly' as const })),
     { ruta: '/demo/carta', prioridad: 0.5, frecuencia: 'monthly' },
     { ruta: '/privacy', prioridad: 0.2, frecuencia: 'yearly' },

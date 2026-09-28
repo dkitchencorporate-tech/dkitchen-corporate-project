@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import CartaDemo from '@/components/qr-landing/CartaDemo';
 import type { EstiloMini } from '@/components/qr-landing/CartaMini';
 import { CURVA } from './Movimiento';
@@ -33,19 +33,16 @@ export default function DispositivoVivo({ ancho = 300 }: { ancho?: number }) {
     const b = setInterval(() => setAviso((x) => (x + 1) % AVISOS.length), 1900);
     return () => { clearInterval(a); clearInterval(b); };
   }, [quieto]);
-  const { scrollY } = useScroll();
-  const giro = useTransform(scrollY, [0, 700], [0, 18]);
-  const baja = useTransform(scrollY, [0, 700], [0, 80]);
 
   return (
     <div className="relative mx-auto" style={{ width: ancho, perspective: 1600 }}>
       <div aria-hidden="true" className="absolute inset-[-18%] rounded-full bg-[radial-gradient(closest-side,rgba(232,89,42,.35),transparent)] blur-2xl" />
       <motion.div
-        initial={quieto ? false : { opacity: 0, rotateX: 28, rotateY: -18, y: 80, scale: 0.9 }}
+        initial={quieto ? false : { opacity: 0, rotateX: 24, y: 90, scale: 0.88 }}
         animate={{ opacity: 1, rotateX: 0, rotateY: 0, y: 0, scale: 1 }}
         transition={{ duration: 1.3, delay: 0.2, ease: CURVA }}
-        style={{ rotateY: giro, y: baja, transformStyle: 'preserve-3d' }}>
-        <motion.div animate={quieto ? undefined : { rotateY: [-7, 7, -7], rotateX: [3, -2, 3], y: [0, -10, 0] }}
+        style={{ transformStyle: 'preserve-3d' }}>
+        <motion.div animate={quieto ? undefined : { y: [0, -12, 0] }}
           transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }} style={{ transformStyle: 'preserve-3d' }}>
           <div className="relative rounded-[50px] p-[3px] shadow-[0_60px_120px_-20px_rgba(0,0,0,.7)] [background:linear-gradient(145deg,#6b707b,#1b1d22_35%,#0b0c0f_70%,#4a4e57)]">
             <div className="rounded-[47px] bg-[#0B0C0F] p-[10px]">
@@ -74,7 +71,7 @@ export default function DispositivoVivo({ ancho = 300 }: { ancho?: number }) {
           </div>
         </motion.div>
       ))}
-      <div className="mt-6 flex justify-center sm:hidden">
+      <div className="mt-10 flex justify-center sm:hidden">
         <AnimatePresence mode="wait">
           <motion.div key={aviso} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.35 }}
             className="flex items-center gap-3 rounded-2xl border border-white/15 bg-[#1B1D22]/80 px-4 py-3 text-white backdrop-blur-xl">
