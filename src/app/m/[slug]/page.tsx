@@ -11,6 +11,16 @@ import CartaAutor from '@/components/carta/CartaAutor';
 import FichaPlato from '@/components/carta/FichaPlato';
 import Reservar from '@/components/carta/Reservar';
 import { traducirCarta, IDIOMAS } from '@/lib/idiomas';
+import { Cormorant_Garamond } from 'next/font/google';
+
+const serifCarta = Cormorant_Garamond({ weight: ['500', '600', '700'], style: ['normal', 'italic'], subsets: ['latin'], display: 'swap', variable: '--fuente-serif' });
+
+/** Fondos cerrados del selector de estilo (0031). */
+const FONDO: Record<string, string> = {
+  papel: 'bg-[#F7F3EA] text-[#221D17]',
+  blanco: 'bg-white text-[#1B1D22]',
+  oscuro: 'carta-oscura bg-[#15161A] text-[#F3F1EC]',
+};
 
 /**
  * LA CARTA VIVA
@@ -84,7 +94,9 @@ export default async function CartaPublica({
     return <>{selector}<CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} /></>;
   }
 
-  const plantilla = carta.plantilla === 'visual' || carta.plantilla === 'express' ? carta.plantilla : 'clasica';
+  const plantilla = ['visual', 'express', 'editorial'].includes(carta.plantilla ?? '') ? (carta.plantilla as string) : 'clasica';
+  const fondo = FONDO[carta.estiloFondo ?? 'papel'] ?? FONDO.papel;
+  const letra = carta.estiloLetra === 'serif' || plantilla === 'editorial' ? `carta-serif ${serifCarta.variable}` : '';
   const color = carta.colorMarca || '#D9531E';
   const ampliado = carta.plan === 'ampliado';
 
@@ -99,8 +111,10 @@ export default async function CartaPublica({
   const reservar = ampliado ? <Reservar slug={carta.slug} color={color} nombreLocal={carta.nombre} /> : null;
 
   return (
-    <main className="min-h-screen bg-[#fbfaf8] text-[#1a1a1a]" style={{ '--marca': color } as CSSProperties}>
-      {plantilla === 'visual' ? (
+    <main className={`min-h-screen ${fondo} ${letra}`} style={{ '--marca': color } as CSSProperties}>
+      {plantilla === 'editorial' ? (
+        <CabeceraEditorial carta={carta} accion={reservar} />
+      ) : plantilla === 'visual' ? (
         <CabeceraVisual carta={carta} foto={fotoPortada} accion={reservar} />
       ) : plantilla === 'express' ? (
         <CabeceraExpress carta={carta} accion={reservar} />
@@ -127,7 +141,9 @@ export default async function CartaPublica({
             <section key={grupo.id} id={`s-${grupo.id}`} className={`scroll-mt-16 ${plantilla === 'express' ? 'pt-6' : 'pt-10'}`}>
               <h2
                 className={
-                  plantilla === 'express'
+                  plantilla === 'editorial'
+                    ? 'mb-6 text-center text-4xl font-medium'
+                    : plantilla === 'express'
                     ? 'mb-2 text-xs font-bold uppercase tracking-widest text-black/50'
                     : 'mb-3 flex items-baseline justify-between px-1 text-xl font-semibold tracking-tight'
                 }
@@ -139,7 +155,15 @@ export default async function CartaPublica({
                   </span>
                 )}
               </h2>
-              {plantilla === 'visual' ? (
+              {plantilla === 'editorial' ? (
+                <ul className="space-y-6">
+                  {grupo.platos.map((plato) => (
+                    <li key={plato.id}>
+                      <FichaPlato plato={plato} nombresAlergenos={nombres}><PlatoEditorial plato={plato} /></FichaPlato>
+                    </li>
+                  ))}
+                </ul>
+              ) : plantilla === 'visual' ? (
                 <ul className="grid gap-4 sm:grid-cols-2">
                   {grupo.platos.map((plato) => (
                     <li key={plato.id}>
@@ -195,7 +219,7 @@ export default async function CartaPublica({
             rel="noopener"
             className="mt-8 block rounded-xl border border-black/10 bg-white p-4 text-center text-sm font-semibold hover:border-black/30"
           >
-            ⭐ ¿Te ha gustado? Déjanos tu reseña en Google
+            ¿Te ha gustado? Déjanos tu reseña en Google
           </a>
         )}
 
@@ -236,6 +260,21 @@ function CabeceraClasica({ carta, accion }: { carta: Carta; accion: ReactNode })
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{carta.nombre}</h1>
         {carta.descripcion && <p className="max-w-md text-sm leading-relaxed text-black/60">{carta.descripcion}</p>}
         {accion && <div className="pt-1">{accion}</div>}
+      </div>
+    </header>
+  );
+}
+
+function CabeceraEditorial({ carta, accion }: { carta: Carta; accion: ReactNode }) {
+  return (
+    <header className="px-6 pb-10 pt-12 text-center">
+      <div className="mx-auto flex max-w-2xl flex-col items-center">
+        <Logo carta={carta} tam={64} />
+        <p className="mt-6 text-[11px] font-medium uppercase tracking-[0.3em]" style={{ color: 'var(--marca)' }}>La carta</p>
+        <h1 className="mt-3 text-5xl font-medium leading-[1.05] sm:text-6xl">{carta.nombre}</h1>
+        {carta.descripcion && <p className="mt-4 max-w-md text-lg italic leading-snug opacity-70">{carta.descripcion}</p>}
+        <div className="mt-6 h-px w-12" style={{ background: 'var(--marca)' }} />
+        {accion && <div className="pt-6">{accion}</div>}
       </div>
     </header>
   );
@@ -307,10 +346,10 @@ function DatosLocal({ carta }: { carta: Carta }) {
     <section className="mt-8 rounded-2xl border border-black/10 bg-white px-5 py-3" aria-label="Información del local">
       <h2 className="pt-2 text-sm font-semibold">{carta.nombre}</h2>
       <ul className="divide-y divide-black/5">
-        {carta.horario && <li className={fila}><span aria-hidden="true">🕒</span><span className="text-black/70">{carta.horario}</span></li>}
+        {carta.horario && <li className={fila}><span className="w-20 shrink-0 text-xs uppercase tracking-wider text-black/40">Horario</span><span className="text-black/70">{carta.horario}</span></li>}
         {carta.direccion && (
           <li className={fila}>
-            <span aria-hidden="true">📍</span>
+            <span className="w-20 shrink-0 text-xs uppercase tracking-wider text-black/40">Dirección</span>
             <a href={`https://maps.google.com/?q=${encodeURIComponent(carta.direccion)}`} target="_blank" rel="noopener" className="text-black/70 hover:underline">
               {carta.direccion}
             </a>
@@ -318,13 +357,13 @@ function DatosLocal({ carta }: { carta: Carta }) {
         )}
         {carta.telefono && (
           <li className={fila}>
-            <span aria-hidden="true">📞</span>
+            <span className="w-20 shrink-0 text-xs uppercase tracking-wider text-black/40">Teléfono</span>
             <a href={`tel:${carta.telefono.replace(/\s/g, '')}`} className="text-black/70 hover:underline">{carta.telefono}</a>
           </li>
         )}
         {carta.instagram && (
           <li className={fila}>
-            <span aria-hidden="true">📷</span>
+            <span className="w-20 shrink-0 text-xs uppercase tracking-wider text-black/40">Instagram</span>
             <a href={`https://instagram.com/${carta.instagram}`} target="_blank" rel="noopener" className="text-black/70 hover:underline">@{carta.instagram}</a>
           </li>
         )}
@@ -367,7 +406,7 @@ function Plato({ plato }: { plato: PlatoCarta }) {
   return (
     <span className="flex items-start gap-4">
       <span className="block min-w-0 flex-1">
-        <span className="block font-semibold leading-snug">{plato.nombre}</span>
+        <span className="nombre-plato block font-semibold leading-snug">{plato.nombre}</span>
         {plato.descripcion && <span className="mt-1 line-clamp-2 block text-sm leading-relaxed text-black/55">{plato.descripcion}</span>}
         <Alergenos plato={plato} />
         <span className="mt-2 block text-[15px]"><Precio plato={plato} /></span>
@@ -387,13 +426,11 @@ function PlatoVisual({ plato }: { plato: PlatoCarta }) {
         /* eslint-disable-next-line @next/next/no-img-element */
         <img src={plato.fotoUrl} alt="" loading="lazy" decoding="async" className="aspect-[4/3] w-full bg-black/5 object-cover" />
       ) : (
-        <span className="flex aspect-[4/3] w-full items-center justify-center text-3xl" style={{ background: 'color-mix(in srgb, var(--marca) 12%, white)' }} aria-hidden="true">
-          🍽️
-        </span>
+        <span className="block aspect-[4/3] w-full" style={{ background: 'color-mix(in srgb, var(--marca) 12%, white)' }} aria-hidden="true" />
       )}
       <span className="block p-4">
         <span className="flex items-baseline justify-between gap-3">
-          <span className="font-semibold leading-snug">{plato.nombre}</span>
+          <span className="nombre-plato font-semibold leading-snug">{plato.nombre}</span>
           <Precio plato={plato} destacado />
         </span>
         {plato.descripcion && <span className="mt-1 line-clamp-2 block text-sm leading-relaxed text-black/55">{plato.descripcion}</span>}
@@ -403,11 +440,29 @@ function PlatoVisual({ plato }: { plato: PlatoCarta }) {
   );
 }
 
+function PlatoEditorial({ plato }: { plato: PlatoCarta }) {
+  return (
+    <span className="block text-left">
+      <span className="flex items-baseline gap-3">
+        <span className="nombre-plato text-[21px] font-semibold leading-tight">{plato.nombre}</span>
+        <span aria-hidden="true" className="min-w-6 flex-1 -translate-y-1 border-b border-dotted border-current opacity-30" />
+        <span className="whitespace-nowrap text-[20px] font-semibold tabular-nums">{euros.format(Number(plato.precio)).replace(/\s?€/, '')}</span>
+      </span>
+      {plato.descripcion && <span className="mt-1 block pr-10 text-[16px] italic leading-snug opacity-65">{plato.descripcion}</span>}
+      {plato.alergenos.length > 0 && (
+        <span className="mt-1.5 block text-[10px] font-medium uppercase tracking-[0.16em] opacity-45">
+          <span className="sr-only">Alérgenos: </span>{plato.alergenos.map(nombreAlergeno).join(' · ')}
+        </span>
+      )}
+    </span>
+  );
+}
+
 function PlatoExpress({ plato }: { plato: PlatoCarta }) {
   return (
     <span className="block px-4 py-3">
       <span className="flex items-baseline justify-between gap-3">
-        <span className="text-[15px] font-medium leading-snug">{plato.nombre}</span>
+        <span className="nombre-plato text-[15px] font-medium leading-snug">{plato.nombre}</span>
         <Precio plato={plato} />
       </span>
       {plato.descripcion && <span className="line-clamp-1 block text-xs leading-relaxed text-black/50">{plato.descripcion}</span>}

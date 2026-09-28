@@ -47,12 +47,12 @@ export default function CartaAutor({
     >
       {/* Portada */}
       <header id="inicio" className="relative">
-        <div className="relative h-[68vh] min-h-[420px] max-h-[720px] w-full overflow-hidden bg-[#221D17]">
+        <div className={`relative w-full overflow-hidden ${portada ? 'h-[68vh] min-h-[420px] max-h-[720px] bg-[#221D17]' : 'h-[46vh] min-h-[340px] max-h-[520px]'}`} style={portada ? undefined : { background: 'linear-gradient(160deg, color-mix(in srgb, var(--marca) 70%, #17191E), var(--marca))' }}>
           {portada && (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img src={portada} alt="" className="absolute inset-0 h-full w-full object-cover opacity-80" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/10 to-black/70" />
+          {portada && <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/10 to-black/70" />}
           <div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 py-4 text-white sm:px-8">
             {carta.logoUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */

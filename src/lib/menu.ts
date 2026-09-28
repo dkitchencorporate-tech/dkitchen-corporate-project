@@ -49,6 +49,9 @@ export interface Carta {
   plantilla?: string;
   /** esencial | autor | signature (0026). Ausente en espejos antiguos → esencial. */
   nivelDiseno?: string;
+  /** papel | blanco | oscuro y sans | serif (0031). */
+  estiloFondo?: string;
+  estiloLetra?: string;
   /** Idiomas activos del Pack de idiomas (0027). */
   idiomas?: string[];
   secciones: SeccionCarta[];
@@ -87,10 +90,12 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       url_resenas: string | null;
       plantilla: string;
       nivel_diseno: string;
+      estilo_fondo: string;
+      estilo_letra: string;
       idiomas: string[];
     }>(
       `SELECT id, slug, nombre, logo_url, plan, color_marca, descripcion, telefono,
-              direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas
+              direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, estilo_fondo, estilo_letra
          FROM restaurantes WHERE slug = $1`,
       [slug]
     );
@@ -143,6 +148,8 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       urlResenas: restaurante.url_resenas,
       plantilla: restaurante.plantilla,
       nivelDiseno: restaurante.nivel_diseno,
+      estiloFondo: restaurante.estilo_fondo,
+      estiloLetra: restaurante.estilo_letra,
       idiomas: restaurante.idiomas ?? [],
       secciones: secciones
         .map((s) => ({

@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import type { EstadoServicios, Servicio } from '@/lib/servicios';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import { comprarServicioAction } from '@/app/panel/actions';
+import EstiloCarta from './EstiloCarta';
 import ActivarNucleoOperativoBoton from '@/components/sections/ActivarNucleoOperativoBoton';
 
 const WHATSAPP_DK = 'https://wa.me/34622652659?text=' + encodeURIComponent('Hola, tengo la carta QR y quiero saber más de DKitchen Signature.');
@@ -64,6 +65,8 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
       </header>
 
       {vista === 'diseno' && (<>
+      <EstiloCarta nombre={restaurante.nombre} bloqueado={restaurante.nivelDiseno !== 'esencial'}
+        inicial={{ plantilla: restaurante.plantilla || 'clasica', fondo: restaurante.estiloFondo || 'papel', letra: restaurante.estiloLetra || 'sans', color: (restaurante.colorMarca || '#E8592A').toUpperCase() }} />
       <section className="space-y-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-[#E8592A]">Niveles de diseño</p>

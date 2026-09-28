@@ -170,30 +170,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
             <input value={d.nombre} onChange={set('nombre')} maxLength={80} className={campo} />
           </label>
         </div>
-        <div className="space-y-1.5">
-          <span className="text-xs text-[#6B7079]">Color de tu carta</span>
-          {esencial ? (
-            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Color de la carta">
-              {PALETA.map((c) => (
-                <button
-                  key={c.hex}
-                  type="button"
-                  role="radio"
-                  aria-checked={d.colorMarca.toUpperCase() === c.hex}
-                  aria-label={c.nombre}
-                  title={c.nombre}
-                  onClick={() => setD((p) => ({ ...p, colorMarca: c.hex }))}
-                  className={`h-9 w-9 rounded-full border-2 ${d.colorMarca.toUpperCase() === c.hex ? 'border-[#D6D6D1]' : 'border-transparent'}`}
-                  style={{ background: c.hex }}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="flex items-center gap-2 text-xs text-[#6B7079]">
-              <span className="inline-block h-5 w-5 rounded-full" style={{ background: d.colorMarca }} /> Fijado por DKitchen en tu diseño de autor.
-            </p>
-          )}
-        </div>
+        <p className="text-xs text-[#6B7079]">El estilo, el fondo, la letra y el color de tu carta se eligen en la pestaña <a href="/panel?pestana=diseno" className="font-semibold text-[#E8592A] underline">Diseño</a>.</p>
         <label className="block space-y-1">
           <span className="text-xs text-[#6B7079]">Descripción corta ({d.descripcion.length}/280)</span>
           <textarea value={d.descripcion} onChange={set('descripcion')} maxLength={280} rows={2} placeholder="Ej: Cocina mediterránea de mercado desde 1998" className={campo} />

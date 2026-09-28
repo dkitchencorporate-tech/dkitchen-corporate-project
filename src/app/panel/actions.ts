@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { obtenerJwtDeSesion, identidadActual } from '@/lib/sesion';
 import { randomUUID } from 'node:crypto';
 import { put } from '@vercel/blob';
-import { obtenerMiRestaurante, actualizarDatosLocal, type DatosLocal } from '@/lib/mi-restaurante';
+import { obtenerMiRestaurante, actualizarDatosLocal, type DatosLocal, guardarEstilo } from '@/lib/mi-restaurante';
 import { atenderLlamada, llamadasPendientes } from '@/lib/llamadas-camarero';
 import {
   crearSeccion as dbCrearSeccion,
@@ -409,4 +409,17 @@ export async function asignarMesasAction(camareroId: string | null, mesaIds: str
   const mesas = plano.mesas.map((m) => (ids.includes(m.id) ? { ...m, camareroId } : m.camareroId === camareroId && camareroId ? { ...m, camareroId: null } : m));
   await guardarPlano(jwt, restaurante.id, mesas, plano.elementos).catch(mensajeSala);
   revalidatePath('/panel');
+}
+
+/** Estilo de la carta elegido por el cliente (0031). Lista blanca aquí y en la base. */
+export async function guardarEstiloAction(e: { plantilla: string; fondo: string; letra: string; color: string }) {
+  if (!['clasica', 'editorial', 'visual', 'express'].includes(e?.plantilla) || !['papel', 'blanco', 'oscuro'].includes(e?.fondo)
+      || !['sans', 'serif'].includes(e?.letra) || !/^#[0-9a-f]{6}$/i.test(e?.color ?? '')) throw new Error('Estilo no válido.');
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  await guardarEstilo(jwt, restaurante.id, { ...e, color: e.color.toUpperCase() }).catch((err: unknown) => {
+    const m = err instanceof Error ? err.message : '';
+    throw new Error(/paleta|DKitchen/.test(m) ? m : 'No se pudo guardar el estilo.');
+  });
+  revalidatePath('/panel');
+  revalidatePath(`/m/${restaurante.slug}`);
 }

@@ -21,6 +21,8 @@ export interface MiRestaurante {
   idiomas: string[];
   whatsapp: string | null;
   creadoEn: string;
+  estiloFondo: string;
+  estiloLetra: string;
 }
 
 /** El restaurante del cliente que ha iniciado sesión — nunca de otro. */
@@ -46,9 +48,11 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       idiomas: string[];
       whatsapp: string | null;
       creado_en: Date;
+      estilo_fondo: string;
+      estilo_letra: string;
     }>(
       `SELECT id, slug, nombre, logo_url, plan, activo, color_marca, estado_acceso,
-              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en
+              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en, estilo_fondo, estilo_letra
          FROM restaurantes
         WHERE propietario = dk.identidad_actual()`
     );
@@ -74,6 +78,8 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       idiomas: fila.idiomas ?? [],
       whatsapp: fila.whatsapp,
       creadoEn: new Date(fila.creado_en).toISOString(),
+      estiloFondo: fila.estilo_fondo,
+      estiloLetra: fila.estilo_letra,
     };
   });
 }
@@ -113,4 +119,11 @@ export async function actualizarDatosLocal(jwt: string, restauranteId: string, d
       [restauranteId, d.nombre, d.logoUrl, d.colorMarca, d.descripcion, d.telefono, d.direccion, d.horario, d.instagram, d.urlResenas, d.whatsapp]
     );
   });
+}
+
+/** Estilo de la carta (0031). El disparador dk.control_diseno_cliente valida nivel y paleta. */
+export async function guardarEstilo(jwt: string, restauranteId: string, e: { plantilla: string; fondo: string; letra: string; color: string }) {
+  await comoCliente(jwt, (c) => c.query(
+    'UPDATE restaurantes SET plantilla = $2, estilo_fondo = $3, estilo_letra = $4, color_marca = $5 WHERE id = $1',
+    [restauranteId, e.plantilla, e.fondo, e.letra, e.color]));
 }

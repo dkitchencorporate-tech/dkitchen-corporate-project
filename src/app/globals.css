@@ -33,3 +33,11 @@
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
 }
+
+/* ---------------------------------------------------------------- carta QR (0031) */
+.carta-serif h1, .carta-serif h2, .carta-serif .nombre-plato { font-family: var(--fuente-serif), Georgia, 'Times New Roman', serif; }
+.carta-oscura .bg-white, .carta-oscura [class*="bg-white/"] { background-color: #1F2126 !important; }
+.carta-oscura [class*="text-black/"] { color: rgba(243, 241, 236, 0.62) !important; }
+.carta-oscura [class*="border-black/"], .carta-oscura [class*="divide-black/"] > * + *, .carta-oscura .border-b, .carta-oscura .border-y { border-color: rgba(243, 241, 236, 0.12) !important; }
+.carta-oscura [class*="bg-black/"] { background-color: rgba(243, 241, 236, 0.06) !important; }
+.carta-oscura .shadow-sm { box-shadow: none !important; }
