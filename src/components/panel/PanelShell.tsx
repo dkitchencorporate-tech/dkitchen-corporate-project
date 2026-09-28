@@ -27,21 +27,20 @@ import { authClient } from '@/lib/auth-client';
 
 type Pestana = 'carta' | 'local' | 'promociones' | 'reservas' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
 
-const PESTANAS: { id: Pestana; nombre: string }[] = [
-  { id: 'carta', nombre: 'Mi Carta' },
-  { id: 'local', nombre: 'Mi Local' },
-  { id: 'promociones', nombre: 'Banners' },
-  { id: 'reservas', nombre: 'Reservas' },
-  { id: 'sala', nombre: 'Sala' },
-  { id: 'idiomas', nombre: 'Idiomas' },
-  { id: 'camarero', nombre: 'Llamadas de mesa' },
-  { id: 'qr', nombre: 'Mi QR' },
-  { id: 'escaneos', nombre: 'Mis Escaneos' },
-  { id: 'plan', nombre: 'Mi Plan' },
-  { id: 'diseno', nombre: 'Diseño' },
-  { id: 'modulos', nombre: 'Módulos' },
-  { id: 'soporte', nombre: 'Soporte' },
+const GRUPOS: { titulo: string; items: { id: Pestana; nombre: string }[] }[] = [
+  { titulo: 'Tu carta', items: [
+    { id: 'carta', nombre: 'Mi carta' }, { id: 'diseno', nombre: 'Diseño' }, { id: 'idiomas', nombre: 'Idiomas' },
+    { id: 'promociones', nombre: 'Banners' }, { id: 'qr', nombre: 'Mi QR' },
+  ] },
+  { titulo: 'Servicio', items: [
+    { id: 'reservas', nombre: 'Reservas' }, { id: 'camarero', nombre: 'Llamadas de mesa' }, { id: 'sala', nombre: 'Sala' },
+  ] },
+  { titulo: 'Tu negocio', items: [
+    { id: 'escaneos', nombre: 'Escaneos' }, { id: 'modulos', nombre: 'Módulos' }, { id: 'local', nombre: 'Mi local' },
+    { id: 'plan', nombre: 'Mi plan' }, { id: 'soporte', nombre: 'Soporte' },
+  ] },
 ];
+const PESTANAS = GRUPOS.flatMap((g) => g.items);
 
 export default function PanelShell({
   identidad,
@@ -78,7 +77,9 @@ export default function PanelShell({
     id === 'sala' ? modulos.plano || modulos.app || modulos.tpv
     : id === 'idiomas' ? tieneServ('idiomas')
     : (id !== 'camarero' && id !== 'reservas') || restaurante.plan === 'ampliado';
-  const [pestana, setPestana] = useState<Pestana>('carta');
+  const [pestana, setPestanaBase] = useState<Pestana>('carta');
+  const [menu, setMenu] = useState(false);
+  const setPestana = (p: Pestana) => { setPestanaBase(p); setMenu(false); window.scrollTo({ top: 0 }); };
 
   // Enlaces directos a una sección (p. ej. desde los correos: /panel?pestana=reservas)
   useEffect(() => {
@@ -87,51 +88,82 @@ export default function PanelShell({
     if (pedida && PESTANAS.some((x) => x.id === pedida)) setPestana(pedida as Pestana);
   }, []);
 
-  return (
-    <div className="min-h-screen bg-[#171008] text-white">
-      <header className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="font-bold text-lg">
-            D<span className="text-[#D9531E]">Kitchen</span>
-          </h1>
-          <p className="text-white/40 text-xs">{restaurante.nombre}</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="text-sm font-semibold text-[#D9531E] hover:underline">
-            Ver mi carta ↗
-          </a>
-          <p className="text-white/40 text-sm hidden sm:block">{identidad.email}</p>
-          <button
-            onClick={async () => {
-              await authClient.signOut();
-              window.location.href = '/panel/iniciar-sesion';
-            }}
-            className="text-white/40 hover:text-white text-sm"
-          >
-            Salir
-          </button>
-        </div>
-      </header>
+  const salir = async () => { await authClient.signOut(); window.location.href = '/panel/iniciar-sesion'; };
+  const titulo = PESTANAS.find((p) => p.id === pestana)?.nombre ?? '';
+  const Navegacion = () => (
+    <nav aria-label="Secciones del panel" className="space-y-7">
+      {GRUPOS.map((g) => {
+        const items = g.items.filter((p) => visible(p.id));
+        if (items.length === 0) return null;
+        return (
+          <div key={g.titulo}>
+            <p className="px-3 text-[11px] font-medium uppercase tracking-[0.18em] text-white/30">{g.titulo}</p>
+            <ul className="mt-2 space-y-0.5">
+              {items.map((p) => (
+                <li key={p.id}>
+                  <button onClick={() => setPestana(p.id)} aria-current={pestana === p.id ? 'page' : undefined}
+                    className={`w-full rounded-lg px-3 py-2 text-left text-[15px] transition-colors ${pestana === p.id ? 'bg-white/[0.07] font-semibold text-white' : 'text-white/55 hover:bg-white/[0.04] hover:text-white'}`}>
+                    {p.nombre}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </nav>
+  );
 
-      <nav className="border-b border-white/10 px-6 flex gap-1 overflow-x-auto">
-        {PESTANAS.filter((p) => visible(p.id)).map((p) => (
-          <button
-            key={p.id}
-            onClick={() => setPestana(p.id)}
-            className={`px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
-              pestana === p.id
-                ? 'border-[#D9531E] text-white'
-                : 'border-transparent text-white/40 hover:text-white/70'
-            }`}
-          >
-            {p.nombre}
-          </button>
-        ))}
-      </nav>
+  return (
+    <div className="min-h-screen bg-[#14100C] text-white lg:grid lg:grid-cols-[16rem_1fr]">
+      {/* Lateral (escritorio) */}
+      <aside className="hidden border-r border-white/[0.06] lg:flex lg:h-screen lg:sticky lg:top-0 lg:flex-col">
+        <div className="px-6 pb-6 pt-7">
+          <p className="text-[15px] font-semibold tracking-tight">{restaurante.nombre}</p>
+          <p className="mt-0.5 text-xs text-white/35">Carta QR · plan {restaurante.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</p>
+        </div>
+        <div className="flex-1 overflow-y-auto px-3"><Navegacion /></div>
+        <div className="space-y-2 border-t border-white/[0.06] px-6 py-5 text-sm">
+          <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="block font-semibold text-[#E0703F] hover:underline">Ver mi carta</a>
+          <p className="truncate text-xs text-white/30">{identidad.email}</p>
+          <button onClick={salir} className="text-xs text-white/40 hover:text-white">Cerrar sesión</button>
+          <p className="pt-2 text-[10px] uppercase tracking-[0.2em] text-white/20">DKitchen</p>
+        </div>
+      </aside>
+
+      <div className="min-w-0">
+        {/* Barra superior (móvil y tablet) */}
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-white/[0.06] bg-[#14100C]/95 px-4 py-3 backdrop-blur lg:hidden">
+          <div className="min-w-0">
+            <p className="truncate text-[15px] font-semibold">{restaurante.nombre}</p>
+            <p className="text-xs text-white/40">{titulo}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="rounded-lg border border-white/10 px-3 py-2 text-sm">Ver carta</a>
+            <button onClick={() => setMenu(true)} aria-expanded={menu} className="rounded-lg bg-white/[0.08] px-3 py-2 text-sm font-semibold">Menú</button>
+          </div>
+        </header>
+
+        {menu && (
+          <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Menú del panel">
+            <button aria-label="Cerrar menú" onClick={() => setMenu(false)} className="absolute inset-0 bg-black/60" />
+            <div className="absolute inset-y-0 right-0 flex w-[82%] max-w-xs flex-col bg-[#1A1510] shadow-2xl">
+              <div className="flex items-center justify-between px-5 py-4">
+                <p className="font-semibold">{restaurante.nombre}</p>
+                <button onClick={() => setMenu(false)} className="text-sm text-white/50">Cerrar</button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-2 pb-4"><Navegacion /></div>
+              <div className="border-t border-white/[0.06] px-5 py-4 text-sm">
+                <p className="truncate text-xs text-white/35">{identidad.email}</p>
+                <button onClick={salir} className="mt-2 text-white/60">Cerrar sesión</button>
+              </div>
+            </div>
+          </div>
+        )}
 
       {servicios.oferta && pestana !== 'diseno' && pestana !== 'modulos' && <OfertaFranja oferta={servicios.oferta.oferta} onVer={() => setPestana(['setup_experto', 'setup_esencial'].includes(servicios.oferta!.oferta) ? 'diseno' : 'modulos')} />}
 
-      <main className="max-w-4xl mx-auto px-6 py-8">
+      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
         {pestana === 'carta' && <MiCarta carta={carta} />}
         {pestana === 'local' && <MiLocal restaurante={restaurante} />}
         {pestana === 'promociones' && <Promociones promociones={promociones} secciones={carta.secciones} plan={restaurante.plan} />}
@@ -147,6 +179,7 @@ export default function PanelShell({
         {pestana === 'plan' && <MiPlan restaurante={restaurante} servicios={servicios} />}
         {pestana === 'soporte' && <Soporte tickets={tickets} />}
       </main>
+      </div>
     </div>
   );
 }

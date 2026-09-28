@@ -20,7 +20,7 @@ export default function OfertaFranja({ oferta, onVer }: { oferta: string; onVer:
   useEffect(() => { registrarOfertaAction(oferta, 'mostrada').catch(() => {}); }, [oferta]);
   if (!visible || !TEXTOS[oferta]) return null;
   return (
-    <div className="border-b border-[#D9531E]/30 bg-[#D9531E]/10 px-6 py-3">
+    <div className="border-b border-[#D9531E]/20 bg-[#D9531E]/[0.07] px-4 py-3 sm:px-6 lg:px-10">
       <div className="mx-auto flex max-w-4xl items-center gap-3 text-sm">
         <p className="flex-1 text-white/85">{TEXTOS[oferta]}</p>
         <button onClick={onVer} className="shrink-0 rounded-lg bg-[#D9531E] px-3 py-1.5 font-bold">Ver</button>
