@@ -1,3 +1,4 @@
+import Solicitud from '@/components/Solicitud';
 import React from "react";
 import "./globals.css";
 import AnalyticsPixel from "@/components/AnalyticsPixel";
@@ -80,6 +81,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <AnalyticsPixel />
         {children}
+        <Solicitud />
         <CookieConsent />
       </body>
     </html>

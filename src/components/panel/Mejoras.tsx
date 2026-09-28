@@ -7,7 +7,7 @@ import { comprarServicioAction } from '@/app/panel/actions';
 import EstiloCarta from './EstiloCarta';
 import ActivarNucleoOperativoBoton from '@/components/sections/ActivarNucleoOperativoBoton';
 
-const WHATSAPP_DK = 'https://wa.me/34622652659?text=' + encodeURIComponent('Hola, tengo la carta QR y quiero saber más de DKitchen Signature.');
+const WHATSAPP_DK = '#solicitud-signature';
 
 const euros = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: c % 100 ? 2 : 0 }).format(c / 100);
 
@@ -99,7 +99,7 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
             pie={
               <div className="space-y-2">
                 <a href="/base-operativa" target="_blank" rel="noopener" className="block rounded-xl border border-[#D6D6D1] py-2.5 text-center text-sm font-semibold hover:border-[#D6D6D1]">Ver cómo es DKitchen Signature</a>
-                <a href={WHATSAPP_DK} target="_blank" rel="noopener" className="block rounded-xl border border-[#D6D6D1] py-2.5 text-center text-sm font-semibold hover:border-[#D6D6D1]">Hablar directamente con nosotros</a>
+                <a href={WHATSAPP_DK} className="block rounded-xl border border-[#D6D6D1] py-2.5 text-center text-sm font-semibold hover:border-[#D6D6D1]">Pedir propuesta de Signature</a>
                 <ActivarNucleoOperativoBoton className="w-full rounded-full bg-[#17191E] py-3 text-sm font-bold text-white" />
               </div>
             } />

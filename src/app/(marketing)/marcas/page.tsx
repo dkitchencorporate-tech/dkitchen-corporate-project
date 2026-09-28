@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 const COLORES = ['#B23A48', '#2F8F6B', '#6E0C2B', '#5B3E8A', '#3B6EA5', '#D99A1E'];
-const wa = (n: string) => `https://wa.me/34622652659?text=${encodeURIComponent(`Hola, quiero sumar la marca ${n} a mi cocina.`)}`;
+const wa = (n: string) => `#solicitud-marcas~${encodeURIComponent(n)}`;
 
 export default function PaginaMarcas() {
   return (
@@ -51,7 +51,7 @@ export default function PaginaMarcas() {
         </div>
       </section>
 
-      <Cierre titulo="Tu cocina, con marcas que ya venden." sub="Cuéntanos qué cocina tienes y te decimos qué marca encaja mejor." cta={{ href: 'https://wa.me/34622652659?text=Hola,%20quiero%20saber%20qu%C3%A9%20marca%20encaja%20con%20mi%20cocina.', t: 'Hablar con DKitchen' }} secundario={{ href: '/experience', t: 'Usarla en un evento' }} />
+      <Cierre titulo="Tu cocina, con marcas que ya venden." sub="Cuéntanos qué cocina tienes y te decimos qué marca encaja mejor." cta={{ href: '#solicitud-marcas', t: 'Hablar con DKitchen' }} secundario={{ href: '/experience', t: 'Usarla en un evento' }} />
     </div>
   );
 }

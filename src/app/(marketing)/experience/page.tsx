@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://dkitchencorporate.es/experience' },
 };
 
-const WA = 'https://wa.me/34622652659?text=Hola,%20quiero%20montar%20un%20evento%20con%20DKitchen%20Experience';
+const WA = '#solicitud-experience';
 const FORMATOS: [string, string, string][] = [
   ['Noche de Asado', 'Santa Brazza', 'Parrilla en vivo como espectáculo.'],
   ['Wings Battle', 'Wing Boss', 'Reto de picante con potencial viral.'],

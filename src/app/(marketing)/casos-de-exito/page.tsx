@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://dkitchencorporate.es/casos-de-exito' },
 };
 
-const WA = 'https://wa.me/34622652659?text=Hola,%20he%20visto%20los%20casos%20de%20%C3%A9xito%20y%20quiero%20hablar%20sobre%20mi%20negocio.';
+const WA = '#solicitud-casos';
 
 function Movil({ src, alt }: { src: string; alt: string }) {
   return (

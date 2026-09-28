@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://dkitchencorporate.es/auditoria' },
 };
 
-const WA = 'https://wa.me/34622652659?text=Hola,%20quiero%20reservar%20mi%20Auditor%C3%ADa%20de%20canales%20externos.';
+const WA = '#solicitud-auditoria';
 
 export default function PaginaAuditoria() {
   return (

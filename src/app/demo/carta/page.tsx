@@ -781,7 +781,7 @@ function CartaContent() {
               <a href="/qr#planes" className="block w-full rounded-full bg-[#6E0C2B] py-4 text-[15px] font-semibold text-white hover:bg-[#4A0819]">
                 Quiero mi carta · primer mes 1 €
               </a>
-              <a href="https://wa.me/34622652659?text=Hola,%20he%20visto%20las%20cartas%20de%20autor%20y%20quiero%20una%20para%20mi%20local." target="_blank" rel="noopener noreferrer" className="block w-full rounded-full border border-white/20 py-4 text-[15px] font-semibold text-white hover:border-white/50">
+              <a href="/qr#solicitud-diseno-autor" target="_blank" rel="noopener noreferrer" className="block w-full rounded-full border border-white/20 py-4 text-[15px] font-semibold text-white hover:border-white/50">
                 Hablar por WhatsApp
               </a>
               <a href="https://calendly.com/dkitchencorporate/30min" target="_blank" rel="noopener noreferrer" className="block w-full py-2 text-sm text-white/55 hover:text-white">

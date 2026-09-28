@@ -136,7 +136,7 @@ export default function PaginaSignature() {
             </ul>
             <div className="mt-8 space-y-3">
               <ActivarNucleoOperativoBoton className="w-full rounded-full bg-[#6E0C2B] py-4 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(163,24,74,.45)]" />
-              <a href="https://wa.me/34622652659?text=Hola,%20quiero%20saber%20m%C3%A1s%20de%20DKitchen%20Signature." className="block rounded-full border border-white/20 py-4 text-center text-[15px] font-semibold">Prefiero hablar antes</a>
+              <a href="#solicitud-signature" className="block rounded-full border border-white/20 py-4 text-center text-[15px] font-semibold">Prefiero hablar antes</a>
             </div>
           </Aparecer>
         </div>

@@ -17,7 +17,7 @@ export default function Footer() {
           <div>
             <Link href="/" className="font-display text-2xl font-bold">D<span className="text-[#6E0C2B]">Kitchen</span></Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/50">Tecnología para hostelería sin comisiones. Tus clientes y tus datos, siempre en tu casa.</p>
-            <a href="https://wa.me/34622652659" className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm hover:border-white/40">Escríbenos por WhatsApp</a>
+            <a href="#solicitud-contacto" className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm hover:border-white/40">Escríbenos</a>
             <p className="mt-8 text-xs font-semibold uppercase tracking-[0.2em] text-white/35">Únete a la red DKitchen</p>
             <div className="mt-3"><RegistroRed /></div>
           </div>

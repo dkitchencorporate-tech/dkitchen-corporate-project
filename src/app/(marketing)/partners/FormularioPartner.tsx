@@ -16,7 +16,7 @@ export default function FormularioPartner() {
     const r = await fetch('/api/partner', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...Object.fromEntries(f), consentimiento: f.get('consentimiento') === 'on' }) }).catch(() => null);
     if (r?.ok) { setEstado('ok'); return; }
     const j = await r?.json().catch(() => ({}));
-    setError(j?.error ?? 'No se pudo enviar. Escríbenos por WhatsApp.'); setEstado('error');
+    setError(j?.error ?? 'No se pudo enviar. Inténtalo en unos minutos.'); setEstado('error');
   }
 
   if (estado === 'ok') {

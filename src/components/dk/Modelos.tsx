@@ -20,7 +20,7 @@ export const MODELOS = [
   { id: 'bokadipan', nombre: 'Bokadipan', tipo: 'App de pedidos · bocadillos de autor', color: '#C9922E', url: 'https://bokadipan.dkitchencorporate.es/',
     puntos: ['Hecha en menos de 3 horas sobre nuestra base', 'Club Bokadi con puntos y premios', 'Carta en dos idiomas y pedido directo'] },
 ];
-const wa = (t: string) => `https://wa.me/34622652659?text=${encodeURIComponent(`Hola, quiero un modelo como ${t} para mi negocio.`)}`;
+const wa = (t: string) => `#solicitud-modelo~${encodeURIComponent(t)}`;
 
 function Marco({ children }: { children: React.ReactNode }) {
   return (
@@ -117,7 +117,7 @@ export function CartasAutorDemo() {
         <p className="etiqueta-dk text-[#6E0C2B]">¿Tienes otra idea?</p>
         <p className="font-display mx-auto mt-3 max-w-2xl text-3xl font-semibold leading-tight md:text-4xl">Diseñamos tu carta desde cero, con tu marca.</p>
         <p className="mx-auto mt-3 max-w-xl text-[15px] text-white/60">Si ninguno de estos estilos es tu local, cuéntanos cómo lo imaginas: colores, tipografía, fotos, ambiente. La creamos a medida y la ves antes de publicarla.</p>
-        <a href={`https://wa.me/34622652659?text=${encodeURIComponent('Hola, quiero mi propio diseño de autor para la carta de mi local.')}`} className="mt-6 inline-block rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-[#17191E] hover:bg-white/90">Quiero mi propio diseño de autor</a>
+        <a href="#solicitud-diseno-autor" className="mt-6 inline-block rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-[#17191E] hover:bg-white/90">Quiero mi propio diseño de autor</a>
       </motion.div>
     </motion.div>
   );

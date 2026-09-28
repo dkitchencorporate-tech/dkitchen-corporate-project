@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://dkitchencorporate.es/dark-kitchen' },
 };
 
-const WA = 'https://wa.me/34622652659?text=Hola,%20quiero%20solicitar%20la%20entrevista%20de%20admisi%C3%B3n%20para%20Dark%20Kitchen.';
+const WA = '#solicitud-dark-kitchen';
 
 export default function PaginaDarkKitchen() {
   return (

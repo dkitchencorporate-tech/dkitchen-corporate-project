@@ -71,7 +71,7 @@ export default function Partners() {
           <div>
             <TextoRevelado texto="Hablemos." className="font-display text-5xl font-semibold md:text-7xl" />
             <p className="mt-5 text-lg text-[#6B7079]">Déjanos tus datos y te llamamos para contarte las condiciones y darte el material de venta.</p>
-            <a href="https://wa.me/34622652659?text=Hola,%20quiero%20ser%20partner%20de%20DKitchen." className="mt-8 inline-block font-semibold">O escríbenos por WhatsApp <span className="text-[#6E0C2B]">→</span></a>
+            <a href="#solicitud-partner" className="mt-8 inline-block font-semibold">O déjanos tus datos <span className="text-[#6E0C2B]">→</span></a>
           </div>
           <FormularioPartner />
         </div>

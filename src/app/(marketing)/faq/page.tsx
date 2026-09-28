@@ -63,7 +63,7 @@ export default function PaginaFAQ() {
         ))}
         <div className="mt-20 rounded-[28px] bg-[#0A080C] p-8 text-white md:flex md:items-center md:justify-between md:p-10">
           <p className="font-display text-3xl font-semibold">¿Te queda alguna duda?</p>
-          <a href="https://wa.me/34622652659?text=Hola,%20tengo%20una%20duda%20sobre%20DKitchen." className="mt-6 inline-block rounded-full bg-[#6E0C2B] px-7 py-4 font-semibold md:mt-0">Pregúntanos por WhatsApp</a>
+          <a href="#solicitud-dudas" className="mt-6 inline-block rounded-full bg-[#6E0C2B] px-7 py-4 font-semibold md:mt-0">Pregúntanos </a>
         </div>
       </div>
     </div>
