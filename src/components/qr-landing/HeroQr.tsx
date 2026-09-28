@@ -16,7 +16,7 @@ const PLATOS = [
 
 export default function HeroQr() {
   const quieto = useReducedMotion();
-  const entra = (d: number) => (quieto ? {} : { initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.8, delay: d, ease: [0.22, 1, 0.36, 1] } });
+  const entra = (d: number) => (quieto ? {} : { initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.8, delay: d, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } });
 
   return (
     <section className="relative overflow-hidden bg-[#0F0B08] pb-20 pt-32 text-white md:pb-28 md:pt-40">
@@ -39,7 +39,7 @@ export default function HeroQr() {
           <motion.p {...entra(0.3)} className="mt-5 text-sm text-white/40">Primer mes a 1 €. Después desde 9 €/mes, sin permanencia.</motion.p>
         </div>
 
-        <motion.div {...(quieto ? {} : { initial: { opacity: 0, y: 60, rotate: 2 }, animate: { opacity: 1, y: 0, rotate: 0 }, transition: { duration: 1.1, delay: 0.2, ease: [0.22, 1, 0.36, 1] } })}
+        <motion.div {...(quieto ? {} : { initial: { opacity: 0, y: 60, rotate: 2 }, animate: { opacity: 1, y: 0, rotate: 0 }, transition: { duration: 1.1, delay: 0.2, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } })}
           className="relative mx-auto w-[280px] sm:w-[310px]">
           <div className="rounded-[46px] border border-white/10 bg-[#1b1510] p-3 shadow-[0_40px_120px_rgba(0,0,0,.6)]">
             <div className="overflow-hidden rounded-[36px] bg-[#F7F3EA] text-[#221D17]">
