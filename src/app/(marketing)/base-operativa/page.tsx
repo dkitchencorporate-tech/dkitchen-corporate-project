@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { FondoVivo, Marquesina, TextoRevelado, BotonMagnetico, TarjetaTilt } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
 import { MovilApp, CalculadoraComisiones, CapitulosSignature } from '@/components/signature/PiezasSignature';
-import ActivarNucleoOperativoBoton from '@/components/sections/ActivarNucleoOperativoBoton';
 import { ModelosReales } from '@/components/dk/Modelos';
 import { Titulo } from '@/components/dk/Bloques';
 
@@ -135,7 +134,7 @@ export default function PaginaSignature() {
               {['App con tu marca y dominio', 'Pedidos, cocina, fidelización y cierre fiscal', 'Pack de arranque incluido', 'Soporte en español'].map((x) => <li key={x} className="flex gap-2"><span className="text-[#6E0C2B]">✓</span>{x}</li>)}
             </ul>
             <div className="mt-8 space-y-3">
-              <ActivarNucleoOperativoBoton className="w-full rounded-full bg-[#6E0C2B] py-4 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(163,24,74,.45)]" />
+              <Link href="/pagar/signature" className="block text-center w-full rounded-full bg-[#6E0C2B] py-4 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(163,24,74,.45)]">Contratar Signature · 700 €</Link>
               <a href="#solicitud-signature" className="block rounded-full border border-white/20 py-4 text-center text-[15px] font-semibold">Prefiero hablar antes</a>
             </div>
           </Aparecer>

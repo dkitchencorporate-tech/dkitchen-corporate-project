@@ -13,6 +13,9 @@ const GRUPOS: { titulo: string; items: { nombre: string; href: string }[] }[] = 
     { nombre: 'Clientes', href: '/admin-dkitchen/qr' },
     { nombre: 'Soporte y QR físico', href: '/admin-dkitchen/soporte' },
   ] },
+  { titulo: 'Ventas', items: [
+    { nombre: 'Embudo de pago', href: '/admin-dkitchen/embudo' },
+  ] },
   { titulo: 'Otras herramientas', items: [
     { nombre: 'Resumen general', href: '/admin-dkitchen/overview' },
     { nombre: 'Directorio de clientes', href: '/admin-dkitchen/clients' },

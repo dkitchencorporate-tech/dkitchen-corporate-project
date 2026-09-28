@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://dkitchencorporate.es/auditoria' },
 };
 
-const WA = '#solicitud-auditoria';
+const WA = '/pagar/auditoria';
 
 export default function PaginaAuditoria() {
   return (

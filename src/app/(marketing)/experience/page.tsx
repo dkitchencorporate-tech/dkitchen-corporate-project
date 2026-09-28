@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://dkitchencorporate.es/experience' },
 };
 
-const WA = '#solicitud-experience';
+const WA = '/pagar/experience';
 const FORMATOS: [string, string, string][] = [
   ['Noche de Asado', 'Santa Brazza', 'Parrilla en vivo como espectáculo.'],
   ['Wings Battle', 'Wing Boss', 'Reto de picante con potencial viral.'],

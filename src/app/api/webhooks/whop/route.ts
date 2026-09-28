@@ -7,7 +7,8 @@ import {
   registrarPagoRecuperado,
   registrarPagoFallido,
 } from '@/lib/payments/aprovisionar';
-import { enviarCorreoInterno, escaparHtml } from '@/lib/email';
+import { enviarCorreoInterno, enviarCorreoCliente, escaparHtml } from '@/lib/email';
+import { PRODUCTOS_PAGO, PRODUCTOS_WEBHOOK_GENERICO } from '@/lib/productos-pago';
 import { crearPedidoNivelB } from '@/lib/pedidos-nivel-b';
 import { crearMarcaRutaB } from '@/lib/marcas';
 import { dispararTuberiaPostPago } from '@/lib/tuberia-nivel-b';
@@ -95,6 +96,39 @@ export async function POST(request: Request) {
     evento = JSON.parse(cuerpo);
   } catch {
     return NextResponse.json({ error: 'Cuerpo inválido' }, { status: 400 });
+  }
+
+  // Pagos desde /pagar/<producto> (29/09/2026): se anota el pago en el
+  // embudo (0032) y el cliente recibe su confirmación con los pasos siguientes.
+  // Un fallo aquí nunca bloquea el alta del producto que viene después.
+  const metaEmbudo: Record<string, string> = evento.data.metadata ?? {};
+  const productoDirecto = metaEmbudo.embudo ? PRODUCTOS_PAGO[String(metaEmbudo.embudo)] : undefined;
+  if (evento.type === 'payment.succeeded' && productoDirecto) {
+    await comoAprovisionamiento((c) => c.query('SELECT dk.embudo_pagado($1)', [productoDirecto.id])).catch((e) =>
+      console.error('Embudo: no se pudo anotar el pago', e));
+    if (productoDirecto.metadataWhop !== 'nucleo-operativo' && metaEmbudo.email) {
+      await enviarCorreoCliente(String(metaEmbudo.email), `Pago confirmado · ${productoDirecto.nombre}`,
+        `<p>Hola ${escaparHtml(metaEmbudo.nombreContacto)},</p>
+         <p>Hemos recibido tu pago de <strong>${productoDirecto.precio} €</strong> por <strong>${escaparHtml(productoDirecto.nombre)}</strong>. Gracias por confiar en DKitchen.</p>
+         <p><strong>Qué pasa ahora:</strong></p>
+         <ul>${productoDirecto.despues.map(([c, t]) => `<li><strong>${escaparHtml(c)}:</strong> ${escaparHtml(t)}</li>`).join('')}</ul>
+         <p>Si tienes cualquier duda, responde a este correo.</p><p>Un saludo,<br>El equipo de DKitchen</p>`).catch((e) =>
+        console.error('Pago directo: no se pudo enviar la confirmación al cliente', e));
+    }
+  }
+  if (PRODUCTOS_WEBHOOK_GENERICO.includes(String(metaEmbudo.producto))) {
+    if (evento.type === 'payment.succeeded' && productoDirecto) {
+      await enviarCorreoInterno(
+        `PAGO DIRECTO (${productoDirecto.precio} €): ${productoDirecto.nombre} · ${metaEmbudo.nombreContacto || metaEmbudo.email}`,
+        `<h2>${escaparHtml(productoDirecto.nombre)} pagado</h2>
+         <p><strong>Nombre:</strong> ${escaparHtml(metaEmbudo.nombreContacto)}</p>
+         <p><strong>Negocio:</strong> ${escaparHtml(metaEmbudo.restauranteNombre)}</p>
+         <p><strong>Correo:</strong> ${escaparHtml(metaEmbudo.email)}</p>
+         <p><strong>Teléfono:</strong> ${escaparHtml(metaEmbudo.telefono)}</p>
+         <p><strong>Id de pago (Whop):</strong> ${escaparHtml(evento.data.id)}</p>`
+      ).catch((e) => console.error('Pago directo: falló el correo interno', e));
+    }
+    return NextResponse.json({ recibido: true });
   }
 
   // Order-bump de Auditoría+Escandallo (Parte 8, Sección 3.1-b): pago único,

@@ -498,3 +498,54 @@ export async function crearCheckoutEnlaceAdmin(datos: {
   if (!url) throw new Error('Whop no devolvió purchase_url en la configuración de checkout.');
   return { url };
 }
+
+/**
+ * Pago directo desde /pagar/<producto> (29/09/2026). Pago único al precio de
+ * pricing-config (vía PRODUCTOS_PAGO); el `producto` de metadata es el que ya
+ * entiende el webhook, y `embudo` marca el pago en el seguimiento (0032).
+ */
+export async function crearCheckoutProductoDirecto(datos: {
+  id: string;
+  metadataWhop: string;
+  titulo: string;
+  precio: number;
+  email: string;
+  nombreContacto: string;
+  restauranteNombre: string;
+  telefono: string;
+  detalle: string;
+  origen: string;
+}): Promise<{ url: string }> {
+  const apiKey = requerirEnv('WHOP_API_KEY');
+  const companyId = requerirEnv('WHOP_COMPANY_ID');
+  const cuerpo = {
+    mode: 'payment',
+    plan: {
+      company_id: companyId,
+      currency: 'eur',
+      plan_type: 'one_time',
+      initial_price: datos.precio,
+      product: { title: datos.titulo, external_identifier: `dk-directo-${datos.id}` },
+    },
+    metadata: {
+      producto: datos.metadataWhop,
+      embudo: datos.id,
+      email: datos.email,
+      nombreContacto: datos.nombreContacto,
+      restauranteNombre: datos.restauranteNombre,
+      telefono: datos.telefono,
+      detalle: datos.detalle,
+    },
+    redirect_url: `${datos.origen}/pagar/gracias?p=${encodeURIComponent(datos.id)}`,
+  };
+  const respuesta = await fetch(`${BASE}/checkout_configurations`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(cuerpo),
+  });
+  const json = await respuesta.json().catch(() => null);
+  if (!respuesta.ok) throw new Error(`Whop respondió ${respuesta.status}: ${json?.message ?? 'sin detalle'}`);
+  const r = json as RespuestaCheckoutConfiguration;
+  if (!r.purchase_url) throw new Error('Whop no devolvió purchase_url en la configuración de checkout.');
+  return { url: r.purchase_url };
+}

@@ -20,7 +20,7 @@ export const MODELOS = [
   { id: 'bokadipan', nombre: 'Bokadipan', tipo: 'App de pedidos · bocadillos de autor', color: '#C9922E', url: 'https://bokadipan.dkitchencorporate.es/',
     puntos: ['Hecha en menos de 3 horas sobre nuestra base', 'Club Bokadi con puntos y premios', 'Carta en dos idiomas y pedido directo'] },
 ];
-const wa = (t: string) => `#solicitud-modelo~${encodeURIComponent(t)}`;
+const wa = (t: string) => `/pagar/signature?modelo=${encodeURIComponent(t)}`;
 
 function Marco({ children }: { children: React.ReactNode }) {
   return (
