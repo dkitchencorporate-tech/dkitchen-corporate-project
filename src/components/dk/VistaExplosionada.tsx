@@ -14,17 +14,17 @@ import CartaDemo from '@/components/qr-landing/CartaDemo';
 type Capa = { id: string; t: string; d: string; x: number; y: number; xm: number; ym: number; contenido: React.ReactNode };
 
 const CAPAS: Capa[] = [
-  { id: 'foto', t: 'Fotos que venden', d: 'Cada plato con su foto, optimizada para cargar rápido.', x: -330, y: -170, xm: -105, ym: -195,
-    contenido: <div className="relative h-24 w-full overflow-hidden rounded-xl"><Image src="/images/demo/s9.png" alt="" fill sizes="200px" className="object-cover" /></div> },
-  { id: 'precio', t: 'Precio al momento', d: 'Lo cambias en el móvil y está en todas las mesas.', x: 330, y: -190, xm: 105, ym: -195,
-    contenido: <p className="font-display text-2xl font-semibold"><span className="text-[#9A9EA6] line-through decoration-2">9,50</span> <span className="text-[#E8592A]">9,90 €</span></p> },
-  { id: 'alergenos', t: 'Alérgenos UE', d: 'Los 14 obligatorios, por plato y con aviso legal.', x: -360, y: 30, xm: -105, ym: 0,
+  { id: 'foto', t: 'Fotos que venden', d: 'Cada plato con su foto, optimizada para cargar rápido.', x: -330, y: -170, xm: -112, ym: -205,
+    contenido: <div className="relative h-14 w-full overflow-hidden rounded-xl md:h-24"><Image src="/images/demo/s9.png" alt="" fill sizes="200px" className="object-cover" /></div> },
+  { id: 'precio', t: 'Precio al momento', d: 'Lo cambias en el móvil y está en todas las mesas.', x: 330, y: -190, xm: 112, ym: -205,
+    contenido: <p className="font-display text-lg font-semibold md:text-2xl"><span className="text-[#9A9EA6] line-through decoration-2">9,50</span> <span className="text-[#E8592A]">9,90 €</span></p> },
+  { id: 'alergenos', t: 'Alérgenos UE', d: 'Los 14 obligatorios, por plato y con aviso legal.', x: -360, y: 30, xm: -112, ym: 0,
     contenido: <div className="flex flex-wrap gap-1.5">{['Gluten', 'Pescado', 'Soja', 'Sésamo'].map((a) => <span key={a} className="rounded-full bg-[#F3F3F0] px-2 py-1 text-[11px] font-medium">{a}</span>)}</div> },
-  { id: 'qr', t: 'Un QR para siempre', d: 'Lo imprimes una vez. La carta cambia, el QR no.', x: 360, y: 20, xm: 105, ym: 0,
-    contenido: <svg viewBox="0 0 21 21" className="h-16 w-16" shapeRendering="crispEdges" aria-hidden="true"><path fill="#17191E" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0z" /><path fill="#fff" d="M1 1h5v5H1zM15 1h5v5h-5zM1 15h5v5H1z" /><path fill="#17191E" d="M2 2h3v3H2zM16 2h3v3h-3zM2 16h3v3H2zM9 0h2v2H9zM8 3h3v2H8zM9 8h3v3H9zM14 9h2v3h-2zM17 8h3v2h-3zM8 13h2v4H8zM12 14h3v2h-3zM16 13h2v2h-2zM13 17h2v3h-2zM17 17h3v3h-3zM3 9h3v2H3z" /><path fill="#E8592A" d="M11 11h2v2h-2z" /></svg> },
-  { id: 'reservas', t: 'Reservas', d: 'Te avisan al momento y confirmas con un toque.', x: -300, y: 220, xm: -105, ym: 195,
-    contenido: <div className="flex items-center justify-between rounded-xl bg-[#F3F3F0] px-3 py-2 text-sm"><span className="font-semibold">21:30</span><span className="text-[#6B7079]">4 pers.</span><span className="rounded-full bg-[#2F8F6B]/15 px-2 py-0.5 text-[11px] text-[#2F8F6B]">Confirmada</span></div> },
-  { id: 'idiomas', t: 'En su idioma', d: 'La traducimos nosotros a hasta 3 idiomas.', x: 310, y: 230, xm: 105, ym: 195,
+  { id: 'qr', t: 'Un QR para siempre', d: 'Lo imprimes una vez. La carta cambia, el QR no.', x: 360, y: 20, xm: 112, ym: 0,
+    contenido: <svg viewBox="0 0 21 21" className="h-11 w-11 md:h-16 md:w-16" shapeRendering="crispEdges" aria-hidden="true"><path fill="#17191E" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0z" /><path fill="#fff" d="M1 1h5v5H1zM15 1h5v5h-5zM1 15h5v5H1z" /><path fill="#17191E" d="M2 2h3v3H2zM16 2h3v3h-3zM2 16h3v3H2zM9 0h2v2H9zM8 3h3v2H8zM9 8h3v3H9zM14 9h2v3h-2zM17 8h3v2h-3zM8 13h2v4H8zM12 14h3v2h-3zM16 13h2v2h-2zM13 17h2v3h-2zM17 17h3v3h-3zM3 9h3v2H3z" /><path fill="#E8592A" d="M11 11h2v2h-2z" /></svg> },
+  { id: 'reservas', t: 'Reservas', d: 'Te avisan al momento y confirmas con un toque.', x: -300, y: 220, xm: -112, ym: 205,
+    contenido: <div className="flex flex-wrap items-center justify-between gap-1 rounded-xl bg-[#F3F3F0] px-2.5 py-2 text-xs md:text-sm"><span className="font-semibold">21:30 · 4 pers.</span><span className="rounded-full bg-[#2F8F6B]/15 px-2 py-0.5 text-[11px] text-[#2F8F6B]">Confirmada</span></div> },
+  { id: 'idiomas', t: 'En su idioma', d: 'La traducimos nosotros a hasta 3 idiomas.', x: 310, y: 230, xm: 112, ym: 205,
     contenido: <div className="flex gap-1.5">{['ES', 'EN', 'FR', 'DE'].map((l, i) => <span key={l} className={`rounded-lg px-2.5 py-1 text-xs font-bold ${i === 1 ? 'bg-[#17191E] text-white' : 'bg-[#F3F3F0]'}`}>{l}</span>)}</div> },
 ];
 
@@ -36,10 +36,10 @@ function CapaFlotante({ c, p, movil, i }: { c: Capa; p: MotionValue<number>; mov
   const esc = useTransform(p, [ini, ini + 0.28], [0.6, 1]);
   const rot = useTransform(p, [ini, ini + 0.28], [i % 2 ? 12 : -12, i % 2 ? 2 : -2]);
   return (
-    <motion.div style={{ x, y, opacity: op, scale: esc, rotate: rot }} className="pointer-events-none absolute left-1/2 top-1/2 z-20 -ml-[74px] -mt-[56px] w-[148px] md:-ml-[110px] md:-mt-[60px] md:w-[220px]">
-      <div className="rounded-2xl border border-[#E6E6E2] bg-white p-3 text-[#17191E] shadow-[0_24px_60px_rgba(23,25,30,.18)] md:p-4">
+    <motion.div style={{ x, y, opacity: op, scale: esc, rotate: rot }} className="pointer-events-none absolute left-1/2 top-1/2 z-20 -ml-[66px] -mt-[48px] w-[132px] md:-ml-[110px] md:-mt-[60px] md:w-[220px]">
+      <div className="rounded-2xl border border-[#E6E6E2] bg-white p-2.5 text-[#17191E] shadow-[0_24px_60px_rgba(23,25,30,.18)] md:p-4">
         {c.contenido}
-        <p className="mt-2.5 text-[13px] font-semibold md:text-sm">{c.t}</p>
+        <p className="mt-2 text-xs font-semibold md:mt-2.5 md:text-sm">{c.t}</p>
         <p className="mt-0.5 hidden text-xs leading-snug text-[#6B7079] md:block">{c.d}</p>
       </div>
     </motion.div>
