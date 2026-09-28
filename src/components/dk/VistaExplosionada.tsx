@@ -65,7 +65,7 @@ export default function VistaExplosionada() {
       <div className="sticky top-0 flex h-[100dvh] flex-col items-center overflow-hidden pt-24 md:pt-28">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(23,25,30,.07)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
         <div className="relative z-30 px-6 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Por dentro</p>
+          <p className="etiqueta-dk text-[#6E0C2B]">Por dentro</p>
           <motion.h2 key={fase} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
             className="font-display mt-3 text-3xl font-semibold leading-[1.05] text-[#17191E] md:text-5xl">{titulos[fase]}</motion.h2>
         </div>

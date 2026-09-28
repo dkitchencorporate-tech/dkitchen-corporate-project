@@ -114,7 +114,7 @@ export function CartasAutorDemo() {
       ))}
       <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.4 }} transition={{ duration: 0.7, ease: CURVA }}
         className="rounded-[32px] border border-white/10 bg-white/[0.04] p-8 text-center md:col-span-3 md:p-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#6E0C2B]">¿Tienes otra idea?</p>
+        <p className="etiqueta-dk text-[#6E0C2B]">¿Tienes otra idea?</p>
         <p className="font-display mx-auto mt-3 max-w-2xl text-3xl font-semibold leading-tight md:text-4xl">Diseñamos tu carta desde cero, con tu marca.</p>
         <p className="mx-auto mt-3 max-w-xl text-[15px] text-white/60">Si ninguno de estos estilos es tu local, cuéntanos cómo lo imaginas: colores, tipografía, fotos, ambiente. La creamos a medida y la ves antes de publicarla.</p>
         <a href={`https://wa.me/34622652659?text=${encodeURIComponent('Hola, quiero mi propio diseño de autor para la carta de mi local.')}`} className="mt-6 inline-block rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-[#17191E] hover:bg-white/90">Quiero mi propio diseño de autor</a>

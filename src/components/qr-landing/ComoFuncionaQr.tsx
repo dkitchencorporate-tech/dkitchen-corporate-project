@@ -72,7 +72,7 @@ export default function ComoFuncionaQr() {
   useMotionValueEvent(scrollYProgress, 'change', (v) => setPaso(v < 0.34 ? 0 : v < 0.67 ? 1 : 2));
   const cabecera = (
     <>
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Cómo funciona</p>
+      <p className="etiqueta-dk text-[#6E0C2B]">Cómo funciona</p>
       <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl">De cero a tu carta en las mesas, hoy.</h2>
     </>
   );

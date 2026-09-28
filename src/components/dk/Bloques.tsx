@@ -34,10 +34,24 @@ export function HeroPagina({ etiqueta, titulo, sub, ctas, visual, nota }: { etiq
   );
 }
 
+/** Banda de fotografía a sangre con una frase editorial encima (se desplaza más lento que la página). */
+export function BandaFoto({ src, frase, firma }: { src: string; frase: string; firma?: string }) {
+  return (
+    <section className="relative h-[72svh] min-h-[420px] overflow-hidden bg-[#0A080C] text-white">
+      <div className="absolute inset-0 bg-cover bg-center md:bg-fixed" style={{ backgroundImage: `url(${src})` }} aria-hidden="true" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,8,12,.25),rgba(10,8,12,.15)_40%,rgba(10,8,12,.85))]" aria-hidden="true" />
+      <div className="relative mx-auto flex h-full max-w-6xl flex-col justify-end px-6 pb-14 md:px-8 md:pb-20">
+        <TextoRevelado texto={frase} className="font-display max-w-4xl text-4xl font-semibold leading-[1.02] md:text-7xl" />
+        {firma && <Aparecer retraso={0.3}><p className="etiqueta-dk mt-6 text-[#D9B25C]">{firma}</p></Aparecer>}
+      </div>
+    </section>
+  );
+}
+
 export function Titulo({ etiqueta, texto, sub, oscuro = false, centrado = false }: { etiqueta: string; texto: string; sub?: string; oscuro?: boolean; centrado?: boolean }) {
   return (
     <div className={centrado ? 'mx-auto max-w-3xl text-center' : 'max-w-3xl'}>
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">{etiqueta}</p>
+      <p className="etiqueta-dk text-[#6E0C2B]">{etiqueta}</p>
       <TextoRevelado texto={texto} className={`font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-6xl ${oscuro ? 'text-white' : 'text-[#17191E]'}`} />
       {sub && <Aparecer retraso={0.2}><p className={`mt-5 text-lg ${oscuro ? 'text-white/60' : 'text-[#6B7079]'}`}>{sub}</p></Aparecer>}
     </div>
@@ -47,12 +61,11 @@ export function Titulo({ etiqueta, texto, sub, oscuro = false, centrado = false 
 export function Dolores({ items, cta }: { items: [string, string][]; cta?: Cta }) {
   return (
     <div>
-      <div className="mt-14 grid gap-4 md:grid-cols-2">
+      <div className="mt-14 grid md:grid-cols-2 md:gap-x-14">
         {items.map(([a, b], i) => (
-          <Aparecer key={a} retraso={(i % 2) * 0.08} className="rounded-[28px] border border-[#E6E6E2] bg-white p-7 transition duration-500 hover:-translate-y-1 hover:border-[#17191E]">
-            <span className="font-display text-sm font-semibold text-[#6E0C2B]">0{i + 1}</span>
-            <p className="mt-3 text-xl font-semibold leading-snug text-[#17191E]">{a}</p>
-            <p className="mt-2 text-[#6B7079]">{b}</p>
+          <Aparecer key={a} retraso={(i % 2) * 0.08} className="group grid grid-cols-[56px_1fr] gap-4 border-t border-[#D9D3CB] py-8">
+            <span className="acento-serif text-4xl leading-none text-[#6E0C2B]">{i + 1}</span>
+            <div><p className="text-xl font-semibold leading-snug text-[#17191E]">{a}</p><p className="mt-2 text-[#6B7079]">{b}</p></div>
           </Aparecer>
         ))}
       </div>

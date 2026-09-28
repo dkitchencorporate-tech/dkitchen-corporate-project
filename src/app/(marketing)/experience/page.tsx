@@ -54,7 +54,7 @@ export default function PaginaExperience() {
               <Aparecer key={t} retraso={(i % 3) * 0.07}>
                 <TarjetaTilt className="group relative h-full overflow-hidden rounded-[28px] bg-[#0A080C] p-7 text-white">
                   <div aria-hidden="true" className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.4),transparent)] transition-transform duration-700 group-hover:scale-150" />
-                  <p className="relative text-xs uppercase tracking-[0.2em] text-[#6E0C2B]">{m}</p>
+                  <p className="relative etiqueta-dk text-[#6E0C2B]">{m}</p>
                   <p className="font-display relative mt-3 text-3xl font-semibold">{t}</p>
                   <p className="relative mt-2 text-white/60">{d}</p>
                 </TarjetaTilt>

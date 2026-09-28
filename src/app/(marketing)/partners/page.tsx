@@ -26,7 +26,7 @@ export default function Partners() {
       <section className="relative overflow-hidden bg-[#0A080C] pb-24 pt-36 text-white md:pb-32 md:pt-44">
         <FondoVivo />
         <div className="relative mx-auto max-w-5xl px-6 md:px-8">
-          <Aparecer><p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Programa de partners</p></Aparecer>
+          <Aparecer><p className="etiqueta-dk text-[#6E0C2B]">Programa de partners</p></Aparecer>
           <TextoRevelado como="h1" texto="Vendes a hostelería. Gana también con DKitchen." className="font-display mt-5 max-w-4xl text-5xl font-semibold leading-[0.98] md:text-8xl" />
           <Aparecer retraso={0.3}><p className="mt-7 max-w-xl text-lg text-white/65">Un producto que tus clientes necesitan, precios fáciles de explicar y comisiones por cada restaurante que traigas.</p></Aparecer>
           <Aparecer retraso={0.4}><a href="#solicitud" className="mt-9 inline-block rounded-full bg-[#6E0C2B] px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(163,24,74,.45)]">Quiero ser partner</a></Aparecer>

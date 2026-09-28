@@ -40,7 +40,7 @@ export default function PaginaFAQ() {
       <section className="relative overflow-hidden bg-[#0A080C] pb-20 pt-36 text-white md:pt-44">
         <FondoVivo />
         <div className="relative mx-auto max-w-5xl px-6 md:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Preguntas frecuentes</p>
+          <p className="etiqueta-dk text-[#6E0C2B]">Preguntas frecuentes</p>
           <TextoRevelado como="h1" texto="Sin letra pequeña." className="font-display mt-4 text-6xl font-semibold leading-[0.98] md:text-8xl" />
           <p className="mt-6 max-w-xl text-lg text-white/65">Todo lo que suelen preguntarnos antes de empezar. Si falta algo, escríbenos y te respondemos en persona.</p>
         </div>

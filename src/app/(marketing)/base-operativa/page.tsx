@@ -69,7 +69,7 @@ export default function PaginaSignature() {
       <section id="calculadora" className="relative scroll-mt-20 overflow-hidden bg-[#0A080C] py-24 text-white md:py-32">
         <FondoVivo className="opacity-50" />
         <div className="relative mx-auto max-w-6xl px-6 md:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Haz la cuenta</p>
+          <p className="etiqueta-dk text-[#6E0C2B]">Haz la cuenta</p>
           <TextoRevelado texto="¿Cuánto te llevan las plataformas cada mes?" className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] md:text-6xl" />
           <Aparecer retraso={0.2} className="mt-12"><CalculadoraComisiones /></Aparecer>
         </div>
@@ -87,7 +87,7 @@ export default function PaginaSignature() {
 
       <section className="bg-[#F7F5F2] py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Qué incluye</p>
+          <p className="etiqueta-dk text-[#6E0C2B]">Qué incluye</p>
           <TextoRevelado texto="Todo lo que tu restaurante necesita para vender solo." className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] md:text-6xl" />
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {FUNCIONES.map(([t, d], i) => (
@@ -105,7 +105,7 @@ export default function PaginaSignature() {
 
       <section className="py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Incluido en tu activación</p>
+          <p className="etiqueta-dk text-[#6E0C2B]">Incluido en tu activación</p>
           <TextoRevelado texto="Y te damos el pack de arranque." className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] md:text-6xl" />
           <div className="mt-12 grid gap-4 md:grid-cols-2">
             {PACK.map(([t, d], i) => (
@@ -122,7 +122,7 @@ export default function PaginaSignature() {
         <FondoVivo />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-2 md:px-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Precio</p>
+            <p className="etiqueta-dk text-[#6E0C2B]">Precio</p>
             <TextoRevelado texto="Pagas una vez. Es tuya." className="font-display mt-4 text-5xl font-semibold leading-[1.0] md:text-7xl" />
             <p className="mt-5 max-w-md text-lg text-white/60">Entrada única y un mantenimiento mensual que cuesta menos que las comisiones de unos pocos pedidos.</p>
           </div>

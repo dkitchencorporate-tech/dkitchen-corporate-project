@@ -63,12 +63,12 @@ export function TextoRevelado({ texto, className, como: Etiqueta = 'h2' }: { tex
   const visto = useInView(ref, { once: true, amount: 0.2 });
   return (
     <Etiqueta ref={ref as never} className={className} aria-label={texto}>
-      {texto.split(' ').map((p, i) => (
+      {(() => { const w = texto.split(' '); const corte = w.findIndex((x, j) => j < w.length - 1 && /[.?!]$/.test(x)); return w.map((p, i) => (
         <span key={i} aria-hidden="true" className="inline-block overflow-hidden pb-[0.1em] align-top">
-          <motion.span className="inline-block" initial={quieto ? false : { y: '105%' }} animate={visto || quieto ? { y: 0 } : undefined}
+          <motion.span className={`inline-block${corte >= 0 && i > corte ? ' acento-serif' : ''}`} initial={quieto ? false : { y: '105%' }} animate={visto || quieto ? { y: 0 } : undefined}
             transition={{ duration: 0.8, delay: i * 0.05, ease: CURVA }}>{p}&nbsp;</motion.span>
         </span>
-      ))}
+      )); })()}
     </Etiqueta>
   );
 }

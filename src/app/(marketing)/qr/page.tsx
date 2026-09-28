@@ -11,7 +11,7 @@ import { LineaServicio } from '@/components/qr-landing/Extras';
 import { Marquesina } from '@/components/dk/Movimiento';
 import VistaExplosionada from '@/components/dk/VistaExplosionada';
 import { CartasAutorDemo } from '@/components/dk/Modelos';
-import { Titulo } from '@/components/dk/Bloques';
+import { Titulo, BandaFoto } from '@/components/dk/Bloques';
 import { FondoVivo } from '@/components/dk/Movimiento';
 
 export const metadata: Metadata = {
@@ -66,6 +66,7 @@ export default function PaginaQr() {
       <Marquesina oscura items={['Tu carta cambia, tu QR nunca', 'Alérgenos según la UE', 'Cuatro estilos propios', 'Reservas y llamada al camarero', 'Primer mes por 1 €', 'Sin permanencia']} />
       <ProblemaQr />
       <VistaExplosionada />
+      <BandaFoto src="/images/demo/s1.png" frase="Tu carta, a la altura de tu cocina. Cambia cuando tú cambias." firma="Carta de autor desde 1 €" />
       <ComoFuncionaQr />
       <PruebaloQr />
       <section className="relative overflow-hidden bg-[#0A080C] py-24 text-white md:py-32">

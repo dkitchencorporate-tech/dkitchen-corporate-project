@@ -5,6 +5,7 @@ import DispositivoVivo from '@/components/dk/DispositivoVivo';
 import { FondoVivo, Marquesina, Contador, TextoRevelado, BotonMagnetico, TarjetaTilt } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
 import VistaExplosionada from '@/components/dk/VistaExplosionada';
+import { BandaFoto } from '@/components/dk/Bloques';
 
 /**
  * Portada v2 (29/09/2026): fondo vivo, dispositivo con la carta real, cinta de
@@ -53,18 +54,17 @@ export default function Home() {
 
       <VistaExplosionada />
 
+      <BandaFoto src="/images/demo/s17.png" frase="La cocina ya es tuya. El cliente también debería serlo." firma="Sin intermediarios entre tu mesa y tu cliente" />
+
       <section className="bg-[#F7F5F2] py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">¿Te suena?</p>
+          <p className="etiqueta-dk text-[#6E0C2B]">¿Te suena?</p>
           <TextoRevelado texto="Lo que le está costando dinero a tu local cada semana." className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] md:text-6xl" />
-          <div className="mt-14 grid gap-4 md:grid-cols-2">
+          <div className="mt-14 grid md:grid-cols-2 md:gap-x-14">
             {DOLORES.map(([a, b], i) => (
-              <Aparecer key={a} retraso={i * 0.08}>
-                <TarjetaTilt className="h-full rounded-[28px] border border-[#E6E6E2] bg-white p-7">
-                  <span className="font-display text-sm font-semibold text-[#6E0C2B]">0{i + 1}</span>
-                  <p className="mt-3 text-xl font-semibold leading-snug">{a}</p>
-                  <p className="mt-2 text-[#6B7079]">{b}</p>
-                </TarjetaTilt>
+              <Aparecer key={a} retraso={(i % 2) * 0.08} className="grid grid-cols-[56px_1fr] gap-4 border-t border-[#D9D3CB] py-8">
+                <span className="acento-serif text-4xl leading-none text-[#6E0C2B]">{i + 1}</span>
+                <div><p className="text-xl font-semibold leading-snug">{a}</p><p className="mt-2 text-[#6B7079]">{b}</p></div>
               </Aparecer>
             ))}
           </div>
@@ -74,7 +74,7 @@ export default function Home() {
 
       <section className="py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Qué hacemos</p>
+          <p className="etiqueta-dk text-[#6E0C2B]">Qué hacemos</p>
           <TextoRevelado texto="Cuatro escalones. Subes cuando tu negocio lo pide." className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] md:text-6xl" />
           <div className="mt-14 space-y-4">
             {ESCALERA.map((e, i) => (
@@ -101,7 +101,7 @@ export default function Home() {
         <FondoVivo className="opacity-60" />
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 md:grid-cols-2 md:px-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Caso real</p>
+            <p className="etiqueta-dk text-[#6E0C2B]">Caso real</p>
             <TextoRevelado texto="Néstor Pizzas vende con su propia app, no con la de otros." className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl" />
             <Aparecer retraso={0.2}><p className="mt-5 text-lg text-white/65">Carta, pedidos, programa de puntos y avisos a sus clientes con su marca. Sin comisiones por pedido y con sus datos en su casa.</p></Aparecer>
             <dl className="mt-10 grid grid-cols-3 gap-6 border-t border-white/10 pt-6">

@@ -15,7 +15,7 @@ export default function Blog() {
     <div className="bg-[#F7F5F2] text-[#17191E]">
       <section className="bg-[#17191E] pb-20 pt-36 text-white md:pt-44">
         <div className="mx-auto max-w-5xl px-6 md:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Blog</p>
+          <p className="etiqueta-dk text-[#6E0C2B]">Blog</p>
           <h1 className="font-display mt-4 max-w-3xl text-5xl font-semibold leading-[1.0] md:text-7xl">Lo que tu restaurante necesita saber.</h1>
           <p className="mt-5 max-w-xl text-lg text-white/60">Guías claras, sin humo, escritas por el equipo de DKitchen.</p>
         </div>

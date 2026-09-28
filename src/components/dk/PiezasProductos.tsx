@@ -22,7 +22,7 @@ export function TaquillaViva() {
       <div aria-hidden="true" className="absolute inset-[-15%] rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.28),transparent)] blur-2xl" />
       <motion.div initial={{ opacity: 0, y: 60, rotateX: 20 }} animate={{ opacity: 1, y: 0, rotateX: 0 }} transition={{ duration: 1.1, ease: CURVA }} style={{ transformPerspective: 1400 }}
         className="relative overflow-hidden rounded-[32px] border border-white/15 bg-[#1B1D22]/90 p-6 text-white shadow-2xl backdrop-blur-xl">
-        <p className="text-xs uppercase tracking-[0.22em] text-[#6E0C2B]">Noche de Asado · sábado 21:00</p>
+        <p className="etiqueta-dk text-[#6E0C2B]">Noche de Asado · sábado 21:00</p>
         <p className="font-display mt-2 text-3xl font-semibold">Taquilla en directo</p>
         <div className="mt-6 flex items-end justify-between">
           <div><p className="text-xs text-white/50">Entradas vendidas</p><p className="font-display text-5xl font-semibold tabular-nums">{v}<span className="text-xl text-white/40">/{aforo}</span></p></div>
@@ -55,7 +55,7 @@ export function EscaleraPrecios({ tramos }: { tramos: [number, string, string][]
           className="overflow-hidden rounded-[24px] border border-[#E6E6E2] bg-white" style={{ marginTop: `${i * 26}px` }}>
           <div className="p-6">
             <p className="font-display text-5xl font-semibold text-[#17191E]">{p} €</p>
-            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#6E0C2B]">{t}</p>
+            <p className="mt-2 etiqueta-dk text-[#6E0C2B]">{t}</p>
             <p className="mt-2 text-sm text-[#6B7079]">{d}</p>
           </div>
         </motion.div>
@@ -114,7 +114,7 @@ export function InformeVivo() {
     <div ref={ref} className="relative mx-auto w-full max-w-[420px]">
       <div aria-hidden="true" className="absolute inset-[-15%] rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.25),transparent)] blur-2xl" />
       <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: CURVA }} className="relative rounded-[28px] bg-white p-6 text-[#17191E] shadow-2xl">
-        <p className="text-xs uppercase tracking-[0.2em] text-[#6E0C2B]">Informe de ejemplo</p>
+        <p className="etiqueta-dk text-[#6E0C2B]">Informe de ejemplo</p>
         <p className="font-display mt-1 text-2xl font-semibold">Dónde se te escapan clientes</p>
         <ul className="mt-5 space-y-3.5">
           {PUNTOS.map(([t, n], i) => (

@@ -15,7 +15,7 @@ export default function PreguntasQr() {
       <section className="bg-white py-20 md:py-28">
         <div className="mx-auto grid max-w-5xl gap-12 px-6 md:grid-cols-[1fr_1.4fr] md:px-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Preguntas</p>
+            <p className="etiqueta-dk text-[#6E0C2B]">Preguntas</p>
             <h2 className="mt-4 font-display text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-5xl">Lo que suelen preguntarnos.</h2>
           </div>
           <div className="divide-y divide-black/10 border-y border-black/10">

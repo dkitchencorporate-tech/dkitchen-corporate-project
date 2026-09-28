@@ -47,7 +47,7 @@ export default function PaginaAuditoria() {
           </ol>
           <Aparecer className="mt-16 grid items-center gap-8 rounded-[32px] bg-[#0A080C] p-8 text-white md:grid-cols-2 md:p-12">
             <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-[#6E0C2B]">Oferta de lanzamiento</p>
+              <p className="etiqueta-dk text-[#6E0C2B]">Oferta de lanzamiento</p>
               <p className="mt-3 flex items-baseline gap-4"><span className="font-display text-3xl text-white/40 line-through">297 €</span><span className="font-display text-7xl font-semibold">47 €</span></p>
               <p className="mt-2 text-white/60">Pago único · reunión 1 a 1 incluida</p>
             </div>

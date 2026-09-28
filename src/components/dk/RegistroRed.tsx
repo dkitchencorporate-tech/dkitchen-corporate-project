@@ -48,7 +48,7 @@ function Formulario({ tipo, onCerrar }: { tipo: Tipo; onCerrar: () => void }) {
   return (
     <form onSubmit={enviar} className="space-y-4 p-7">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#6E0C2B]">{tipo === 'partner' ? 'Programa de partners' : 'Entre hosteleros'}</p>
+        <p className="etiqueta-dk text-[#6E0C2B]">{tipo === 'partner' ? 'Programa de partners' : 'Entre hosteleros'}</p>
         <p className="font-display mt-2 text-2xl font-semibold">{tipo === 'partner' ? 'Gana con DKitchen' : 'Recomienda a un hostelero'}</p>
         <p className="mt-1 text-sm text-[#6B7079]">{tipo === 'partner' ? 'Comerciales de TPV, distribuidores HORECA e independientes: cuéntanos quién eres y te contamos las condiciones.' : '¿Conoces un local que siga reimprimiendo cartas? Déjanos sus datos y los tuyos, y nosotros hacemos el resto.'}</p>
       </div>

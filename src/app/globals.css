@@ -72,3 +72,9 @@ a.hover\:bg-\[\#4A0819\]:hover, button.hover\:bg-\[\#4A0819\]:hover { background
 [class*="bg-[#0A080C]"] .text-\[\#6E0C2B\], [class*="bg-[#17191E]"] .text-\[\#6E0C2B\], [class*="bg-[#1B1D22]"] .text-\[\#6E0C2B\], [class*="bg-[#0B0C0F]"] .text-\[\#6E0C2B\] { color: #D9B25C; }
 [class*="bg-[#0A080C]"] .border-\[\#6E0C2B\], [class*="bg-[#17191E]"] .border-\[\#6E0C2B\] { border-color: #D9B25C; }
 .oro-metal { background: linear-gradient(100deg, #8A6420 0%, #E9C877 22%, #FFF1C4 34%, #C99A3E 52%, #8A6420 70%, #E2BC6A 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* ── Estructura editorial (29/09/2026): etiquetas firmadas y segunda frase en serif ── */
+.etiqueta-dk { display: inline-flex; align-items: center; gap: .7rem; font-family: var(--fuente-serif-web), Georgia, serif; font-style: italic; font-weight: 500; font-size: 1.3rem; line-height: 1.2; letter-spacing: 0; text-transform: none; }
+.etiqueta-dk::before { content: ""; width: 2rem; height: 1px; background: currentColor; opacity: .55; }
+.acento-serif { font-family: var(--fuente-serif-web), Georgia, serif; font-style: italic; font-weight: 500; letter-spacing: 0; color: #6E0C2B; }
+.text-white .acento-serif, [class*="bg-[#0A080C]"] .acento-serif, [class*="bg-[#17191E]"] .acento-serif { color: #D9B25C; }

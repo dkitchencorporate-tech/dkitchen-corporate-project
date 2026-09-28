@@ -28,7 +28,7 @@ export default function SalaViva() {
     <section className="bg-[#F7F5F2] py-24 md:py-32">
       <div className="mx-auto max-w-6xl px-6 md:px-8">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Módulos de sala</p>
+          <p className="etiqueta-dk text-[#6E0C2B]">Módulos de sala</p>
           <TextoRevelado texto="Ninguna mesa esperando. Ninguna comanda perdida." className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl" />
           <p className="mt-5 text-lg text-[#6B7079]">Cuando tu sala crece, la carta se conecta con tu equipo. Se activan desde tu panel, cuando los necesites.</p>
         </div>

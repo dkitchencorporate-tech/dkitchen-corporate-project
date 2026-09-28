@@ -18,7 +18,7 @@ export default function PlanesQr() {
     <section id="planes" className="scroll-mt-24 bg-white py-24 md:py-32">
       <div className="mx-auto max-w-6xl px-6 md:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Precios</p>
+          <p className="etiqueta-dk text-[#6E0C2B]">Precios</p>
           <TextoRevelado texto="Empieza por 1 €. Quédate si te sirve." className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl" />
           <p className="mt-5 text-lg text-[#6B7079]">Menos de lo que cuesta reimprimir una carta. Y la cambias todas las veces que quieras.</p>
         </div>

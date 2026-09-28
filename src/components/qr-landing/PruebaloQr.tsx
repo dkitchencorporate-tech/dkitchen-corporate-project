@@ -31,7 +31,7 @@ export default function PruebaloQr() {
       <div aria-hidden="true" className="pointer-events-none absolute -left-40 bottom-0 h-[520px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.18),transparent)]" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 md:grid-cols-[1fr_320px] md:px-8">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6E0C2B]">Pruébalo tú</p>
+          <p className="etiqueta-dk text-[#6E0C2B]">Pruébalo tú</p>
           <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-6xl">Tu carta no se parece a la de nadie.</h2>
           <p className="mt-5 max-w-lg text-lg text-white/60">Toca y mira cómo cambia. Después ábrela en grande, como la verán tus clientes.</p>
           <div className="mt-10 space-y-6">
