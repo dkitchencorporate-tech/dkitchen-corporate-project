@@ -14,8 +14,8 @@ export const CURVA = [0.22, 1, 0.36, 1] as [number, number, number, number];
 export function FondoVivo({ className = '' }: { className?: string }) {
   return (
     <div aria-hidden="true" className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}>
-      <div className="absolute -left-[20%] -top-[30%] h-[80vmax] w-[80vmax] rounded-full opacity-60 blur-[90px] [background:radial-gradient(closest-side,rgba(232,89,42,.55),transparent)] animate-[deriva1_22s_ease-in-out_infinite_alternate]" />
-      <div className="absolute -right-[25%] top-[10%] h-[70vmax] w-[70vmax] rounded-full opacity-50 blur-[100px] [background:radial-gradient(closest-side,rgba(59,110,165,.55),transparent)] animate-[deriva2_26s_ease-in-out_infinite_alternate]" />
+      <div className="absolute -right-[15%] bottom-[-35%] h-[70vmax] w-[70vmax] rounded-full opacity-45 blur-[100px] [background:radial-gradient(closest-side,rgba(232,89,42,.5),transparent)] animate-[deriva1_22s_ease-in-out_infinite_alternate]" />
+      <div className="absolute -left-[25%] -top-[30%] h-[80vmax] w-[80vmax] rounded-full opacity-55 blur-[100px] [background:radial-gradient(closest-side,rgba(59,110,165,.5),transparent)] animate-[deriva2_26s_ease-in-out_infinite_alternate]" />
       <div className="absolute bottom-[-40%] left-[30%] h-[60vmax] w-[60vmax] rounded-full opacity-30 blur-[100px] [background:radial-gradient(closest-side,rgba(47,143,107,.5),transparent)] animate-[deriva3_30s_ease-in-out_infinite_alternate]" />
       <div className="absolute inset-0 opacity-[0.08] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
       <div className="absolute inset-0 opacity-[0.06] mix-blend-overlay [background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22160%22><filter id=%22n%22><feTurbulence baseFrequency=%220.9%22 numOctaves=%222%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/></svg>')]" />
