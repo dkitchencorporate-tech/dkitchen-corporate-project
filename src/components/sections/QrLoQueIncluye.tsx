@@ -30,8 +30,8 @@ export default function QrLoQueIncluye() {
     <>
       <section className="bg-white py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-6 md:px-8">
-          <p className="text-sm font-bold uppercase tracking-widest text-[#D9531E]">Cómo funciona</p>
-          <h2 className="mt-2 max-w-2xl text-3xl font-black tracking-tight text-gray-900 md:text-4xl">Tres pasos y tu carta está en todas las mesas.</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#D9531E]">Cómo funciona</p>
+          <h2 className="mt-2 max-w-2xl text-3xl font-bold tracking-[-0.02em] text-[#1A1714] md:text-4xl">Tres pasos y tu carta está en todas las mesas.</h2>
           <ol className="mt-10 grid gap-8 md:grid-cols-3">
             {PASOS.map(([t, d], i) => (
               <li key={t} className="border-t-2 border-gray-900 pt-5">
@@ -46,8 +46,8 @@ export default function QrLoQueIncluye() {
 
       <section className="bg-[#F7F3EA] py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-6 md:px-8">
-          <p className="text-sm font-bold uppercase tracking-widest text-[#D9531E]">Crece a tu ritmo</p>
-          <h2 className="mt-2 max-w-2xl text-3xl font-black tracking-tight text-gray-900 md:text-4xl">Empieza con la carta. Añade solo lo que tu local necesite.</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#D9531E]">Crece a tu ritmo</p>
+          <h2 className="mt-2 max-w-2xl text-3xl font-bold tracking-[-0.02em] text-[#1A1714] md:text-4xl">Empieza con la carta. Añade solo lo que tu local necesite.</h2>
           <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-gray-900/10 bg-gray-900/10 md:grid-cols-3">
             {CRECE.map(([t, d]) => (
               <div key={t} className="bg-[#F7F3EA] p-6">
@@ -62,8 +62,8 @@ export default function QrLoQueIncluye() {
 
       <section className="bg-white py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-6 md:px-8">
-          <p className="text-sm font-bold uppercase tracking-widest text-[#D9531E]">Para que no haya dudas</p>
-          <h2 className="mt-2 max-w-2xl text-3xl font-black tracking-tight text-gray-900 md:text-4xl">QR Menú no es DKitchen Signature.</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#D9531E]">Para que no haya dudas</p>
+          <h2 className="mt-2 max-w-2xl text-3xl font-bold tracking-[-0.02em] text-[#1A1714] md:text-4xl">QR Menú no es DKitchen Signature.</h2>
           <p className="mt-3 max-w-2xl leading-relaxed text-gray-600">
             El QR Menú es tu carta digital: tus clientes la miran y piden a tu equipo. Si lo que buscas es que pidan y paguen
             solos, con tu propia app, eso es DKitchen Signature.

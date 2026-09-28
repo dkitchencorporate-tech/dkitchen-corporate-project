@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 /**
  * Dispara el checkout real de Whop para Núcleo Operativo — Nivel B (Parte 8,
@@ -16,6 +17,8 @@ export default function ActivarNucleoOperativoBoton({ className }: { className?:
   const [email, setEmail] = useState('');
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [montado, setMontado] = useState(false);
+  useEffect(() => setMontado(true), []);
 
   async function activar(e: React.FormEvent) {
     e.preventDefault();
@@ -44,8 +47,9 @@ export default function ActivarNucleoOperativoBoton({ className }: { className?:
     );
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6" onClick={() => setAbierto(false)}>
+  if (!montado) return null;
+  return createPortal(
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 px-6" onClick={() => setAbierto(false)}>
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={activar}
@@ -96,6 +100,7 @@ export default function ActivarNucleoOperativoBoton({ className }: { className?:
           {cargando ? 'Abriendo pago…' : 'Continuar al pago'}
         </button>
       </form>
-    </div>
+    </div>,
+    document.body,
   );
 }
