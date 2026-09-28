@@ -1,61 +1,55 @@
 import ActivarPlanBoton from '@/components/sections/ActivarPlanBoton';
 
-/** Precios de /qr (rediseño 29/09/2026): dos planes, sin tilt ni emojis. */
-const BASICO = [
-  'Carta digital con fotos, precios y alérgenos',
-  'Tú la cambias cuando quieras, desde el móvil',
-  'QR que nunca reimprimes',
-  'Estadísticas de escaneos',
-  'Soporte desde tu panel',
-];
-const AMPLIADO = [
-  'Todo lo del plan Básico',
-  'Reservas con aviso por correo',
-  'Llamada al camarero y petición de la cuenta desde la mesa',
-  'Banners de promociones en la carta',
-  'Botón de reseñas de Google',
-  'QR individual por mesa',
-];
+/**
+ * Precios de /qr (rediseño 29/09/2026): Ampliado más grande, elevado y con la
+ * etiqueta destacada; gancho de 1 € y garantías reales debajo.
+ */
+const BASICO = ['Carta digital con fotos, precios y alérgenos', 'La cambias cuando quieras, desde el móvil', 'Cuatro estilos, fondos y colores', 'QR que nunca reimprimes', 'Estadísticas de escaneos'];
+const AMPLIADO = ['Todo lo del plan Básico', 'Reservas con aviso al momento', 'Llamada al camarero y petición de la cuenta', 'Banners de promociones en la carta', 'Botón de reseñas de Google', 'QR individual por mesa', 'Base para los módulos de sala'];
+const GARANTIAS = ['Primer mes por 1 €', 'Sin permanencia', 'Cancelas desde tu panel', 'Alérgenos según el Reglamento UE', 'Soporte en español'];
 
-const Check = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className="mt-1 shrink-0" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+const Check = ({ className = '' }: { className?: string }) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className={`mt-0.5 shrink-0 ${className}`} aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
 );
 
 export default function PlanesQr() {
   return (
-    <section id="planes" className="scroll-mt-24 bg-[#F7F3EA] py-20 md:py-28">
-      <div className="mx-auto max-w-5xl px-6 md:px-8">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#D9531E]">Planes</p>
-          <h2 className="mt-4 text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-[#1A1714] md:text-5xl">Empieza por 1 €. Quédate si te sirve.</h2>
-          <p className="mt-4 text-lg text-black/55">El primer mes cuesta 1 €. Después pagas tu plan cada mes y cancelas cuando quieras.</p>
+    <section id="planes" className="scroll-mt-24 bg-white py-24 md:py-32">
+      <div className="mx-auto max-w-6xl px-6 md:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Precios</p>
+          <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl">Empieza por 1 €. Quédate si te sirve.</h2>
+          <p className="mt-5 text-lg text-[#6B7079]">Menos de lo que cuesta reimprimir una carta. Y la cambias todas las veces que quieras.</p>
         </div>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-2">
-          <article className="flex flex-col rounded-[28px] border border-black/10 bg-white p-8 md:p-10">
-            <h3 className="text-lg font-semibold text-[#1A1714]">Básico</h3>
-            <p className="mt-1 text-sm text-black/50">Tu carta digital, sin complicaciones.</p>
-            <p className="mt-8 text-[#1A1714]"><span className="text-6xl font-bold tracking-tight">9 €</span><span className="ml-1 text-black/45">/mes</span></p>
-            <ul className="mt-8 flex-1 space-y-3 text-[15px] text-black/70">{BASICO.map((f) => <li key={f} className="flex gap-3"><Check />{f}</li>)}</ul>
+        <div className="mt-16 grid items-center gap-6 lg:grid-cols-[1fr_1.15fr]">
+          <article className="flex flex-col rounded-[32px] border border-[#E6E6E2] bg-[#F7F7F5] p-8 md:p-10">
+            <h3 className="text-lg font-semibold text-[#17191E]">Básico</h3>
+            <p className="mt-1 text-sm text-[#6B7079]">Tu carta digital, sin complicaciones.</p>
+            <p className="mt-8 text-[#17191E]"><span className="font-display text-6xl font-semibold">9 €</span><span className="ml-1 text-[#6B7079]">/mes</span></p>
+            <p className="mt-1 text-sm text-[#6B7079]">Primer mes: 1 €</p>
+            <ul className="mt-8 flex-1 space-y-3 text-[15px] text-[#3F434B]">{BASICO.map((f) => <li key={f} className="flex gap-3"><Check />{f}</li>)}</ul>
             <ActivarPlanBoton plan="basico" etiqueta="Empezar con Básico"
-              className="mt-10 w-full rounded-full border border-[#1A1714] py-4 text-[15px] font-semibold text-[#1A1714] transition hover:bg-[#1A1714] hover:text-white" />
+              className="mt-10 w-full rounded-full border border-[#17191E] py-4 text-[15px] font-semibold text-[#17191E] transition hover:bg-[#17191E] hover:text-white" />
           </article>
 
-          <article className="relative flex flex-col overflow-hidden rounded-[28px] bg-[#0F0B08] p-8 text-white md:p-10">
-            <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(217,83,30,.35),transparent)]" />
-            <div className="relative flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Ampliado</h3>
-              <span className="rounded-full border border-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#E0703F]">El más elegido</span>
-            </div>
-            <p className="relative mt-1 text-sm text-white/50">Tu carta y tu sala, conectadas.</p>
-            <p className="relative mt-8"><span className="text-6xl font-bold tracking-tight">25 €</span><span className="ml-1 text-white/45">/mes</span></p>
-            <ul className="relative mt-8 flex-1 space-y-3 text-[15px] text-white/75">{AMPLIADO.map((f) => <li key={f} className="flex gap-3"><Check />{f}</li>)}</ul>
-            <ActivarPlanBoton plan="ampliado" etiqueta="Empezar con Ampliado"
-              className="relative mt-10 w-full rounded-full bg-[#D9531E] py-4 text-[15px] font-semibold text-white transition hover:bg-[#C2481A]" />
+          <article className="relative flex flex-col overflow-hidden rounded-[36px] bg-[#17191E] p-8 text-white shadow-[0_40px_100px_rgba(23,25,30,.35)] md:p-12 lg:-my-6">
+            <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[radial-gradient(closest-side,rgba(232,89,42,.4),transparent)]" />
+            <div className="relative -mx-8 -mt-8 mb-8 bg-[#E8592A] px-8 py-3 text-center text-sm font-bold uppercase tracking-[0.2em] md:-mx-12 md:-mt-12">El más elegido</div>
+            <h3 className="relative text-xl font-semibold">Ampliado</h3>
+            <p className="relative mt-1 text-sm text-white/55">Tu carta y tu sala, conectadas.</p>
+            <p className="relative mt-8"><span className="font-display text-7xl font-semibold">25 €</span><span className="ml-1 text-white/50">/mes</span></p>
+            <p className="relative mt-1 text-sm text-white/55">Primer mes: 1 €</p>
+            <ul className="relative mt-8 grid flex-1 gap-3 text-[15px] text-white/80 sm:grid-cols-2">{AMPLIADO.map((f) => <li key={f} className="flex gap-3"><Check className="text-[#E8592A]" />{f}</li>)}</ul>
+            <ActivarPlanBoton plan="ampliado" etiqueta="Empezar con Ampliado por 1 €"
+              className="relative mt-10 w-full rounded-full bg-[#E8592A] py-5 text-base font-semibold text-white transition hover:bg-[#CF4A1F]" />
           </article>
         </div>
 
-        <p className="mt-8 text-sm text-black/45">Los QR físicos (pegatina, vinilo, atril o metacrilato) se piden desde tu panel como compra aparte.</p>
+        <ul className="mt-16 flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-[#3F434B]">
+          {GARANTIAS.map((g) => <li key={g} className="flex items-center gap-2"><Check className="text-[#2F8F6B]" />{g}</li>)}
+        </ul>
+        <p className="mt-6 text-center text-sm text-[#9A9EA6]">¿Quieres una carta diseñada a mano por nuestro equipo? La Carta de Autor se añade desde tu panel.</p>
       </div>
     </section>
   );

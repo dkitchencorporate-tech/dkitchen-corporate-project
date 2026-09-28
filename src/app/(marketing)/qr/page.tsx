@@ -1,24 +1,71 @@
 import type { Metadata } from 'next';
 import HeroQr from '@/components/qr-landing/HeroQr';
-import QrLoQueIncluye from '@/components/sections/QrLoQueIncluye';
+import ProblemaQr from '@/components/qr-landing/ProblemaQr';
+import ComoFuncionaQr from '@/components/qr-landing/ComoFuncionaQr';
+import PruebaloQr from '@/components/qr-landing/PruebaloQr';
+import SalaViva from '@/components/qr-landing/SalaViva';
 import PlanesQr from '@/components/qr-landing/PlanesQr';
-import PreguntasQr from '@/components/qr-landing/PreguntasQr';
+import ComparativaQr from '@/components/qr-landing/ComparativaQr';
+import PreguntasQr, { PREGUNTAS } from '@/components/qr-landing/PreguntasQr';
+import { LineaServicio, BarraCtaMovil } from '@/components/qr-landing/Extras';
 
 export const metadata: Metadata = {
-  title: 'QR Menú | DKitchen',
+  title: 'Carta digital QR para restaurantes | Primer mes por 1 € · DKitchen',
   description:
-    'Carta digital con QR estable: cambia tu carta las veces que quieras sin reimprimir. Plan Básico 9 €/mes o Ampliado 25 €/mes, primer mes a 1 €.',
+    'Carta digital con QR para bares y restaurantes: cambia precios, platos, fotos y alérgenos desde el móvil sin reimprimir nunca. Reservas y llamada al camarero. Primer mes por 1 €.',
   alternates: { canonical: 'https://dkitchencorporate.es/qr' },
+  openGraph: {
+    title: 'Tu carta cambia. Tu QR, nunca. · DKitchen',
+    description: 'Carta digital QR para hostelería. Primer mes por 1 €, sin permanencia.',
+    url: 'https://dkitchencorporate.es/qr',
+    type: 'website',
+  },
 };
 
-/** /qr — rediseño 29/09/2026 (guía H3: una promesa, el producto como imagen, sin iconos de relleno). */
+const datosEstructurados = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'DKitchen Carta QR',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    description: 'Carta digital con QR para restaurantes y bares, con alérgenos, estilos personalizables, reservas y llamada al camarero.',
+    offers: [
+      { '@type': 'Offer', name: 'Plan Básico', price: '9', priceCurrency: 'EUR', category: 'subscription', url: 'https://dkitchencorporate.es/qr#planes' },
+      { '@type': 'Offer', name: 'Plan Ampliado', price: '25', priceCurrency: 'EUR', category: 'subscription', url: 'https://dkitchencorporate.es/qr#planes' },
+    ],
+    provider: { '@type': 'Organization', name: 'DKitchen', url: 'https://dkitchencorporate.es' },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: PREGUNTAS.map(([p, r]) => ({ '@type': 'Question', name: p, acceptedAnswer: { '@type': 'Answer', text: r } })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://dkitchencorporate.es' },
+      { '@type': 'ListItem', position: 2, name: 'Carta QR', item: 'https://dkitchencorporate.es/qr' },
+    ],
+  },
+];
+
+/** /qr — rediseño completo 29/09/2026 (PROPUESTA_REDISENO_WEB_Y_SISTEMA). */
 export default function PaginaQr() {
   return (
     <div className="bg-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datosEstructurados) }} />
+      <LineaServicio />
       <HeroQr />
-      <QrLoQueIncluye />
+      <ProblemaQr />
+      <ComoFuncionaQr />
+      <PruebaloQr />
+      <SalaViva />
       <PlanesQr />
+      <ComparativaQr />
       <PreguntasQr />
+      <BarraCtaMovil />
     </div>
   );
 }
