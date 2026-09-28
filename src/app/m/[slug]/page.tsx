@@ -7,6 +7,7 @@ import { obtenerCartaConRespaldo } from '@/lib/cache-resiliencia';
 import { nombreAlergeno } from '@/lib/alergenos';
 import BotonesMesa from '@/components/carta/BotonesMesa';
 import CarruselBanners from '@/components/carta/CarruselBanners';
+import CartaAutor from '@/components/carta/CartaAutor';
 import FichaPlato from '@/components/carta/FichaPlato';
 import Reservar from '@/components/carta/Reservar';
 
@@ -68,6 +69,11 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
     banners = await obtenerBanners(carta.slug);
   } catch {
     banners = [];
+  }
+
+  // Nivel 2 / 3 (asignado por DKitchen): Carta de Autor
+  if (carta.nivelDiseno === 'autor' || carta.nivelDiseno === 'signature') {
+    return <CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} />;
   }
 
   const plantilla = carta.plantilla === 'visual' || carta.plantilla === 'express' ? carta.plantilla : 'clasica';

@@ -47,6 +47,8 @@ export interface Carta {
   urlResenas?: string | null;
   /** clasica | visual | express (0023). Ausente en espejos antiguos → clásica. */
   plantilla?: string;
+  /** esencial | autor | signature (0026). Ausente en espejos antiguos → esencial. */
+  nivelDiseno?: string;
   secciones: SeccionCarta[];
   /** Platos que no están asignados a ninguna sección. */
   sueltos: PlatoCarta[];
@@ -82,9 +84,10 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       instagram: string | null;
       url_resenas: string | null;
       plantilla: string;
+      nivel_diseno: string;
     }>(
       `SELECT id, slug, nombre, logo_url, plan, color_marca, descripcion, telefono,
-              direccion, horario, instagram, url_resenas, plantilla
+              direccion, horario, instagram, url_resenas, plantilla, nivel_diseno
          FROM restaurantes WHERE slug = $1`,
       [slug]
     );
@@ -136,6 +139,7 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       instagram: restaurante.instagram,
       urlResenas: restaurante.url_resenas,
       plantilla: restaurante.plantilla,
+      nivelDiseno: restaurante.nivel_diseno,
       secciones: secciones
         .map((s) => ({
           id: s.id,

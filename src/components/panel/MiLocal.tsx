@@ -72,6 +72,10 @@ function ModalNiveles({ onCerrar, slug }: { onCerrar: () => void; slug: string }
               <li>✓ 50 pegatinas QR y 1 formación</li>
             </ul>
           </div>
+          <a href="/panel/vista-previa" target="_blank" rel="noopener"
+             className="block rounded-xl border border-white/15 py-3 text-center font-semibold hover:border-white/40">
+            👀 Ver MI carta con el diseño de autor
+          </a>
           <p className="text-xs text-white/40">Pago único. Tu diseño lo prepara un experto de DKitchen y lo ves antes de publicarlo.</p>
           <a
             href={`/panel?pestana=soporte&asunto=${encodeURIComponent('Quiero el Setup para mi carta')}`}
