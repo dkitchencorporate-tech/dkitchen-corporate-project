@@ -5,7 +5,7 @@ import { fichaCliente, historialCliente, serviciosCliente, type EntradaHistorial
 import { obtenerCarta } from '@/lib/menu';
 import { listarTraducciones } from '@/lib/idiomas';
 import TraductorCarta from '@/components/admin/TraductorCarta';
-import { cambiarEstadoAction, cambiarPlanAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction } from '../actions';
+import { regalarTodoAction, cartaDemoAction, reenviarAccesoAction, cambiarEstadoAction, cambiarPlanAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction } from '../actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -146,6 +146,22 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         <h2 className="font-bold">Acciones</h2>
         <p className="text-xs text-white/40">Cada acción queda registrada en el historial.</p>
         <div className="mt-4 flex flex-wrap gap-3">
+          <form action={regalarTodoAction}>
+            <input type="hidden" name="restauranteId" value={r.id} />
+            <button className="rounded-lg bg-[#D9531E] px-4 py-2 text-sm font-bold hover:bg-[#B8451A]">Darle todo gratis</button>
+          </form>
+          {ficha.platos === 0 && (
+            <form action={cartaDemoAction}>
+              <input type="hidden" name="restauranteId" value={r.id} />
+              <button className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/15">Cargar carta de demostración</button>
+            </form>
+          )}
+          {ficha.email && (
+            <form action={reenviarAccesoAction}>
+              <input type="hidden" name="email" value={ficha.email} />
+              <button className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/15">Reenviar enlace de acceso</button>
+            </form>
+          )}
           <form action={cambiarEstadoAction}>
             <input type="hidden" name="restauranteId" value={r.id} />
             <input type="hidden" name="estado" value={r.activo ? 'suspendido' : 'activo'} />

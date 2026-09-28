@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { listarClientesQr } from '@/lib/admin-clientes';
+import NuevoCliente from '@/components/admin/NuevoCliente';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,9 +43,12 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
 
   return (
     <div className="px-4 py-6 sm:p-6 lg:p-10 text-white space-y-8">
-      <div>
-        <h1 className="text-2xl font-black">Clientes QR Menú</h1>
-        <p className="text-sm text-white/40">Datos reales de la base. Se actualiza en cada visita.</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black">Clientes QR Menú</h1>
+          <p className="text-sm text-white/40">Datos reales de la base. Se actualiza en cada visita.</p>
+        </div>
+        <NuevoCliente />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

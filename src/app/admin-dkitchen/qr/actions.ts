@@ -1,9 +1,12 @@
 'use server';
 
+import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
+import { crearCuentaCliente, enviarEnlaceDeContrasena } from '@/lib/neon-auth';
+import { comoAprovisionamiento } from '@/lib/db';
 import { exigirAdmin } from '@/lib/guard-admin';
 import {
-  cambiarEstadoCliente, cambiarPlanCliente, responderTicket, cambiarEstadoSolicitudQr, asignarDiseno, adminServicio, adminConexionTpv,
+  cambiarEstadoCliente, cambiarPlanCliente, regalarTodo, cargarCartaDemo, responderTicket, cambiarEstadoSolicitudQr, asignarDiseno, adminServicio, adminConexionTpv,
 } from '@/lib/admin-clientes';
 import { enviarCorreoCliente, escaparHtml, escaparTexto } from '@/lib/email';
 import { cifrar } from '@/lib/cifrado';
@@ -140,4 +143,63 @@ export async function guardarTraduccionesAdminAction(restauranteId: string, list
     .map((t) => ({ ...t, texto: String(t.texto ?? '').slice(0, 300) }));
   await guardarTraducciones(jwt, restauranteId, limpia).catch(() => { throw new Error('No se pudieron guardar las traducciones.'); });
   revalidatePath(`/admin-dkitchen/qr/${restauranteId}`);
+}
+
+// ---------------------------------------------------------------------------
+// Alta manual de clientes (demos comerciales o cortesía) — 0029
+// ---------------------------------------------------------------------------
+const CORREO = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
+const slugBase = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'local';
+
+/**
+ * Crea cuenta (Neon Auth) + restaurante sin pago. Reutiliza el mismo
+ * aprovisionamiento que el alta pagada, con referencias «cortesia-…» (no hay
+ * cobro que seguir, nunca entra en gracia). El cliente recibe el correo para
+ * fijar su contraseña. Opcional: regalarle todo y cargar una carta de ejemplo.
+ */
+export async function crearClienteAction(datos: { email: string; contacto: string; local: string; plan: string; todo: boolean; demo: boolean }): Promise<{ id?: string; error?: string }> {
+  const jwt = await exigirAdmin();
+  const email = String(datos.email ?? '').trim().toLowerCase();
+  const contacto = String(datos.contacto ?? '').trim().slice(0, 80);
+  const local = String(datos.local ?? '').trim().slice(0, 80);
+  const plan = datos.plan === 'ampliado' ? 'ampliado' : 'basico';
+  if (!CORREO.test(email) || email.length > 254) return { error: 'El correo no es válido.' };
+  if (contacto.length < 2 || local.length < 2) return { error: 'Pon el nombre del contacto y del local.' };
+
+  let identidad: string;
+  try { identidad = (await crearCuentaCliente({ email, nombre: contacto })).id; }
+  catch { return { error: 'Ese correo ya tiene cuenta o Neon Auth no respondió. Usa otro correo (p. ej. tu+demo1@gmail.com).' }; }
+
+  const ref = 'cortesia-' + randomUUID();
+  const { rows } = await comoAprovisionamiento((c) =>
+    c.query<{ restaurante_id: string }>('SELECT * FROM dk.aprovisionar_cliente_qr($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+      [ref, identidad, email, contacto, plan, local, slugBase(local), ref, ref]));
+  const id = rows[0]?.restaurante_id;
+  if (!id) return { error: 'No se pudo crear el restaurante.' };
+  if (datos.todo) await regalarTodo(jwt, id);
+  if (datos.demo) await cargarCartaDemo(jwt, id).catch(() => 0);
+  await enviarEnlaceDeContrasena(email).catch((e) => console.error('Alta manual: no se pudo enviar el enlace de contraseña', e));
+  revalidatePath('/admin-dkitchen/qr');
+  return { id };
+}
+
+export async function regalarTodoAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  await regalarTodo(jwt, id);
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
+export async function cartaDemoAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  await cargarCartaDemo(jwt, id);
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
+export async function reenviarAccesoAction(formulario: FormData) {
+  await exigirAdmin();
+  const email = String(formulario.get('email') ?? '').trim();
+  if (!CORREO.test(email)) throw new Error('Correo no válido.');
+  await enviarEnlaceDeContrasena(email);
 }
