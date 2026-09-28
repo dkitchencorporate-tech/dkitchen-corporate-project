@@ -100,7 +100,6 @@ export interface DatosLocal {
   instagram: string | null;
   urlResenas: string | null;
   whatsapp: string | null;
-  creadoEn: string;
 }
 
 /** Solo columnas con GRANT UPDATE a dk_auth (plan y estado quedan fuera por diseño). */
