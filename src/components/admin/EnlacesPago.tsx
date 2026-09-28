@@ -6,13 +6,15 @@ import { crearEnlaceAction } from '@/app/admin-dkitchen/qr/actions';
 type Cat = { servicio: string; nombre: string; tipo: string; precio: number };
 const PLANES: Record<string, number> = { basico: 900, ampliado: 2500 };
 const eur = (c: number) => (c / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+const numero = (s: string) => Number(s.replace(',', '.'));
 
 /**
- * Enlace de pago a medida: plan y/o servicios, con el precio que decida
- * DKitchen (normal, descuento o acuerdo). Se envía por correo al cliente o se
- * copia para WhatsApp. El importe se guarda en la base antes de ir a Whop.
+ * Enlace de pago a medida en 3 pasos (rediseño 29/09/2026):
+ * 1. Qué cobras · 2. Cuánto · 3. Enviar. El importe se guarda en la base
+ * antes de ir a Whop; al pagarlo se activa solo.
  */
 export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId: string; catalogo: Cat[] }) {
+  const [paso, setPaso] = useState(1);
   const [plan, setPlan] = useState('');
   const [servicios, setServicios] = useState<string[]>([]);
   const normal = useMemo(() => {
@@ -26,62 +28,112 @@ export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId
   const [enviar, setEnviar] = useState(true);
   const [pendiente, iniciar] = useTransition();
   const [resultado, setResultado] = useState<{ url?: string; error?: string } | null>(null);
-  const campo = 'w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white';
-  const primerFinal = primer === '' ? normal.primer / 100 : Number(primer.replace(',', '.'));
-  const mensualFinal = mensual === '' ? normal.mensual / 100 : Number(mensual.replace(',', '.'));
+  const primerFinal = primer === '' ? normal.primer / 100 : numero(primer);
+  const mensualFinal = mensual === '' ? normal.mensual / 100 : numero(mensual);
+  const descuento = normal.primer ? Math.round((1 - (primerFinal * 100) / normal.primer) * 100) : 0;
+  const campo = 'mt-1.5 w-full rounded-xl border border-[#E6E6E2] bg-white px-4 py-3 text-[15px] outline-none focus:border-[#17191E]';
+  const hayAlgo = !!plan || servicios.length > 0;
+  const importesOk = primerFinal >= 1 && Number.isFinite(mensualFinal) && mensualFinal >= 0;
 
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wider text-[#6B7079]">Qué se cobra</p>
-          <select value={plan} onChange={(e) => setPlan(e.target.value)} className={campo}>
-            <option value="">Sin plan (solo servicios)</option>
-            <option value="basico">Plan Básico · 9 €/mes</option>
-            <option value="ampliado">Plan Ampliado · 25 €/mes</option>
-          </select>
-          <div className="grid gap-1.5 sm:grid-cols-2">
-            {catalogo.map((c) => (
-              <label key={c.servicio} className="flex items-center gap-2 rounded-lg border border-[#E6E6E2] px-3 py-2 text-sm">
-                <input type="checkbox" checked={servicios.includes(c.servicio)}
-                  onChange={(e) => setServicios((l) => (e.target.checked ? [...l, c.servicio] : l.filter((x) => x !== c.servicio)))} />
-                <span className="flex-1">{c.nombre}</span>
-                <span className="text-xs text-[#6B7079]">{eur(c.precio)}{c.tipo === 'mensual' ? '/mes' : ''}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-        <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wider text-[#6B7079]">Cuánto</p>
-          <p className="text-sm text-[#6B7079]">Precio normal: primer pago {eur(normal.primer)}{normal.mensual ? ` · después ${eur(normal.mensual)}/mes` : ''}. Cámbialo para aplicar un descuento o lo acordado.</p>
-          <label className="block text-sm">Primer pago (€)
-            <input inputMode="decimal" value={primer} onChange={(e) => setPrimer(e.target.value)} placeholder={(normal.primer / 100).toString()} className={campo} />
-          </label>
-          <label className="block text-sm">Cuota mensual después (€, 0 = pago único)
-            <input inputMode="decimal" value={mensual} onChange={(e) => setMensual(e.target.value)} placeholder={(normal.mensual / 100).toString()} className={campo} />
-          </label>
-          <label className="block text-sm">Mensaje para el cliente (opcional)
-            <input value={nota} maxLength={300} onChange={(e) => setNota(e.target.value)} placeholder="Ej.: precio especial de lanzamiento" className={campo} />
-          </label>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={enviar} onChange={(e) => setEnviar(e.target.checked)} /> Enviárselo por correo ahora</label>
+  function reiniciar() { setPaso(1); setPlan(''); setServicios([]); setPrimer(''); setMensual(''); setNota(''); setResultado(null); }
+
+  if (resultado?.url) {
+    return (
+      <div className="space-y-3 rounded-2xl border border-[#2F8F6B]/30 bg-[#2F8F6B]/[0.06] p-5 text-sm">
+        <p className="font-semibold text-[#2F8F6B]">Enlace listo{enviar ? ' y enviado por correo al cliente' : ''}.</p>
+        <code className="block break-all rounded-xl bg-white p-3 text-xs">{resultado.url}</code>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => navigator.clipboard?.writeText(resultado.url!)} className="rounded-full border border-[#E6E6E2] bg-white px-4 py-2 font-semibold">Copiar enlace</button>
+          <a href={`https://wa.me/?text=${encodeURIComponent('Tu enlace de pago DKitchen: ' + resultado.url)}`} target="_blank" rel="noopener" className="rounded-full bg-[#25D366] px-4 py-2 font-semibold text-white">Enviar por WhatsApp</a>
+          <button onClick={reiniciar} className="rounded-full px-4 py-2 font-semibold text-[#6B7079]">Preparar otro</button>
         </div>
       </div>
-      {resultado?.error && <p className="text-sm text-red-600">{resultado.error}</p>}
-      {resultado?.url && (
-        <div className="space-y-2 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-sm">
-          <p className="font-semibold text-green-700">Enlace listo{enviar ? ' y enviado por correo' : ''}.</p>
-          <code className="block break-all rounded bg-white p-2 text-xs">{resultado.url}</code>
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => navigator.clipboard?.writeText(resultado.url!)} className="rounded-lg bg-[#EDEDEA] px-3 py-1.5 font-semibold">Copiar</button>
-            <a href={`https://wa.me/?text=${encodeURIComponent('Tu enlace de pago DKitchen: ' + resultado.url)}`} target="_blank" rel="noopener" className="rounded-lg bg-[#EDEDEA] px-3 py-1.5 font-semibold">Enviar por WhatsApp</a>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <ol className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        {['Qué cobras', 'Cuánto', 'Enviar'].map((t, i) => (
+          <li key={t} className={`flex items-center gap-2 ${paso === i + 1 ? 'font-semibold' : paso > i + 1 ? 'text-[#2F8F6B]' : 'text-[#9A9EA6]'}`}>
+            <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${paso === i + 1 ? 'bg-[#17191E] text-white' : paso > i + 1 ? 'bg-[#2F8F6B] text-white' : 'bg-[#EDEDEA]'}`}>{paso > i + 1 ? '✓' : i + 1}</span>{t}
+          </li>
+        ))}
+      </ol>
+
+      {paso === 1 && (
+        <div className="space-y-4">
+          <label className="block text-sm font-medium">Plan mensual
+            <select value={plan} onChange={(e) => setPlan(e.target.value)} className={campo}>
+              <option value="">Sin cambio de plan (solo servicios)</option>
+              <option value="basico">Plan Básico · 9 €/mes</option>
+              <option value="ampliado">Plan Ampliado · 25 €/mes</option>
+            </select>
+          </label>
+          <div>
+            <p className="text-sm font-medium">Servicios y módulos</p>
+            <p className="text-xs text-[#9A9EA6]">Marca todo lo que entra en este pago.</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {catalogo.map((c) => {
+                const on = servicios.includes(c.servicio);
+                return (
+                  <label key={c.servicio} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${on ? 'border-[#17191E] bg-[#F7F7F5]' : 'border-[#E6E6E2]'}`}>
+                    <input type="checkbox" checked={on} onChange={(e) => setServicios((l) => (e.target.checked ? [...l, c.servicio] : l.filter((x) => x !== c.servicio)))} />
+                    <span className="min-w-0 flex-1 font-medium">{c.nombre}</span>
+                    <span className="shrink-0 text-xs text-[#6B7079]">{eur(c.precio)}{c.tipo === 'mensual' ? '/mes' : ''}</span>
+                  </label>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
-      <button disabled={pendiente || (!plan && servicios.length === 0)}
-        onClick={() => { setResultado(null); iniciar(async () => setResultado(await crearEnlaceAction({ restauranteId, plan, servicios, primer: primerFinal, mensual: mensualFinal, nota, enviar }))); }}
-        className="rounded-lg bg-[#E8592A] px-5 py-2.5 text-sm font-bold disabled:opacity-40">
-        {pendiente ? 'Creando enlace…' : `Crear enlace · ${eur(Math.round((primerFinal || 0) * 100))}${mensualFinal ? ` + ${eur(Math.round(mensualFinal * 100))}/mes` : ''}`}
-      </button>
+
+      {paso === 2 && (
+        <div className="space-y-4">
+          <div className="rounded-2xl bg-[#F7F7F5] p-4 text-sm">
+            <p className="text-[#6B7079]">Precio normal</p>
+            <p className="mt-1 font-semibold">Primer pago {eur(normal.primer)}{normal.mensual ? ` · después ${eur(normal.mensual)}/mes` : ' · pago único'}</p>
+            <p className="mt-1 text-xs text-[#9A9EA6]">Déjalo en blanco para cobrar el precio normal, o escribe otro importe para aplicar un descuento.</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block text-sm font-medium">Primer pago (€)
+              <input inputMode="decimal" value={primer} onChange={(e) => setPrimer(e.target.value)} placeholder={String(normal.primer / 100)} className={campo} />
+              {primer !== '' && descuento > 0 && <span className="mt-1 block text-xs text-[#2F8F6B]">{descuento}% de descuento sobre el precio normal</span>}
+            </label>
+            <label className="block text-sm font-medium">Cuota mensual después (€)
+              <input inputMode="decimal" value={mensual} onChange={(e) => setMensual(e.target.value)} placeholder={String(normal.mensual / 100)} className={campo} />
+              <span className="mt-1 block text-xs text-[#9A9EA6]">0 = pago único, sin cuota.</span>
+            </label>
+          </div>
+          {!importesOk && <p className="text-sm text-red-600">El primer pago debe ser de al menos 1 €.</p>}
+        </div>
+      )}
+
+      {paso === 3 && (
+        <div className="space-y-4">
+          <dl className="divide-y divide-[#ECECE8] rounded-2xl border border-[#E6E6E2] text-sm">
+            <div className="flex justify-between gap-4 px-4 py-3"><dt className="text-[#6B7079]">Qué incluye</dt><dd className="text-right font-medium">{[plan ? `Plan ${plan === 'ampliado' ? 'Ampliado' : 'Básico'}` : null, ...servicios.map((s) => catalogo.find((c) => c.servicio === s)?.nombre)].filter(Boolean).join(' + ')}</dd></div>
+            <div className="flex justify-between gap-4 px-4 py-3"><dt className="text-[#6B7079]">Primer pago</dt><dd className="font-semibold">{eur(Math.round(primerFinal * 100))}</dd></div>
+            <div className="flex justify-between gap-4 px-4 py-3"><dt className="text-[#6B7079]">Después</dt><dd className="font-medium">{mensualFinal ? `${eur(Math.round(mensualFinal * 100))}/mes` : 'Pago único'}</dd></div>
+          </dl>
+          <label className="block text-sm font-medium">Mensaje para el cliente (opcional)
+            <input value={nota} maxLength={300} onChange={(e) => setNota(e.target.value)} placeholder="Ej.: precio especial de lanzamiento, válido esta semana" className={campo} />
+          </label>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={enviar} onChange={(e) => setEnviar(e.target.checked)} /> Enviárselo por correo al crear el enlace</label>
+          {resultado?.error && <p className="text-sm text-red-600">{resultado.error}</p>}
+        </div>
+      )}
+
+      <div className="flex justify-between gap-3">
+        {paso > 1 ? <button onClick={() => setPaso(paso - 1)} className="rounded-full border border-[#E6E6E2] px-5 py-2.5 text-sm font-semibold">Atrás</button> : <span />}
+        {paso < 3 ? (
+          <button disabled={(paso === 1 && !hayAlgo) || (paso === 2 && !importesOk)} onClick={() => setPaso(paso + 1)} className="rounded-full bg-[#17191E] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-35">Continuar</button>
+        ) : (
+          <button disabled={pendiente} onClick={() => { setResultado(null); iniciar(async () => setResultado(await crearEnlaceAction({ restauranteId, plan, servicios, primer: primerFinal, mensual: mensualFinal, nota, enviar }))); }}
+            className="rounded-full bg-[#E8592A] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{pendiente ? 'Creando enlace…' : 'Crear enlace de pago'}</button>
+        )}
+      </div>
     </div>
   );
 }

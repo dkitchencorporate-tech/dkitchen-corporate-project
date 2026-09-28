@@ -39,6 +39,10 @@ const ACCION: Record<string, string> = {
   'admin.responder_ticket': 'DKitchen respondió un ticket',
   'admin.estado_solicitud_qr': 'DKitchen actualizó un pedido de QR físico',
   aprovisionamiento_stripe: 'Alta tras el pago',
+  'admin.regalar_todo': 'DKitchen le regaló todo',
+  'admin.carta_demo': 'DKitchen cargó la carta de ejemplo',
+  'admin.enlace_pago': 'DKitchen preparó un enlace de pago',
+  'pago.enlace_admin': 'Pagó un enlace preparado por DKitchen',
 };
 
 function valor(v: unknown): string {
@@ -104,6 +108,12 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         </a>
       </div>
 
+      <nav aria-label="Secciones de la ficha" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+        {[['#acciones', 'Acciones'], ['#enlace', 'Cobrar'], ['#servicios', 'Servicios'], ['#diseno', 'Diseño'], ['#historial', 'Historial']].map(([h, t]) => (
+          <a key={h} href={h} className="shrink-0 rounded-full border border-[#E6E6E2] bg-white px-4 py-2 text-sm font-medium hover:border-[#17191E]">{t}</a>
+        ))}
+      </nav>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { t: 'Plan', v: r.plan === 'ampliado' ? 'Ampliado · 25 €' : 'Básico · 9 €' },
@@ -119,8 +129,8 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6 lg:col-span-2">
-          <h2 className="font-bold">Escaneos de los últimos 30 días</h2>
+        <section className="rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6 lg:col-span-2">
+          <h2 className="text-lg font-semibold">Escaneos de los últimos 30 días</h2>
           <div className="mt-4 flex h-32 items-end gap-1" role="img" aria-label={`${total30} escaneos en 30 días`}>
             {ficha.escaneos_30d.map((d) => (
               <div
@@ -133,8 +143,8 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           </div>
         </section>
 
-        <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6 space-y-3 text-sm">
-          <h2 className="font-bold">Contacto y carta</h2>
+        <section className="rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6 space-y-3 text-sm">
+          <h2 className="text-lg font-semibold">Contacto y carta</h2>
           <p>{ficha.contacto ?? '—'}</p>
           {ficha.email && <a href={`mailto:${ficha.email}`} className="block text-[#E8592A] hover:underline">{ficha.email}</a>}
           <p className="text-[#6B7079]">{r.telefono ?? 'Sin teléfono'} · {r.direccion ?? 'Sin dirección'}</p>
@@ -143,8 +153,8 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         </section>
       </div>
 
-      <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6">
-        <h2 className="font-bold">Acciones</h2>
+      <section id="acciones" className="scroll-mt-20 rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6">
+        <h2 className="text-lg font-semibold">Acciones</h2>
         <p className="text-xs text-[#6B7079]">Cada acción queda registrada en el historial.</p>
         <div className="mt-4 flex flex-wrap gap-3">
           <form action={regalarTodoAction}>
@@ -183,9 +193,43 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6 space-y-4">
+      <section id="enlace" className="scroll-mt-20 rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6 space-y-5">
         <div>
-          <h2 className="font-bold">Servicios y módulos</h2>
+          <h2 className="text-lg font-semibold">Enlace de pago a medida</h2>
+          <p className="text-xs text-[#6B7079]">Plan y/o servicios al precio que decidas. Al pagarlo se activa solo y queda en el historial.</p>
+        </div>
+        <EnlacesPago restauranteId={r.id} catalogo={catalogo} />
+        {enlaces.length > 0 && (
+          <ul className="divide-y divide-[#ECECE8] border-t border-[#E6E6E2] pt-2 text-sm">
+            {enlaces.map((e) => (
+              <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <div className="min-w-0">
+                  <p className="font-medium">{[e.plan ? `Plan ${e.plan}` : null, ...e.servicios].filter(Boolean).join(' + ')}</p>
+                  <p className="text-xs text-[#6B7079]">
+                    {(e.primerCentimos / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                    {e.mensualCentimos ? ` + ${(e.mensualCentimos / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}/mes` : ''} · {fecha.format(new Date(e.creadoEn))}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${e.estado === 'pagado' ? 'bg-green-500/15 text-green-700' : e.estado === 'anulado' ? 'bg-[#EDEDEA] text-[#6B7079]' : 'bg-amber-500/15 text-amber-700'}`}>{e.estado}</span>
+                  {e.estado === 'pendiente' && e.url && <a href={e.url} target="_blank" rel="noopener" className="text-xs text-[#6B7079] underline">Abrir</a>}
+                  {e.estado === 'pendiente' && (
+                    <form action={anularEnlaceAction}>
+                      <input type="hidden" name="enlaceId" value={e.id} />
+                      <input type="hidden" name="restauranteId" value={r.id} />
+                      <button className="text-xs text-red-600">Anular</button>
+                    </form>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section id="servicios" className="scroll-mt-20 rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Servicios y módulos</h2>
           <p className="text-xs text-[#6B7079]">"Demo" activa sin cobro (para enseñar o grabar vídeos). "Regalar" = cortesía comercial. Todo queda en el historial.</p>
         </div>
         <ul className="divide-y divide-[#ECECE8] text-sm">
@@ -245,8 +289,8 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         )}
       </section>
 
-      <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6">
-        <h2 className="font-bold">Diseño de la carta</h2>
+      <section id="diseno" className="scroll-mt-20 rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6">
+        <h2 className="text-lg font-semibold">Diseño de la carta</h2>
         <p className="text-xs text-[#6B7079]">
           Solo DKitchen lo asigna (el cliente administra contenido). Esencial = incluido · Autor = Setup Experto · Signature = a medida.
         </p>
@@ -276,42 +320,8 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         </form>
       </section>
 
-      <section id="enlace" className="scroll-mt-20 rounded-2xl border border-[#E6E6E2] bg-white p-6 space-y-5">
-        <div>
-          <h2 className="font-bold">Enlace de pago a medida</h2>
-          <p className="text-xs text-[#6B7079]">Plan y/o servicios al precio que decidas. Al pagarlo se activa solo y queda en el historial.</p>
-        </div>
-        <EnlacesPago restauranteId={r.id} catalogo={catalogo} />
-        {enlaces.length > 0 && (
-          <ul className="divide-y divide-[#ECECE8] border-t border-[#E6E6E2] pt-2 text-sm">
-            {enlaces.map((e) => (
-              <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                <div className="min-w-0">
-                  <p className="font-medium">{[e.plan ? `Plan ${e.plan}` : null, ...e.servicios].filter(Boolean).join(' + ')}</p>
-                  <p className="text-xs text-[#6B7079]">
-                    {(e.primerCentimos / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
-                    {e.mensualCentimos ? ` + ${(e.mensualCentimos / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}/mes` : ''} · {fecha.format(new Date(e.creadoEn))}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${e.estado === 'pagado' ? 'bg-green-500/15 text-green-700' : e.estado === 'anulado' ? 'bg-[#EDEDEA] text-[#6B7079]' : 'bg-amber-500/15 text-amber-700'}`}>{e.estado}</span>
-                  {e.estado === 'pendiente' && e.url && <a href={e.url} target="_blank" rel="noopener" className="text-xs text-[#6B7079] underline">Abrir</a>}
-                  {e.estado === 'pendiente' && (
-                    <form action={anularEnlaceAction}>
-                      <input type="hidden" name="enlaceId" value={e.id} />
-                      <input type="hidden" name="restauranteId" value={r.id} />
-                      <button className="text-xs text-red-600">Anular</button>
-                    </form>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
       {cartaCliente && (
-        <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6">
+        <section className="rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6">
           <TraductorCarta
             restauranteId={id}
             activos={cartaCliente.idiomas ?? []}
@@ -322,8 +332,8 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         </section>
       )}
 
-      <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6">
-        <h2 className="font-bold">Historial de cambios</h2>
+      <details id="historial" className="scroll-mt-20 rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6">
+        <summary className="cursor-pointer list-none font-bold">Historial de cambios <span className="ml-2 text-sm font-normal text-[#9A9EA6]">{historial.length} registros · pulsa para ver</span></summary>
         {historial.length === 0 ? (
           <p className="mt-3 text-sm text-[#6B7079]">Sin cambios registrados todavía.</p>
         ) : (
@@ -341,7 +351,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             ))}
           </ol>
         )}
-      </section>
+      </details>
     </div>
   );
 }
