@@ -58,47 +58,69 @@ function PantallaPanel() {
   );
 }
 
+function Pantalla({ n }: { n: number }) {
+  return n === 0 ? <PantallaAlta /> : n === 1 ? <PantallaPanel /> : <CartaMini e={{ plantilla: 'editorial', fondo: 'papel', letra: 'serif', color: '#E8592A' }} desplazar />;
+}
+const Marco = ({ children }: { children: React.ReactNode }) => (
+  <div className="rounded-[46px] bg-[#17191E] p-3 shadow-[0_40px_100px_rgba(23,25,30,.3)]"><div className="relative aspect-[9/18] overflow-hidden rounded-[36px]">{children}</div></div>
+);
+
 export default function ComoFuncionaQr() {
   const ref = useRef<HTMLElement>(null);
   const [paso, setPaso] = useState(0);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
   useMotionValueEvent(scrollYProgress, 'change', (v) => setPaso(v < 0.34 ? 0 : v < 0.67 ? 1 : 2));
+  const cabecera = (
+    <>
+      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Cómo funciona</p>
+      <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl">De cero a tu carta en las mesas, hoy.</h2>
+    </>
+  );
 
   return (
-    <section id="como-funciona" ref={ref} className="relative bg-white md:h-[300vh]">
-      <div className="md:sticky md:top-0 md:flex md:h-screen md:items-center">
-        <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 py-20 md:grid-cols-[1fr_340px] md:px-8 md:py-0">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8592A]">Cómo funciona</p>
-            <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl">De cero a tu carta en las mesas, hoy.</h2>
-            <ol className="mt-10 space-y-2">
-              {PASOS.map((s, i) => (
-                <li key={s.n} className={`rounded-3xl border p-5 transition-all duration-500 md:p-6 ${paso === i ? 'border-[#17191E] bg-[#F7F7F5]' : 'border-transparent md:opacity-40'}`}>
-                  <div className="flex gap-5">
-                    <span className="font-display text-sm font-semibold text-[#E8592A]">{s.n}</span>
-                    <div>
-                      <h3 className="text-xl font-semibold text-[#17191E]">{s.t}</h3>
-                      <p className="mt-2 text-[#6B7079]">{s.d}</p>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div className="mx-auto w-[300px] md:w-[340px]">
-            <div className="rounded-[46px] bg-[#17191E] p-3 shadow-[0_40px_100px_rgba(23,25,30,.3)]">
-              <div className="relative aspect-[9/18] overflow-hidden rounded-[36px]">
+    <>
+      <div id="como-funciona" className="scroll-mt-20" />
+      <section ref={ref} className="relative hidden h-[300vh] bg-white md:block">
+        <div className="sticky top-0 flex h-screen items-center">
+          <div className="mx-auto grid w-full max-w-6xl grid-cols-[1fr_340px] gap-12 px-8">
+            <div>
+              {cabecera}
+              <ol className="mt-10 space-y-2">
+                {PASOS.map((s, i) => (
+                  <li key={s.n} className={`rounded-3xl border p-6 transition-all duration-500 ${paso === i ? 'border-[#17191E] bg-[#F7F7F5]' : 'border-transparent opacity-40'}`}>
+                    <div className="flex gap-5"><span className="font-display text-sm font-semibold text-[#E8592A]">{s.n}</span>
+                      <div><h3 className="text-xl font-semibold text-[#17191E]">{s.t}</h3><p className="mt-2 text-[#6B7079]">{s.d}</p></div></div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="w-[340px]">
+              <Marco>
                 <AnimatePresence mode="wait">
                   <motion.div key={paso} className="absolute inset-0" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.45, ease: CURVA }}>
-                    {paso === 0 ? <PantallaAlta /> : paso === 1 ? <PantallaPanel /> : <CartaMini e={{ plantilla: 'editorial', fondo: 'papel', letra: 'serif', color: '#E8592A' }} desplazar />}
+                    <Pantalla n={paso} />
                   </motion.div>
                 </AnimatePresence>
-              </div>
+              </Marco>
+              <p className="mt-4 text-center text-xs text-[#9A9EA6]">{['Alta y pago seguro', 'Tu panel', 'Lo que ve tu cliente'][paso]}</p>
             </div>
-            <p className="mt-4 text-center text-xs text-[#9A9EA6]">{['Alta y pago seguro', 'Tu panel', 'Lo que ve tu cliente'][paso]}</p>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section className="bg-white px-6 py-20 md:hidden">
+        {cabecera}
+        {PASOS.map((s, i) => (
+          <div key={s.n} className="mt-14">
+            <p className="font-display text-sm font-semibold text-[#E8592A]">{s.n}</p>
+            <h3 className="mt-1 text-2xl font-semibold text-[#17191E]">{s.t}</h3>
+            <p className="mt-2 text-[#6B7079]">{s.d}</p>
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.25 }} transition={{ duration: 0.6, ease: CURVA }} className="mx-auto mt-8 w-[270px]">
+              <Marco><div className="absolute inset-0"><Pantalla n={i} /></div></Marco>
+            </motion.div>
+          </div>
+        ))}
+      </section>
+    </>
   );
 }

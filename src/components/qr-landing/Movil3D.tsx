@@ -28,7 +28,7 @@ function Telefono() {
       <RoundedBox args={[3.05, 6.25, 0.3]} radius={0.44} smoothness={8}>
         <meshStandardMaterial color="#17191E" metalness={0.75} roughness={0.28} />
       </RoundedBox>
-      <Html transform position={[0, 0, 0.16]} scale={0.4} occlude={false} zIndexRange={[10, 0]}>
+      <Html transform position={[0, 0, 0.16]} scale={0.36} occlude={false} zIndexRange={[10, 0]}>
         <div style={{ width: 272, height: 566, borderRadius: 34, overflow: 'hidden' }}>
           <CartaMini e={ESTILO} desplazar />
         </div>
@@ -61,7 +61,7 @@ export default function Movil3D() {
     const memoria = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8;
     let webgl = false;
     try { webgl = !!document.createElement('canvas').getContext('webgl2'); } catch { webgl = false; }
-    setModo(!reducir && webgl && memoria >= 4 ? '3d' : 'css');
+    setModo(!reducir && webgl && memoria >= 4 && window.innerWidth >= 1024 ? '3d' : 'css');
   }, []);
 
   if (modo !== '3d') return <MovilCss />;

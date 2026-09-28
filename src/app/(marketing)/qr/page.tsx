@@ -7,7 +7,7 @@ import SalaViva from '@/components/qr-landing/SalaViva';
 import PlanesQr from '@/components/qr-landing/PlanesQr';
 import ComparativaQr from '@/components/qr-landing/ComparativaQr';
 import PreguntasQr, { PREGUNTAS } from '@/components/qr-landing/PreguntasQr';
-import { LineaServicio, BarraCtaMovil } from '@/components/qr-landing/Extras';
+import { LineaServicio } from '@/components/qr-landing/Extras';
 
 export const metadata: Metadata = {
   title: 'Carta digital QR para restaurantes | Primer mes por 1 € · DKitchen',
@@ -65,7 +65,6 @@ export default function PaginaQr() {
       <PlanesQr />
       <ComparativaQr />
       <PreguntasQr />
-      <BarraCtaMovil />
     </div>
   );
 }
