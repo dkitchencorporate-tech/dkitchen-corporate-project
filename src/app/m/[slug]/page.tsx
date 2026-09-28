@@ -120,10 +120,15 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
                 className={
                   plantilla === 'express'
                     ? 'mb-2 text-xs font-bold uppercase tracking-widest text-black/50'
-                    : 'mb-5 border-b border-black/10 pb-2 text-lg font-semibold tracking-tight'
+                    : 'mb-3 flex items-baseline justify-between px-1 text-xl font-semibold tracking-tight'
                 }
               >
                 {grupo.nombre}
+                {plantilla === 'clasica' && (
+                  <span className="text-xs font-normal text-black/35">
+                    {grupo.platos.length} {grupo.platos.length === 1 ? 'plato' : 'platos'}
+                  </span>
+                )}
               </h2>
               {plantilla === 'visual' ? (
                 <ul className="grid gap-4 sm:grid-cols-2">
@@ -142,10 +147,12 @@ export default async function CartaPublica({ params }: { params: Promise<{ slug:
                   ))}
                 </ul>
               ) : (
-                <ul className="space-y-5">
+                <ul className="divide-y divide-black/[0.06] overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm">
                   {grupo.platos.map((plato) => (
                     <li key={plato.id}>
-                      <FichaPlato plato={plato} nombresAlergenos={nombres}><Plato plato={plato} /></FichaPlato>
+                      <FichaPlato plato={plato} nombresAlergenos={nombres} className="px-4 py-4 hover:bg-black/[0.02]">
+                        <Plato plato={plato} />
+                      </FichaPlato>
                     </li>
                   ))}
                 </ul>
@@ -346,20 +353,20 @@ function Precio({ plato, destacado = false }: { plato: PlatoCarta; destacado?: b
 }
 
 function Plato({ plato }: { plato: PlatoCarta }) {
+  // Carta básica: texto a la izquierda, foto pequeña siempre a la derecha
+  // (alineación constante aunque algunos platos no tengan foto).
   return (
-    <span className="flex gap-4">
-      {plato.fotoUrl && (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img src={plato.fotoUrl} alt="" width={80} height={80} loading="lazy" decoding="async" className="h-20 w-20 shrink-0 rounded-md bg-black/5 object-cover" />
-      )}
+    <span className="flex items-start gap-4">
       <span className="block min-w-0 flex-1">
-        <span className="flex items-baseline justify-between gap-3">
-          <span className="font-medium leading-snug">{plato.nombre}</span>
-          <Precio plato={plato} />
-        </span>
+        <span className="block font-semibold leading-snug">{plato.nombre}</span>
         {plato.descripcion && <span className="mt-1 line-clamp-2 block text-sm leading-relaxed text-black/55">{plato.descripcion}</span>}
         <Alergenos plato={plato} />
+        <span className="mt-2 block text-[15px]"><Precio plato={plato} /></span>
       </span>
+      {plato.fotoUrl && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img src={plato.fotoUrl} alt="" width={76} height={76} loading="lazy" decoding="async" className="h-[76px] w-[76px] shrink-0 rounded-xl bg-black/5 object-cover" />
+      )}
     </span>
   );
 }
