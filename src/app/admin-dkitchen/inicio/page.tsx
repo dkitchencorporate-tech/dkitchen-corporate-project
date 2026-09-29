@@ -12,6 +12,28 @@ export const dynamic = 'force-dynamic';
  * Umbrales de subida según DKITCHEN_ESTRATEGIA_PRECIOS_ESCALERA (§7).
  */
 const PRECIO: Record<string, number> = { basico: 9, ampliado: 25 };
+type Capacidad = { bytes_base: string; conexiones: number; max_conexiones: number; restaurantes: string; platos: string; escaneos_30d: string; escaneos_total: string };
+
+/** Límites del plan actual de Neon (Free: 0,5 GB y 0,25 CU fijo). Si cambias de plan, actualiza aquí. */
+const PLAN_NEON = { nombre: 'Free', bytes: 512 * 1024 * 1024 };
+function evaluarCapacidad(c?: Capacidad) {
+  if (!c) return { uso: 0, texto: 'No se pudo leer la capacidad.', nivel: 'aviso' as const, filas: [] as [string, string][] };
+  const uso = Number(c.bytes_base) / PLAN_NEON.bytes;
+  const con = c.conexiones / c.max_conexiones;
+  const rest = Number(c.restaurantes);
+  const nivel = uso > 0.8 || con > 0.8 ? 'urgente' as const : uso > 0.6 || con > 0.6 || rest > 150 || Number(c.escaneos_30d) > 150000 ? 'aviso' as const : 'ok' as const;
+  const texto = nivel === 'urgente' ? 'Sube ya al plan Launch de Neon: la base está cerca de su límite.'
+    : nivel === 'aviso' ? 'Prepara la subida al plan Launch de Neon (autoescalado de cómputo y más espacio).'
+    : 'Todo holgado para el plan actual.';
+  const filas: [string, string][] = [
+    ['Espacio usado', `${(Number(c.bytes_base) / 1048576).toFixed(0)} MB de ${PLAN_NEON.bytes / 1048576} MB (${Math.round(uso * 100)} %)`],
+    ['Conexiones en uso', `${c.conexiones} de ${c.max_conexiones}`],
+    ['Restaurantes · platos', `${rest} · ${c.platos}`],
+    ['Escaneos últimos 30 días', Number(c.escaneos_30d).toLocaleString('es-ES')],
+  ];
+  return { uso, texto, nivel, filas };
+}
+
 const tarjeta = 'rounded-[22px] border border-[#E6E2DC] bg-white p-5';
 
 function Lista({ titulo, vacio, filas, accion }: { titulo: string; vacio: string; filas: { c: ClienteQr; d: string }[]; accion?: string }) {
@@ -40,10 +62,12 @@ function Lista({ titulo, vacio, filas, accion }: { titulo: string; vacio: string
 
 export default async function CentralInicio() {
   const jwt = await exigirAdmin();
-  const [clientes, embudo] = await Promise.all([
+  const [clientes, embudo, capacidad] = await Promise.all([
     listarClientesQr(jwt),
     comoCliente(jwt, async (c) => (await c.query<{ producto: string; visitas: string; pagados: string }>('SELECT producto, visitas, pagados FROM dk.admin_embudo(30)')).rows).catch(() => []),
+    comoCliente(jwt, async (c) => (await c.query<Capacidad>('SELECT * FROM dk.admin_capacidad()')).rows[0]).catch(() => undefined),
   ]);
+  const avisos = evaluarCapacidad(capacidad);
   const hace30 = Date.now() - 30 * 864e5;
   const activos = clientes.filter((c) => c.activo && c.estadoAcceso === 'activo');
   const mrr = activos.reduce((s, c) => s + (PRECIO[c.plan] ?? 0), 0);
@@ -105,6 +129,17 @@ export default async function CentralInicio() {
         <Lista titulo="En riesgo de baja" vacio="Ningún cliente en impago ni suspendido." filas={riesgo.map((c) => ({ c, d: c.estadoAcceso.replace('_', ' ') }))} />
         <Lista titulo="Altas recientes" vacio="Sin altas en los últimos 30 días." filas={altas.map((c) => ({ c, d: new Date(c.creadoEn).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) }))} />
       </div>
+      <section className={`${tarjeta} ${avisos.nivel === 'urgente' ? 'border-[#6E0C2B]' : ''}`}>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="text-sm font-semibold">Capacidad del sistema · Neon {PLAN_NEON.nombre}</p>
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${avisos.nivel === 'ok' ? 'bg-[#2F8F6B]/15 text-[#2F8F6B]' : avisos.nivel === 'aviso' ? 'bg-amber-500/15 text-amber-700' : 'bg-[#6E0C2B]/10 text-[#6E0C2B]'}`}>{avisos.nivel === 'ok' ? 'Holgado' : avisos.nivel === 'aviso' ? 'Preparar subida' : 'Subir ya'}</span>
+        </div>
+        <p className="mt-2 text-sm text-[#6B7079]">{avisos.texto}</p>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#F1EEEA]"><div className="h-full rounded-full bg-[#6E0C2B]" style={{ width: `${Math.min(100, Math.max(1, avisos.uso * 100))}%` }} /></div>
+        <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          {avisos.filas.map(([k, v]) => <div key={k}><dt className="text-xs text-[#9A9EA6]">{k}</dt><dd className="font-medium tabular-nums">{v}</dd></div>)}
+        </dl>
+      </section>
     </div>
   );
 }

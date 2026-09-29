@@ -84,7 +84,7 @@ export default function PaginaExperience() {
           <Titulo etiqueta="Precios" texto="Cuanto más repites, menos pagas." sub="Cuatro tarifas fijas, sin porcentaje ni letra pequeña. El trabajo pesado ya está hecho, así que el precio baja con cada evento." />
           <EscaleraPrecios tramos={[[299, 'Primera vez', 'Cliente nuevo, cualquiera de los 7 formatos.'], [250, 'Nuevo evento', 'Ya trabajaste con nosotros y quieres otro formato.'], [150, 'Reuso', 'El mismo evento, en una fecha nueva.'], [99, 'Reuso fidelizado', 'A partir de tu tercer evento.']]} />
           <Aparecer className="mt-10 rounded-[24px] bg-[#0A080C] p-6 text-white md:flex md:items-center md:justify-between md:p-8">
-            <p className="text-lg"><strong className="text-[#6E0C2B]">¿Tienes la Carta QR con nosotros?</strong> Tu primer evento cuesta 199 € en lugar de 299 €. Tarifa publicada, sin negociar.</p>
+            <p className="text-lg"><strong className="text-[#6E0C2B]">¿Tienes la Carta QR con nosotros?</strong> Tu primer evento cuesta 199 € en lugar de 299 € (+ IVA). Tarifa publicada, sin negociar.</p>
           </Aparecer>
         </div>
       </section>

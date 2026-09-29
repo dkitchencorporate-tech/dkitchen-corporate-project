@@ -1,6 +1,7 @@
 import 'server-only';
 import { crearCuentaCliente, enviarEnlaceDeContrasena, ErrorNeonAuth } from '@/lib/neon-auth';
 import { comoAprovisionamiento } from '@/lib/db';
+import { enviarBienvenidaQr } from '@/lib/bienvenida';
 
 /**
  * Lógica de aprovisionamiento común a cualquier pasarela de pago (Stripe,
@@ -117,6 +118,7 @@ export async function aprovisionarClienteQr(datos: DatosPagoQr): Promise<Resulta
     const fila = rows[0];
     if (!fila) throw new Error('dk.aprovisionar_cliente_qr no devolvió fila.');
     console.log(`Aprovisionado: restaurante ${fila.slug} (${fila.restaurante_id}) para ${datos.email}.`);
+    await enviarBienvenidaQr(datos.email, datos.nombreContacto, datos.restauranteNombre, datos.plan).catch((e) => console.error('Bienvenida no enviada:', e));
     return { ok: true, restauranteId: fila.restaurante_id, slug: fila.slug };
   } catch (error) {
     console.error(`Fallo aprovisionando el restaurante para ${datos.email} (evento ${datos.idEvento}):`, error);

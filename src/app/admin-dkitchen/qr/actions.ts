@@ -3,6 +3,7 @@
 import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { crearCuentaCliente, enviarEnlaceDeContrasena } from '@/lib/neon-auth';
+import { enviarBienvenidaQr } from '@/lib/bienvenida';
 import { comoAprovisionamiento } from '@/lib/db';
 import { crearCheckoutEnlaceAdmin } from '@/lib/payments/whop';
 import { exigirAdmin } from '@/lib/guard-admin';
@@ -63,7 +64,7 @@ export async function responderTicketAction(formulario: FormData) {
         destino.email,
         `Respuesta a tu consulta: ${destino.asunto}`,
         `<p style="margin:0 0 12px">Hola, hemos respondido a tu consulta <strong>«${escaparHtml(destino.asunto)}»</strong> sobre ${escaparHtml(destino.restaurante)}:</p>` +
-          `<div style="border-left:3px solid #D9531E;background:#F6F5F3;border-radius:8px;padding:14px 16px;white-space:pre-wrap">${escaparTexto(respuesta, 4000)}</div>` +
+          `<div style="border-left:3px solid #6E0C2B;background:#F6F5F3;border-radius:8px;padding:14px 16px;white-space:pre-wrap">${escaparTexto(respuesta, 4000)}</div>` +
           `<p style="margin:16px 0 0;font-size:14px;color:#6B6560">También la tienes en tu panel, en Soporte. Si necesitas algo más, responde a este correo.</p>`,
         { titulo: 'Te hemos respondido', boton: { texto: 'Ver en mi panel', url: 'https://dkitchencorporate.es/panel?pestana=soporte' } }
       );
@@ -180,6 +181,7 @@ export async function crearClienteAction(datos: { email: string; contacto: strin
   if (datos.todo) await regalarTodo(jwt, id);
   if (datos.demo) await cargarCartaDemo(jwt, id).catch(() => 0);
   await enviarEnlaceDeContrasena(email).catch((e) => console.error('Alta manual: no se pudo enviar el enlace de contraseña', e));
+  await enviarBienvenidaQr(email, contacto, local, plan).catch((e) => console.error('Alta manual: bienvenida no enviada', e));
   revalidatePath('/admin-dkitchen/qr');
   return { id };
 }
@@ -245,7 +247,7 @@ export async function crearEnlaceAction(d: { restauranteId: string; plan: string
        <p>Te dejamos preparado el enlace para activar <strong>${escaparHtml(concepto)}</strong> en ${escaparHtml(ficha.restaurante.nombre)}.</p>
        <p>Primer pago: <strong>${importe(primer)}</strong>${mensual ? ` · después ${importe(mensual)}/mes, sin permanencia` : ' · pago único'}.</p>
        ${d.nota ? `<p>${escaparHtml(d.nota)}</p>` : ''}
-       <p><a href="${url}" style="display:inline-block;background:#D9531E;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:bold">Pagar de forma segura</a></p>
+       <p><a href="${url}" style="display:inline-block;background:#6E0C2B;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:bold">Pagar de forma segura</a></p>
        <p>En cuanto se confirme el pago, se activa solo en tu panel.</p>`).catch((e) => console.error('Enlace creado, pero no se pudo enviar el correo', e));
   }
   revalidatePath(`/admin-dkitchen/qr/${d.restauranteId}`);

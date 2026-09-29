@@ -27,8 +27,8 @@ export default function PlanesQr() {
           <article className="flex flex-col rounded-[32px] border border-[#E6E6E2] bg-[#F7F5F2] p-8 md:p-10">
             <h3 className="text-lg font-semibold text-[#17191E]">Básico</h3>
             <p className="mt-1 text-sm text-[#6B7079]">Tu carta digital, sin complicaciones.</p>
-            <p className="mt-8 text-[#17191E]"><span className="font-display text-6xl font-semibold">9 €</span><span className="ml-1 text-[#6B7079]">/mes</span></p>
-            <p className="mt-1 text-sm text-[#6B7079]">Primer mes: 1 €</p>
+            <p className="mt-8 text-[#17191E]"><span className="font-display text-6xl font-semibold">9 €</span><span className="ml-1 text-[#6B7079]">/mes + IVA</span></p>
+            <p className="mt-1 text-sm text-[#6B7079]">Primer mes: 1 € + IVA</p>
             <ul className="mt-8 flex-1 space-y-3 text-[15px] text-[#3F434B]">{BASICO.map((f) => <li key={f} className="flex gap-3"><Check />{f}</li>)}</ul>
             <ActivarPlanBoton plan="basico" etiqueta="Empezar con Básico"
               className="mt-10 w-full rounded-full border border-[#17191E] py-4 text-[15px] font-semibold text-[#17191E] transition hover:bg-[#17191E] hover:text-white" />
@@ -39,8 +39,8 @@ export default function PlanesQr() {
             <div className="relative -mx-8 -mt-8 mb-8 bg-[#6E0C2B] px-8 py-3 text-center text-sm font-bold uppercase tracking-[0.2em] md:-mx-12 md:-mt-12">El más elegido</div>
             <h3 className="relative text-xl font-semibold">Ampliado</h3>
             <p className="relative mt-1 text-sm text-white/55">Tu carta y tu sala, conectadas.</p>
-            <p className="relative mt-8"><span className="font-display text-7xl font-semibold">25 €</span><span className="ml-1 text-white/50">/mes</span></p>
-            <p className="relative mt-1 text-sm text-white/55">Primer mes: 1 €</p>
+            <p className="relative mt-8"><span className="font-display text-7xl font-semibold">25 €</span><span className="ml-1 text-white/50">/mes + IVA</span></p>
+            <p className="relative mt-1 text-sm text-white/55">Primer mes: 1 € + IVA</p>
             <ul className="relative mt-8 grid flex-1 gap-3 text-[15px] text-white/80 sm:grid-cols-2">{AMPLIADO.map((f) => <li key={f} className="flex gap-3"><Check className="text-[#6E0C2B]" />{f}</li>)}</ul>
             <ActivarPlanBoton plan="ampliado" etiqueta="Empezar con Ampliado por 1 €"
               className="relative mt-10 w-full rounded-full bg-[#6E0C2B] py-5 text-base font-semibold text-white transition hover:bg-[#4A0819]" />

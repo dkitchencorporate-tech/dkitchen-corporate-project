@@ -78,7 +78,7 @@ export interface OpcionesCorreo {
   marca?: { nombre: string; logoUrl?: string | null; color?: string | null };
 }
 
-const C = { fondo: '#F6F5F3', tarjeta: '#FFFFFF', borde: '#E7E3DE', texto: '#1A1714', suave: '#6B6560', acento: '#D9531E' };
+const C = { fondo: '#F6F5F3', tarjeta: '#FFFFFF', borde: '#E7E3DE', texto: '#1A1714', suave: '#6B6560', acento: '#6E0C2B' };
 
 /**
  * Modo claro y oscuro: base clara con estilos en línea (lo que respeta todo

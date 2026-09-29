@@ -31,7 +31,7 @@ export default function Footer() {
           ))}
         </div>
         <div className="mt-14 flex flex-col justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/40 sm:flex-row">
-          <p>© {new Date().getFullYear()} DKitchen Corporate SL · Alcobendas, Madrid</p>
+          <p>© {new Date().getFullYear()} DKitchen Corporate SL · Alcobendas, Madrid · Precios sin IVA (21 %)</p>
           <p>Hecho con cariño para la hostelería</p>
         </div>
       </div>

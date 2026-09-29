@@ -78,7 +78,7 @@ export default function PaginaDarkKitchen() {
             ))}
           </ol>
           <Aparecer className="mt-10 rounded-[24px] border border-white/10 bg-white/[0.04] p-6 md:flex md:items-center md:justify-between md:p-8">
-            <div><p className="text-sm text-white/60">Inversión</p><p className="font-display text-4xl font-semibold">De 3.000 € a 10.000 €</p><p className="mt-1 text-sm text-white/50">La cifra exacta se cierra en la evaluación. Es un proyecto a medida, no un plan de catálogo.</p></div>
+            <div><p className="text-sm text-white/60">Inversión</p><p className="font-display text-4xl font-semibold">De 3.000 € a 10.000 € + IVA</p><p className="mt-1 text-sm text-white/50">La cifra exacta se cierra en la evaluación. Es un proyecto a medida, no un plan de catálogo.</p></div>
             <a href={WA} className="mt-6 inline-block rounded-full bg-[#6E0C2B] px-7 py-4 font-semibold md:mt-0">Solicitar entrevista</a>
           </Aparecer>
         </div>

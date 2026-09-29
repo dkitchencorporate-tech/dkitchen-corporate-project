@@ -25,9 +25,9 @@ const DOLORES = [
   ['Tu carta no dice nada de alérgenos.', 'Y la ley obliga a informar de los 14.'],
 ];
 const ESCALERA = [
-  { n: '01', t: 'Carta QR', d: 'Tu carta digital al día desde el móvil. Estilos propios, alérgenos, reservas y llamada al camarero.', p: 'Desde 9 €/mes · primer mes 1 €', href: '/qr', destacado: true },
-  { n: '02', t: 'DKitchen Signature', d: 'Tu propia app con tu marca: tus clientes piden y pagan, cocina y TPV integrados. Es tuya.', p: 'Entrada 700 € · 69 €/mes', href: '/base-operativa' },
-  { n: '03', t: 'Experience', d: 'Eventos gastronómicos ya diseñados para llenar tus días flojos, con su propia web de reservas.', p: 'Desde 299 € por evento', href: '/experience' },
+  { n: '01', t: 'Carta QR', d: 'Tu carta digital al día desde el móvil. Estilos propios, alérgenos, reservas y llamada al camarero.', p: 'Desde 9 €/mes + IVA · primer mes 1 €', href: '/qr', destacado: true },
+  { n: '02', t: 'DKitchen Signature', d: 'Tu propia app con tu marca: tus clientes piden y pagan, cocina y TPV integrados. Es tuya.', p: 'Entrada 700 € · 69 €/mes · + IVA', href: '/base-operativa' },
+  { n: '03', t: 'Experience', d: 'Eventos gastronómicos ya diseñados para llenar tus días flojos, con su propia web de reservas.', p: 'Desde 299 € + IVA por evento', href: '/experience' },
   { n: '04', t: 'Dark Kitchen', d: 'Marcas virtuales ya operadas para vender a domicilio con la cocina que ya tienes.', p: 'A medida', href: '/dark-kitchen' },
 ];
 

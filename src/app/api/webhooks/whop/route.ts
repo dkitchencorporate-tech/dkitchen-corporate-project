@@ -142,7 +142,7 @@ export async function POST(request: Request) {
         await enviarCorreoInterno(
           `AUDITORÍA PAGADA (47€): ${meta.nombreContacto || meta.email}`,
           `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #D9531E;">Order-bump de Auditoría cobrado</h2>
+            <h2 style="color: #6E0C2B;">Order-bump de Auditoría cobrado</h2>
             <p>Alguien acaba de pagar la Auditoría+Escandallo (47€) justo después de activar su QR Menú.
             Agenda la reunión 1 a 1 con estos datos:</p>
             <p><strong>Nombre:</strong> ${escaparHtml(meta.nombreContacto)}</p>
@@ -218,7 +218,7 @@ export async function POST(request: Request) {
         await enviarCorreoInterno(
           `DARK KITCHEN — nueva marca pagada: "${escaparHtml(marca.nombre)}"`,
           `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #D9531E;">Nueva marca de Dark Kitchen (Ruta B) pagada</h2>
+            <h2 style="color: #6E0C2B;">Nueva marca de Dark Kitchen (Ruta B) pagada</h2>
             <p>Confirma que la cocina puede operar esto antes de disparar producción
             (Parte 8, Sección 5, punto 3) — no es automático a propósito.</p>
             <p><strong>Marca:</strong> ${escaparHtml(marca.nombre)} (orden ${marca.orden}, ${marca.precioDesarrolloCentimos / 100}€)</p>
