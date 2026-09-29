@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import type { EstadoServicios } from '@/lib/servicios';
-import { iniciarUpgradeAmpliadoAction } from '@/app/panel/actions';
+import { iniciarUpgradeAmpliadoAction, solicitarBajaAction } from '@/app/panel/actions';
 
 const PLANES = {
   basico: {
@@ -109,6 +109,7 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
           El cambio se activa en cuanto se confirma el pago. Tu suscripción Básica se cancela para que no pagues las dos.
         </p>
       )}
+      <DarseDeBaja />
     </div>
   );
 }
@@ -173,5 +174,35 @@ function ResumenCuenta({ restaurante, servicios, precioPlan, nombrePlan }: {
       </ul>
       {filas.length === 0 && <p className="px-5 pb-5 text-sm text-[#6B7079]">Aún no tienes servicios añadidos. Los encontrarás en las pestañas Diseño y Módulos.</p>}
     </section>
+  );
+}
+
+
+/** Baja desde el panel (condiciones §4): discreta, con confirmación en la misma pantalla. */
+function DarseDeBaja() {
+  const [abierto, setAbierto] = useState(false);
+  const [motivo, setMotivo] = useState('');
+  const [hecho, setHecho] = useState(false);
+  const [error, setError] = useState('');
+  const [pendiente, empezar] = useTransition();
+  if (hecho) return <p className="rounded-2xl border border-[#E6E2DC] bg-white p-5 text-sm text-[#3F434B]">Hemos recibido tu baja. No se te volverá a cobrar y tu carta sigue activa hasta el final del periodo pagado. Te hemos enviado la confirmación por correo.</p>;
+  return (
+    <div className="pt-4 text-sm">
+      {!abierto ? (
+        <button onClick={() => setAbierto(true)} className="text-[#9A9EA6] underline hover:text-[#6B7079]">Darme de baja</button>
+      ) : (
+        <div className="rounded-2xl border border-[#E6E2DC] bg-white p-5">
+          <p className="font-semibold">¿Seguro que quieres darte de baja?</p>
+          <p className="mt-1 text-[#6B7079]">No se te volverá a cobrar. Tu carta sigue activa hasta el final del periodo pagado y la guardamos 60 días por si vuelves. Lo ya pagado no se devuelve.</p>
+          <textarea id="baja-motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} maxLength={1000} rows={3} placeholder="¿Nos cuentas por qué? (opcional)" className="mt-3 w-full rounded-xl border border-[#E6E2DC] px-3 py-2.5 outline-none focus:border-[#6E0C2B]" />
+          {error && <p role="alert" className="mt-2 text-[#6E0C2B]">{error}</p>}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button disabled={pendiente} onClick={() => empezar(async () => { try { await solicitarBajaAction(motivo); setHecho(true); } catch { setError('No se pudo registrar. Inténtalo de nuevo o escríbenos desde Soporte.'); } })}
+              className="rounded-full border border-[#6E0C2B] px-5 py-2.5 font-semibold text-[#6E0C2B] disabled:opacity-60">{pendiente ? 'Enviando…' : 'Confirmar la baja'}</button>
+            <button onClick={() => setAbierto(false)} className="rounded-full bg-[#17191E] px-5 py-2.5 font-semibold text-white">Seguir con DKitchen</button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

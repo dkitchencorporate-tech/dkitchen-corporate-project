@@ -1,65 +1,53 @@
-import React from 'react';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: "Condiciones del Servicio | DKitchen",
-  description: "Términos y condiciones de uso de la plataforma de automatización y servicios digitales de DKitchen.",
-  alternates: { canonical: 'https://dkitchencorporate.es/terms' }
+export const metadata: Metadata = {
+  title: 'Condiciones del servicio · DKitchen',
+  description: 'Cómo contratas, pagas, cancelas y qué pasa con tu carta y tus datos en DKitchen: sin permanencia, precios claros y tus datos siempre tuyos.',
+  alternates: { canonical: 'https://dkitchencorporate.es/terms' },
 };
 
-export default function TermsOfService() {
+/**
+ * Condiciones del servicio (29/09/2026, decisiones de karc0): sin permanencia,
+ * sin devolución de periodos pagados, precios sin IVA, 60 días de
+ * conservación tras la baja y respuesta de soporte en 24 h laborables.
+ * El calendario de impago es el de la migración 0012.
+ */
+const SECCIONES: [string, React.ReactNode][] = [
+  ['Quién presta el servicio', <>DKitchen Corporate SL, con domicilio en Alcobendas (Madrid). Nuestros servicios están dirigidos a profesionales y empresas de hostelería que los contratan para su actividad.</>],
+  ['Precios e impuestos', <>Todos los precios publicados en esta web son <strong>sin IVA</strong>. Al pagar se añade el IVA vigente (21 %) y la pasarela te muestra el total antes de confirmar. Cualquier servicio extra que contrates desde tu panel muestra su precio antes de pagarlo: nunca cobramos nada por sorpresa.</>],
+  ['Carta digital QR: cobro y renovación', <>El primer mes cuesta 1 € + IVA. Después se cobra automáticamente la cuota de tu plan (Básico o Ampliado) cada 30 días con la tarjeta que registraste. Puedes cambiar de plan desde tu panel.</>],
+  ['Sin permanencia', <>No hay permanencia. Cancelas cuando quieras desde tu panel o escribiéndonos, y no se vuelve a cobrar. El servicio sigue activo hasta el final del periodo ya pagado. <strong>Los periodos ya pagados no se devuelven.</strong></>],
+  ['Si un cobro falla', <>Te avisamos y reintentamos el cobro. Durante los primeros días mantienes el acceso completo; si el pago sigue sin entrar, el panel pasa a modo de solo lectura y, a los 30 días del primer fallo, el servicio se suspende. En cuanto el pago entra, todo vuelve a la normalidad.</>],
+  ['Servicios de pago único', <>La Auditoría de canales, DKitchen Signature y DKitchen Experience se pagan al contratarlos. Qué incluye cada uno, qué pasa después del pago y sus plazos se explican en su página de contratación y, en el caso de Signature, en su contrato.</>],
+  ['Tus datos y tu contenido son tuyos', <>Tu carta, tus fotos y los datos de tu negocio son tuyos. Puedes pedirnos una copia en cualquier momento. En DKitchen Signature, la app, el dominio y los datos de tus clientes quedan a nombre de tu negocio.</>],
+  ['Qué pasa tras la baja', <>Tu QR no muestra nunca un error: lleva a una página informativa. Conservamos tu carta y tus datos <strong>60 días</strong> por si quieres volver o pedirnos una copia; pasado ese plazo, los eliminamos.</>],
+  ['Contenido de la carta y alérgenos', <>El contenido de la carta (platos, precios, alérgenos y disponibilidad) lo decide y lo mantiene el establecimiento, que es responsable de que sea correcto. Te damos las herramientas para informar de los 14 alérgenos que exige la normativa europea.</>],
+  ['Soporte', <>Respondemos en menos de <strong>24 horas laborables</strong> desde la sección Soporte de tu panel o por correo.</>],
+  ['Pagos', <>Los pagos se procesan a través de Whop, nuestra pasarela de pago. No guardamos los datos de tu tarjeta.</>],
+  ['Cambios en estas condiciones', <>Si cambiamos estas condiciones, te avisaremos por correo al menos 30 días antes de que se apliquen a tu servicio.</>],
+  ['Ley aplicable', <>Estas condiciones se rigen por la legislación española.</>],
+];
+
+export default function Condiciones() {
   return (
-    <div className="min-h-screen bg-[#FDFCF8] text-zinc-900 font-sans p-8 md:p-24 selection:bg-[#D9531E] selection:text-white">
-      <div className="max-w-3xl mx-auto">
-        <header className="mb-16 border-b border-zinc-100 pb-8 text-center md:text-left">
-          <h1 className="text-sm font-black uppercase tracking-[0.3em] text-[#D9531E] mb-4">Protocolo de Servicio</h1>
-          <p className="text-4xl md:text-5xl font-black tracking-tighter">Condiciones del Servicio</p>
-          <p className="text-zinc-400 mt-4 font-medium">Última actualización: 21 de Abril, 2026</p>
-        </header>
-
-        <section className="space-y-12 leading-relaxed text-zinc-600">
-          <div>
-            <h2 className="text-xl font-bold text-zinc-900 mb-4">1. Aceptación de Términos</h2>
-            <p>
-              Al contratar cualquiera de los servicios de DKitchen Corporate SL —carta digital con QR,
-              eventos gastronómicos, auditoría de canales, digitalización a medida o marcas virtuales—
-              el cliente acepta estas condiciones.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-zinc-900 mb-4">2. Contenido y disponibilidad</h2>
-            <p>
-              El contenido de la carta digital (platos, precios, alérgenos y disponibilidad) es
-              responsabilidad exclusiva del establecimiento, que puede editarlo en cualquier momento desde
-              su panel. DKitchen provee la infraestructura que lo publica, no valida ni garantiza la
-              exactitud de esa información frente al consumidor final.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-zinc-900 mb-4">3. Cobros de terceros</h2>
-            <p>
-              En los eventos, la venta de entradas se cobra directamente en la cuenta de la pasarela de pago
-              titularidad del propio establecimiento. DKitchen configura esa conexión pero en ningún momento
-              recibe, retiene ni intermedia los fondos, ni percibe comisión alguna sobre esas ventas.
-            </p>
-          </div>
-
-          <div className="bg-zinc-900 text-white p-8 rounded-[2rem] shadow-xl">
-            <h2 className="text-xl font-bold mb-4">Aviso de Facturación</h2>
-            <p className="text-zinc-400 text-sm">
-              Las tarifas de DKitchen son fijas y se acuerdan por escrito antes de la contratación. La cuota
-              mensual de la carta digital se factura de forma recurrente hasta que el cliente la cancele; el
-              resto de servicios se facturan como pago único. Ninguna tarifa incluye un componente variable
-              ni un porcentaje sobre la facturación del establecimiento.
-            </p>
-          </div>
-        </section>
-
-        <footer className="mt-24 pt-12 border-t border-zinc-100 text-center">
-          <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">© DKitchen Ecosystem | Secure Node</p>
-        </footer>
-      </div>
+    <div className="bg-[#F7F5F2] px-6 pb-24 pt-36 text-[#17191E] md:pt-44">
+      <article className="mx-auto max-w-3xl">
+        <p className="etiqueta-dk text-[#6E0C2B]">Condiciones del servicio</p>
+        <h1 className="font-display mt-4 text-4xl font-semibold leading-tight md:text-6xl">Claras, cortas y sin letra pequeña.</h1>
+        <p className="mt-4 text-sm text-[#6B7079]">Última actualización: 29 de septiembre de 2026</p>
+        <ol className="mt-12 divide-y divide-[#E4E1DC] border-y border-[#E4E1DC]">
+          {SECCIONES.map(([t, texto], i) => (
+            <li key={t} className="grid gap-3 py-7 md:grid-cols-[56px_1fr]">
+              <span className="acento-serif text-3xl leading-none">{i + 1}</span>
+              <div>
+                <h2 className="text-lg font-semibold">{t}</h2>
+                <p className="mt-2 leading-relaxed text-[#3F434B]">{texto}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-10 text-sm text-[#6B7079]">¿Dudas sobre estas condiciones? <a href="#solicitud-dudas" className="underline">Escríbenos</a>.</p>
+      </article>
     </div>
   );
 }

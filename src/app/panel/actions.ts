@@ -423,3 +423,30 @@ export async function guardarEstiloAction(e: { plantilla: string; fondo: string;
   revalidatePath('/panel');
   revalidatePath(`/m/${restaurante.slug}`);
 }
+
+/**
+ * Baja del servicio desde el panel (29/09/2026, condiciones §4): queda como
+ * ticket en Central (Soporte), aviso interno para cancelar la suscripción en
+ * Whop antes del próximo cobro, y confirmación al cliente. El servicio sigue
+ * activo hasta el final del periodo pagado.
+ */
+export async function solicitarBajaAction(motivo: string) {
+  const { jwt, identidad, restaurante } = await requerirSesionYRestaurante();
+  const texto = String(motivo ?? '').trim().slice(0, 1000) || 'Sin motivo indicado.';
+  await dbCrearTicket(jwt, restaurante.id, { asunto: 'Solicitud de baja', mensaje: `El cliente pide la baja del servicio. Motivo: ${texto}` }, {
+    restauranteNombre: restaurante.nombre,
+    email: identidad.email,
+  });
+  const { enviarCorreoInterno, enviarCorreoCliente, escaparHtml } = await import('@/lib/email');
+  await enviarCorreoInterno(`BAJA: ${restaurante.nombre}`,
+    `<p><strong>${escaparHtml(restaurante.nombre)}</strong> (${escaparHtml(identidad.email)}) ha pedido la baja desde su panel.</p>
+     <p><strong>Cancela su suscripción en Whop antes del próximo cobro.</strong> El servicio sigue activo hasta el final del periodo pagado.</p>
+     <p>Motivo: ${escaparHtml(texto)}</p>`).catch((e) => console.error('Baja: aviso interno no enviado', e));
+  await enviarCorreoCliente(identidad.email, `Hemos recibido tu baja · ${restaurante.nombre}`,
+    `<p>Hola,</p>
+     <p>Hemos recibido tu solicitud de baja de la carta digital de <strong>${escaparHtml(restaurante.nombre)}</strong>. No se te volverá a cobrar.</p>
+     <p>Tu carta sigue activa hasta el final del periodo que ya pagaste. Después, tu QR mostrará una página informativa (nunca un error) y guardaremos tu carta 60 días por si quieres volver o pedirnos una copia.</p>
+     <p>Si ha sido un error o quieres contarnos algo, responde a este correo.</p>`,
+    { titulo: 'Baja recibida' }).catch((e) => console.error('Baja: confirmación no enviada', e));
+  revalidatePath('/panel');
+}
