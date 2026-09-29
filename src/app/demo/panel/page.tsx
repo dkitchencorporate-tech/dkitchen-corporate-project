@@ -60,8 +60,8 @@ const reservas = [
 export default function DemoPanel() {
   return (
     <>
-      <div className="fixed inset-x-0 top-0 z-[60] bg-[#6E0C2B] px-4 py-2 text-center text-xs font-semibold text-white">Demostración del panel con datos de ejemplo · los cambios no se guardan</div>
-      <div className="pt-8">
+      <div className="relative z-[60] bg-[#6E0C2B] px-4 py-2 text-center text-xs font-semibold text-white">Demostración del panel con datos de ejemplo · los cambios no se guardan</div>
+      <div>
         <PanelShell
           identidad={{ id: 'demo', nombre: 'Alex', email: 'alex@casabrasa.es' }}
           restaurante={restaurante}

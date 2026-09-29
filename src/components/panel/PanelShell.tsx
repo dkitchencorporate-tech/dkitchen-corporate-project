@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Inicio from './Inicio';
+import { Icono } from './Iconos';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
 import type { EscaneosPorDia } from '@/lib/escaneos-cliente';
@@ -28,20 +29,26 @@ import { authClient } from '@/lib/auth-client';
 
 type Pestana = 'inicio' | 'carta' | 'local' | 'promociones' | 'reservas' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
 
-const GRUPOS: { titulo: string; items: { id: Pestana; nombre: string }[] }[] = [
-  { titulo: 'Tu carta', items: [
-    { id: 'inicio', nombre: 'Inicio' }, { id: 'carta', nombre: 'Mi carta' }, { id: 'diseno', nombre: 'Diseño' }, { id: 'idiomas', nombre: 'Idiomas' },
+/**
+ * Navegación por espacios (29/09/2026): un raíl de iconos con 5 espacios y,
+ * dentro de cada uno, sus vistas en píldora. Misma estructura en escritorio
+ * (raíl lateral) y móvil (barra flotante inferior).
+ */
+const ESPACIOS: { id: string; nombre: string; icono: string; items: { id: Pestana; nombre: string }[] }[] = [
+  { id: 'inicio', nombre: 'Inicio', icono: 'inicio', items: [{ id: 'inicio', nombre: 'Inicio' }] },
+  { id: 'carta', nombre: 'Carta', icono: 'carta', items: [
+    { id: 'carta', nombre: 'Platos' }, { id: 'diseno', nombre: 'Diseño' }, { id: 'idiomas', nombre: 'Idiomas' },
     { id: 'promociones', nombre: 'Banners' }, { id: 'qr', nombre: 'Mi QR' },
   ] },
-  { titulo: 'Servicio', items: [
-    { id: 'reservas', nombre: 'Reservas' }, { id: 'camarero', nombre: 'Llamadas de mesa' }, { id: 'sala', nombre: 'Sala' },
+  { id: 'servicio', nombre: 'Servicio', icono: 'servicio', items: [
+    { id: 'reservas', nombre: 'Reservas' }, { id: 'camarero', nombre: 'Llamadas' }, { id: 'sala', nombre: 'Sala' },
   ] },
-  { titulo: 'Tu negocio', items: [
-    { id: 'escaneos', nombre: 'Escaneos' }, { id: 'modulos', nombre: 'Módulos' }, { id: 'local', nombre: 'Mi local' },
-    { id: 'plan', nombre: 'Mi plan' }, { id: 'soporte', nombre: 'Soporte' },
+  { id: 'negocio', nombre: 'Negocio', icono: 'negocio', items: [
+    { id: 'escaneos', nombre: 'Escaneos' }, { id: 'local', nombre: 'Mi local' }, { id: 'plan', nombre: 'Mi plan' }, { id: 'modulos', nombre: 'Mejoras' },
   ] },
+  { id: 'ayuda', nombre: 'Ayuda', icono: 'ayuda', items: [{ id: 'soporte', nombre: 'Soporte' }] },
 ];
-const PESTANAS = GRUPOS.flatMap((g) => g.items);
+const PESTANAS = ESPACIOS.flatMap((e) => e.items);
 
 export default function PanelShell({
   identidad,
@@ -90,83 +97,80 @@ export default function PanelShell({
   }, []);
 
   const salir = async () => { await authClient.signOut(); window.location.href = '/panel/iniciar-sesion'; };
+  const espacios = ESPACIOS.map((e) => ({ ...e, items: e.items.filter((p) => visible(p.id)) })).filter((e) => e.items.length > 0);
+  const espacio = espacios.find((e) => e.items.some((p) => p.id === pestana)) ?? espacios[0];
   const titulo = PESTANAS.find((p) => p.id === pestana)?.nombre ?? '';
-  const Navegacion = ({ oscuro = false }: { oscuro?: boolean }) => (
-    <nav aria-label="Secciones del panel" className="space-y-7">
-      {GRUPOS.map((g) => {
-        const items = g.items.filter((p) => visible(p.id));
-        if (items.length === 0) return null;
-        return (
-          <div key={g.titulo}>
-            <p className={`px-3 text-[11px] font-medium uppercase tracking-[0.18em] ${oscuro ? 'text-white/35' : 'text-[#9A9EA6]'}`}>{g.titulo}</p>
-            <ul className="mt-2 space-y-0.5">
-              {items.map((p) => (
-                <li key={p.id}>
-                  <button onClick={() => setPestana(p.id)} aria-current={pestana === p.id ? 'page' : undefined}
-                    className={`relative w-full rounded-xl px-3 py-2 text-left text-[15px] transition-colors ${pestana === p.id ? (oscuro ? 'font-semibold text-white' : 'font-semibold text-[#1B1D22]') : (oscuro ? 'text-white/60 hover:text-white' : 'text-[#6B7079] hover:text-[#1B1D22]')}`}>
-                    {pestana === p.id && <motion.span layoutId="pestana-activa" className={`absolute inset-0 rounded-xl ${oscuro ? 'bg-white/10' : 'bg-[#EDEDEA]'}`} transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-                    <span className="relative">{p.nombre}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      })}
-    </nav>
-  );
-
   return (
-    <div className="min-h-screen bg-[#F7F5F2] text-[#1B1D22] lg:grid lg:grid-cols-[16rem_1fr]">
-      {/* Lateral (escritorio) */}
-      <aside className="hidden bg-[#17191E] text-white lg:flex lg:h-screen lg:sticky lg:top-0 lg:flex-col">
-        <div className="px-6 pb-6 pt-7">
-          <p className="text-[15px] font-semibold tracking-tight">{restaurante.nombre}</p>
-          <p className="mt-0.5 text-xs text-white/40">Carta QR · plan {restaurante.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</p>
-        </div>
-        <div className="flex-1 overflow-y-auto px-3"><Navegacion oscuro /></div>
-        <div className="space-y-2 border-t border-white/10 px-6 py-5 text-sm">
-          <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="block font-semibold text-[#D9B25C] hover:underline">Ver mi carta</a>
-          <p className="truncate text-xs text-white/40">{identidad.email}</p>
-          <button onClick={salir} className="text-xs text-white/55 hover:text-white">Cerrar sesión</button>
-          <p className="pt-2 text-[10px] uppercase tracking-[0.2em] text-white/25">DKitchen</p>
+    <div className="min-h-screen bg-[#F7F5F2] text-[#1B1D22] lg:grid lg:grid-cols-[88px_1fr]">
+      {/* Raíl de espacios (escritorio) */}
+      <aside className="hidden bg-[#0A080C] text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:items-center lg:py-5">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.06] font-display text-lg font-semibold text-[#D9B25C]" title={restaurante.nombre}>{restaurante.nombre.slice(0, 1).toUpperCase()}</div>
+        <nav aria-label="Espacios del panel" className="mt-8 flex flex-1 flex-col gap-1.5">
+          {espacios.map((e) => {
+            const activo = espacio?.id === e.id;
+            return (
+              <button key={e.id} onClick={() => setPestana(e.items[0].id)} aria-current={activo ? 'page' : undefined}
+                className={`group relative flex w-[68px] flex-col items-center gap-1 rounded-2xl py-2.5 text-[10.5px] font-medium transition-colors ${activo ? 'text-white' : 'text-white/45 hover:text-white'}`}>
+                {activo && <motion.span layoutId="rail-activo" className="absolute inset-0 rounded-2xl bg-white/[0.08] ring-1 ring-[#D9B25C]/30" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                <span className={`relative ${activo ? 'text-[#D9B25C]' : ''}`}><Icono n={e.icono} /></span>
+                <span className="relative">{e.nombre}</span>
+              </button>
+            );
+          })}
+        </nav>
+        <div className="flex flex-col items-center gap-1.5">
+          <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" title="Ver mi carta" className="flex w-[68px] flex-col items-center gap-1 rounded-2xl py-2.5 text-[10.5px] text-white/45 hover:text-white"><Icono n="externo" />Mi carta</a>
+          <button onClick={salir} title={`Cerrar sesión (${identidad.email})`} className="flex w-[68px] flex-col items-center gap-1 rounded-2xl py-2.5 text-[10.5px] text-white/45 hover:text-white"><Icono n="salir" />Salir</button>
         </div>
       </aside>
 
       <div className="min-w-0">
-        {/* Barra superior (móvil y tablet) */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-[#E6E6E2] bg-[#F7F5F2]/95 px-4 py-3 backdrop-blur lg:hidden">
-          <div className="min-w-0">
-            <p className="truncate text-[15px] font-semibold">{restaurante.nombre}</p>
-            <p className="text-xs text-[#6B7079]">{titulo}</p>
+        {/* Cabecera */}
+        <header className="sticky top-0 z-30 border-b border-[#E6E2DC] bg-[#F7F5F2]/90 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-semibold">{restaurante.nombre}</p>
+              <p className="text-xs text-[#6B7079]">{espacio?.nombre}{espacio && espacio.items.length > 1 ? ` · ${titulo}` : ''} · plan {restaurante.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="hidden rounded-full border border-[#E0DBD4] bg-white px-4 py-2 text-sm font-medium sm:inline-flex lg:hidden">Ver carta</a>
+              <button onClick={() => setMenu(true)} aria-label="Cuenta" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#17191E] text-sm font-semibold text-[#D9B25C] lg:hidden">{identidad.nombre.slice(0, 1).toUpperCase()}</button>
+            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="rounded-lg border border-[#E6E6E2] px-3 py-2 text-sm">Ver carta</a>
-            
-          </div>
+          {espacio && espacio.items.length > 1 && (
+            <div className="mx-auto max-w-6xl px-4 pb-3 sm:px-6 lg:px-10">
+              <div className="flex gap-1 overflow-x-auto [scrollbar-width:none]" role="tablist" aria-label={espacio.nombre}>
+                {espacio.items.map((p) => (
+                  <button key={p.id} role="tab" aria-selected={pestana === p.id} onClick={() => setPestana(p.id)}
+                    className={`relative shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${pestana === p.id ? 'text-white' : 'text-[#6B7079] hover:text-[#1B1D22]'}`}>
+                    {pestana === p.id && <motion.span layoutId="pildora-activa" className="absolute inset-0 rounded-full bg-[#17191E]" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                    <span className="relative">{p.nombre}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </header>
 
         {menu && (
-          <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Menú del panel">
-            <button aria-label="Cerrar menú" onClick={() => setMenu(false)} className="absolute inset-0 bg-black/60" />
-            <div className="absolute inset-y-0 right-0 flex w-[82%] max-w-xs flex-col bg-white shadow-2xl">
-              <div className="flex items-center justify-between px-5 py-4">
-                <p className="font-semibold">{restaurante.nombre}</p>
-                <button onClick={() => setMenu(false)} className="text-sm text-[#6B7079]">Cerrar</button>
-              </div>
-              <div className="flex-1 overflow-y-auto px-2 pb-4"><Navegacion /></div>
-              <div className="border-t border-[#E6E6E2] px-5 py-4 text-sm">
-                <p className="truncate text-xs text-[#9A9EA6]">{identidad.email}</p>
-                <button onClick={salir} className="mt-2 text-[#6B7079]">Cerrar sesión</button>
+          <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Cuenta">
+            <button aria-label="Cerrar" onClick={() => setMenu(false)} className="absolute inset-0 bg-black/50" />
+            <div className="absolute inset-x-3 bottom-3 rounded-[28px] bg-white p-5 shadow-2xl" style={{ marginBottom: 'env(safe-area-inset-bottom)' }}>
+              <p className="font-semibold">{identidad.nombre}</p>
+              <p className="truncate text-sm text-[#6B7079]">{identidad.email}</p>
+              <div className="mt-4 grid gap-2">
+                <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="rounded-2xl bg-[#F3F1EE] px-4 py-3.5 text-sm font-medium">Ver mi carta como la ven mis clientes</a>
+                <button onClick={() => setPestana('soporte')} className="rounded-2xl bg-[#F3F1EE] px-4 py-3.5 text-left text-sm font-medium">Soporte</button>
+                <button onClick={salir} className="rounded-2xl px-4 py-3.5 text-left text-sm font-medium text-[#6E0C2B]">Cerrar sesión</button>
               </div>
             </div>
           </div>
         )}
 
-      <main className="mx-auto max-w-5xl px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:py-10">
+      <main className="mx-auto max-w-6xl px-4 pb-32 pt-6 sm:px-6 lg:px-10 lg:py-10">
         <AnimatePresence mode="wait">
         <motion.div key={pestana} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
-        {pestana === 'inicio' && <Inicio restaurante={restaurante} escaneosMes={escaneosMes} escaneos30d={escaneos30d} reservas={reservas} platos={carta.platos} servicios={servicios} ir={(p) => setPestana(p)} />}
+        {pestana === 'inicio' && <Inicio restaurante={restaurante} qrPedido={solicitudesQr.length > 0} escaneosMes={escaneosMes} escaneos30d={escaneos30d} reservas={reservas} platos={carta.platos} servicios={servicios} ir={(p) => setPestana(p)} />}
         {pestana === 'carta' && <MiCarta carta={carta} />}
         {pestana === 'local' && <MiLocal restaurante={restaurante} />}
         {pestana === 'promociones' && <Promociones promociones={promociones} secciones={carta.secciones} plan={restaurante.plan} />}
@@ -185,25 +189,22 @@ export default function PanelShell({
         </AnimatePresence>
       </main>
 
-      {/* Navegación flotante (móvil y tablet) */}
-      <nav aria-label="Navegación principal" className="fixed inset-x-3 bottom-3 z-40 lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <ul className="mx-auto flex max-w-md items-center justify-between rounded-full border border-[#E6E6E2] bg-[#17191E]/95 p-1.5 shadow-[0_12px_32px_rgba(23,25,30,.28)] backdrop-blur-xl">
-          {([
-            ['inicio', 'Inicio'], ['carta', 'Carta'],
-            restaurante.plan === 'ampliado' ? ['reservas', 'Reservas'] : ['qr', 'Mi QR'],
-            ['plan', 'Plan'],
-          ] as [Pestana, string][]).map(([id, n]) => (
-            <li key={id} className="flex-1">
-              <button onClick={() => setPestana(id)} aria-current={pestana === id ? 'page' : undefined}
-                className={`relative w-full rounded-full py-2.5 text-[13px] font-medium ${pestana === id ? 'text-[#17191E]' : 'text-white/70'}`}>
-                {pestana === id && <motion.span layoutId="nav-movil" className="absolute inset-0 rounded-full bg-white" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-                <span className="relative">{n}</span>
-              </button>
-            </li>
-          ))}
-          <li className="flex-1">
-            <button onClick={() => setMenu(true)} className="w-full rounded-full py-2.5 text-[13px] font-medium text-white/70">Más</button>
-          </li>
+      {/* Barra de espacios flotante (móvil y tablet) */}
+      <nav aria-label="Espacios del panel" className="fixed inset-x-3 bottom-3 z-40 lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <ul className="mx-auto flex max-w-md items-stretch justify-between rounded-[26px] bg-[#0A080C]/95 p-1.5 shadow-[0_16px_40px_rgba(10,8,12,.35)] backdrop-blur-xl">
+          {espacios.map((e) => {
+            const activo = espacio?.id === e.id;
+            return (
+              <li key={e.id} className="flex-1">
+                <button onClick={() => setPestana(e.items[0].id)} aria-current={activo ? 'page' : undefined}
+                  className={`relative flex w-full flex-col items-center gap-0.5 rounded-[20px] py-2 text-[10.5px] font-medium ${activo ? 'text-white' : 'text-white/50'}`}>
+                  {activo && <motion.span layoutId="barra-activa" className="absolute inset-0 rounded-[20px] bg-white/[0.1]" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                  <span className={`relative ${activo ? 'text-[#D9B25C]' : ''}`}><Icono n={e.icono} /></span>
+                  <span className="relative">{e.nombre}</span>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </nav>
       </div>

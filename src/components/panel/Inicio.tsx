@@ -9,6 +9,7 @@ import type { EstadoServicios } from '@/lib/servicios';
 import { registrarOfertaAction } from '@/app/panel/actions';
 import { TEXTOS_OFERTA } from './OfertaFranja';
 import { Contador } from '@/components/dk/Movimiento';
+import { Icono } from './Iconos';
 
 /**
  * Inicio del panel (rediseño 29/09/2026, ref. REFERENCIAS_DASHBOARD_Y_WEB):
@@ -30,8 +31,8 @@ function Mini({ datos }: { datos: number[] }) {
 
 const tarjeta = 'rounded-[22px] border border-[#E6E6E2] bg-white p-5 transition-colors hover:border-[#D6D6D1]';
 
-export default function Inicio({ restaurante, escaneosMes, escaneos30d, reservas, platos, servicios, ir }: {
-  restaurante: MiRestaurante; escaneosMes: number; escaneos30d: EscaneosPorDia[]; reservas: Reserva[];
+export default function Inicio({ restaurante, qrPedido = false, escaneosMes, escaneos30d, reservas, platos, servicios, ir }: {
+  restaurante: MiRestaurante; qrPedido?: boolean; escaneosMes: number; escaneos30d: EscaneosPorDia[]; reservas: Reserva[];
   platos: { disponible: boolean; fotoUrl: string | null }[]; servicios: EstadoServicios; ir: Ir;
 }) {
   const hora = new Date().getHours();
@@ -46,6 +47,15 @@ export default function Inicio({ restaurante, escaneosMes, escaneos30d, reservas
   const oferta = servicios.oferta?.oferta;
   const ampliado = restaurante.plan === 'ampliado';
   useEffect(() => { if (oferta) registrarOfertaAction(oferta, 'mostrada').catch(() => {}); }, [oferta]);
+
+  const pasos: { t: string; hecho: boolean; ir: Parameters<Ir>[0] }[] = [
+    { t: 'Sube el logo de tu local', hecho: Boolean(restaurante.logoUrl), ir: 'local' },
+    { t: 'Pon foto a todos tus platos', hecho: platos.length > 0 && sinFoto === 0, ir: 'carta' },
+    { t: 'Completa horario y dirección', hecho: Boolean(restaurante.horario && restaurante.direccion), ir: 'local' },
+    { t: 'Pide tu QR impreso para las mesas', hecho: qrPedido, ir: 'qr' },
+    ...(ampliado ? [{ t: 'Añade tu enlace de reseñas de Google', hecho: Boolean(restaurante.urlResenas), ir: 'local' as const }] : []),
+  ];
+  const hechos = pasos.filter((p) => p.hecho).length;
 
   const entra = (i: number) => ({ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { delay: i * 0.05, duration: 0.4 } });
 
@@ -89,20 +99,27 @@ export default function Inicio({ restaurante, escaneosMes, escaneos30d, reservas
 
       <div className="grid gap-3 lg:grid-cols-3">
         <motion.section {...entra(3)} className={`${tarjeta} lg:col-span-2`}>
-          <p className="text-xs text-[#6B7079]">Accesos rápidos</p>
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {([
-              ['Editar la carta', 'carta'], ['Mi QR', 'qr'], ['Banners', 'promociones'],
-              ['Datos del local', 'local'], ['Mi plan', 'plan'], ['Soporte', 'soporte'],
-            ] as const).map(([t, p]) => (
-              <button key={p} onClick={() => ir(p)} className="rounded-2xl border border-[#E6E6E2] bg-[#F3F3F0] px-4 py-3.5 text-left text-sm font-medium transition hover:bg-[#EDEDEA]">
-                {t}
-              </button>
-            ))}
-            <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="col-span-2 rounded-2xl bg-[#17191E] px-4 py-3.5 text-center text-sm font-semibold text-white sm:col-span-3">
-              Ver mi carta como la ven mis clientes
-            </a>
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-xs text-[#6B7079]">{hechos === pasos.length ? 'Tu carta está completa' : 'Primeros pasos'}</p>
+            <p className="text-xs tabular-nums text-[#6B7079]">{hechos} de {pasos.length}</p>
           </div>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#F1EEEA]">
+            <motion.div className="h-full rounded-full bg-[#6E0C2B]" initial={{ width: 0 }} animate={{ width: `${(hechos / pasos.length) * 100}%` }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} />
+          </div>
+          <ul className="mt-4 divide-y divide-[#F0ECE7]">
+            {pasos.map((p) => (
+              <li key={p.t}>
+                <button onClick={() => ir(p.ir)} className="flex w-full items-center gap-3 py-3 text-left text-sm">
+                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${p.hecho ? 'bg-[#2F8F6B] text-white' : 'border border-[#D6D1CA] text-transparent'}`}><Icono n="check" className="h-3.5 w-3.5" /></span>
+                  <span className={`flex-1 ${p.hecho ? 'text-[#9A9EA6] line-through decoration-[#D6D1CA]' : 'font-medium'}`}>{p.t}</span>
+                  {!p.hecho && <Icono n="flecha" className="h-4 w-4 text-[#9A9EA6]" />}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="mt-3 block rounded-2xl bg-[#17191E] px-4 py-3.5 text-center text-sm font-semibold text-white">
+            Ver mi carta como la ven mis clientes
+          </a>
         </motion.section>
 
         {oferta && TEXTOS_OFERTA[oferta] ? (
@@ -143,6 +160,22 @@ export default function Inicio({ restaurante, escaneosMes, escaneos30d, reservas
           </ul>
         </motion.section>
       )}
+      <motion.section {...entra(6)} className="relative overflow-hidden rounded-[26px] bg-[#0A080C] p-6 text-white md:p-8">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.55),transparent)]" />
+        <div className="relative grid gap-6 md:grid-cols-[1.4fr_1fr] md:items-center">
+          <div>
+            <p className="etiqueta-dk text-[#D9B25C]">Tu siguiente paso</p>
+            <p className="font-display mt-3 text-3xl font-semibold leading-tight md:text-4xl">Tu propia app, con tu marca. <span className="acento-serif">Y en propiedad.</span></p>
+            <p className="mt-3 max-w-lg text-[15px] text-white/65">Con DKitchen Signature tus clientes piden y pagan en tu app, acumulan puntos y vuelven. Pedidos, sala y carta en un solo panel, y la app es tuya aunque un día te vayas.</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+            <div className="flex justify-between text-sm"><span className="text-white/60">Carta QR con todos los módulos</span><span className="tabular-nums">124 €/mes · alquiler</span></div>
+            <div className="mt-2 flex justify-between text-sm"><span className="text-white/60">Signature</span><span className="tabular-nums text-[#D9B25C]">69 €/mes · tuya</span></div>
+            <p className="mt-3 text-xs text-white/45">Signature: entrada de 700 € y 2 meses de mantenimiento incluidos. Precios + IVA.</p>
+            <a href="/pagar/signature" className="mt-4 flex items-center justify-center gap-2 rounded-full bg-[#6E0C2B] px-5 py-3 text-sm font-semibold">Ver Signature <Icono n="flecha" className="h-4 w-4" /></a>
+          </div>
+        </div>
+      </motion.section>
     </div>
   );
 }
