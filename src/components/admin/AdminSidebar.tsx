@@ -3,82 +3,90 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { Icono } from '@/components/panel/Iconos';
 
 /**
- * Navegación de Central (rediseño 29/09/2026, paleta «Grafito y papel»):
- * barra lateral grafito en escritorio; en móvil, barra superior con menú lateral.
+ * Navegación de Central (29/09/2026): mismo modelo que el panel del cliente.
+ * Raíl de iconos en escritorio y barra flotante en móvil con los espacios
+ * principales; las herramientas antiguas quedan en «Más».
  */
-const GRUPOS: { titulo: string; items: { nombre: string; href: string }[] }[] = [
-  { titulo: 'QR Menú', items: [
-    { nombre: 'Clientes', href: '/admin-dkitchen/qr' },
-    { nombre: 'Soporte y QR físico', href: '/admin-dkitchen/soporte' },
-  ] },
-  { titulo: 'Ventas', items: [
-    { nombre: 'Embudo de pago', href: '/admin-dkitchen/embudo' },
-  ] },
-  { titulo: 'Otras herramientas', items: [
-    { nombre: 'Resumen general', href: '/admin-dkitchen/overview' },
-    { nombre: 'Directorio de clientes', href: '/admin-dkitchen/clients' },
-    { nombre: 'Eventos', href: '/admin-dkitchen/events-master' },
-    { nombre: 'Proyectos', href: '/admin-dkitchen/pipeline' },
-    { nombre: 'Manuales', href: '/manuals' },
-  ] },
+const ESPACIOS = [
+  { nombre: 'Inicio', href: '/admin-dkitchen/inicio', icono: 'inicio' },
+  { nombre: 'Clientes', href: '/admin-dkitchen/qr', icono: 'carta' },
+  { nombre: 'Soporte', href: '/admin-dkitchen/soporte', icono: 'ayuda' },
+  { nombre: 'Embudo', href: '/admin-dkitchen/embudo', icono: 'negocio' },
+];
+const MAS = [
+  { nombre: 'Resumen general', href: '/admin-dkitchen/overview' },
+  { nombre: 'Directorio de clientes', href: '/admin-dkitchen/clients' },
+  { nombre: 'Eventos', href: '/admin-dkitchen/events-master' },
+  { nombre: 'Proyectos', href: '/admin-dkitchen/pipeline' },
+  { nombre: 'Manuales', href: '/manuals' },
 ];
 
 export default function AdminSidebar() {
-  const [abierto, setAbierto] = useState(false);
+  const [mas, setMas] = useState(false);
   const ruta = usePathname();
-  const activo = (href: string) => ruta === href || (href !== '/admin-dkitchen/qr' && ruta.startsWith(href)) || (href === '/admin-dkitchen/qr' && ruta.startsWith('/admin-dkitchen/qr'));
-
-  const Menu = () => (
-    <nav aria-label="Central" className="space-y-7">
-      {GRUPOS.map((g) => (
-        <div key={g.titulo}>
-          <p className="px-3 text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">{g.titulo}</p>
-          <ul className="mt-2 space-y-0.5">
-            {g.items.map((i) => (
-              <li key={i.href}>
-                <Link href={i.href} onClick={() => setAbierto(false)} aria-current={activo(i.href) ? 'page' : undefined}
-                  className={`block rounded-xl px-3 py-2 text-[15px] transition-colors ${activo(i.href) ? 'bg-white/10 font-semibold text-white' : 'text-white/60 hover:text-white'}`}>
-                  {i.nombre}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </nav>
-  );
-
-  const Marca = () => (
-    <div>
-      <p className="text-[17px] font-semibold tracking-tight text-white">D<span className="text-[#D9B25C]">Kitchen</span></p>
-      <p className="mt-0.5 text-xs text-white/40">Central</p>
-    </div>
-  );
+  const activo = (href: string) => ruta === href || ruta.startsWith(href + '/');
+  const enMas = MAS.some((m) => activo(m.href));
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between bg-[#17191E] px-4 md:hidden">
-        <Marca />
-        <button onClick={() => setAbierto(true)} aria-expanded={abierto} className="rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white">Menú</button>
-      </header>
-      <div className="h-14 md:hidden" aria-hidden="true" />
+      <aside className="sticky top-0 hidden h-screen w-[88px] shrink-0 flex-col items-center bg-[#0A080C] py-5 text-white md:flex">
+        <Link href="/admin-dkitchen/inicio" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.06] font-display text-lg font-semibold text-[#D9B25C]" title="DKitchen · Central">D</Link>
+        <nav aria-label="Central" className="mt-8 flex flex-1 flex-col gap-1.5">
+          {ESPACIOS.map((e) => {
+            const a = activo(e.href);
+            return (
+              <Link key={e.href} href={e.href} aria-current={a ? 'page' : undefined}
+                className={`relative flex w-[68px] flex-col items-center gap-1 rounded-2xl py-2.5 text-[10.5px] font-medium transition-colors ${a ? 'text-white' : 'text-white/45 hover:text-white'}`}>
+                {a && <motion.span layoutId="central-rail" className="absolute inset-0 rounded-2xl bg-white/[0.08] ring-1 ring-[#D9B25C]/30" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                <span className={`relative ${a ? 'text-[#D9B25C]' : ''}`}><Icono n={e.icono} /></span>
+                <span className="relative">{e.nombre}</span>
+              </Link>
+            );
+          })}
+          <button onClick={() => setMas(true)} className={`relative flex w-[68px] flex-col items-center gap-1 rounded-2xl py-2.5 text-[10.5px] font-medium ${enMas ? 'text-white' : 'text-white/45 hover:text-white'}`}>
+            <span className="text-lg leading-5">···</span>Más
+          </button>
+        </nav>
+        <p className="text-[9px] uppercase tracking-[0.2em] text-white/25">Central</p>
+      </aside>
 
-      {abierto && (
-        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Menú de Central">
-          <button aria-label="Cerrar menú" onClick={() => setAbierto(false)} className="absolute inset-0 bg-black/50" />
-          <div className="absolute inset-y-0 left-0 flex w-[80%] max-w-xs flex-col bg-[#17191E] px-3 py-5">
-            <div className="mb-8 flex items-center justify-between px-3"><Marca /><button onClick={() => setAbierto(false)} className="text-sm text-white/50">Cerrar</button></div>
-            <Menu />
+      <nav aria-label="Central" className="fixed inset-x-3 bottom-3 z-40 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <ul className="mx-auto flex max-w-md rounded-[26px] bg-[#0A080C]/95 p-1.5 shadow-[0_16px_40px_rgba(10,8,12,.35)] backdrop-blur-xl">
+          {ESPACIOS.map((e) => {
+            const a = activo(e.href);
+            return (
+              <li key={e.href} className="flex-1">
+                <Link href={e.href} aria-current={a ? 'page' : undefined} className={`relative flex flex-col items-center gap-0.5 rounded-[20px] py-2 text-[10.5px] font-medium ${a ? 'text-white' : 'text-white/50'}`}>
+                  {a && <motion.span layoutId="central-barra" className="absolute inset-0 rounded-[20px] bg-white/[0.1]" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                  <span className={`relative ${a ? 'text-[#D9B25C]' : ''}`}><Icono n={e.icono} /></span>
+                  <span className="relative">{e.nombre}</span>
+                </Link>
+              </li>
+            );
+          })}
+          <li className="flex-1">
+            <button onClick={() => setMas(true)} className="flex w-full flex-col items-center gap-0.5 rounded-[20px] py-2 text-[10.5px] font-medium text-white/50"><span className="text-lg leading-5">···</span>Más</button>
+          </li>
+        </ul>
+      </nav>
+
+      {mas && (
+        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Más herramientas">
+          <button aria-label="Cerrar" onClick={() => setMas(false)} className="absolute inset-0 bg-black/50" />
+          <div className="absolute bottom-3 left-3 right-3 rounded-[28px] bg-white p-5 shadow-2xl md:bottom-6 md:left-[100px] md:right-auto md:w-80">
+            <p className="text-xs text-[#6B7079]">Otras herramientas</p>
+            <ul className="mt-3 grid gap-1.5">
+              {MAS.map((m) => (
+                <li key={m.href}><Link href={m.href} onClick={() => setMas(false)} className={`block rounded-2xl px-4 py-3 text-sm font-medium ${activo(m.href) ? 'bg-[#17191E] text-white' : 'bg-[#F3F1EE] text-[#1B1D22]'}`}>{m.nombre}</Link></li>
+              ))}
+            </ul>
           </div>
         </div>
       )}
-
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-[#17191E] px-3 py-7 md:flex">
-        <div className="mb-10 px-3"><Marca /></div>
-        <div className="flex-1 overflow-y-auto"><Menu /></div>
-      </aside>
     </>
   );
 }

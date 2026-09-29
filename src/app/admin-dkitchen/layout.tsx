@@ -24,7 +24,7 @@ export default async function AdminLayout({
 
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto pb-28 md:pb-0">
              {children}
           </div>
         </main>
