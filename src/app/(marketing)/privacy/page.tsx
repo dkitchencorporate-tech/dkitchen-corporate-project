@@ -1,78 +1,53 @@
-import React from 'react';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: "Política de Privacidad | DKitchen",
-  description: "Detalles sobre el tratamiento de datos personales y compromiso de confidencialidad en el ecosistema DKitchen, cumpliendo con el RGPD.",
-  alternates: { canonical: 'https://dkitchencorporate.es/privacy' }
+export const metadata: Metadata = {
+  title: 'Política de privacidad · DKitchen',
+  description: 'Qué datos tratamos en DKitchen, para qué, con qué proveedores, cuánto tiempo y cómo ejercer tus derechos.',
+  alternates: { canonical: 'https://dkitchencorporate.es/privacy' },
 };
 
-export default function PrivacyPolicy() {
+/**
+ * Política de privacidad (29/09/2026): refleja los tratamientos reales del
+ * proyecto (Neon, Vercel, Whop, correo de Arsys, formularios, medición
+ * anónima del embudo, reservas de comensales como encargado del tratamiento).
+ */
+const SECCIONES: [string, React.ReactNode][] = [
+  ['Responsable', <>DKitchen Corporate SL, con domicilio en Alcobendas (Madrid). Puedes escribirnos sobre privacidad a <strong>dkitchen@dkitchencorporate.es</strong>.</>],
+  ['Qué datos tratamos', <>
+    <strong>Si eres cliente (hostelero):</strong> tu nombre, correo, teléfono, los datos de tu negocio y el contenido que subes (carta, fotos, horarios). Los datos de pago los trata directamente la pasarela; nosotros no vemos ni guardamos tu tarjeta.<br />
+    <strong>Si nos escribes desde la web:</strong> los datos del formulario (nombre, negocio, correo, teléfono y mensaje).<br />
+    <strong>Si visitas la web o escaneas una carta:</strong> datos técnicos anónimos, como el tipo de navegador, el país aproximado y las páginas vistas. No guardamos tu IP en claro.
+  </>],
+  ['Para qué los usamos', <>Para prestarte el servicio que contratas, cobrarlo y facturarlo, darte soporte, responder a tus solicitudes y mejorar la web. La base legal es la ejecución del contrato, el cumplimiento de obligaciones legales (facturación) y tu consentimiento cuando nos escribes o aceptas cookies opcionales.</>],
+  ['Reservas y datos de tus comensales', <>Cuando un comensal reserva en la carta de un restaurante, <strong>el responsable de esos datos es el restaurante</strong>. DKitchen actúa solo como encargado del tratamiento: los guardamos y se los mostramos al restaurante para gestionar la reserva, sin usarlos para nada más.</>],
+  ['Proveedores que nos ayudan', <>
+    Vercel (alojamiento de la web y de las imágenes), Neon (base de datos, servidores en Fráncfort, Alemania), Whop (pagos) y Arsys (correo electrónico, España). Algunos de estos proveedores tienen sede en Estados Unidos; en ese caso la transferencia se ampara en las garantías del RGPD (Marco de Privacidad de Datos UE-EE. UU. o cláusulas contractuales tipo).
+  </>],
+  ['Cuánto tiempo los guardamos', <>Mientras seas cliente. Tras la baja, conservamos tu carta y tus datos 60 días por si vuelves o nos pides una copia, y después los eliminamos. Los datos de facturación se guardan el tiempo que exige la ley. Los datos de los formularios se guardan el tiempo necesario para responderte.</>],
+  ['Medición anónima', <>En nuestras páginas de contratación medimos de forma anónima cuántas personas entran, empiezan a rellenar, van a pagar o se van. Solo usamos un identificador aleatorio de la sesión del navegador; nunca tu nombre, correo ni IP.</>],
+  ['Cookies', <>Usamos cookies técnicas necesarias para que la web y tu panel funcionen. Las cookies opcionales solo se activan si las aceptas en el aviso de cookies, y puedes cambiar tu elección cuando quieras.</>],
+  ['Tus derechos', <>Puedes pedirnos acceder a tus datos, corregirlos, borrarlos, oponerte a su uso, limitarlo o llevártelos a otro proveedor, escribiendo a dkitchen@dkitchencorporate.es. Si crees que no hemos atendido bien tu petición, puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).</>],
+];
+
+export default function Privacidad() {
   return (
-    <div className="min-h-screen bg-[#FDFCF8] text-zinc-900 font-sans p-8 md:p-24 selection:bg-[#D9531E] selection:text-white">
-      <div className="max-w-3xl mx-auto">
-        <header className="mb-16 border-b border-zinc-100 pb-8 text-center md:text-left">
-          <h1 className="text-sm font-black uppercase tracking-[0.3em] text-[#D9531E] mb-4">Arquitectura Legal</h1>
-          <p className="text-4xl md:text-5xl font-black tracking-tighter">Política de Privacidad</p>
-          <p className="text-zinc-400 mt-4 font-medium">Última actualización: 21 de Abril, 2026</p>
-        </header>
-
-        <section className="space-y-12 leading-relaxed text-zinc-600">
-          <div>
-            <h2 className="text-xl font-bold text-zinc-900 mb-4">1. Identidad del Tratamiento</h2>
-            <p>
-              DKitchen (en adelante, "la Plataforma"), operando bajo el dominio <strong>dkitchencorporate.es</strong>,
-              garantiza la protección de los datos personales de sus usuarios y clientes conforme al Reglamento General 
-              de Protección de Datos (RGPD) y las normativas locales vigentes.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-zinc-900 mb-4">2. Datos Recopilados</h2>
-            <p>
-              Procesamos información estrictamente necesaria para el funcionamiento de nuestros Agentes de IA y sistemas de reserva:
-            </p>
-            <ul className="list-disc ml-6 mt-4 space-y-2">
-              <li>Número de teléfono (identificador único para comunicaciones vía WhatsApp).</li>
-              <li>Nombres de clientes proporcionados durante el proceso de reserva.</li>
-              <li>Datos de interacción y preferencias comerciales para optimizar la respuesta del Agente.</li>
-            </ul>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-zinc-900 mb-4">3. Uso de la Información</h2>
-            <p>
-              Los datos se utilizan exclusivamente para:
-            </p>
-            <ul className="list-disc ml-6 mt-4 space-y-2">
-              <li>Facilitar la automatización de reservas y pedidos mediante IA.</li>
-              <li>Proporcionar análisis predictivos de ventas en el dashboard administrativo.</li>
-              <li>Cumplir con las obligaciones técnicas de la Cloud API de Meta.</li>
-            </ul>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-zinc-900 mb-4">4. Retención y Eliminación</h2>
-            <p>
-              Los datos de conversaciones se mantienen por un periodo máximo de 90 días para fines de auditoría comercial, 
-              a menos que el usuario solicite su eliminación inmediata. Cumplimos rigurosamente con los protocolos de Meta 
-              para la gestión de Business-Scoped User IDs (BSUIDs).
-            </p>
-          </div>
-
-          <div className="bg-white border border-zinc-100 p-8 rounded-[2rem] shadow-sm">
-            <h2 className="text-xl font-bold text-zinc-900 mb-4">Contacto de Privacidad</h2>
-            <p className="text-sm">
-              Para ejercer sus derechos de acceso, rectificación o cancelación, contacte con nuestra delegación de datos en:
-              <br />
-              <span className="font-bold text-[#D9531E]">hola@dkitchencorporate.es</span>
-            </p>
-          </div>
-        </section>
-
-        <footer className="mt-24 pt-12 border-t border-zinc-100 text-center">
-          <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">© DKitchen Ecosystem | Secure Node</p>
-        </footer>
-      </div>
+    <div className="bg-[#F7F5F2] px-6 pb-24 pt-36 text-[#17191E] md:pt-44">
+      <article className="mx-auto max-w-3xl">
+        <p className="etiqueta-dk text-[#6E0C2B]">Política de privacidad</p>
+        <h1 className="font-display mt-4 text-4xl font-semibold leading-tight md:text-6xl">Tus datos, claros y en tu mano.</h1>
+        <p className="mt-4 text-sm text-[#6B7079]">Última actualización: 29 de septiembre de 2026</p>
+        <ol className="mt-12 divide-y divide-[#E4E1DC] border-y border-[#E4E1DC]">
+          {SECCIONES.map(([t, texto], i) => (
+            <li key={t} className="grid gap-3 py-7 md:grid-cols-[56px_1fr]">
+              <span className="acento-serif text-3xl leading-none">{i + 1}</span>
+              <div>
+                <h2 className="text-lg font-semibold">{t}</h2>
+                <p className="mt-2 leading-relaxed text-[#3F434B]">{texto}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </article>
     </div>
   );
 }
