@@ -148,7 +148,7 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, onIr
 
       <AnimatePresence>
         {abierto && (
-          <div className="fixed inset-0 z-[95] sm:inset-auto sm:bottom-5 sm:right-5" role="dialog" aria-modal="true" aria-label="Ayuda de DKitchen">
+          <div className="fixed inset-0 z-[9999] sm:inset-auto sm:bottom-5 sm:right-5" role="dialog" aria-modal="true" aria-label="Ayuda de DKitchen">
             <motion.button aria-label="Cerrar la ayuda" onClick={() => setAbierto(false)} className="absolute inset-0 bg-black/40 sm:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
             <motion.section initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }} transition={{ duration: 0.3, ease: CURVA }}
               className="absolute inset-x-0 bottom-0 flex max-h-[88dvh] flex-col overflow-hidden rounded-t-[28px] bg-[#F7F5F2] text-[#1B1D22] shadow-2xl sm:relative sm:h-[min(640px,calc(100dvh-40px))] sm:max-h-none sm:w-[400px] sm:rounded-[28px]"
