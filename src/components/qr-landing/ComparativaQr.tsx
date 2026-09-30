@@ -15,7 +15,7 @@ const GRUPOS: { g: string; filas: Fila[] }[] = [
     { t: 'Carta digital con fotos que cambias al momento', qr: true, sig: true },
   ] },
   { g: 'Tu app', filas: [
-    { t: 'App propia instalable en el móvil, con tu marca', qr: false, sig: true, clave: true },
+    { t: 'App propia instalable en el móvil, con tu marca y tu dominio', qr: false, sig: true, clave: true },
     { t: 'Notificaciones push a tus clientes', qr: false, sig: true },
   ] },
   { g: 'Pedidos y cobro', filas: [
@@ -42,7 +42,7 @@ const GRUPOS: { g: string; filas: Fila[] }[] = [
 const PORTADA = ['App propia instalable en el móvil, con tu marca', 'Pedidos a domicilio y para recoger, con carrito', 'Cero comisiones por pedido (frente a las plataformas)', 'Base de clientes propia, con correo verificado', 'Club de fidelización con puntos canjeables', 'Kiosko de autoservicio y TPV propio'];
 
 function Marca({ v, oscuro }: { v: boolean | string; oscuro?: boolean }) {
-  if (typeof v === 'string') return <span className={`text-[13px] ${oscuro ? 'text-white/85' : 'text-[#6B7079]'}`}>{v}</span>;
+  if (typeof v === 'string') return <span className={`block px-1 text-[10.5px] leading-tight sm:text-[13px] ${oscuro ? 'text-white/85' : 'text-[#6B7079]'}`}>{v}</span>;
   return v ? (
     <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${oscuro ? 'bg-[#D9B25C] text-[#0A080C]' : 'bg-[#17191E] text-white'}`} aria-label="Sí">
       <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
@@ -67,23 +67,23 @@ export default function ComparativaQr({ variante = 'qr' }: { variante?: 'qr' | '
         </p>
 
         <div className="mt-12 overflow-hidden rounded-[28px] border border-[#E6E6E2] bg-white">
-          <div className="grid grid-cols-[1fr_92px_112px] items-end text-[13px] font-semibold sm:grid-cols-[1fr_150px_170px]">
+          <div className="grid grid-cols-[1fr_56px_68px] items-end text-[13px] font-semibold sm:grid-cols-[1fr_150px_170px]">
             <p className="p-5 text-[#9A9EA6]">{compacta ? '' : 'Qué incluye'}</p>
-            <p className="p-5 text-center text-[#6B7079]">Carta QR<span className="block text-[11px] font-normal">con todo</span></p>
-            <p className="bg-[#0A080C] p-5 text-center text-white">Signature<span className="block text-[11px] font-normal text-[#D9B25C]">tu app</span></p>
+            <p className="px-1 py-5 text-center text-[11px] text-[#6B7079] sm:p-5 sm:text-[13px]">Carta QR<span className="block text-[10px] font-normal sm:text-[11px]">con todo</span></p>
+            <p className="bg-[#0A080C] px-1 py-5 text-center text-[11px] text-white sm:p-5 sm:text-[13px]">Signature<span className="block text-[11px] font-normal text-[#D9B25C]">tu app</span></p>
           </div>
           {grupos.map((grupo) => (
             <div key={grupo.g || 'portada'}>
               {grupo.g && (
-                <div className="grid grid-cols-[1fr_92px_112px] border-t border-[#ECECE8] sm:grid-cols-[1fr_150px_170px]">
+                <div className="grid grid-cols-[1fr_56px_68px] border-t border-[#ECECE8] sm:grid-cols-[1fr_150px_170px]">
                   <p className="px-5 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9A9EA6]">{grupo.g}</p><span /><span className="bg-[#0A080C]" />
                 </div>
               )}
               {grupo.filas.map((f) => (
-                <div key={f.t} className="grid grid-cols-[1fr_92px_112px] items-center border-t border-[#F1F0EC] sm:grid-cols-[1fr_150px_170px]">
-                  <p className={`px-5 py-3.5 text-[14.5px] ${f.clave ? 'font-semibold text-[#17191E]' : 'text-[#3F434B]'}`}>{f.t}</p>
+                <div key={f.t} className="grid grid-cols-[1fr_56px_68px] items-center border-t border-[#F1F0EC] sm:grid-cols-[1fr_150px_170px]">
+                  <p className={`px-4 py-3.5 text-[14px] sm:px-5 sm:text-[14.5px] ${f.clave ? 'font-semibold text-[#17191E]' : 'text-[#3F434B]'}`}>{f.t}</p>
                   <p className="py-3.5 text-center"><Marca v={f.qr} /></p>
-                  <p className="h-full bg-[#0A080C] py-3.5 text-center"><span className="inline-flex h-full items-center"><Marca v={f.sig} oscuro /></span></p>
+                  <p className="flex self-stretch items-center justify-center bg-[#0A080C] py-3.5"><Marca v={f.sig} oscuro /></p>
                 </div>
               ))}
             </div>

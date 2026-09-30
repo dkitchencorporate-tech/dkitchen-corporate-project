@@ -4,7 +4,7 @@
  * (ver SIGNATURE_VS_QR_2026-09-30.md).
  */
 const PUNTOS = [
-  ['Tu propia app', 'Instalable en el móvil de tus clientes, con tu marca.'],
+  ['Tu propia app', 'Instalable en el móvil de tus clientes, con tu marca y tu propio dominio.'],
   ['Pedidos sin comisiones', 'A domicilio y para recoger, con seguimiento en tiempo real.'],
   ['Tus clientes, tuyos', 'Base de clientes propia, club de puntos y campañas por correo.'],
   ['Tu local conectado', 'Kiosko de autoservicio, TPV propio y comandas impresas en cocina.'],
