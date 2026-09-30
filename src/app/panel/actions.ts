@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { claveDeLimite, limiteSuperado } from '@/lib/limite-frecuencia';
 import { obtenerJwtDeSesion, identidadActual } from '@/lib/sesion';
 import { randomUUID } from 'node:crypto';
 import { put } from '@vercel/blob';
@@ -130,6 +131,7 @@ export async function crearTicketAyudaAction(datos: {
   const mensaje = texto(datos?.mensaje, 2000);
   if (mensaje.length < 3) throw new Error('Cuéntanos qué necesitas.');
   const { jwt, identidad, restaurante } = await requerirSesionYRestaurante();
+  if (await limiteSuperado(claveDeLimite('ticket-chat', restaurante.id), 5, 10 * 60)) throw new Error('Has enviado varios mensajes seguidos. Espera unos minutos.');
   const c: Partial<typeof datos.contexto> = datos.contexto ?? {};
   const contexto = {
     seccion: /^[a-z_]{2,20}$/.test(String(c.seccion ?? '')) ? c.seccion : null,
