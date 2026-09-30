@@ -35,7 +35,8 @@ export async function fijarUrlPrueba(jwt: string, enlaceId: string, url: string)
 }
 
 export const euros = (centimos: number) => (centimos / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
-export const fechaLarga = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', timeZone: 'Europe/Madrid' });
+// Fecha en hora de Madrid: una fecha de la base llega como medianoche de Madrid (22:00 o 23:00 UTC del día anterior).
+export const fechaLarga = (iso: string) => new Date(/^\d{4}-\d{2}-\d{2}$/.test(iso) ? `${iso}T12:00:00Z` : iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', timeZone: 'Europe/Madrid' });
 export const diasHasta = (iso: string) => Math.round((Date.parse(`${iso.slice(0, 10)}T00:00:00Z`) - Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`)) / 86400000);
 
 /** Cron diario: cierra pruebas vencidas y avisa a 3 días y a 1 día del final. */
