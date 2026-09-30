@@ -10,22 +10,26 @@ export default function SubirImagen({
   onCambio,
   etiqueta = 'Foto',
   redonda = false,
+  formato,
 }: {
   valor: string | null;
   onCambio: (url: string | null) => void;
   etiqueta?: string;
   redonda?: boolean;
+  /** «plato»: recorte 4:3 y luz automática (desactivable). */
+  formato?: 'plato';
 }) {
   const entrada = useRef<HTMLInputElement>(null);
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [auto, setAuto] = useState(true);
 
   async function alElegir(archivo: File | undefined) {
     if (!archivo) return;
     setError(null);
     setSubiendo(true);
     try {
-      const blob = await comprimirImagen(archivo);
+      const blob = await comprimirImagen(archivo, 1400, formato === 'plato' && auto ? { recorte: 4 / 3, mejorar: true } : {});
       const formulario = new FormData();
       formulario.append('archivo', new File([blob], 'foto.jpg', { type: 'image/jpeg' }));
       const { url } = await subirImagenAction(formulario);
@@ -68,6 +72,12 @@ export default function SubirImagen({
           )}
         </div>
         <p className="text-[11px] text-[#9A9EA6]">JPG, PNG o WebP. Se optimiza automáticamente.</p>
+        {formato === 'plato' && (
+          <label className="flex items-center gap-1.5 text-[11px] text-[#6B7079]">
+            <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="h-3.5 w-3.5 accent-[#6E0C2B]" />
+            Encuadrar (4:3) y mejorar la luz automáticamente
+          </label>
+        )}
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
       <input

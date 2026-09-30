@@ -282,7 +282,7 @@ function FormularioPlato({
         <span className="block text-[11px] text-[#9A9EA6]">Se ve en la carta y completa al abrir el plato. Una buena descripción vende más.</span>
       </label>
 
-      <SubirImagen valor={fotoUrl || null} onCambio={(url) => setFotoUrl(url ?? '')} etiqueta="Foto" />
+      <SubirImagen valor={fotoUrl || null} onCambio={(url) => setFotoUrl(url ?? '')} etiqueta="Foto" formato="plato" />
 
       {secciones.length > 0 && (
         <select
