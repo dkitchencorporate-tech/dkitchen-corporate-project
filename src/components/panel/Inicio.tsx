@@ -62,7 +62,7 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-sm text-[#6B7079]">{saludo}</p>
+        <p className="text-sm text-[#6B7079]" suppressHydrationWarning>{saludo}</p>
         <h1 className="font-display mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">{restaurante.nombre}</h1>
       </header>
 
