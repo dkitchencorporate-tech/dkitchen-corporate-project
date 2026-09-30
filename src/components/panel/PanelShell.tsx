@@ -200,7 +200,7 @@ export default function PanelShell({
         <motion.div key={pestana} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
         {pestana === 'inicio' && <Inicio restaurante={restaurante} qrPedido={solicitudesQr.length > 0} escaneosMes={escaneosMes} escaneos30d={escaneos30d} reservas={reservas} platos={carta.platos} servicios={servicios} ir={(p) => setPestana(p)} />}
         {pestana === 'carta' && <MiCarta carta={carta} />}
-        {pestana === 'estudio' && <Estudio secciones={carta.secciones} platos={carta.platos} extras={estudio.extras} legal={estudio.legal} restaurante={{ slug: restaurante.slug, nombre: restaurante.nombre, direccion: restaurante.direccion }} />}
+        {pestana === 'estudio' && <Estudio secciones={carta.secciones} platos={carta.platos} extras={estudio.extras} legal={estudio.legal} restaurante={{ slug: restaurante.slug, nombre: restaurante.nombre, direccion: restaurante.direccion }} demo={identidad.id === 'demo'} />}
         {pestana === 'local' && <MiLocal restaurante={restaurante} />}
         {pestana === 'promociones' && <Promociones promociones={promociones} secciones={carta.secciones} plan={restaurante.plan} platos={carta.platos.map((p) => ({ id: p.id, nombre: p.nombre }))} />}
         {(pestana === 'diseno' || pestana === 'modulos') && <Mejoras key={pestana} restaurante={restaurante} servicios={servicios} vista={pestana} fotos={carta.platos.map((p) => p.fotoUrl).filter((u): u is string => !!u).slice(0, 3)} />}

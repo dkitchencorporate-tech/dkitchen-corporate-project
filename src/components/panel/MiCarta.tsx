@@ -167,6 +167,7 @@ function SeccionCard({
               )}
               <div className="min-w-0 flex-1">
                 <p className={`font-medium truncate ${!plato.disponible ? 'text-[#9A9EA6] line-through' : ''}`}>
+                  {plato.esCombo && <span className="mr-1.5 rounded-full bg-[#6E0C2B] px-2 py-0.5 align-[2px] text-[10px] font-bold uppercase tracking-wider text-white no-underline">Combo</span>}
                   {plato.nombre}
                 </p>
                 {plato.descripcion ? (
@@ -226,7 +227,7 @@ function FormularioPlato({
           precio: Number(precio),
           fotoUrl: fotoUrl.trim() || null,
           seccionId: seccionId || null,
-          alergenos,
+          ...(plato.esCombo ? {} : { alergenos }),
           disponible,
         });
       } else {
@@ -301,6 +302,9 @@ function FormularioPlato({
 
       <div>
         <p className="text-sm text-[#6B7079] mb-2">Alérgenos (obligatorio marcar si aplica — Reglamento UE 1169/2011)</p>
+        {plato?.esCombo ? (
+          <p className="rounded-lg bg-[#F7F5F2] px-3 py-2.5 text-sm text-[#3F434B]">Es un combo: sus alérgenos se calculan solos a partir de sus platos. Para cambiar lo que incluye, ve a <strong>Carta → Estudio → Combos</strong>.</p>
+        ) : (
         <div className="flex flex-wrap gap-2">
           {CODIGOS_ALERGENOS.map((codigo) => (
             <button
@@ -317,6 +321,7 @@ function FormularioPlato({
             </button>
           ))}
         </div>
+        )}
       </div>
 
       {plato && (

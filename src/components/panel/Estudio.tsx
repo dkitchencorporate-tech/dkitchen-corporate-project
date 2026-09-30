@@ -5,7 +5,7 @@ import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
 import type { ExtraPlato, DatosLegal } from '@/lib/estudio';
 import {
   crearSeccionAction, editarSeccionAction, eliminarSeccionAction, eliminarPlatoAction,
-  guardarExtrasPlatoAction, guardarComboAction, guardarLegalAction,
+  guardarExtrasPlatoAction, guardarComboAction, guardarLegalAction, moverSeccionAction,
 } from '@/app/panel/actions';
 import SubirImagen from './SubirImagen';
 
@@ -28,13 +28,15 @@ const tarjeta = 'rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6';
 const botonPrincipal = 'rounded-full bg-[#6E0C2B] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#4A0819] disabled:opacity-40';
 
 export default function Estudio({
-  secciones, platos, extras, legal, restaurante,
+  secciones, platos, extras, legal, restaurante, demo = false,
 }: {
   secciones: SeccionPropia[];
   platos: PlatoPropio[];
   extras: ExtraPlato[];
   legal: DatosLegal;
   restaurante: { slug: string; nombre: string; direccion: string | null };
+  /** Panel de demostración: nada se guarda. */
+  demo?: boolean;
 }) {
   const [zona, setZona] = useState<Zona>('categorias');
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
@@ -44,6 +46,7 @@ export default function Estudio({
   const combos = platos.filter((p) => extra.get(p.id)?.esCombo);
 
   const ejecutar = (fn: () => Promise<unknown>, ok: string) => {
+    if (demo) { setAviso({ ok: true, texto: 'Esto es una demostración: en tu panel real este cambio se guardaría y aparecería en tu carta al momento.' }); return; }
     setAviso(null);
     iniciar(async () => {
       try { await fn(); setAviso({ ok: true, texto: ok }); }
@@ -97,11 +100,15 @@ function Categorias({ secciones, platos, pendiente, ejecutar }: { secciones: Sec
         <p className={`${tarjeta} text-center text-sm text-[#6B7079]`}>Todavía no tienes categorías. Crea la primera arriba.</p>
       ) : (
         <ul className="divide-y divide-[#EEECE8] overflow-hidden rounded-[22px] border border-[#E6E6E2] bg-white">
-          {secciones.map((s) => {
+          {secciones.map((s, i) => {
             const n = platos.filter((p) => p.seccionId === s.id).length;
             const valor = nombres[s.id] ?? s.nombre;
             return (
               <li key={s.id} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
+                <span className="flex flex-col">
+                  <button disabled={pendiente || i === 0} onClick={() => ejecutar(() => moverSeccionAction(s.id, -1), 'Orden guardado.')} aria-label={`Subir ${s.nombre}`} className="h-6 w-7 rounded-md text-[#6B7079] hover:bg-[#F3F1EE] disabled:opacity-25">▲</button>
+                  <button disabled={pendiente || i === secciones.length - 1} onClick={() => ejecutar(() => moverSeccionAction(s.id, 1), 'Orden guardado.')} aria-label={`Bajar ${s.nombre}`} className="h-6 w-7 rounded-md text-[#6B7079] hover:bg-[#F3F1EE] disabled:opacity-25">▼</button>
+                </span>
                 <input value={valor} onChange={(e) => setNombres({ ...nombres, [s.id]: e.target.value })} maxLength={60} aria-label="Nombre de la categoría"
                   className="min-w-0 flex-1 rounded-lg border border-transparent px-2 py-1.5 font-medium hover:border-[#E6E6E2] focus:border-[#6E0C2B] focus:outline-none" />
                 <span className="text-xs text-[#6B7079]">{n} {n === 1 ? 'plato' : 'platos'}</span>

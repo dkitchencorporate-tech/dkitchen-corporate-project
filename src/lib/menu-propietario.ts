@@ -26,6 +26,8 @@ export interface PlatoPropio {
   alergenos: string[];
   disponible: boolean;
   orden: number;
+  /** Combo del Estudio (0037): sus alérgenos se calculan solos. */
+  esCombo?: boolean;
 }
 
 export async function listarMiCarta(
@@ -47,8 +49,9 @@ export async function listarMiCarta(
       alergenos: string[];
       disponible: boolean;
       orden: number;
+      es_combo: boolean;
     }>(
-      `SELECT id, seccion_id, nombre, descripcion, precio, foto_url, alergenos, disponible, orden
+      `SELECT id, seccion_id, nombre, descripcion, precio, foto_url, alergenos, disponible, orden, es_combo
          FROM menu_items WHERE restaurante_id = $1 ORDER BY orden, nombre`,
       [restauranteId]
     );
@@ -64,6 +67,7 @@ export async function listarMiCarta(
         alergenos: p.alergenos ?? [],
         disponible: p.disponible,
         orden: p.orden,
+        esCombo: p.es_combo,
       })),
     };
   });

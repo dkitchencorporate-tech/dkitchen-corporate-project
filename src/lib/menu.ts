@@ -30,7 +30,7 @@ export interface PlatoCarta {
   /** Precio normal tachado mientras hay una promoción vigente (`precio` ya es el de promoción). */
   precioAnterior?: string | null;
   /** Platos que incluye un combo. */
-  combo?: { nombre: string; cantidad: number }[] | null;
+  combo?: { id?: string; nombre: string; cantidad: number }[] | null;
   /** Lo que se ahorra con el combo frente a pedir sus platos sueltos. */
   ahorro?: string | null;
 }
@@ -126,17 +126,23 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       alergenos: string[];
       etiqueta: 'especial' | 'nuevo' | 'recomendado' | null;
       precio_anterior: string | null;
-      combo: { nombre: string; cantidad: number }[] | null;
+      combo: { id?: string; nombre: string; cantidad: number }[] | null;
       ahorro: string | null;
     }>(
-      `SELECT m.id, m.seccion_id, m.nombre, m.descripcion, dk.precio_vigente(m) AS precio, m.foto_url, m.alergenos, m.etiqueta,
+      `SELECT m.id, m.seccion_id, m.nombre, m.descripcion, dk.precio_vigente(m) AS precio, m.foto_url,
+              CASE WHEN m.es_combo THEN coalesce((SELECT array_agg(DISTINCT a ORDER BY a) FROM menu_combo_items ci
+                     JOIN menu_items i ON i.id = ci.item_id, unnest(i.alergenos) a WHERE ci.combo_id = m.id), '{}') ELSE m.alergenos END AS alergenos,
+              m.etiqueta,
               CASE WHEN dk.precio_vigente(m) < m.precio THEN m.precio END AS precio_anterior,
-              CASE WHEN m.es_combo THEN (SELECT json_agg(json_build_object('nombre', i.nombre, 'cantidad', ci.cantidad) ORDER BY i.orden)
+              CASE WHEN m.es_combo THEN (SELECT json_agg(json_build_object('id', i.id, 'nombre', i.nombre, 'cantidad', ci.cantidad) ORDER BY i.orden)
                                            FROM menu_combo_items ci JOIN menu_items i ON i.id = ci.item_id WHERE ci.combo_id = m.id) END AS combo,
               CASE WHEN m.es_combo THEN nullif(greatest((SELECT sum(dk.precio_vigente(i) * ci.cantidad) FROM menu_combo_items ci
                                            JOIN menu_items i ON i.id = ci.item_id WHERE ci.combo_id = m.id) - dk.precio_vigente(m), 0), 0) END AS ahorro
          FROM menu_items m
         WHERE m.restaurante_id = $1
+          -- Un combo con algún plato agotado no se muestra (las políticas ya ocultan los agotados a dk_anon).
+          AND (NOT m.es_combo OR (SELECT count(*) FROM menu_combo_items ci WHERE ci.combo_id = m.id)
+                = (SELECT count(*) FROM menu_combo_items ci JOIN menu_items i ON i.id = ci.item_id WHERE ci.combo_id = m.id))
         ORDER BY m.orden, m.nombre`,
       [restaurante.id]
     );

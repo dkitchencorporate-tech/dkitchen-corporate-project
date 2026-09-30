@@ -118,3 +118,15 @@ export async function guardarLegal(jwt: string, restauranteId: string, d: DatosL
     `UPDATE restaurantes SET legal_titular = $2, legal_nif = $3, legal_email = $4, legal_domicilio = $5, legal_activo = $6 WHERE id = $1`,
     [restauranteId, d.titular, d.nif, d.email, d.domicilio, d.activo]));
 }
+
+/** Sube o baja una categoría un puesto (normaliza el orden antes de intercambiar). */
+export async function moverSeccion(jwt: string, restauranteId: string, seccionId: string, direccion: -1 | 1) {
+  await comoCliente(jwt, async (c) => {
+    const { rows } = await c.query<{ id: string }>('SELECT id FROM menu_secciones WHERE restaurante_id = $1 ORDER BY orden, nombre', [restauranteId]);
+    const ids = rows.map((r) => r.id);
+    const i = ids.indexOf(seccionId), j = i + direccion;
+    if (i < 0 || j < 0 || j >= ids.length) return;
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+    await c.query('UPDATE menu_secciones s SET orden = n.o FROM unnest($1::uuid[]) WITH ORDINALITY AS n(id, o) WHERE s.id = n.id', [ids]);
+  });
+}

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { claveDeLimite, limiteSuperado } from '@/lib/limite-frecuencia';
-import { guardarExtras as dbGuardarExtras, guardarCombo as dbGuardarCombo, guardarLegal as dbGuardarLegal, ETIQUETAS, type Etiqueta, type DatosCombo, type DatosLegal } from '@/lib/estudio';
+import { moverSeccion as dbMoverSeccion, guardarExtras as dbGuardarExtras, guardarCombo as dbGuardarCombo, guardarLegal as dbGuardarLegal, ETIQUETAS, type Etiqueta, type DatosCombo, type DatosLegal } from '@/lib/estudio';
 import { obtenerJwtDeSesion, identidadActual } from '@/lib/sesion';
 import { randomUUID } from 'node:crypto';
 import { put } from '@vercel/blob';
@@ -582,5 +582,12 @@ export async function guardarLegalAction(d: DatosLegal) {
   if (datos.activo && (!datos.titular || !datos.email)) throw new Error('Para publicar tus páginas legales hacen falta el titular y un correo de contacto.');
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   try { await dbGuardarLegal(jwt, restaurante.id, datos); } catch (e) { errorEstudio(e); }
+  revalidatePath('/panel');
+}
+
+export async function moverSeccionAction(seccionId: string, direccion: -1 | 1) {
+  if (!UUID.test(seccionId) || (direccion !== -1 && direccion !== 1)) throw new Error('Datos no válidos.');
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  await dbMoverSeccion(jwt, restaurante.id, seccionId, direccion);
   revalidatePath('/panel');
 }
