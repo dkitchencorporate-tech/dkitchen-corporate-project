@@ -17,7 +17,7 @@ export interface Ticket {
 export async function crearTicket(
   jwt: string,
   restauranteId: string,
-  datos: { asunto: string; mensaje: string },
+  datos: { asunto: string; mensaje: string; origen?: 'formulario' | 'chat'; contexto?: Record<string, unknown> | null },
   contexto: { restauranteNombre: string; email: string }
 ): Promise<Ticket> {
   const ticket = await comoCliente(jwt, async (c) => {
@@ -30,10 +30,10 @@ export async function crearTicket(
       creado_en: string;
       respondido_en: string | null;
     }>(
-      `INSERT INTO tickets_soporte (restaurante_id, asunto, mensaje)
-       VALUES ($1, $2, $3)
+      `INSERT INTO tickets_soporte (restaurante_id, asunto, mensaje, origen, contexto)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING id, asunto, mensaje, estado, respuesta, creado_en, respondido_en`,
-      [restauranteId, datos.asunto, datos.mensaje]
+      [restauranteId, datos.asunto, datos.mensaje, datos.origen ?? 'formulario', datos.contexto ? JSON.stringify(datos.contexto) : null]
     );
     return rows[0];
   });
@@ -47,6 +47,7 @@ export async function crearTicket(
         <p><strong>Correo:</strong> ${escaparHtml(contexto.email)}</p>
         <p><strong>Asunto:</strong> ${escaparHtml(ticket.asunto)}</p>
         <p>${escaparHtml(ticket.mensaje)}</p>
+        ${datos.origen === 'chat' ? `<p style="color:#6B7079;font-size:13px"><strong>Desde el chat de ayuda.</strong> ${escaparHtml(JSON.stringify(datos.contexto ?? {}))}</p>` : ''}
       </div>`
     );
   } catch (error) {

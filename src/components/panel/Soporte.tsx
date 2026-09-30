@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import type { Ticket } from '@/lib/tickets';
 import { crearTicketAction } from '@/app/panel/actions';
+import { abrirAyuda } from '@/components/ayuda/ChatAyuda';
 
 const ETIQUETAS_ESTADO: Record<string, string> = {
   abierto: 'Abierto',
@@ -39,6 +40,14 @@ export default function Soporte({ tickets }: { tickets: Ticket[] }) {
   return (
     <div className="space-y-8">
       <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Soporte</h2>
+
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-[#0A080C] p-6 text-white">
+        <div className="max-w-md">
+          <p className="text-lg font-semibold">¿Tienes una duda? Resuélvela al momento</p>
+          <p className="mt-1 text-sm text-white/65">El chat de ayuda responde las dudas más habituales paso a paso. Si no lo resuelve, se lo pasa a una persona con todo lo que has visto.</p>
+        </div>
+        <button onClick={abrirAyuda} className="rounded-full bg-[#6E0C2B] px-5 py-2.5 text-sm font-bold text-white ring-1 ring-[#D9B25C]/40 hover:bg-[#4A0819]">Abrir el chat de ayuda</button>
+      </div>
 
       <div className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-3">
         <h3 className="text-lg font-semibold">Abrir un ticket</h3>

@@ -75,6 +75,8 @@ export interface EntradaHistorial {
 export interface TicketAdmin {
   id: string; restauranteId: string; restaurante: string; asunto: string; mensaje: string;
   estado: 'abierto' | 'respondido' | 'cerrado'; respuesta: string | null; creadoEn: string; respondidoEn: string | null;
+  origen: 'formulario' | 'chat';
+  contexto: { seccion?: string | null; camino?: string[]; busquedas?: string[]; pagina?: string | null; plan?: string; nivel?: string } | null;
 }
 
 export interface SolicitudQrAdmin {
@@ -108,6 +110,7 @@ export async function bandejaSoporte(jwt: string): Promise<TicketAdmin[]> {
       id: r.id, restauranteId: r.restaurante_id, restaurante: r.restaurante, asunto: r.asunto, mensaje: r.mensaje,
       estado: r.estado, respuesta: r.respuesta, creadoEn: new Date(r.creado_en).toISOString(),
       respondidoEn: r.respondido_en ? new Date(r.respondido_en).toISOString() : null,
+      origen: r.origen === 'chat' ? 'chat' : 'formulario', contexto: r.contexto ?? null,
     }));
   });
 }

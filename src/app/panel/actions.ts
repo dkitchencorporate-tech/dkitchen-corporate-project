@@ -118,6 +118,34 @@ export async function crearTicketAction(datos: { asunto: string; mensaje: string
   revalidatePath('/panel');
 }
 
+/** Paso a una persona desde el chat de ayuda: el contexto se limpia aquí y el plan lo pone el servidor. */
+export async function crearTicketAyudaAction(datos: {
+  asunto: string;
+  mensaje: string;
+  contexto: { seccion: string | null; camino: string[]; busquedas: string[]; pagina?: string };
+}) {
+  const texto = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  const lista = (v: unknown, n: number) => (Array.isArray(v) ? v.slice(-n).map((x) => texto(x, 200)).filter(Boolean) : []);
+  const asunto = texto(datos?.asunto, 120) || 'Ayuda: consulta desde el chat';
+  const mensaje = texto(datos?.mensaje, 2000);
+  if (mensaje.length < 3) throw new Error('Cuéntanos qué necesitas.');
+  const { jwt, identidad, restaurante } = await requerirSesionYRestaurante();
+  const c: Partial<typeof datos.contexto> = datos.contexto ?? {};
+  const contexto = {
+    seccion: /^[a-z_]{2,20}$/.test(String(c.seccion ?? '')) ? c.seccion : null,
+    camino: lista(c.camino, 12),
+    busquedas: lista(c.busquedas, 6),
+    pagina: texto(c.pagina, 120) || null,
+    plan: restaurante.plan,
+    nivel: restaurante.nivelDiseno,
+  };
+  await dbCrearTicket(jwt, restaurante.id, { asunto, mensaje, origen: 'chat', contexto }, {
+    restauranteNombre: restaurante.nombre,
+    email: identidad.email,
+  });
+  revalidatePath('/panel');
+}
+
 const TIPOS_IMAGEN = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 /** Sube una foto (ya comprimida en el navegador) al almacén público de Vercel Blob. */

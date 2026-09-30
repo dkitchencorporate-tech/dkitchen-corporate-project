@@ -273,3 +273,13 @@ export const REGLAS_COMERCIALES = {
   /** La prospección es siempre activa. No hay programa de referidos. */
   usaReferidos: false,
 } as const;
+
+/**
+ * Servicios del panel QR que se citan en textos (chat de ayuda, 30/09/2026).
+ * Espejo del catálogo de la base (`catalogo_servicios`, 0028): el cobro real
+ * siempre lo decide la base; si cambia allí, cámbialo aquí.
+ */
+export const SERVICIOS_QR = {
+  puestaAPunto: 49,
+  cartaDeAutor: 199,
+} as const;

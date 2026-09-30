@@ -35,7 +35,7 @@ export default async function SoporteQr() {
           <article key={t.id} className="rounded-2xl border border-[#E6E6E2] bg-white p-5 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="font-semibold">{t.asunto}</p>
+                <p className="font-semibold">{t.asunto}{t.origen === 'chat' && <span className="ml-2 rounded-full bg-[#6E0C2B]/10 px-2 py-0.5 align-middle text-[11px] font-semibold text-[#6E0C2B]">Desde el chat</span>}</p>
                 <p className="text-xs text-[#6B7079]">
                   <Link href={`/admin-dkitchen/qr/${t.restauranteId}`} className="hover:text-[#1B1D22]">{t.restaurante}</Link> · {fechaHora.format(new Date(t.creadoEn))}
                 </p>
@@ -43,6 +43,19 @@ export default async function SoporteQr() {
               <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${COLOR[t.estado]}`}>{t.estado}</span>
             </div>
             <p className="whitespace-pre-wrap text-sm text-[#3F434B]">{t.mensaje}</p>
+            {t.origen === 'chat' && t.contexto && (
+              <div className="rounded-lg bg-[#F7F5F2] p-3 text-xs text-[#3F434B]">
+                <p className="text-[#6B7079]">
+                  Sección: <strong className="text-[#1B1D22]">{t.contexto.seccion ?? '—'}</strong>
+                  {t.contexto.plan && <> · plan <strong className="text-[#1B1D22]">{t.contexto.plan}</strong></>}
+                  {t.contexto.nivel && <> · diseño <strong className="text-[#1B1D22]">{t.contexto.nivel}</strong></>}
+                </p>
+                {!!t.contexto.camino?.length && (
+                  <ol className="mt-2 list-decimal space-y-0.5 pl-4">{t.contexto.camino.map((c, i) => <li key={i}>{c}</li>)}</ol>
+                )}
+                {!!t.contexto.busquedas?.length && <p className="mt-2 text-[#6B7079]">Escribió: {t.contexto.busquedas.map((b) => `«${b}»`).join(' · ')}</p>}
+              </div>
+            )}
             {t.respuesta && (
               <div className="rounded-lg border-l-2 border-[#6E0C2B] bg-[#F3F3F0] p-3 text-sm">
                 <p className="text-xs text-[#6B7079]">Respuesta {t.respondidoEn ? `· ${fechaHora.format(new Date(t.respondidoEn))}` : ''}</p>

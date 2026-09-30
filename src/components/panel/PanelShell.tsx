@@ -28,6 +28,9 @@ import type { MesaPlano, ElementoPlano, FilaInforme, Camarero as CamareroSala } 
 import type { Promocion } from '@/lib/promociones';
 import type { Reserva } from '@/lib/reservas';
 import { authClient } from '@/lib/auth-client';
+import ChatAyuda from '@/components/ayuda/ChatAyuda';
+import { TEMAS_PANEL } from '@/lib/ayuda';
+import { crearTicketAyudaAction, comprarServicioAction } from '@/app/panel/actions';
 
 type Pestana = 'inicio' | 'carta' | 'local' | 'promociones' | 'reservas' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
 
@@ -117,6 +120,9 @@ export default function PanelShell({
   const espacios = ESPACIOS.map((e) => ({ ...e, items: e.items.filter((p) => visible(p.id)) })).filter((e) => e.items.length > 0);
   const espacio = espacios.find((e) => e.items.some((p) => p.id === pestana)) ?? espacios[0];
   const titulo = PESTANAS.find((p) => p.id === pestana)?.nombre ?? '';
+  const demo = identidad.id === 'demo';
+  const puesta = servicios.contratados.some((c) => c.servicio === 'setup_esencial' || c.servicio === 'setup_experto') ? null : servicios.catalogo.find((c) => c.servicio === 'setup_esencial') ?? null;
+  const euros = (c: number) => `${(c / 100).toLocaleString('es-ES', { maximumFractionDigits: 2 })} €`;
   return (
     <div className="min-h-screen bg-[#F7F5F2] text-[#1B1D22] lg:grid lg:grid-cols-[88px_1fr]">
       {/* Raíl de espacios (escritorio) */}
@@ -206,6 +212,25 @@ export default function PanelShell({
         </motion.div>
         </AnimatePresence>
       </main>
+
+
+      {/* Chat de ayuda (30/09/2026): dudas de la sección actual; si no se resuelve, ticket con contexto */}
+      <ChatAyuda
+        modo="panel"
+        temas={TEMAS_PANEL}
+        seccion={pestana}
+        saludo={`Hola, ${identidad.nombre.split(' ')[0]}. ¿En qué te ayudo? Estas son las dudas más habituales en ${titulo || 'el panel'}; también puedes escribir la tuya abajo.`}
+        posicion="bottom-[5.75rem] right-4 lg:bottom-6 lg:right-6"
+        onIr={(p) => { if (PESTANAS.some((x) => x.id === p) && visible(p as Pestana)) setPestana(p as Pestana); else setPestana(p === 'idiomas' || p === 'sala' ? 'modulos' : 'plan'); }}
+        puesta={puesta ? { precio: euros(puesta.precioCentimos), comprar: async () => {
+          if (demo) { window.location.href = '/qr#planes'; return; }
+          const { url } = await comprarServicioAction('setup_esencial'); window.location.href = url;
+        } } : null}
+        onPersona={async (d) => {
+          if (demo) return 'En la demo no se envían mensajes. En tu panel real, esto llega a una persona de DKitchen con todo el contexto.';
+          await crearTicketAyudaAction(d);
+        }}
+      />
 
       {/* Barra de espacios flotante (móvil y tablet) */}
       <nav aria-label="Espacios del panel" className="fixed inset-x-3 bottom-3 z-40 lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
