@@ -87,6 +87,35 @@ async function generarGratis(prompt: string): Promise<{ datos: string; tipo: str
   }
 }
 
+/**
+ * Segunda vía gratuita (01/10/2026): FLUX.1 schnell (Apache 2.0) en el Space oficial de
+ * Black Forest Labs en Hugging Face, con cuota gratuita de GPU compartida (puede tardar si el
+ * Space está dormido o sin cuota). Solo crea desde cero. HF_TOKEN (cuenta gratuita) amplía la
+ * cuota; IA_HF_DESACTIVADO=1 la apaga.
+ */
+async function generarGratisHF(prompt: string, modo: 'plato' | 'banner'): Promise<{ datos: string; tipo: string } | null> {
+  if (process.env.IA_HF_DESACTIVADO === '1') return null;
+  const base = 'https://black-forest-labs-flux-1-schnell.hf.space/gradio_api';
+  const cab: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (process.env.HF_TOKEN) cab.Authorization = `Bearer ${process.env.HF_TOKEN}`;
+  try {
+    const [w, h] = modo === 'banner' ? [1280, 720] : [1024, 768];
+    const r = await fetch(`${base}/call/infer`, { method: 'POST', headers: cab, body: JSON.stringify({ data: [prompt.slice(0, 1500), 0, true, w, h, 4] }), signal: AbortSignal.timeout(15_000) });
+    const id = (await r.json().catch(() => null))?.event_id;
+    if (!id) return null;
+    const s = await (await fetch(`${base}/call/infer/${id}`, { headers: cab, signal: AbortSignal.timeout(40_000) })).text();
+    const url = s.match(/"url":\s*"([^"]+)"/)?.[1];
+    if (!url || !url.startsWith('https://black-forest-labs-flux-1-schnell.hf.space/')) { console.error('IA HF sin imagen:', s.slice(0, 200)); return null; }
+    const img = await fetch(url, { signal: AbortSignal.timeout(15_000) });
+    if (!img.ok) return null;
+    const tipo = (img.headers.get('content-type') ?? '').includes('png') ? 'png' : 'webp';
+    return { datos: Buffer.from(await img.arrayBuffer()).toString('base64'), tipo };
+  } catch (e) {
+    console.error('IA HF no disponible:', (e as Error).message);
+    return null;
+  }
+}
+
 /** Nano Banana (google/gemini-2.5-flash-image) por AI Gateway: crea y también mejora fotos. */
 async function generarNanoBanana(p: PeticionImagen): Promise<{ datos: string; tipo: string }> {
   const contenido: unknown[] = [{ type: 'text', text: instrucciones(p) }];
@@ -129,6 +158,7 @@ export async function generarImagen(
   try {
     // 2. Vía gratuita primero (crear desde cero); Nano Banana para mejorar fotos o si la gratuita falla.
     let img = p.imagenBase ? null : await generarGratis(instrucciones(p));
+    if (!img && !p.imagenBase) img = await generarGratisHF(instrucciones(p), p.modo);
     if (!img) img = await generarNanoBanana(p);
     const { datos, tipo } = img;
     const buffer = Buffer.from(datos, 'base64');
