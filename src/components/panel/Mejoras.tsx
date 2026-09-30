@@ -5,6 +5,7 @@ import type { EstadoServicios, Servicio } from '@/lib/servicios';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import { comprarServicioAction } from '@/app/panel/actions';
 import EstiloCarta from './EstiloCarta';
+import SaltoSignature from './SaltoSignature';
 import ActivarNucleoOperativoBoton from '@/components/sections/ActivarNucleoOperativoBoton';
 
 const WHATSAPP_DK = '#solicitud-signature';
@@ -117,6 +118,7 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
       </>)}
 
       {vista === 'modulos' && (<>
+      <SaltoSignature />
       {/* IDIOMAS */}
       <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#E6E6E2] bg-white p-6">
         <div className="max-w-md">

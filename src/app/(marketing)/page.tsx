@@ -6,6 +6,7 @@ import { FondoVivo, Marquesina, Contador, TextoRevelado, BotonMagnetico, Tarjeta
 import Aparecer from '@/components/qr-landing/Aparecer';
 import VistaExplosionada from '@/components/dk/VistaExplosionada';
 import { BandaFoto } from '@/components/dk/Bloques';
+import ComparativaQr from '@/components/qr-landing/ComparativaQr';
 
 /**
  * Portada v2 (29/09/2026): fondo vivo, dispositivo con la carta real, cinta de
@@ -96,6 +97,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <ComparativaQr variante="portada" />
 
       <section className="relative overflow-hidden bg-[#0A080C] py-24 text-white md:py-32">
         <FondoVivo className="opacity-60" />

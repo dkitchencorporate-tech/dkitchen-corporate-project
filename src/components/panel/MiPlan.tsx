@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import type { EstadoServicios } from '@/lib/servicios';
+import SaltoSignature from './SaltoSignature';
 import { iniciarUpgradeAmpliadoAction, solicitarBajaAction } from '@/app/panel/actions';
 
 const PLANES = {
@@ -203,6 +204,7 @@ function DarseDeBaja() {
           </div>
         </div>
       )}
+      <SaltoSignature />
     </div>
   );
 }

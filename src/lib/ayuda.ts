@@ -323,6 +323,17 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     siguientes: ['idiomas', 'sala'],
   },
   {
+    id: 'signature', pregunta: 'Qué gano pasando a Signature (mi propia app)', secciones: ['plan', 'modulos', 'inicio'],
+    claves: ['signature', 'app propia', 'mi app', 'pedidos', 'domicilio', 'delivery', 'glovo', 'comisiones', 'fidelizacion', 'puntos', 'kiosko', 'pago online'],
+    respuesta: [
+      'La carta QR es tu carta digital. Signature es tu propio negocio digital: tu app, tus pedidos, tus clientes y tus datos, sin comisiones.',
+      'Con Signature tienes una app instalable con tu marca, pedidos a domicilio y para recoger, y pago online (Stripe, SumUp o Revolut Pay), con datáfono o en efectivo.',
+      'Además: seguimiento del pedido con avisos, club de puntos, campañas por correo, kiosko de autoservicio y comandas impresas en cocina.',
+    ],
+    acciones: [{ tipo: 'enlace', href: '/base-operativa', texto: 'Ver Signature y sus apps reales' }, { tipo: 'ir', pestana: 'soporte', texto: 'Pedir una propuesta' }],
+    siguientes: ['plan-ampliado'],
+  },
+  {
     id: 'baja', pregunta: 'Quiero darme de baja', secciones: ['plan'],
     claves: ['baja', 'cancelar', 'darme de baja', 'dejar', 'cerrar cuenta', 'permanencia', 'borrar cuenta'],
     respuesta: [
@@ -400,10 +411,21 @@ export const TEMAS_WEB: TemaAyuda[] = [
     id: 'signature', pregunta: 'Quiero una app con mi marca',
     claves: ['app', 'aplicacion', 'marca', 'signature', 'pedidos', 'delivery', 'glovo', 'comisiones', 'propia'],
     respuesta: [
-      `DKitchen Signature es tu propia app de pedidos con tu marca, sin comisiones por pedido. Pago de entrada de ${BASE_OPERATIVA.pagoUnico} € + IVA y mantenimiento mensual.`,
-      'Te preparamos una propuesta para tu local sin compromiso.',
+      'La carta QR es tu carta digital. DKitchen Signature es tu propio negocio digital: tu app, tus pedidos, tus clientes y tus datos, sin comisiones por pedido.',
+      'Incluye app instalable con tu marca, pedidos a domicilio y para recoger, pago online (Stripe, SumUp o Revolut Pay), club de puntos, campañas por correo, kiosko y comandas en cocina.',
+      `Pago de entrada de ${BASE_OPERATIVA.pagoUnico} € + IVA y mantenimiento mensual. Te preparamos una propuesta para tu local sin compromiso.`,
     ],
     acciones: [{ tipo: 'enlace', href: '/base-operativa', texto: 'Ver Signature' }, { tipo: 'solicitud', interes: 'signature', texto: 'Quiero mi propuesta' }],
+  },
+  {
+    id: 'diferencia', pregunta: 'Qué diferencia hay entre la carta QR y Signature',
+    claves: ['diferencia', 'comparar', 'carta o app', 'que me conviene', 'signature o qr', 'cual elijo'],
+    respuesta: [
+      'La carta QR es tu carta digital: la cambias al momento, con alérgenos, reservas y llamada al camarero.',
+      'Signature es tu propio negocio digital: app con tu marca, pedidos y pago online sin comisiones, tus clientes y tus datos. Aunque contrates la carta QR con todo, Signature está en otra liga.',
+    ],
+    acciones: [{ tipo: 'enlace', href: '/qr#planes', texto: 'Ver la carta QR' }, { tipo: 'enlace', href: '/base-operativa', texto: 'Ver Signature' }],
+    siguientes: ['signature', 'precio-qr'],
   },
   {
     id: 'auditoria', pregunta: `Qué es la auditoría de ${AUDITORIA_CANALES.precioOferta} €`,

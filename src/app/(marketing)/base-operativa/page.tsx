@@ -5,6 +5,7 @@ import Aparecer from '@/components/qr-landing/Aparecer';
 import { MovilApp, CalculadoraComisiones, CapitulosSignature } from '@/components/signature/PiezasSignature';
 import { ModelosReales } from '@/components/dk/Modelos';
 import { Titulo } from '@/components/dk/Bloques';
+import ComparativaQr from '@/components/qr-landing/ComparativaQr';
 
 /**
  * DKitchen Signature (antes «Núcleo Operativo») — rediseño 29/09/2026.
@@ -75,6 +76,7 @@ export default function PaginaSignature() {
       </section>
 
       <CapitulosSignature />
+      <ComparativaQr variante="signature" />
 
       <section className="relative overflow-hidden bg-[#0A080C] py-24 text-white md:py-32">
         <FondoVivo className="opacity-50" />
