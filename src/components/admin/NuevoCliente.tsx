@@ -11,7 +11,7 @@ import { crearClienteAction } from '@/app/admin-dkitchen/qr/actions';
 type Modo = 'pago' | 'gratis' | 'solo';
 const MODOS: { id: Modo; titulo: string; texto: string }[] = [
   { id: 'pago', titulo: 'Preparar un enlace de pago', texto: 'Creas la cuenta y a continuación le preparas un enlace con el precio que acordéis (plan, módulos, descuento).' },
-  { id: 'gratis', titulo: 'Prueba con todo incluido', texto: 'Plan Ampliado, Carta de Autor, idiomas y Pack Sala sin coste durante el tiempo que elijas. Al acabar, se le invita a quedarse; si no paga, su panel pasa a solo lectura.' },
+  { id: 'gratis', titulo: 'Prueba con todo incluido', texto: 'Plan Ampliado, idiomas y Pack Sala (plano de mesas, app de sala y TPV) sin coste durante el tiempo que elijas. El cliente elige su plantilla y colores; la Carta de Autor se paga aparte. Al acabar, se le invita a quedarse; si no paga, su panel pasa a solo lectura.' },
   { id: 'solo', titulo: 'Solo crear la cuenta', texto: 'Cuenta con el plan elegido y nada más. Podrás añadir servicios o un enlace de pago desde su ficha.' },
 ];
 

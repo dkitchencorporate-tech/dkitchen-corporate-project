@@ -291,6 +291,12 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         <ul className="divide-y divide-[#ECECE8] text-sm">
           {CATALOGO_SERVICIOS.map(([clave, nombre]) => {
             const s = servicios.find((x) => x.servicio === clave);
+            const enPack = !s && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(clave) && servicios.some((x) => x.servicio === 'pack_sala' && x.estado !== 'cancelado');
+            if (enPack) return (
+              <li key={clave} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                <span><strong>{nombre}</strong><span className="ml-2 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] text-green-700">activo · incluido en Pack Sala</span></span>
+              </li>
+            );
             return (
               <li key={clave} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
                 <span>
