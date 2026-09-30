@@ -18,6 +18,8 @@ import { SesionNoValida } from '@/lib/db';
 import { estadoAdmin } from '@/lib/guard-admin';
 
 export const dynamic = 'force-dynamic';
+// La creación de imágenes con IA puede tardar hasta un minuto.
+export const maxDuration = 60;
 
 export default async function Panel() {
   let jwt: string | null = null;

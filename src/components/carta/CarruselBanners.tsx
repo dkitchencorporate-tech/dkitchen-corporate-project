@@ -81,6 +81,7 @@ export default function CarruselBanners({ banners, color }: { banners: Banner[];
             <div className="relative aspect-[16/9] w-full bg-black/5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={b.imagenUrl} alt={b.titulo ?? 'Promoción del local'} loading={i === 0 ? 'eager' : 'lazy'} className="h-full w-full object-cover" />
+              {b.imagenUrl.includes('/ia/') && <span className="absolute right-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] text-white">Imagen orientativa</span>}
               {(b.titulo || b.botonTexto) && (
                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/70 to-transparent p-4">
                   {b.titulo && <p className="text-base font-bold leading-tight text-white drop-shadow sm:text-lg">{b.titulo}</p>}

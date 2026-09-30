@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { comprimirImagen } from '@/lib/comprimir-imagen';
+import GeneradorIa from './GeneradorIa';
 import { subirImagenAction } from '@/app/panel/actions';
 
 /** Botón de subida con vista previa. Comprime en el navegador y devuelve la URL pública. */
@@ -11,6 +12,7 @@ export default function SubirImagen({
   etiqueta = 'Foto',
   redonda = false,
   formato,
+  ia,
 }: {
   valor: string | null;
   onCambio: (url: string | null) => void;
@@ -18,11 +20,14 @@ export default function SubirImagen({
   redonda?: boolean;
   /** «plato»: recorte 4:3 y luz automática (desactivable). */
   formato?: 'plato';
+  /** Activa «Crear con IA» (0038). */
+  ia?: { modo: 'plato' | 'banner'; plato?: { nombre?: string; descripcion?: string | null } };
 }) {
   const entrada = useRef<HTMLInputElement>(null);
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [auto, setAuto] = useState(true);
+  const [generador, setGenerador] = useState(false);
 
   async function alElegir(archivo: File | undefined) {
     if (!archivo) return;
@@ -65,6 +70,11 @@ export default function SubirImagen({
           >
             {subiendo ? 'Subiendo…' : valor ? `Cambiar ${etiqueta.toLowerCase()}` : `Subir ${etiqueta.toLowerCase()}`}
           </button>
+          {ia && (
+            <button type="button" disabled={subiendo} onClick={() => setGenerador(true)} className="rounded-lg bg-[#6E0C2B] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#4A0819] disabled:opacity-50">
+              ✨ Crear con IA
+            </button>
+          )}
           {valor && !subiendo && (
             <button type="button" onClick={() => onCambio(null)} className="px-2 text-sm text-[#6B7079] hover:text-red-600">
               Quitar
@@ -80,6 +90,9 @@ export default function SubirImagen({
         )}
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
+      {generador && ia && (
+        <GeneradorIa modo={ia.modo} plato={ia.plato} imagenActual={valor} onUsar={(url) => onCambio(url)} onCerrar={() => setGenerador(false)} />
+      )}
       <input
         ref={entrada}
         type="file"

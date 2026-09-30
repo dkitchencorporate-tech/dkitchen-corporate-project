@@ -119,6 +119,17 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
 
       {vista === 'modulos' && (<>
       <SaltoSignature />
+      {/* IMÁGENES CON IA (0038) */}
+      <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6">
+        <p className="text-xs font-bold uppercase tracking-widest text-[#6E0C2B]">Imágenes con IA</p>
+        <h3 className="font-display mt-1 text-xl font-semibold tracking-tight">✨ Fotos de tus platos y banners, creadas o mejoradas con IA</h3>
+        <ul className="mt-3 space-y-1.5 text-sm text-[#3F434B]">
+          <li>• <strong>3 imágenes gratis</strong>, siempre.</li>
+          <li>• ¿Necesitas más? <strong>Bono de 50 imágenes por 9 € + IVA</strong>: pago único, no es una cuota. Lo vuelves a comprar solo si lo necesitas.</li>
+          <li>• Las imágenes compradas <strong>nunca caducan</strong> y las fotos creadas son tuyas.</li>
+        </ul>
+        <p className="mt-3 text-sm text-[#6B7079]">Lo encontrarás en el botón <strong>«✨ Crear con IA»</strong> al poner la foto de un plato o la imagen de un banner. En tu carta llevan la nota «Imagen orientativa».</p>
+      </section>
       {/* IDIOMAS */}
       <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#E6E6E2] bg-white p-6">
         <div className="max-w-md">

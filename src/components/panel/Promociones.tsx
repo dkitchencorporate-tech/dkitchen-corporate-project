@@ -86,7 +86,7 @@ export default function Promociones({
         <section className="space-y-4 rounded-2xl border border-[#6E0C2B]/40 bg-white p-6">
           <h3 className="text-lg font-semibold">{editando.id ? 'Editar banner' : 'Nuevo banner'}</h3>
           <div className="space-y-1">
-            <SubirImagen valor={d.imagenUrl} onCambio={(url) => set('imagenUrl', url)} etiqueta="Imagen del banner" />
+            <SubirImagen valor={d.imagenUrl} onCambio={(url) => set('imagenUrl', url)} etiqueta="Imagen del banner" ia={{ modo: 'banner' }} />
             <p className="text-[11px] text-[#6B7079]">Formato horizontal 16:9 (recomendado 1200 × 675 px). Si tu banner ya lleva el texto, deja el título vacío.</p>
           </div>
           <input value={d.titulo ?? ''} onChange={(e) => set('titulo', e.target.value || null)} maxLength={60} placeholder="Título (opcional con imagen; ej: Menú del día 12,90 €)" className={campo} />

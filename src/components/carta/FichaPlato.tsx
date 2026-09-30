@@ -50,6 +50,7 @@ export default function FichaPlato({
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={plato.fotoUrl} alt={plato.nombre} className="aspect-[4/3] w-full object-cover" />
             )}
+            {plato.fotoUrl?.includes('/ia/') && <p className="px-6 pt-2 text-[11px] text-black/45">Imagen orientativa, creada con IA.</p>}
             <div className="space-y-3 p-6 text-[#1a1a1a]">
               <div className="flex items-start justify-between gap-4">
                 <h2 className="text-xl font-semibold leading-tight"><EtiquetaPlato plato={plato} />{plato.nombre}</h2>

@@ -431,7 +431,10 @@ function PlatoVisual({ plato }: { plato: PlatoCarta }) {
     <span className="block overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
       {plato.fotoUrl ? (
         /* eslint-disable-next-line @next/next/no-img-element */
-        <img src={plato.fotoUrl} alt="" loading="lazy" decoding="async" className="aspect-[4/3] w-full bg-black/5 object-cover" />
+        <span className="relative block">
+          <img src={plato.fotoUrl} alt="" loading="lazy" decoding="async" className="aspect-[4/3] w-full bg-black/5 object-cover" />
+          {plato.fotoUrl.includes('/ia/') && <span className="absolute bottom-2 right-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-white">Imagen orientativa</span>}
+        </span>
       ) : (
         <span className="block aspect-[4/3] w-full" style={{ background: 'color-mix(in srgb, var(--marca) 12%, white)' }} aria-hidden="true" />
       )}

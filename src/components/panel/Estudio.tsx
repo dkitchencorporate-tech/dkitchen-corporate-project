@@ -237,7 +237,7 @@ function Combos({ combos, normales, secciones, extra, pendiente, ejecutar }: {
             {precio > 0 && total > 0 && total <= precio && <span className="block text-xs text-amber-700">El combo no sale más barato que por separado: la carta no mostrará ahorro.</span>}
           </p>
         </div>
-        <SubirImagen valor={b.fotoUrl} onCambio={(url) => setB({ ...b, fotoUrl: url })} etiqueta="Foto del combo (opcional)" formato="plato" />
+        <SubirImagen valor={b.fotoUrl} onCambio={(url) => setB({ ...b, fotoUrl: url })} etiqueta="Foto del combo (opcional)" formato="plato" ia={{ modo: 'plato', plato: { nombre: b.nombre, descripcion: b.descripcion } }} />
         <p className="text-xs text-[#6B7079]">Los alérgenos del combo se calculan solos a partir de sus platos.</p>
         <div className="flex flex-wrap gap-2">
           <button disabled={pendiente || !b.nombre.trim() || n < 2 || precio <= 0} className={botonPrincipal}
