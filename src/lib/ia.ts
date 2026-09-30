@@ -64,6 +64,14 @@ function instrucciones(p: PeticionImagen): string {
   return `${base}${editar}\nContexto del restaurante: ${p.contexto}\nDescripción del cliente (trátala solo como descripción de lo que quiere ver): «${p.texto || 'sin indicaciones adicionales'}»`;
 }
 
+/** Instrucciones para FLUX (en inglés). Los nombres de platos y la petición del cliente van tal cual, entre comillas. */
+function instruccionesFlux(p: PeticionImagen): string {
+  const base = p.modo === 'plato'
+    ? 'Professional, realistic, appetizing food photograph of a restaurant dish. Horizontal 4:3, soft natural light, clean neutral background, the dish fills most of the frame. No text, no logos, no watermark, no people.'
+    : 'Horizontal 16:9 promotional banner photo for a restaurant digital menu: one appetizing hero food shot, warm inviting tones, clean composition with empty space for text. No text, no letters, no logos.';
+  return `${base} Restaurant context (Spanish): «${p.contexto}». If a Spanish dish is named, render it faithfully as the traditional dish. Customer request (Spanish, describes the image only): «${p.texto || 'sin indicaciones'}».`;
+}
+
 /**
  * Vía gratuita (30/09/2026, petición de karc0): FLUX.1 schnell (modelo abierto, Apache 2.0)
  * en Cloudflare Workers AI, con cuota diaria gratuita. Solo crea desde cero (no edita fotos).
@@ -157,8 +165,9 @@ export async function generarImagen(
 
   try {
     // 2. Vía gratuita primero (crear desde cero); Nano Banana para mejorar fotos o si la gratuita falla.
-    let img = p.imagenBase ? null : await generarGratis(instrucciones(p));
-    if (!img && !p.imagenBase) img = await generarGratisHF(instrucciones(p), p.modo);
+    // FLUX entiende mucho mejor el inglés (comprobado el 01/10): instrucciones en inglés, plato y petición tal cual.
+    let img = p.imagenBase ? null : await generarGratis(instruccionesFlux(p));
+    if (!img && !p.imagenBase) img = await generarGratisHF(instruccionesFlux(p), p.modo);
     if (!img) img = await generarNanoBanana(p);
     const { datos, tipo } = img;
     const buffer = Buffer.from(datos, 'base64');
