@@ -32,9 +32,9 @@ export async function traducirCarta(carta: Carta, idioma: string): Promise<Carta
   }).catch(() => []);
   if (filas.length === 0) return carta;
   const t = new Map(filas.map((f) => [`${f.entidad_id}:${f.campo}`, f.texto]));
-  const plato = <P extends { id: string; nombre: string; descripcion: string | null }>(p: P): P => ({
+  const plato = <P extends { id: string; nombre: string; descripcion: string | null; combo?: { id?: string; nombre: string; cantidad: number }[] | null }>(p: P): P => ({
     ...p, nombre: t.get(`${p.id}:nombre`) ?? p.nombre, descripcion: t.get(`${p.id}:descripcion`) ?? p.descripcion,
-    combo: p.combo?.map((c) => ({ ...c, nombre: (c.id && t.get(`${c.id}:nombre`)) || c.nombre })) ?? p.combo,
+    combo: p.combo?.map((c: { id?: string; nombre: string; cantidad: number }) => ({ ...c, nombre: (c.id && t.get(`${c.id}:nombre`)) || c.nombre })) ?? p.combo,
   });
   return {
     ...carta,
