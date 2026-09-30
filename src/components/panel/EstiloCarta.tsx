@@ -9,10 +9,10 @@ import { guardarEstiloAction } from '@/app/panel/actions';
  * Esencial: en Carta de Autor el diseño es de DKitchen.
  */
 export const ESTILOS = [
-  { id: 'clasica', nombre: 'Clásico', para: 'Restaurante y menú del día. Lista ordenada, fácil de leer.' },
-  { id: 'editorial', nombre: 'Editorial', para: 'Cocina de autor y vinos. Tipografía protagonista, precios con línea de puntos.' },
-  { id: 'visual', nombre: 'Visual', para: 'Brunch, hamburguesas, gastro. La foto de cada plato vende.' },
-  { id: 'express', nombre: 'Express', para: 'Bar, cafetería y terraza. Compacta y rápida.' },
+  { id: 'clasica', nombre: 'Clásico', para: 'Restaurante y menú del día. Lista ordenada, fácil de leer.', muestra: ['Foto pequeña junto al plato', 'Banners arriba'] },
+  { id: 'editorial', nombre: 'Editorial', para: 'Cocina de autor y vinos. Tipografía protagonista, precios con línea de puntos.', muestra: ['Sin fotos en la lista (se ven al abrir el plato)', 'Banners arriba'] },
+  { id: 'visual', nombre: 'Visual', para: 'Brunch, hamburguesas, gastro. La foto de cada plato vende.', muestra: ['Foto grande de portada', 'Foto grande en cada plato', 'Banners arriba'] },
+  { id: 'express', nombre: 'Express', para: 'Bar, cafetería y terraza. Compacta y rápida.', muestra: ['Sin fotos en la lista (se ven al abrir el plato)', 'Banners arriba'] },
 ] as const;
 export const FONDOS = [
   { id: 'papel', nombre: 'Papel', fondo: '#F7F3EA', tinta: '#221D17', tarjeta: '#FFFFFF' },
@@ -27,7 +27,12 @@ export const COLORES = [
 
 type Estilo = { plantilla: string; fondo: string; letra: string; color: string };
 
-function Vista({ e, nombre }: { e: Estilo; nombre: string }) {
+/** Fotos de ejemplo: solo se usan hasta que el cliente sube las suyas. */
+const FOTOS_EJEMPLO = ['/images/demo/s5.png', '/images/demo/s18.png', '/images/demo/s22.png'];
+
+function Vista({ e, nombre, fotos }: { e: Estilo; nombre: string; fotos: string[] }) {
+  const img = (i: number) => fotos.length ? fotos[i % fotos.length] : FOTOS_EJEMPLO[i];
+  const conFoto = e.plantilla === 'visual' || e.plantilla === 'clasica';
   const f = FONDOS.find((x) => x.id === e.fondo) ?? FONDOS[0];
   const serif = e.letra === 'serif' ? 'Georgia, "Times New Roman", serif' : 'inherit';
   const suave = f.id === 'oscuro' ? 'rgba(243,241,236,.55)' : 'rgba(0,0,0,.5)';
@@ -36,8 +41,11 @@ function Vista({ e, nombre }: { e: Estilo; nombre: string }) {
     <div className="mx-auto w-[230px] rounded-[34px] border border-[#E6E6E2] bg-[#17191E] p-2 shadow-xl">
       <div className="h-[400px] overflow-hidden rounded-[27px]" style={{ background: f.fondo, color: f.tinta }}>
         {e.plantilla === 'visual' ? (
-          <div className="flex h-24 items-end p-3" style={{ background: e.color }}>
-            <p style={{ fontFamily: serif }} className="text-lg font-bold text-white">{nombre}</p>
+          <div className="relative flex h-24 items-end overflow-hidden p-3" style={{ background: e.color }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={img(0)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            <span className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+            <p style={{ fontFamily: serif }} className="relative text-lg font-bold text-white">{nombre}</p>
           </div>
         ) : e.plantilla === 'express' ? (
           <div className="px-3 py-3" style={{ borderTop: `4px solid ${e.color}` }}>
@@ -49,18 +57,22 @@ function Vista({ e, nombre }: { e: Estilo; nombre: string }) {
             <p style={{ fontFamily: serif }} className={`mt-1 font-semibold ${e.plantilla === 'editorial' ? 'text-2xl' : 'text-lg'}`}>{nombre}</p>
           </div>
         )}
+        <div className="mx-3 mt-2 rounded-lg px-2.5 py-1.5 text-[9px] font-semibold text-white" style={{ background: e.color }}>Banner · Menú del día 12,90 €</div>
         <div className="px-3">
           <p style={{ fontFamily: serif, color: e.plantilla === 'editorial' ? e.color : undefined }}
             className={`mt-2 ${e.plantilla === 'express' ? 'text-[9px] font-bold uppercase tracking-widest' : e.plantilla === 'editorial' ? 'text-center text-base' : 'text-sm font-semibold'}`}>Para compartir</p>
           <div className={`mt-2 ${e.plantilla === 'clasica' ? 'rounded-xl p-2' : ''}`} style={e.plantilla === 'clasica' ? { background: f.tarjeta } : undefined}>
-            {platos.map(([n, p]) => (
+            {platos.map(([n, p], i) => (
               e.plantilla === 'visual' ? (
                 <div key={n} className="mb-2 overflow-hidden rounded-lg" style={{ background: f.tarjeta }}>
-                  <div className="h-10" style={{ background: `${e.color}33` }} />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={img(i)} alt="" className="h-12 w-full object-cover" style={{ background: `${e.color}33` }} />
                   <div className="flex justify-between px-2 py-1.5 text-[11px]"><span style={{ fontFamily: serif }} className="font-semibold">{n}</span><span style={{ color: e.color }} className="font-bold">{p}</span></div>
                 </div>
               ) : (
-                <div key={n} className="flex items-baseline gap-1.5 py-1.5 text-[11px]">
+                <div key={n} className="flex items-center gap-1.5 py-1.5 text-[11px]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {conFoto && <img src={img(i)} alt="" className="h-7 w-7 shrink-0 rounded-md object-cover" />}
                   <span style={{ fontFamily: serif }} className="font-semibold">{n}</span>
                   {e.plantilla === 'editorial' ? <span className="flex-1 border-b border-dotted" style={{ borderColor: suave }} /> : <span className="flex-1" />}
                   <span className="font-semibold">{p}</span>
@@ -71,11 +83,12 @@ function Vista({ e, nombre }: { e: Estilo; nombre: string }) {
           <p className="mt-3 text-[9px]" style={{ color: suave }}>Alérgenos: gluten · lácteos · huevos</p>
         </div>
       </div>
+      <p className="mt-2 text-center text-[10px] leading-snug text-white/60">{fotos.length ? 'Con tus fotos reales' : 'Fotos de ejemplo: se cambian por las tuyas al subirlas'}</p>
     </div>
   );
 }
 
-export default function EstiloCarta({ inicial, nombre, bloqueado }: { inicial: Estilo; nombre: string; bloqueado: boolean }) {
+export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [] }: { inicial: Estilo; nombre: string; bloqueado: boolean; fotos?: string[] }) {
   const [e, setE] = useState<Estilo>(inicial);
   const [pendiente, iniciar] = useTransition();
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
@@ -105,6 +118,7 @@ export default function EstiloCarta({ inicial, nombre, bloqueado }: { inicial: E
                 <button key={x.id} type="button" onClick={() => setE({ ...e, plantilla: x.id })} className={opcion(e.plantilla === x.id)} aria-pressed={e.plantilla === x.id}>
                   <span className="block font-semibold">{x.nombre}</span>
                   <span className="mt-0.5 block text-xs text-[#6B7079]">{x.para}</span>
+                  <span className="mt-2 flex flex-wrap gap-1">{x.muestra.map((m) => <span key={m} className="rounded-full bg-[#F3EDE6] px-2 py-0.5 text-[10.5px] font-medium text-[#6E0C2B]">{m}</span>)}</span>
                 </button>
               ))}
             </div>
@@ -144,7 +158,7 @@ export default function EstiloCarta({ inicial, nombre, bloqueado }: { inicial: E
         </div>
         <div className="lg:sticky lg:top-6 lg:self-start">
           <p className="mb-3 text-center text-xs font-medium uppercase tracking-[0.18em] text-[#9A9EA6]">Vista previa</p>
-          <Vista e={e} nombre={nombre} />
+          <Vista e={e} nombre={nombre} fotos={fotos} />
         </div>
       </div>
 

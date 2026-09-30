@@ -139,9 +139,15 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, onIr
           <motion.button key="burbuja" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.25, ease: CURVA }}
             onClick={() => setAbierto(true)} aria-label="Abrir la ayuda"
             className={`fixed z-[90] flex h-14 w-14 items-center justify-center rounded-full bg-[#6E0C2B] text-white shadow-[0_14px_34px_rgba(62,5,21,.4)] ring-1 ring-[#D9B25C]/40 transition-transform hover:scale-105 active:scale-95 ${posicion}`}>
-            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z" /><path d="M9.8 9.6a2.3 2.3 0 1 1 3.2 2.1c-.6.3-1 .8-1 1.5v.3M12 16.3h.01" />
+            {/* Pulso suave: dos anillos que respiran detrás de la burbuja */}
+            <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-[#6E0C2B] motion-safe:animate-[dk-pulso_2.8s_ease-out_infinite]" />
+            <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-[#6E0C2B] motion-safe:animate-[dk-pulso_2.8s_ease-out_1.4s_infinite]" />
+            <svg viewBox="0 0 24 24" className="relative h-7 w-7" fill="none" aria-hidden="true">
+              <path d="M12 3.2c-4.9 0-8.8 3.5-8.8 7.9 0 2.3 1.1 4.4 2.9 5.9l-.8 3.4 3.8-1.9c.9.3 1.9.4 2.9.4 4.9 0 8.8-3.5 8.8-7.8S16.9 3.2 12 3.2z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+              <path d="M9.6 9.1a2.45 2.45 0 0 1 4.8.6c0 1.6-2.4 2-2.4 3.5" stroke="#D9B25C" strokeWidth="1.9" strokeLinecap="round" />
+              <circle cx="12" cy="15.6" r="1.1" fill="#D9B25C" />
             </svg>
+            <style>{`@keyframes dk-pulso{0%{transform:scale(1);opacity:.45}70%{transform:scale(1.55);opacity:0}100%{transform:scale(1.55);opacity:0}}`}</style>
           </motion.button>
         )}
       </AnimatePresence>

@@ -23,7 +23,7 @@ const MODULOS: { id: Servicio; titulo: string; resuelve: string; como: string; i
     incluye: ['Compatible con la mayoría de TPV en España', 'Tu facturación no cambia (Verifactu, gestoría)', 'Instalación y pruebas hechas por DKitchen'] },
 ];
 
-export default function Mejoras({ restaurante, servicios, vista }: { restaurante: MiRestaurante; servicios: EstadoServicios; vista: 'diseno' | 'modulos' }) {
+export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: { restaurante: MiRestaurante; servicios: EstadoServicios; vista: 'diseno' | 'modulos'; fotos?: string[] }) {
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const ampliado = restaurante.plan === 'ampliado';
@@ -65,7 +65,7 @@ export default function Mejoras({ restaurante, servicios, vista }: { restaurante
       </header>
 
       {vista === 'diseno' && (<>
-      <EstiloCarta nombre={restaurante.nombre} bloqueado={restaurante.nivelDiseno !== 'esencial'}
+      <EstiloCarta fotos={fotos} nombre={restaurante.nombre} bloqueado={restaurante.nivelDiseno !== 'esencial'}
         inicial={{ plantilla: restaurante.plantilla || 'clasica', fondo: restaurante.estiloFondo || 'papel', letra: restaurante.estiloLetra || 'sans', color: (restaurante.colorMarca || '#E8592A').toUpperCase() }} />
       <section className="space-y-4">
         <div>
