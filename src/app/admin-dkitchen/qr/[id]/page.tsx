@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { fichaCliente, historialCliente, serviciosCliente, listarEnlaces, catalogoPrecios, type EntradaHistorial } from '@/lib/admin-clientes';
 import EnlacesPago from '@/components/admin/EnlacesPago';
+import { resumenCobro, euros, fechaLarga, diasHasta } from '@/lib/prueba';
 import { obtenerCarta } from '@/lib/menu';
 import { listarTraducciones } from '@/lib/idiomas';
 import TraductorCarta from '@/components/admin/TraductorCarta';
@@ -43,6 +44,8 @@ const ACCION: Record<string, string> = {
   'admin.carta_demo': 'DKitchen cargó la carta de ejemplo',
   'admin.enlace_pago': 'DKitchen preparó un enlace de pago',
   'pago.enlace_admin': 'Pagó un enlace preparado por DKitchen',
+  'prueba.quedarme': 'Pulsó «Quedarme con todo» en su prueba',
+  'prueba.vencida': 'Terminó su prueba sin pagar (pasa a solo lectura)',
 };
 
 function valor(v: unknown): string {
@@ -76,7 +79,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
   const { id } = await params;
   if (!UUID.test(id)) notFound();
   const jwt = await exigirAdmin();
-  const [ficha, historial, servicios, enlaces, catalogo] = await Promise.all([fichaCliente(jwt, id), historialCliente(jwt, id), serviciosCliente(jwt, id), listarEnlaces(jwt, id), catalogoPrecios(jwt)]);
+  const [ficha, historial, servicios, enlaces, catalogo, cobro] = await Promise.all([fichaCliente(jwt, id), historialCliente(jwt, id), serviciosCliente(jwt, id), listarEnlaces(jwt, id), catalogoPrecios(jwt), resumenCobro(jwt, id)]);
   if (!ficha?.restaurante) notFound();
 
   const r = ficha.restaurante;
@@ -88,7 +91,9 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
   const maxDia = Math.max(1, ...ficha.escaneos_30d.map((d) => d.n));
   const total30 = ficha.escaneos_30d.reduce((s, d) => s + d.n, 0);
   const pago =
-    r.estado_acceso === 'activo' ? 'Al día'
+    cobro?.prueba_hasta && r.estado_acceso === 'activo' ? `Prueba · quedan ${Math.max(0, diasHasta(cobro.prueba_hasta))} días`
+    : cobro?.prueba_hasta && r.estado_acceso === 'solo_lectura' ? 'Prueba vencida'
+    : r.estado_acceso === 'activo' ? 'Al día'
     : r.pago_fallido_desde ? `Pago fallido desde ${fecha.format(new Date(r.pago_fallido_desde))}`
     : r.estado_acceso;
 
@@ -116,7 +121,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { t: 'Plan', v: r.plan === 'ampliado' ? 'Ampliado · 25 €' : 'Básico · 9 €' },
+          { t: 'Plan', v: r.plan === 'ampliado' ? 'Ampliado · 25 € + IVA' : 'Básico · 9 € + IVA' },
           { t: 'Pago', v: pago },
           { t: 'Escaneos 30 días', v: total30 },
           { t: 'Llamadas de mesa 30 días', v: ficha.llamadas_30d },
@@ -127,6 +132,48 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           </div>
         ))}
       </div>
+
+      {cobro && (
+        <section id="cobro" className="scroll-mt-20 rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-display text-xl font-semibold tracking-tight">Cobro</h2>
+            <p className="text-xs text-[#6B7079]">Todos los clientes pagan el día {cobro.dia_cobro} de cada mes · precios + IVA</p>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl bg-[#F3F1EE] p-4">
+              <p className="text-xs text-[#6B7079]">Valor de lo que tiene</p>
+              <p className="mt-1 text-lg font-black">{euros(cobro.valor_mensual)}/mes</p>
+            </div>
+            <div className="rounded-2xl bg-[#F3F1EE] p-4">
+              <p className="text-xs text-[#6B7079]">Paga</p>
+              <p className="mt-1 text-lg font-black">{cobro.paga_mensual ? `${euros(cobro.paga_mensual)}/mes` : '0 €'}</p>
+            </div>
+            <div className="rounded-2xl bg-[#F3F1EE] p-4">
+              <p className="text-xs text-[#6B7079]">{cobro.proximo_cobro ? 'Próximo cobro' : cobro.prueba_hasta ? 'Si paga hoy, primer cobro' : 'Cobro'}</p>
+              <p className="mt-1 text-lg font-black">
+                {cobro.proximo_cobro ? fechaLarga(cobro.proximo_cobro) : cobro.prueba_hasta ? fechaLarga(cobro.cobro_si_paga_hoy) : cobro.paga_mensual ? '—' : 'Cortesía sin fecha'}
+              </p>
+            </div>
+          </div>
+          {cobro.prueba_hasta && (
+            <p className="mt-3 rounded-xl bg-[#6E0C2B]/10 px-4 py-3 text-sm text-[#6E0C2B]">
+              Prueba con todo incluido hasta el <strong>{fechaLarga(cobro.prueba_hasta)}</strong>
+              {r.estado_acceso === 'solo_lectura'
+                ? ` · vencida: si paga ahora, abona la parte proporcional hasta el día ${cobro.dia_cobro}.`
+                : ` · si paga antes, no paga nada hasta el ${fechaLarga(cobro.cobro_si_paga_hoy)}.`}
+            </p>
+          )}
+          <ul className="mt-4 divide-y divide-[#EFEDE9] text-sm">
+            <li className="flex justify-between gap-3 py-2"><span>Plan {cobro.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</span><span className="text-[#6B7079]">{euros(cobro.precio_plan)}/mes</span></li>
+            {cobro.items.map((i) => (
+              <li key={i.servicio} className="flex justify-between gap-3 py-2">
+                <span>{i.nombre} <span className="text-xs text-[#6B7079]">· {i.origen === 'pago' ? 'pagado' : i.origen === 'regalo' ? 'regalo' : 'demo'}</span></span>
+                <span className="shrink-0 text-[#6B7079]">{euros(i.precio)}{i.tipo === 'mensual' ? '/mes' : ' una vez'}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6 lg:col-span-2">
@@ -157,9 +204,18 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         <h2 className="font-display text-xl font-semibold tracking-tight">Acciones</h2>
         <p className="text-xs text-[#6B7079]">Cada acción queda registrada en el historial.</p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <form action={regalarTodoAction}>
+          <form action={regalarTodoAction} className="flex w-full flex-wrap items-center gap-2 rounded-2xl bg-[#F3F1EE] p-3">
             <input type="hidden" name="restauranteId" value={r.id} />
-            <button className="rounded-full bg-[#6E0C2B] px-4 py-2 text-sm font-bold hover:bg-[#4A0819]">Darle todo gratis</button>
+            <label className="text-sm font-semibold" htmlFor="dias-prueba">Todo incluido gratis</label>
+            <select id="dias-prueba" name="dias" defaultValue="15" className="rounded-lg border border-[#D6D6D1] bg-white px-3 py-2 text-sm">
+              <option value="15">15 días</option>
+              <option value="30">30 días</option>
+              <option value="fecha">Hasta una fecha…</option>
+              <option value="sin">Sin fecha de fin (cortesía)</option>
+            </select>
+            <input type="date" name="hasta" aria-label="Fecha de fin de la prueba" className="rounded-lg border border-[#D6D6D1] bg-white px-3 py-2 text-sm" />
+            <button className="rounded-full bg-[#6E0C2B] px-4 py-2 text-sm font-bold hover:bg-[#4A0819]">Activar</button>
+            <p className="w-full text-xs text-[#6B7079]">La fecha solo cuenta con «Hasta una fecha…». Si la prueba termina sin pago, el panel pasa a solo lectura y la carta sigue visible.</p>
           </form>
           {ficha.platos === 0 && (
             <form action={cartaDemoAction}>

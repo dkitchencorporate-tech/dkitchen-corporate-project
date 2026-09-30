@@ -11,14 +11,14 @@ import { crearClienteAction } from '@/app/admin-dkitchen/qr/actions';
 type Modo = 'pago' | 'gratis' | 'solo';
 const MODOS: { id: Modo; titulo: string; texto: string }[] = [
   { id: 'pago', titulo: 'Preparar un enlace de pago', texto: 'Creas la cuenta y a continuación le preparas un enlace con el precio que acordéis (plan, módulos, descuento).' },
-  { id: 'gratis', titulo: 'Darle todo gratis', texto: 'Plan Ampliado, Carta de Autor, idiomas y Pack Sala sin coste. Para demos comerciales o cortesías.' },
+  { id: 'gratis', titulo: 'Prueba con todo incluido', texto: 'Plan Ampliado, Carta de Autor, idiomas y Pack Sala sin coste durante el tiempo que elijas. Al acabar, se le invita a quedarse; si no paga, su panel pasa a solo lectura.' },
   { id: 'solo', titulo: 'Solo crear la cuenta', texto: 'Cuenta con el plan elegido y nada más. Podrás añadir servicios o un enlace de pago desde su ficha.' },
 ];
 
 export default function NuevoCliente() {
   const [abierto, setAbierto] = useState(false);
   const [paso, setPaso] = useState(1);
-  const [d, setD] = useState({ local: '', contacto: '', email: '', plan: 'ampliado', modo: 'pago' as Modo, demo: false });
+  const [d, setD] = useState({ local: '', contacto: '', email: '', plan: 'ampliado', modo: 'pago' as Modo, demo: false, dias: '15' });
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function NuevoCliente() {
   function crear() {
     setError(null);
     iniciar(async () => {
-      const r = await crearClienteAction({ email: d.email, contacto: d.contacto, local: d.local, plan: d.plan, todo: d.modo === 'gratis', demo: d.demo });
+      const r = await crearClienteAction({ email: d.email, contacto: d.contacto, local: d.local, plan: d.plan, todo: d.modo === 'gratis', dias: d.dias === 'sin' ? null : Number(d.dias), demo: d.demo });
       if (r.error) setError(r.error); else if (r.id) router.push('/admin-dkitchen/qr/' + r.id + (d.modo === 'pago' ? '#enlace' : ''));
     });
   }
@@ -84,6 +84,14 @@ export default function NuevoCliente() {
               <span><span className="block font-semibold">{m.titulo}</span><span className="mt-0.5 block text-sm text-[#6B7079]">{m.texto}</span></span>
             </label>
           ))}
+          {d.modo === 'gratis' && (
+            <label className="block rounded-2xl bg-[#F7F5F2] p-4 text-sm font-medium">Duración de la prueba
+              <select value={d.dias} onChange={(e) => setD({ ...d, dias: e.target.value })} className={campo}>
+                <option value="15">15 días</option><option value="30">30 días</option><option value="sin">Sin fecha de fin (cortesía)</option>
+              </select>
+              <span className="mt-1 block text-xs text-[#9A9EA6]">Si paga antes de que acabe, no paga nada hasta el día 12 siguiente al final de la prueba.</span>
+            </label>
+          )}
           <label className="flex cursor-pointer gap-3 rounded-2xl border border-dashed border-[#D6D6D1] p-4">
             <input type="checkbox" checked={d.demo} onChange={(e) => setD({ ...d, demo: e.target.checked })} className="mt-1" />
             <span><span className="block font-semibold">Cargar una carta de ejemplo</span><span className="mt-0.5 block text-sm text-[#6B7079]">4 secciones y 14 platos con alérgenos, para enseñar el producto desde el primer minuto.</span></span>
@@ -95,7 +103,7 @@ export default function NuevoCliente() {
         <dl className="mt-6 divide-y divide-[#ECECE8] rounded-2xl border border-[#E6E6E2] text-sm">
           {([
             ['Local', d.local], ['Contacto', d.contacto], ['Correo', d.email], ['Plan', d.plan === 'ampliado' ? 'Ampliado' : 'Básico'],
-            ['Qué recibe', MODOS.find((m) => m.id === d.modo)!.titulo], ['Carta de ejemplo', d.demo ? 'Sí' : 'No'],
+            ['Qué recibe', MODOS.find((m) => m.id === d.modo)!.titulo + (d.modo === 'gratis' ? (d.dias === 'sin' ? ' · sin fecha de fin' : ` · ${d.dias} días`) : '')], ['Carta de ejemplo', d.demo ? 'Sí' : 'No'],
           ] as const).map(([k, v]) => (
             <div key={k} className="flex justify-between gap-4 px-4 py-3"><dt className="text-[#6B7079]">{k}</dt><dd className="text-right font-medium">{v}</dd></div>
           ))}

@@ -13,6 +13,8 @@ import MiCarta from './MiCarta';
 import MiQr from './MiQr';
 import MisEscaneos from './MisEscaneos';
 import MiPlan from './MiPlan';
+import { AvisoPrueba, DesgloseCobro } from './Cobro';
+import type { ResumenCobro } from '@/lib/prueba';
 import Soporte from './Soporte';
 import MiLocal from './MiLocal';
 import Camarero from './Camarero';
@@ -64,6 +66,7 @@ export default function PanelShell({
   servicios,
   sala,
   traducciones,
+  cobro,
 }: {
   identidad: { id: string; nombre: string; email: string };
   restaurante: MiRestaurante;
@@ -78,6 +81,7 @@ export default function PanelShell({
   servicios: EstadoServicios;
   sala: { mesas: (MesaPlano & { id: string })[]; elementos: ElementoPlano[]; informe: FilaInforme[]; camareros: CamareroSala[]; tpv: { proveedor: string; activa: boolean; ultimoEnvio: string | null; ultimoError: string | null } | null; llamadas: string[] };
   traducciones: { entidad: 'plato' | 'seccion'; entidadId: string; idioma: string; campo: 'nombre' | 'descripcion'; texto: string }[];
+  cobro: ResumenCobro | null;
 }) {
   const tieneServ = (id: string) => servicios.contratados.some((c) => c.servicio === id || (c.servicio === 'pack_sala' && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(id)));
   const modulos = { plano: tieneServ('plano_mesas'), app: tieneServ('app_sala'), tpv: tieneServ('conexion_tpv') };
@@ -181,6 +185,7 @@ export default function PanelShell({
         )}
 
       <main className="mx-auto max-w-6xl px-4 pb-32 pt-6 sm:px-6 lg:px-10 lg:py-10">
+        {pestana !== 'plan' && <AvisoPrueba cobro={cobro} />}
         <AnimatePresence mode="wait">
         <motion.div key={pestana} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
         {pestana === 'inicio' && <Inicio restaurante={restaurante} qrPedido={solicitudesQr.length > 0} escaneosMes={escaneosMes} escaneos30d={escaneos30d} reservas={reservas} platos={carta.platos} servicios={servicios} ir={(p) => setPestana(p)} />}
@@ -196,7 +201,7 @@ export default function PanelShell({
           <MiQr codigoQr={codigoQr} restauranteNombre={restaurante.nombre} solicitudes={solicitudesQr} />
         )}
         {pestana === 'escaneos' && <MisEscaneos escaneosMes={escaneosMes} escaneos30d={escaneos30d} />}
-        {pestana === 'plan' && <MiPlan restaurante={restaurante} servicios={servicios} />}
+        {pestana === 'plan' && <div className="space-y-6"><DesgloseCobro cobro={cobro} /><MiPlan restaurante={restaurante} servicios={servicios} /></div>}
         {pestana === 'soporte' && <Soporte tickets={tickets} />}
         </motion.div>
         </AnimatePresence>

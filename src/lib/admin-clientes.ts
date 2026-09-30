@@ -173,8 +173,8 @@ export async function adminConexionTpv(jwt: string, restauranteId: string, prove
 // ---------------------------------------------------------------------------
 // Clientes de cortesía y demos (0029)
 // ---------------------------------------------------------------------------
-export async function regalarTodo(jwt: string, restauranteId: string) {
-  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_regalar_todo($1)', [restauranteId]));
+export async function regalarTodo(jwt: string, restauranteId: string, dias: number | null = null) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_regalar_todo($1, $2::int)', [restauranteId, dias]));
 }
 
 export async function cargarCartaDemo(jwt: string, restauranteId: string): Promise<number> {

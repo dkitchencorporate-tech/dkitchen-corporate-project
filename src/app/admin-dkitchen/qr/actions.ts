@@ -159,7 +159,7 @@ const slugBase = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '
  * cobro que seguir, nunca entra en gracia). El cliente recibe el correo para
  * fijar su contraseña. Opcional: regalarle todo y cargar una carta de ejemplo.
  */
-export async function crearClienteAction(datos: { email: string; contacto: string; local: string; plan: string; todo: boolean; demo: boolean }): Promise<{ id?: string; error?: string }> {
+export async function crearClienteAction(datos: { email: string; contacto: string; local: string; plan: string; todo: boolean; dias?: number | null; demo: boolean }): Promise<{ id?: string; error?: string }> {
   const jwt = await exigirAdmin();
   const email = String(datos.email ?? '').trim().toLowerCase();
   const contacto = String(datos.contacto ?? '').trim().slice(0, 80);
@@ -178,7 +178,9 @@ export async function crearClienteAction(datos: { email: string; contacto: strin
       [ref, identidad, email, contacto, plan, local, slugBase(local), ref, ref]));
   const id = rows[0]?.restaurante_id;
   if (!id) return { error: 'No se pudo crear el restaurante.' };
-  if (datos.todo) await regalarTodo(jwt, id);
+  const dias = datos.dias == null ? null : Math.round(Number(datos.dias));
+  if (dias !== null && (!Number.isFinite(dias) || dias < 1 || dias > 120)) return { error: 'La prueba debe durar entre 1 y 120 días.' };
+  if (datos.todo) await regalarTodo(jwt, id, dias);
   if (datos.demo) await cargarCartaDemo(jwt, id).catch(() => 0);
   await enviarEnlaceDeContrasena(email).catch((e) => console.error('Alta manual: no se pudo enviar el enlace de contraseña', e));
   await enviarBienvenidaQr(email, contacto, local, plan).catch((e) => console.error('Alta manual: bienvenida no enviada', e));
@@ -189,7 +191,18 @@ export async function crearClienteAction(datos: { email: string; contacto: strin
 export async function regalarTodoAction(formulario: FormData) {
   const jwt = await exigirAdmin();
   const id = uuid(formulario.get('restauranteId'));
-  await regalarTodo(jwt, id);
+  // Duración de la prueba «todo incluido» (0034): 15/30 días, hasta una fecha o sin fin.
+  const opcion = String(formulario.get('dias') ?? '15');
+  let dias: number | null = null;
+  if (opcion === 'fecha') {
+    const hasta = String(formulario.get('hasta') ?? '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(hasta)) throw new Error('Elige la fecha de fin de la prueba.');
+    dias = Math.round((Date.parse(`${hasta}T00:00:00Z`) - Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`)) / 86400000);
+  } else if (opcion !== 'sin') {
+    dias = Number(opcion);
+  }
+  if (dias !== null && (!Number.isInteger(dias) || dias < 1 || dias > 120)) throw new Error('La prueba debe durar entre 1 y 120 días.');
+  await regalarTodo(jwt, id, dias);
   revalidatePath(`/admin-dkitchen/qr/${id}`);
 }
 

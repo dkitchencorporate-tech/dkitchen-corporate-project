@@ -25,7 +25,8 @@ import {
 } from '@/lib/promociones';
 import { cambiarEstadoReserva as dbCambiarEstadoReserva, marcarAvisada as dbMarcarAvisada } from '@/lib/reservas';
 import { avisarEstadoAlCliente, whatsappParaCliente } from '@/lib/correos-reserva';
-import { crearCheckoutServicio, crearCheckoutUpgradeAmpliado } from '@/lib/payments/whop';
+import { crearCheckoutServicio, crearCheckoutUpgradeAmpliado, crearCheckoutEnlaceAdmin } from '@/lib/payments/whop';
+import { quedarmeConTodo, fijarUrlPrueba } from '@/lib/prueba';
 import { estadoServicios, tiene, registrarOferta as dbRegistrarOferta, type Servicio } from '@/lib/servicios';
 import { guardarMesa, eliminarMesa, crearCamarero, desactivarCamarero, guardarPlano, cargarPlano, type MesaPlano, type ElementoPlano } from '@/lib/sala';
 import { fijarIdiomas } from '@/lib/idiomas';
@@ -179,6 +180,30 @@ export async function iniciarUpgradeAmpliadoAction(): Promise<{ url: string }> {
     nombreContacto: identidad.nombre,
     origen: 'https://dkitchencorporate.es',
   });
+}
+
+/**
+ * «Quedarme con todo» (0034). El importe, los días gratis hasta el día de
+ * cobro y los módulos los calcula dk.prueba_quedarme en la base; aquí solo
+ * se crea el pago en Whop con esos datos.
+ */
+export async function quedarmeConTodoAction(): Promise<{ url?: string; error?: string }> {
+  try {
+    const { jwt, identidad, restaurante } = await requerirSesionYRestaurante();
+    const p = await quedarmeConTodo(jwt, restaurante.id);
+    const nombres: Record<string, string> = { pack_sala: 'Pack Sala', plano_mesas: 'Plano de mesas', app_sala: 'App de sala', conexion_tpv: 'Conexión TPV' };
+    const { url } = await crearCheckoutEnlaceAdmin({
+      enlaceId: p.enlace, restauranteId: restaurante.id, restauranteNombre: restaurante.nombre, email: identidad.email,
+      concepto: ['Plan Ampliado', ...p.servicios.map((x) => nombres[x] ?? x)].join(' + '),
+      primerCentimos: p.primer, mensualCentimos: p.mensual, diasGratis: p.dias,
+      origen: process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es',
+    });
+    await fijarUrlPrueba(jwt, p.enlace, url);
+    return { url };
+  } catch (e) {
+    console.error('Quedarme con todo falló', e);
+    return { error: 'No hemos podido preparar el pago. Inténtalo en unos minutos o escríbenos desde Soporte.' };
+  }
 }
 
 export async function llamadasPendientesAction() {

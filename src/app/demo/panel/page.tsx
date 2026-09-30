@@ -76,6 +76,7 @@ export default function DemoPanel() {
           servicios={servicios}
           sala={{ mesas: [], elementos: [], informe: [], camareros: [], tpv: null, llamadas: [] }}
           traducciones={[]}
+          cobro={null}
         />
       </div>
     </>

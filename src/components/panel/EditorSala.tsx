@@ -46,6 +46,9 @@ export default function EditorSala({
   const [cambios, setCambios] = useState(false);
   const [pendiente, iniciar] = useTransition();
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
+  // Móvil (informe del probador, 30/09): lienzo más grande, ayuda plegable y zoom para colocar con precisión.
+  const [ayuda, setAyuda] = useState(false);
+  const [zoom, setZoom] = useState(1);
   const lienzo = useRef<HTMLDivElement>(null);
   const arrastre = useRef<{ tipo: 'mesa' | 'elemento'; clave: string; dx: number; dy: number } | null>(null);
   const activos = camareros.filter((c) => c.activo);
@@ -92,6 +95,22 @@ export default function EditorSala({
   const elemSel = sel?.tipo === 'elemento' ? elementos.find((e) => e.clave === sel.clave) : undefined;
   const cambiarMesa = (c: Partial<MesaE>) => { marcar(); setMesas((l) => l.map((m) => (m.clave === mesaSel?.clave ? dentro({ ...m, ...c }) : m))); };
   const cambiarElem = (c: Partial<ElemE>) => { marcar(); setElementos((l) => l.map((e) => (e.clave === elemSel?.clave ? dentro({ ...e, ...c }) : e))); };
+  const escalar = (factor: number) => {
+    marcar();
+    const cambia = <T extends { x: number; y: number; ancho: number; alto: number }>(e: T): T => {
+      const ancho = e.ancho * factor, alto = e.alto * factor;
+      return dentro({ ...e, ancho, alto, x: e.x - (ancho - e.ancho) / 2, y: e.y - (alto - e.alto) / 2 });
+    };
+    if (mesaSel) setMesas((l) => l.map((m) => (m.clave === mesaSel.clave ? cambia(m) : m)));
+    if (elemSel) setElementos((l) => l.map((e) => (e.clave === elemSel.clave ? cambia(e) : e)));
+  };
+  const Tamano = () => (
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-[#6B7079]">Tamaño</span>
+      <button onClick={() => escalar(1 / 1.15)} aria-label="Hacer más pequeño" className="h-9 w-9 rounded-lg border border-[#D6D6D1] text-lg font-bold">−</button>
+      <button onClick={() => escalar(1.15)} aria-label="Hacer más grande" className="h-9 w-9 rounded-lg border border-[#D6D6D1] text-lg font-bold">+</button>
+    </div>
+  );
   const girarSel = () => {
     marcar();
     if (mesaSel) setMesas((l) => l.map((m) => (m.clave === mesaSel.clave ? dentro(girar(m)) : m)));
@@ -133,6 +152,12 @@ export default function EditorSala({
     <div className="fixed inset-0 z-[100] flex h-[100dvh] flex-col bg-[#F7F5F2] text-[#1B1D22]" role="dialog" aria-modal="true" aria-label="Editor de sala">
       <header className="flex flex-wrap items-center gap-2 border-b border-[#E6E6E2] px-4 py-3">
         <h2 className="mr-auto font-bold">Editor de sala</h2>
+        <div className="flex items-center rounded-lg border border-[#E6E6E2] bg-white" role="group" aria-label="Zoom del plano">
+          <button onClick={() => setZoom((z) => Math.max(1, z - 0.5))} disabled={zoom <= 1} aria-label="Alejar" className="h-9 w-9 text-lg font-bold disabled:opacity-30">−</button>
+          <span className="w-11 text-center text-xs tabular-nums text-[#6B7079]">{Math.round(zoom * 100)} %</span>
+          <button onClick={() => setZoom((z) => Math.min(3, z + 0.5))} disabled={zoom >= 3} aria-label="Acercar" className="h-9 w-9 text-lg font-bold disabled:opacity-30">+</button>
+        </div>
+        <button onClick={() => setAyuda((a) => !a)} aria-expanded={ayuda} aria-label="Cómo funciona" className="h-9 w-9 rounded-lg border border-[#E6E6E2] bg-white text-sm font-bold lg:hidden">?</button>
         {aviso && <span className={`text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</span>}
         <button disabled={pendiente || !cambios} onClick={guardar} className="rounded-lg bg-[#6E0C2B] px-4 py-2 text-sm font-bold disabled:opacity-40">
           {pendiente ? 'Guardando…' : cambios ? 'Guardar plano' : 'Guardado'}
@@ -149,9 +174,10 @@ export default function EditorSala({
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <div className="min-h-0 flex-1 overflow-auto p-3">
-          <div ref={lienzo} onPointerMove={mover} onPointerUp={soltar} onPointerCancel={soltar} onPointerDown={() => setSel(null)}
-            className="relative mx-auto aspect-[4/3] w-full max-w-4xl touch-none select-none overflow-hidden rounded-xl border border-[#D6D6D1] bg-white bg-[linear-gradient(rgba(23,25,30,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(23,25,30,.06)_1px,transparent_1px)] bg-[size:4%_5.33%]">
+        <div className="min-h-0 flex-1 overflow-auto p-2 sm:p-3">
+          <div ref={lienzo} onPointerMove={mover} onPointerUp={soltar} onPointerCancel={soltar} onPointerDown={() => { setSel(null); setAyuda(false); }}
+            style={zoom > 1 ? { width: `${zoom * 100}%`, maxWidth: 'none' } : undefined}
+            className="relative mx-auto aspect-[4/3] w-full max-w-4xl touch-pan-x touch-pan-y select-none overflow-hidden rounded-xl border border-[#D6D6D1] bg-white bg-[linear-gradient(rgba(23,25,30,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(23,25,30,.06)_1px,transparent_1px)] bg-[size:4%_5.33%]">
             {elementos.map((e) => {
               const s = sel?.clave === e.clave;
               const estilo = e.tipo === 'zona'
@@ -162,7 +188,7 @@ export default function EditorSala({
                 : { background: '#3a6ea5' };
               return (
                 <div key={e.clave} onPointerDown={(ev) => empezar(ev, 'elemento', e.clave, e.x, e.y)}
-                  className={`absolute flex cursor-move items-start justify-start overflow-hidden rounded-sm p-1 text-[10px] font-bold ${s ? 'outline outline-2 outline-[#1B1D22]' : ''}`}
+                  className={`absolute flex cursor-move touch-none items-start justify-start overflow-hidden rounded-sm p-1 text-[10px] font-bold ${s ? 'outline outline-2 outline-[#1B1D22]' : ''}`}
                   style={{ left: `${e.x}%`, top: `${e.y}%`, width: `${e.ancho}%`, height: `${e.alto}%`, ...estilo, zIndex: e.tipo === 'zona' ? 1 : 2 }}>
                   {(e.etiqueta || (e.tipo === 'zona' && nombreCam(e.camareroId))) && (
                     <span className="rounded bg-black/40 px-1 text-[#3F434B]">{e.etiqueta}{e.camareroId ? ` · ${nombreCam(e.camareroId) ?? ''}` : ''}</span>
@@ -174,7 +200,7 @@ export default function EditorSala({
               const s = sel?.clave === m.clave;
               return (
                 <div key={m.clave} onPointerDown={(ev) => empezar(ev, 'mesa', m.clave, m.x, m.y)}
-                  className={`absolute z-10 flex cursor-move flex-col items-center justify-center text-[11px] font-black text-[#1A1714] shadow-md ${m.forma === 'redonda' ? 'rounded-full' : 'rounded-md'} ${s ? 'outline outline-2 outline-[#6E0C2B]' : ''}`}
+                  className={`absolute z-10 flex cursor-move touch-none flex-col items-center justify-center text-[11px] font-black text-[#1A1714] shadow-md ${m.forma === 'redonda' ? 'rounded-full' : 'rounded-md'} ${s ? 'outline outline-2 outline-[#6E0C2B]' : ''}`}
                   style={{ left: `${m.x}%`, top: `${m.y}%`, width: `${m.ancho}%`, height: `${m.alto}%`, background: m.camareroId ? '#fff' : '#e7e1d8' }}>
                   {m.numero}
                   <span className="text-[8px] font-medium opacity-60">{m.plazas}p{m.camareroId ? ` · ${nombreCam(m.camareroId)?.slice(0, 6) ?? ''}` : ''}</span>
@@ -182,12 +208,12 @@ export default function EditorSala({
               );
             })}
             {mesas.length === 0 && elementos.length === 0 && (
-              <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-[#6B7079]">Empieza añadiendo paredes y mesas con los botones de arriba. Arrástralos para colocarlos.</p>
+              <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-[#6B7079]">Empieza añadiendo paredes y mesas con los botones de arriba. Arrástralos para colocarlos. Pulsa «?» para ver cómo funciona.</p>
             )}
           </div>
         </div>
 
-        <aside className="max-h-[42vh] w-full shrink-0 overflow-y-auto border-t border-[#E6E6E2] p-4 lg:max-h-none lg:w-80 lg:border-l lg:border-t-0">
+        <aside className={`max-h-[38vh] w-full shrink-0 overflow-y-auto border-t border-[#E6E6E2] p-4 lg:block lg:max-h-none lg:w-80 lg:border-l lg:border-t-0 ${mesaSel || elemSel || ayuda ? '' : 'hidden'}`}>
           {mesaSel ? (
             <div className="space-y-3">
               <h3 className="font-bold">Mesa {mesaSel.numero}</h3>
@@ -205,6 +231,7 @@ export default function EditorSala({
                   <option value="">Sin asignar (la toma quien atienda)</option>
                   {activos.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                 </select></label>
+              <Tamano />
               <div className="flex gap-4"><button onClick={girarSel} className="text-sm text-[#3F434B] underline">Girar 90°</button><button onClick={borrar} className="text-sm text-red-600">Eliminar mesa</button></div>
             </div>
           ) : elemSel ? (
@@ -217,6 +244,7 @@ export default function EditorSala({
                 <label className="space-y-1"><span className="text-xs text-[#6B7079]">Ancho</span><input type="range" min={0.5} max={100} step={0.5} value={elemSel.ancho} onChange={(e) => cambiarElem({ ancho: Number(e.target.value) })} className="w-full" /></label>
                 <label className="space-y-1"><span className="text-xs text-[#6B7079]">Alto</span><input type="range" min={0.5} max={100} step={0.5} value={elemSel.alto} onChange={(e) => cambiarElem({ alto: Number(e.target.value) })} className="w-full" /></label>
               </div>
+              <Tamano />
               {(elemSel.tipo === 'zona' || elemSel.tipo === 'barra') && (
                 <label className="block space-y-1"><span className="text-xs text-[#6B7079]">Nombre</span><input value={elemSel.etiqueta ?? ''} onChange={(e) => cambiarElem({ etiqueta: e.target.value.slice(0, 30) || null })} placeholder="Terraza, Salón…" className={campo} /></label>
               )}
@@ -244,6 +272,7 @@ export default function EditorSala({
               <p>3. Crea zonas (Terraza, Salón…) y asígnales un camarero: al guardar, las mesas de la zona sin camarero pasan a ser suyas.</p>
               <p>Paredes, divisiones y barras se ponen en vertical u horizontal con «Girar 90°».</p>
               <p>4. Pulsa <strong>Guardar plano</strong>. Tus camareros lo verán en su móvil.</p>
+              <p>En el móvil: usa el zoom (− / +) para acercarte y desliza el fondo con el dedo para moverte por el plano. Con una mesa seleccionada, cambia su tamaño con − / +.</p>
               <p className="pt-2 text-xs">{mesas.length} mesas · {elementos.length} elementos</p>
             </div>
           )}

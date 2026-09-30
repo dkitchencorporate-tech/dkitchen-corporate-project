@@ -272,7 +272,10 @@ export async function POST(request: Request) {
 
   // Enlace de pago preparado por DKitchen en Central (0030). Solo el cobro
   // correcto; los fallos siguen al calendario de gracia común de más abajo.
-  if (evento.data.metadata?.producto === 'enlace-admin' && evento.type === 'payment.succeeded') {
+  // Con días gratis (0034) el alta puede ser de 0 €: Whop avisa con la activación de la membresía y no con
+  // un pago. aplicar_enlace_pago es idempotente, así que recibir los dos eventos es seguro.
+  const activacion = evento.type === 'membership.activated' || evento.type === 'membership.went_valid';
+  if (evento.data.metadata?.producto === 'enlace-admin' && (evento.type === 'payment.succeeded' || activacion)) {
     const meta = evento.data.metadata;
     try {
       const r = await comoAprovisionamiento(async (c) => {
@@ -281,7 +284,7 @@ export async function POST(request: Request) {
         ]);
         return rows[0]?.r;
       });
-      if (r === 'renovacion' && evento.data.member?.id) await registrarPagoRecuperado(evento.data.member.id);
+      if (r === 'renovacion' && !activacion && evento.data.member?.id) await registrarPagoRecuperado(evento.data.member.id);
       if (r === 'ok') {
         await enviarCorreoInterno(
           `PAGO DE ENLACE: ${meta.restauranteNombre}`,

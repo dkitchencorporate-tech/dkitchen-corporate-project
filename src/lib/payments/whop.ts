@@ -461,14 +461,17 @@ export async function crearCheckoutEnlaceAdmin(datos: {
   concepto: string;
   primerCentimos: number;
   mensualCentimos: number;
+  /** Días sin cobro recurrente hasta el día de cobro común (0034). Whop: `trial_period_days`. */
+  diasGratis?: number;
   origen: string;
 }): Promise<{ url: string }> {
   const apiKey = requerirEnv('WHOP_API_KEY');
   const companyId = requerirEnv('WHOP_COMPANY_ID');
   const primer = Math.round(datos.primerCentimos) / 100;
+  const dias = Math.max(0, Math.round(datos.diasGratis ?? 0));
   const mensual = Math.round(datos.mensualCentimos) / 100;
   const plan = mensual > 0
-    ? { plan_type: 'renewal', initial_price: primer, renewal_price: mensual, billing_period: 30 }
+    ? { plan_type: 'renewal', initial_price: primer, renewal_price: mensual, billing_period: 30, ...(dias > 0 ? { trial_period_days: dias } : {}) }
     : { plan_type: 'one_time', initial_price: primer };
 
   const respuesta = await fetch(`${BASE}/checkout_configurations`, {

@@ -12,6 +12,7 @@ import { cargarPlano, listarCamareros, estadoConexionTpv, informeCamareros } fro
 import { listarTraducciones } from '@/lib/idiomas';
 import { llamadasPendientes } from '@/lib/llamadas-camarero';
 import PanelShell from '@/components/panel/PanelShell';
+import { resumenCobro } from '@/lib/prueba';
 import { SesionNoValida } from '@/lib/db';
 import { estadoAdmin } from '@/lib/guard-admin';
 
@@ -61,7 +62,7 @@ export default async function Panel() {
       listarPromociones(jwt, restaurante.id),
       restaurante.plan === 'ampliado' ? listarMisReservas(jwt, restaurante.id) : Promise.resolve([]),
     ]);
-    const servicios = await estadoServicios(jwt, restaurante.id);
+    const [servicios, cobro] = await Promise.all([estadoServicios(jwt, restaurante.id), resumenCobro(jwt, restaurante.id).catch(() => null)]);
     const c = servicios.contratados;
     const hayPlano = tiene(c, 'plano_mesas'), hayApp = tiene(c, 'app_sala'), hayTpv = tiene(c, 'conexion_tpv');
     const [plano, camareros, tpv, llamadas, traducciones, informe] = await Promise.all([
@@ -88,6 +89,7 @@ export default async function Panel() {
         servicios={servicios}
         sala={{ mesas: plano.mesas, elementos: plano.elementos, camareros, tpv, llamadas, informe }}
         traducciones={traducciones}
+        cobro={cobro}
       />
     );
   } catch (error) {
