@@ -7,6 +7,7 @@ import BotonesMesa from '@/components/carta/BotonesMesa';
 import CarruselBanners from '@/components/carta/CarruselBanners';
 import FichaPlato from '@/components/carta/FichaPlato';
 import Reservar from '@/components/carta/Reservar';
+import { EtiquetaPlato, PrecioAnterior, ComboPlato } from '@/components/carta/ExtrasPlato';
 
 /**
  * CARTA DE AUTOR (nivel 2) — rediseño 28/09/2026
@@ -26,8 +27,7 @@ const ROMANOS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'X
 const versalitas = 'text-[11px] font-medium uppercase tracking-[0.28em]';
 
 export default function CartaAutor({
-  carta, banners, desdeRespaldo = false, vistaPrevia = false,
-}: { carta: Carta; banners: Banner[]; desdeRespaldo?: boolean; vistaPrevia?: boolean }) {
+  carta, banners, desdeRespaldo = false, vistaPrevia = false, legal = false }: { carta: Carta; banners: Banner[]; desdeRespaldo?: boolean; vistaPrevia?: boolean; legal?: boolean }) {
   const color = carta.colorMarca || '#8A5A2B';
   const ampliado = carta.plan === 'ampliado';
   const grupos: SeccionCarta[] = [
@@ -164,6 +164,9 @@ export default function CartaAutor({
         )}
 
         <footer className="mt-20 text-center">
+          <p className="mb-2 text-[11px] text-black/40">{legal && (
+            <span className="mb-1 block"><a href={`/m/${carta.slug}/legal#aviso`} className="hover:underline">Aviso legal</a> · <a href={`/m/${carta.slug}/legal#privacidad`} className="hover:underline">Privacidad</a> · <a href={`/m/${carta.slug}/legal#cookies`} className="hover:underline">Cookies</a></span>
+          )}</p>
           <p className={`${serif.className} text-2xl`}>{carta.nombre}</p>
           <p className="mt-3 text-[10px] uppercase tracking-[0.2em] text-black/30">
             Carta digital · <a href="https://dkitchencorporate.es/qr" className="hover:text-black/60">DKitchen</a>
@@ -180,10 +183,11 @@ function PlatoAutor({ plato, serifClase }: { plato: PlatoCarta; serifClase: stri
   return (
     <span className="block text-left">
       <span className="flex items-baseline gap-3">
-        <span className={`${serifClase} text-[22px] font-semibold leading-tight`}>{plato.nombre}</span>
+        <span className={`${serifClase} text-[22px] font-semibold leading-tight`}><EtiquetaPlato plato={plato} />{plato.nombre}</span>
         <span aria-hidden="true" className="min-w-6 flex-1 translate-y-[-4px] border-b border-dotted border-[#221D17]/30" />
-        <span className={`${serifClase} whitespace-nowrap text-[21px] font-semibold tabular-nums`}>{precio(plato.precio)}</span>
+        <span className={`${serifClase} whitespace-nowrap text-[21px] font-semibold tabular-nums`}><PrecioAnterior plato={plato} />{precio(plato.precio)}</span>
       </span>
+      <ComboPlato plato={plato} />
       {plato.descripcion && <span className={`${serifClase} mt-1 block pr-12 text-[17px] italic leading-snug text-black/60`}>{plato.descripcion}</span>}
       {plato.alergenos.length > 0 && (
         <span className="mt-1.5 block text-[10px] font-medium uppercase tracking-[0.18em] text-black/40">

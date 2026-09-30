@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const MENSAJES: Record<string, string> = {
   fecha_invalida: 'Elige una fecha a partir de hoy (máximo 6 meses).',
@@ -14,6 +14,13 @@ const MENSAJES: Record<string, string> = {
 /** Botón "Reservar mesa" + formulario (plan Ampliado). */
 export default function Reservar({ slug, color, nombreLocal }: { slug: string; color: string; nombreLocal: string }) {
   const [abierto, setAbierto] = useState(false);
+
+  // Un banner con destino «Reservar» abre este formulario.
+  useEffect(() => {
+    const abrir = () => setAbierto(true);
+    window.addEventListener('dk:reservar', abrir);
+    return () => window.removeEventListener('dk:reservar', abrir);
+  }, []);
   const [estado, setEstado] = useState<'idle' | 'enviando' | 'ok' | 'error'>('idle');
   const [mensaje, setMensaje] = useState('');
   const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);

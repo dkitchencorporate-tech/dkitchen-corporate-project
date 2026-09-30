@@ -2,13 +2,14 @@ import type { Metadata } from 'next';
 import type { CSSProperties, ReactNode } from 'react';
 import { notFound } from 'next/navigation';
 
-import { type Carta, type PlatoCarta, type SeccionCarta, type Banner, obtenerBanners } from '@/lib/menu';
+import { type Carta, type PlatoCarta, type SeccionCarta, type Banner, obtenerBanners, obtenerLegalPublico } from '@/lib/menu';
 import { obtenerCartaConRespaldo } from '@/lib/cache-resiliencia';
 import { nombreAlergeno } from '@/lib/alergenos';
 import BotonesMesa from '@/components/carta/BotonesMesa';
 import CarruselBanners from '@/components/carta/CarruselBanners';
 import CartaAutor from '@/components/carta/CartaAutor';
 import FichaPlato from '@/components/carta/FichaPlato';
+import { EtiquetaPlato, PrecioAnterior, ComboPlato } from '@/components/carta/ExtrasPlato';
 import Reservar from '@/components/carta/Reservar';
 import { traducirCarta, IDIOMAS } from '@/lib/idiomas';
 import { Cormorant_Garamond } from 'next/font/google';
@@ -88,10 +89,11 @@ export default async function CartaPublica({
   } catch {
     banners = [];
   }
+  const legal = await obtenerLegalPublico(carta.slug).then(Boolean).catch(() => false);
 
   // Nivel 2 / 3 (asignado por DKitchen): Carta de Autor
   if (carta.nivelDiseno === 'autor' || carta.nivelDiseno === 'signature') {
-    return <>{selector}<CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} /></>;
+    return <>{selector}<CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} legal={legal} /></>;
   }
 
   const plantilla = ['visual', 'express', 'editorial'].includes(carta.plantilla ?? '') ? (carta.plantilla as string) : 'clasica';
@@ -226,6 +228,9 @@ export default async function CartaPublica({
         <DatosLocal carta={carta} />
 
         <footer className="mt-8 text-center text-[11px] text-black/30">
+          {legal && (
+            <span className="mb-1 block"><a href={`/m/${carta.slug}/legal#aviso`} className="hover:underline">Aviso legal</a> · <a href={`/m/${carta.slug}/legal#privacidad`} className="hover:underline">Privacidad</a> · <a href={`/m/${carta.slug}/legal#cookies`} className="hover:underline">Cookies</a></span>
+          )}
           Carta digital de {carta.nombre} · Tecnología de <a href="https://dkitchencorporate.es/qr" className="hover:underline">DKitchen</a>
         </footer>
       </div>
@@ -389,13 +394,14 @@ function Alergenos({ plato, compacto = false }: { plato: PlatoCarta; compacto?: 
 }
 
 function Precio({ plato, destacado = false }: { plato: PlatoCarta; destacado?: boolean }) {
+  // Con promoción vigente, el precio normal va tachado delante.
   // El precio no se parte de línea ni se encoge: es lo que más se mira.
   return (
     <span
       className={`shrink-0 whitespace-nowrap tabular-nums ${destacado ? 'font-bold' : 'font-semibold'}`}
       style={destacado ? { color: 'var(--marca)' } : undefined}
     >
-      {euros.format(Number(plato.precio))}
+      <PrecioAnterior plato={plato} />{euros.format(Number(plato.precio))}
     </span>
   );
 }
@@ -406,7 +412,8 @@ function Plato({ plato }: { plato: PlatoCarta }) {
   return (
     <span className="flex items-start gap-4">
       <span className="block min-w-0 flex-1">
-        <span className="nombre-plato block font-semibold leading-snug">{plato.nombre}</span>
+        <span className="nombre-plato block font-semibold leading-snug"><EtiquetaPlato plato={plato} />{plato.nombre}</span>
+        <ComboPlato plato={plato} />
         {plato.descripcion && <span className="mt-1 line-clamp-2 block text-sm leading-relaxed text-black/55">{plato.descripcion}</span>}
         <Alergenos plato={plato} />
         <span className="mt-2 block text-[15px]"><Precio plato={plato} /></span>
@@ -430,9 +437,10 @@ function PlatoVisual({ plato }: { plato: PlatoCarta }) {
       )}
       <span className="block p-4">
         <span className="flex items-baseline justify-between gap-3">
-          <span className="nombre-plato font-semibold leading-snug">{plato.nombre}</span>
+          <span className="nombre-plato font-semibold leading-snug"><EtiquetaPlato plato={plato} />{plato.nombre}</span>
           <Precio plato={plato} destacado />
         </span>
+        <ComboPlato plato={plato} />
         {plato.descripcion && <span className="mt-1 line-clamp-2 block text-sm leading-relaxed text-black/55">{plato.descripcion}</span>}
         <Alergenos plato={plato} />
       </span>
@@ -444,10 +452,11 @@ function PlatoEditorial({ plato }: { plato: PlatoCarta }) {
   return (
     <span className="block text-left">
       <span className="flex items-baseline gap-3">
-        <span className="nombre-plato text-[21px] font-semibold leading-tight">{plato.nombre}</span>
+        <span className="nombre-plato text-[21px] font-semibold leading-tight"><EtiquetaPlato plato={plato} />{plato.nombre}</span>
         <span aria-hidden="true" className="min-w-6 flex-1 -translate-y-1 border-b border-dotted border-current opacity-30" />
-        <span className="whitespace-nowrap text-[20px] font-semibold tabular-nums">{euros.format(Number(plato.precio)).replace(/\s?€/, '')}</span>
+        <span className="whitespace-nowrap text-[20px] font-semibold tabular-nums"><PrecioAnterior plato={plato} />{euros.format(Number(plato.precio)).replace(/\s?€/, '')}</span>
       </span>
+      <ComboPlato plato={plato} />
       {plato.descripcion && <span className="mt-1 block pr-10 text-[16px] italic leading-snug opacity-65">{plato.descripcion}</span>}
       {plato.alergenos.length > 0 && (
         <span className="mt-1.5 block text-[10px] font-medium uppercase tracking-[0.16em] opacity-45">
@@ -462,9 +471,10 @@ function PlatoExpress({ plato }: { plato: PlatoCarta }) {
   return (
     <span className="block px-4 py-3">
       <span className="flex items-baseline justify-between gap-3">
-        <span className="nombre-plato text-[15px] font-medium leading-snug">{plato.nombre}</span>
+        <span className="nombre-plato text-[15px] font-medium leading-snug"><EtiquetaPlato plato={plato} />{plato.nombre}</span>
         <Precio plato={plato} />
       </span>
+      <ComboPlato plato={plato} />
       {plato.descripcion && <span className="line-clamp-1 block text-xs leading-relaxed text-black/50">{plato.descripcion}</span>}
       <Alergenos plato={plato} compacto />
     </span>

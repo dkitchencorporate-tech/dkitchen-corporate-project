@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import type { PlatoCarta } from '@/lib/menu';
+import { EtiquetaPlato, PrecioAnterior, ComboPlato } from './ExtrasPlato';
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 
@@ -14,6 +15,13 @@ export default function FichaPlato({
   plato, nombresAlergenos, children, className,
 }: { plato: PlatoCarta; nombresAlergenos: Record<string, string>; children: ReactNode; className?: string }) {
   const [abierta, setAbierta] = useState(false);
+
+  // Un banner puede abrir este plato directamente.
+  useEffect(() => {
+    const abrir = (e: Event) => { if ((e as CustomEvent).detail === plato.id) setAbierta(true); };
+    window.addEventListener('dk:abrir-plato', abrir);
+    return () => window.removeEventListener('dk:abrir-plato', abrir);
+  }, [plato.id]);
 
   useEffect(() => {
     if (!abierta) return;
@@ -44,11 +52,12 @@ export default function FichaPlato({
             )}
             <div className="space-y-3 p-6 text-[#1a1a1a]">
               <div className="flex items-start justify-between gap-4">
-                <h2 className="text-xl font-semibold leading-tight">{plato.nombre}</h2>
+                <h2 className="text-xl font-semibold leading-tight"><EtiquetaPlato plato={plato} />{plato.nombre}</h2>
                 <span className="shrink-0 whitespace-nowrap text-lg font-bold tabular-nums" style={{ color: 'var(--marca)' }}>
-                  {euros.format(Number(plato.precio))}
+                  <PrecioAnterior plato={plato} />{euros.format(Number(plato.precio))}
                 </span>
               </div>
+              <ComboPlato plato={plato} completo />
               {plato.descripcion && <p className="whitespace-pre-line leading-relaxed text-black/65">{plato.descripcion}</p>}
               {plato.alergenos.length > 0 && (
                 <div>

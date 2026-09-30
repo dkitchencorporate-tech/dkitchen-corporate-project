@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 export default function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false);
+  // La carta de un restaurante (/m/…) es del cliente, no de DKitchen: sin nuestro aviso ni nuestra medición.
+  const cartaCliente = usePathname()?.startsWith('/m/') ?? false;
 
   useEffect(() => {
     // Verificar si ya se aceptaron las cookies previamente
@@ -25,7 +28,7 @@ export default function CookieConsent() {
     setIsVisible(false);
   };
 
-  if (!isVisible) return null;
+  if (!isVisible || cartaCliente) return null;
 
   // Compacto (29/09/2026): no tapa la web en el móvil; mismo consentimiento y misma clave.
   return (

@@ -11,6 +11,8 @@ function AnalyticsPixelLogic() {
   useEffect(() => {
     // 0. EXCLUIR DASHBOARD ADMINISTRATIVO
     if (pathname.startsWith('/admin-dkitchen')) return;
+    // Ni en la carta pública de un restaurante: no es nuestra web (ver su /legal#cookies).
+    if (pathname.startsWith('/m/')) return;
 
     const trackView = async () => {
       // 1. Gestionar Session ID

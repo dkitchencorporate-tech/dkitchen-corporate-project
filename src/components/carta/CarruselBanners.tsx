@@ -51,7 +51,10 @@ export default function CarruselBanners({ banners, color }: { banners: Banner[];
 
   function pulsar(b: Banner) {
     fetch('/api/promocion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: b.id, tipo: 'clic' }), keepalive: true }).catch(() => {});
-    if (b.botonSeccion) document.getElementById(`s-${b.botonSeccion}`)?.scrollIntoView({ behavior: 'smooth' });
+    const destino = b.botonDestino ?? (b.botonSeccion ? 'seccion' : 'inicio');
+    if (destino === 'plato' && b.botonPlato) window.dispatchEvent(new CustomEvent('dk:abrir-plato', { detail: b.botonPlato }));
+    else if (destino === 'reservar') window.dispatchEvent(new Event('dk:reservar'));
+    else if (b.botonSeccion) document.getElementById(`s-${b.botonSeccion}`)?.scrollIntoView({ behavior: 'smooth' });
   }
 
   if (banners.length === 0) return null;
@@ -71,7 +74,9 @@ export default function CarruselBanners({ banners, color }: { banners: Banner[];
         className="flex snap-x snap-mandatory overflow-x-auto rounded-2xl shadow-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {banners.map((b, i) => {
-          const interactivo = Boolean(b.botonSeccion || b.botonTexto);
+          const sinBoton = b.botonDestino === 'ninguno';
+          const interactivo = !sinBoton && Boolean(b.botonSeccion || b.botonTexto || b.botonPlato || b.botonDestino === 'reservar');
+          if (sinBoton) b = { ...b, botonTexto: null };
           const contenido = b.imagenUrl ? (
             <div className="relative aspect-[16/9] w-full bg-black/5">
               {/* eslint-disable-next-line @next/next/no-img-element */}

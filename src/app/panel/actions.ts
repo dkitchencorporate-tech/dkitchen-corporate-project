@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { claveDeLimite, limiteSuperado } from '@/lib/limite-frecuencia';
+import { guardarExtras as dbGuardarExtras, guardarCombo as dbGuardarCombo, guardarLegal as dbGuardarLegal, ETIQUETAS, type Etiqueta, type DatosCombo, type DatosLegal } from '@/lib/estudio';
 import { obtenerJwtDeSesion, identidadActual } from '@/lib/sesion';
 import { randomUUID } from 'node:crypto';
 import { put } from '@vercel/blob';
@@ -260,6 +261,16 @@ function mensajeBase(error: unknown): never {
   throw new Error('No se pudo guardar. Revisa los datos e inténtalo de nuevo.');
 }
 
+/** Destino del botón del banner: solo valores conocidos y el dato que cada uno necesita. */
+function destinoBoton(d: DatosPromocion): Pick<DatosPromocion, 'botonDestino' | 'botonSeccion' | 'botonPlato'> {
+  const destino = (['inicio', 'seccion', 'plato', 'reservar', 'ninguno'] as const).includes(d.botonDestino) ? d.botonDestino : (d.botonSeccion ? 'seccion' : 'inicio');
+  const seccion = d.botonSeccion && UUID.test(d.botonSeccion) ? d.botonSeccion : null;
+  const plato = d.botonPlato && UUID.test(d.botonPlato) ? d.botonPlato : null;
+  if (destino === 'seccion' && !seccion) throw new Error('Elige la sección a la que lleva el botón.');
+  if (destino === 'plato' && !plato) throw new Error('Elige el plato al que lleva el botón.');
+  return { botonDestino: destino, botonSeccion: destino === 'seccion' ? seccion : null, botonPlato: destino === 'plato' ? plato : null };
+}
+
 function limpiarPromocion(d: DatosPromocion): DatosPromocion {
   const titulo = (d.titulo ?? '').trim().slice(0, 60) || null;
   if (!titulo && !urlSegura(d.imagenUrl)) throw new Error('El banner necesita una imagen o un título.');
@@ -270,8 +281,8 @@ function limpiarPromocion(d: DatosPromocion): DatosPromocion {
     titulo,
     texto: limpio(d.texto, 160),
     imagenUrl: urlSegura(d.imagenUrl),
-    botonTexto: limpio(d.botonTexto, 30),
-    botonSeccion: d.botonSeccion && UUID.test(d.botonSeccion) ? d.botonSeccion : null,
+    botonTexto: d.botonDestino === 'ninguno' ? null : limpio(d.botonTexto, 30),
+    ...destinoBoton(d),
     inicio: fecha(d.inicio),
     fin: fecha(d.fin),
     dias: dias && dias.length > 0 && dias.length < 7 ? dias : null,
@@ -503,5 +514,73 @@ export async function solicitarBajaAction(motivo: string) {
      <p>Tu carta sigue activa hasta el final del periodo que ya pagaste. Después, tu QR mostrará una página informativa (nunca un error) y guardaremos tu carta 60 días por si quieres volver o pedirnos una copia.</p>
      <p>Si ha sido un error o quieres contarnos algo, responde a este correo.</p>`,
     { titulo: 'Baja recibida' }).catch((e) => console.error('Baja: confirmación no enviada', e));
+  revalidatePath('/panel');
+}
+
+// ---------------------------------------------------------------------------
+// Estudio de carta (0037): etiquetas, promociones, combos y legales
+// ---------------------------------------------------------------------------
+
+const FECHA = /^\d{4}-\d{2}-\d{2}$/;
+const importe = (v: unknown): number | null => {
+  const n = typeof v === 'number' ? v : Number(String(v ?? '').replace(',', '.'));
+  return Number.isFinite(n) && n >= 0 && n <= 9999 ? Math.round(n * 100) / 100 : null;
+};
+const textoEstudio = (v: unknown, max: number) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null);
+function errorEstudio(e: unknown): never {
+  const m = e instanceof Error ? e.message : '';
+  if (/promo_check/.test(m)) throw new Error('El precio de promoción debe ser menor que el precio normal y la fecha de inicio anterior a la de fin.');
+  if (/combo|12 platos|otro restaurante/.test(m)) throw new Error(m.replace(/^.*?: /, '').replace(/^\w/, (x) => x.toUpperCase()) + '.');
+  if (/legal_nif/.test(m)) throw new Error('El NIF/CIF no es válido (solo letras, números y guiones).');
+  if (/legal_email/.test(m)) throw new Error('El correo legal no es válido.');
+  throw new Error('No se pudo guardar. Revisa los datos e inténtalo de nuevo.');
+}
+
+export async function guardarExtrasPlatoAction(platoId: string, d: { etiqueta: string | null; precioPromo: string | number | null; promoDesde: string | null; promoHasta: string | null }) {
+  if (!UUID.test(platoId)) throw new Error('Plato no válido.');
+  const { jwt } = await requerirSesionYRestaurante();
+  const etiqueta = d.etiqueta && (ETIQUETAS as string[]).includes(d.etiqueta) ? (d.etiqueta as Etiqueta) : null;
+  const precioPromo = d.precioPromo === null || d.precioPromo === '' ? null : importe(d.precioPromo);
+  if (d.precioPromo !== null && d.precioPromo !== '' && precioPromo === null) throw new Error('Precio de promoción no válido.');
+  const fecha = (f: string | null) => (f && FECHA.test(f) ? f : null);
+  try {
+    await dbGuardarExtras(jwt, platoId, { etiqueta, precioPromo, promoDesde: precioPromo === null ? null : fecha(d.promoDesde), promoHasta: precioPromo === null ? null : fecha(d.promoHasta) });
+  } catch (e) { errorEstudio(e); }
+  revalidatePath('/panel');
+}
+
+export async function guardarComboAction(comboId: string | null, d: DatosCombo) {
+  if (comboId !== null && !UUID.test(comboId)) throw new Error('Combo no válido.');
+  const nombre = textoEstudio(d?.nombre, 80);
+  const precio = importe(d?.precio);
+  if (!nombre) throw new Error('Ponle un nombre al combo.');
+  if (precio === null || precio <= 0) throw new Error('Pon el precio del combo.');
+  const vistos = new Set<string>();
+  const componentes = (Array.isArray(d.componentes) ? d.componentes : [])
+    .filter((x) => x && UUID.test(String(x.itemId)) && !vistos.has(x.itemId) && vistos.add(x.itemId))
+    .map((x) => ({ itemId: x.itemId, cantidad: Math.min(20, Math.max(1, Math.round(Number(x.cantidad) || 1))) }));
+  if (componentes.length < 2) throw new Error('Un combo necesita al menos 2 platos.');
+  if (componentes.length > 12) throw new Error('Un combo admite como máximo 12 platos.');
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  try {
+    await dbGuardarCombo(jwt, restaurante.id, comboId, {
+      nombre, precio, componentes,
+      descripcion: textoEstudio(d.descripcion, 300),
+      seccionId: d.seccionId && UUID.test(d.seccionId) ? d.seccionId : null,
+      fotoUrl: typeof d.fotoUrl === 'string' && /^https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\//.test(d.fotoUrl) ? d.fotoUrl : null,
+    });
+  } catch (e) { errorEstudio(e); }
+  revalidatePath('/panel');
+}
+
+export async function guardarLegalAction(d: DatosLegal) {
+  const nif = textoEstudio(d?.nif, 12)?.toUpperCase().replace(/\s/g, '') ?? null;
+  const datos: DatosLegal = {
+    titular: textoEstudio(d?.titular, 160), nif, email: textoEstudio(d?.email, 160)?.toLowerCase() ?? null,
+    domicilio: textoEstudio(d?.domicilio, 240), activo: !!d?.activo,
+  };
+  if (datos.activo && (!datos.titular || !datos.email)) throw new Error('Para publicar tus páginas legales hacen falta el titular y un correo de contacto.');
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  try { await dbGuardarLegal(jwt, restaurante.id, datos); } catch (e) { errorEstudio(e); }
   revalidatePath('/panel');
 }

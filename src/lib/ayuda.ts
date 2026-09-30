@@ -103,11 +103,53 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     id: 'secciones', pregunta: 'Cómo organizo las secciones de la carta', secciones: ['carta'],
     claves: ['seccion', 'categoria', 'orden', 'ordenar', 'mover', 'entrantes'],
     respuesta: [
-      'En Carta → Platos, crea las secciones escribiendo su nombre arriba y añade los platos dentro de cada una. Si necesitas cambiar el orden de las secciones, pídeselo a una persona y lo dejamos como quieras.',
+      'En Carta → Estudio → Categorías creas, renombras y eliminas las secciones de tu carta.', 'Después, en Carta → Platos, añade los platos dentro de cada una. Si necesitas cambiar el orden de las secciones, pídeselo a una persona y lo dejamos como quieras.',
       'Recomendamos pocas secciones y claras: entrantes, principales, postres, bebidas.',
     ],
-    acciones: [{ tipo: 'ir', pestana: 'carta', texto: 'Ir a Platos' }],
-    siguientes: ['plato-nuevo'], ofrecerPuesta: true,
+    acciones: [{ tipo: 'ir', pestana: 'estudio', texto: 'Ir al Estudio' }],
+    siguientes: ['plato-nuevo', 'estudio'], ofrecerPuesta: true,
+  },
+  {
+    id: 'estudio', pregunta: 'Qué es el Estudio de carta', secciones: ['estudio', 'carta'],
+    claves: ['estudio', 'organizar', 'construir carta', 'crear carta'],
+    respuesta: [
+      'Es donde construyes tu carta: categorías, especiales y promociones, combos y tus páginas legales.',
+      'Los cambios rápidos del día (precio, agotado, foto) siguen en Carta → Platos.',
+    ],
+    acciones: [{ tipo: 'ir', pestana: 'estudio', texto: 'Ir al Estudio' }],
+    siguientes: ['combo', 'promo', 'legales'],
+  },
+  {
+    id: 'combo', pregunta: 'Cómo creo un combo o menú', secciones: ['estudio', 'carta'],
+    claves: ['combo', 'menu cerrado', 'pack', 'oferta conjunta', 'hamburguesa patatas bebida', 'menu infantil'],
+    respuesta: [
+      'En Carta → Estudio → Combos pulsa «+ Nuevo combo».',
+      'Ponle nombre, elige al menos 2 platos (con − y + cambias cantidades) y escribe el precio del combo.',
+      'Verás al momento cuánto costaría por separado y cuánto ahorra tu cliente; la carta lo muestra así. Los alérgenos se calculan solos.',
+    ],
+    acciones: [{ tipo: 'ir', pestana: 'estudio', texto: 'Crear un combo' }],
+    siguientes: ['promo', 'estudio'], ofrecerPuesta: true,
+  },
+  {
+    id: 'promo', pregunta: 'Cómo pongo un plato en promoción o como especial', secciones: ['estudio', 'carta', 'promociones'],
+    claves: ['promocion', 'oferta', 'descuento', 'rebaja', 'especial', 'nuevo', 'recomendado', 'etiqueta', 'tachado'],
+    respuesta: [
+      'En Carta → Estudio → Especiales y promociones eliges la etiqueta (Especial, Nuevo o Recomendado) de cada plato.',
+      'Para una promoción, escribe el precio rebajado y, si quieres, las fechas. Tus clientes verán el precio normal tachado.',
+      'Al pasar la fecha de fin, el plato vuelve solo a su precio normal.',
+    ],
+    acciones: [{ tipo: 'ir', pestana: 'estudio', texto: 'Ir al Estudio' }],
+    siguientes: ['combo', 'banners'],
+  },
+  {
+    id: 'legales', pregunta: 'Cómo pongo el aviso legal y la privacidad de mi negocio', secciones: ['estudio', 'local'],
+    claves: ['legal', 'aviso legal', 'privacidad', 'cookies', 'rgpd', 'lopd', 'nif', 'cif', 'proteccion de datos'],
+    respuesta: [
+      'En Carta → Estudio → Páginas legales escribe el titular del negocio y un correo de contacto (el NIF/CIF es opcional).',
+      'Marca «Publicar mis páginas legales» y guarda: generamos el aviso legal, la privacidad y las cookies de tu carta y las enlazamos en su pie.',
+      'Nada se publica hasta que tú lo activas.',
+    ],
+    acciones: [{ tipo: 'ir', pestana: 'estudio', texto: 'Ir a Páginas legales' }],
   },
   {
     id: 'diseno', pregunta: 'Quiero cambiar el diseño de mi carta', secciones: ['diseno', 'carta', 'local'],
@@ -212,6 +254,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     respuesta: [
       'En Carta → Banners creas un aviso con imagen o texto y un botón que lleva a una sección de tu carta.',
       'El plan Básico incluye 1 banner activo. Con Ampliado puedes tener varios y programarlos por días y horas (por ejemplo, el menú del día de lunes a viernes de 12 a 16 h).',
+      'En «Botón del banner» eliges qué pasa al tocarlo: nada (sin botón), bajar a una sección, abrir un plato concreto o abrir la reserva (plan Ampliado).',
     ],
     acciones: [{ tipo: 'ir', pestana: 'promociones', texto: 'Ir a Banners' }],
     siguientes: ['plan-ampliado'],
@@ -431,7 +474,7 @@ export function normalizar(texto: string): string {
 }
 
 /** Verbos y nombres muy generales: ayudan a desempatar, pero no deciden solos. */
-const GENERICAS = new Set(['anadir', 'cambiar', 'borrar', 'carta', 'plato']);
+const GENERICAS = new Set(['anadir', 'cambiar', 'carta', 'plato']);
 
 const RAIZ = new Map<string, string>();
 SINONIMOS.forEach((g) => g.forEach((p) => RAIZ.set(p, g[0])));
@@ -449,16 +492,17 @@ export function buscarTemas(temas: TemaAyuda[], consulta: string, max = 3): Tema
   return temas
     .map((t) => {
       let puntos = 0;
+      let generica = false;
       for (const c of t.claves) {
         const cn = normalizar(c);
         if (cn.includes(' ') ? q.includes(cn) : false) puntos += 3;
         else {
           const comunes = tokens(c).filter((x) => qTokens.has(x));
           if (comunes.some((x) => !GENERICAS.has(x))) puntos += 2;
-          else if (comunes.length) puntos += 1;
+          else if (comunes.length && !generica) { puntos += 1; generica = true; }
         }
       }
-      for (const x of tokens(t.pregunta)) if (qTokens.has(x)) puntos += 1;
+      for (const x of tokens(t.pregunta)) if (qTokens.has(x) && !GENERICAS.has(x)) puntos += 1;
       return { t, puntos };
     })
     .filter((r) => r.puntos >= 2)

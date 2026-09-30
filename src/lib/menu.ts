@@ -25,6 +25,14 @@ export interface PlatoCarta {
   precio: string;
   fotoUrl: string | null;
   alergenos: string[];
+  /** Estudio (0037). Opcionales: los espejos antiguos no los traen. */
+  etiqueta?: 'especial' | 'nuevo' | 'recomendado' | null;
+  /** Precio normal tachado mientras hay una promoción vigente (`precio` ya es el de promoción). */
+  precioAnterior?: string | null;
+  /** Platos que incluye un combo. */
+  combo?: { nombre: string; cantidad: number }[] | null;
+  /** Lo que se ahorra con el combo frente a pedir sus platos sueltos. */
+  ahorro?: string | null;
 }
 
 export interface SeccionCarta {
@@ -116,11 +124,20 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       precio: string;
       foto_url: string | null;
       alergenos: string[];
+      etiqueta: 'especial' | 'nuevo' | 'recomendado' | null;
+      precio_anterior: string | null;
+      combo: { nombre: string; cantidad: number }[] | null;
+      ahorro: string | null;
     }>(
-      `SELECT id, seccion_id, nombre, descripcion, precio, foto_url, alergenos
-         FROM menu_items
-        WHERE restaurante_id = $1
-        ORDER BY orden, nombre`,
+      `SELECT m.id, m.seccion_id, m.nombre, m.descripcion, dk.precio_vigente(m) AS precio, m.foto_url, m.alergenos, m.etiqueta,
+              CASE WHEN dk.precio_vigente(m) < m.precio THEN m.precio END AS precio_anterior,
+              CASE WHEN m.es_combo THEN (SELECT json_agg(json_build_object('nombre', i.nombre, 'cantidad', ci.cantidad) ORDER BY i.orden)
+                                           FROM menu_combo_items ci JOIN menu_items i ON i.id = ci.item_id WHERE ci.combo_id = m.id) END AS combo,
+              CASE WHEN m.es_combo THEN nullif(greatest((SELECT sum(dk.precio_vigente(i) * ci.cantidad) FROM menu_combo_items ci
+                                           JOIN menu_items i ON i.id = ci.item_id WHERE ci.combo_id = m.id) - dk.precio_vigente(m), 0), 0) END AS ahorro
+         FROM menu_items m
+        WHERE m.restaurante_id = $1
+        ORDER BY m.orden, m.nombre`,
       [restaurante.id]
     );
 
@@ -132,6 +149,10 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       precio: p.precio,
       fotoUrl: p.foto_url,
       alergenos: p.alergenos ?? [],
+      etiqueta: p.etiqueta,
+      precioAnterior: p.precio_anterior,
+      combo: p.combo,
+      ahorro: p.ahorro,
     });
 
     return {
@@ -195,6 +216,9 @@ export interface Banner {
   imagenUrl: string | null;
   botonTexto: string | null;
   botonSeccion: string | null;
+  /** inicio | seccion | plato | reservar | ninguno (0037). */
+  botonDestino?: string;
+  botonPlato?: string | null;
 }
 
 /**
@@ -208,6 +232,7 @@ export async function obtenerBanners(slug: string): Promise<Banner[]> {
     const { rows } = await c.query('SELECT * FROM dk.banners_vigentes($1)', [slug.toLowerCase()]);
     return rows.map((p) => ({
       id: p.id, titulo: p.titulo, texto: p.texto, imagenUrl: p.imagen_url, botonTexto: p.boton_texto, botonSeccion: p.boton_seccion,
+      botonDestino: p.boton_destino ?? 'inicio', botonPlato: p.boton_plato ?? null,
     }));
   });
 }
@@ -215,4 +240,14 @@ export async function obtenerBanners(slug: string): Promise<Banner[]> {
 /** Vista o clic del banner. Anti-inflado por visitante dentro de la función SQL. */
 export async function registrarEventoPromocion(promocionId: string, tipo: 'vista' | 'clic', clave: string): Promise<void> {
   await comoVisitante((c) => c.query('SELECT dk.registrar_evento_promocion($1, $2, $3)', [promocionId, tipo, clave]));
+}
+
+/** Datos legales del negocio (0037). Solo existen si el propio cliente los ha publicado. */
+export interface LegalNegocio { nombre: string; titular: string; nif: string | null; email: string; domicilio: string | null; telefono: string | null }
+
+export async function obtenerLegalPublico(slug: string): Promise<LegalNegocio | null> {
+  return comoVisitante(async (c) => {
+    const { rows } = await c.query('SELECT * FROM dk.legal_publico($1)', [slug.toLowerCase()]);
+    return rows[0] ?? null;
+  });
 }

@@ -16,6 +16,8 @@ import MiPlan from './MiPlan';
 import { AvisoPrueba, DesgloseCobro } from './Cobro';
 import type { ResumenCobro } from '@/lib/prueba';
 import Soporte from './Soporte';
+import Estudio from './Estudio';
+import type { ExtraPlato, DatosLegal } from '@/lib/estudio';
 import MiLocal from './MiLocal';
 import Camarero from './Camarero';
 import Promociones from './Promociones';
@@ -32,7 +34,7 @@ import ChatAyuda from '@/components/ayuda/ChatAyuda';
 import { TEMAS_PANEL } from '@/lib/ayuda';
 import { crearTicketAyudaAction, comprarServicioAction } from '@/app/panel/actions';
 
-type Pestana = 'inicio' | 'carta' | 'local' | 'promociones' | 'reservas' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
+type Pestana = 'inicio' | 'carta' | 'estudio' | 'local' | 'promociones' | 'reservas' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
 
 /**
  * Navegación por espacios (29/09/2026): un raíl de iconos con 5 espacios y,
@@ -42,7 +44,7 @@ type Pestana = 'inicio' | 'carta' | 'local' | 'promociones' | 'reservas' | 'sala
 const ESPACIOS: { id: string; nombre: string; icono: string; items: { id: Pestana; nombre: string }[] }[] = [
   { id: 'inicio', nombre: 'Inicio', icono: 'inicio', items: [{ id: 'inicio', nombre: 'Inicio' }] },
   { id: 'carta', nombre: 'Carta', icono: 'carta', items: [
-    { id: 'carta', nombre: 'Platos' }, { id: 'diseno', nombre: 'Diseño' }, { id: 'idiomas', nombre: 'Idiomas' },
+    { id: 'carta', nombre: 'Platos' }, { id: 'estudio', nombre: 'Estudio' }, { id: 'diseno', nombre: 'Diseño' }, { id: 'idiomas', nombre: 'Idiomas' },
     { id: 'promociones', nombre: 'Banners' }, { id: 'qr', nombre: 'Mi QR' },
   ] },
   { id: 'servicio', nombre: 'Servicio', icono: 'servicio', items: [
@@ -70,6 +72,7 @@ export default function PanelShell({
   sala,
   traducciones,
   cobro,
+  estudio = { extras: [], legal: { titular: null, nif: null, email: null, domicilio: null, activo: false } },
 }: {
   identidad: { id: string; nombre: string; email: string };
   restaurante: MiRestaurante;
@@ -85,6 +88,7 @@ export default function PanelShell({
   sala: { mesas: (MesaPlano & { id: string })[]; elementos: ElementoPlano[]; informe: FilaInforme[]; camareros: CamareroSala[]; tpv: { proveedor: string; activa: boolean; ultimoEnvio: string | null; ultimoError: string | null } | null; llamadas: string[] };
   traducciones: { entidad: 'plato' | 'seccion'; entidadId: string; idioma: string; campo: 'nombre' | 'descripcion'; texto: string }[];
   cobro: ResumenCobro | null;
+  estudio?: { extras: ExtraPlato[]; legal: DatosLegal };
 }) {
   const tieneServ = (id: string) => servicios.contratados.some((c) => c.servicio === id || (c.servicio === 'pack_sala' && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(id)));
   const modulos = { plano: tieneServ('plano_mesas'), app: tieneServ('app_sala'), tpv: tieneServ('conexion_tpv') };
@@ -196,8 +200,9 @@ export default function PanelShell({
         <motion.div key={pestana} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
         {pestana === 'inicio' && <Inicio restaurante={restaurante} qrPedido={solicitudesQr.length > 0} escaneosMes={escaneosMes} escaneos30d={escaneos30d} reservas={reservas} platos={carta.platos} servicios={servicios} ir={(p) => setPestana(p)} />}
         {pestana === 'carta' && <MiCarta carta={carta} />}
+        {pestana === 'estudio' && <Estudio secciones={carta.secciones} platos={carta.platos} extras={estudio.extras} legal={estudio.legal} restaurante={{ slug: restaurante.slug, nombre: restaurante.nombre, direccion: restaurante.direccion }} />}
         {pestana === 'local' && <MiLocal restaurante={restaurante} />}
-        {pestana === 'promociones' && <Promociones promociones={promociones} secciones={carta.secciones} plan={restaurante.plan} />}
+        {pestana === 'promociones' && <Promociones promociones={promociones} secciones={carta.secciones} plan={restaurante.plan} platos={carta.platos.map((p) => ({ id: p.id, nombre: p.nombre }))} />}
         {(pestana === 'diseno' || pestana === 'modulos') && <Mejoras key={pestana} restaurante={restaurante} servicios={servicios} vista={pestana} fotos={carta.platos.map((p) => p.fotoUrl).filter((u): u is string => !!u).slice(0, 3)} />}
         {pestana === 'sala' && <Sala mesas={sala.mesas} elementos={sala.elementos} camareros={sala.camareros} tpv={sala.tpv} modulos={modulos} informe={sala.informe} />}
         {pestana === 'idiomas' && <Idiomas activos={restaurante.idiomas ?? []} secciones={carta.secciones} platos={carta.platos} traducciones={traducciones} />}

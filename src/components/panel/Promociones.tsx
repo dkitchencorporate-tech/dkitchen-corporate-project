@@ -10,7 +10,7 @@ const campo = 'w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text
 const DIAS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
 const VACIA: DatosPromocion = {
-  titulo: '', texto: null, imagenUrl: null, botonTexto: null, botonSeccion: null, inicio: null, fin: null,
+  titulo: '', texto: null, imagenUrl: null, botonTexto: null, botonSeccion: null, botonDestino: 'inicio', botonPlato: null, inicio: null, fin: null,
   dias: null, horaInicio: null, horaFin: null, prioridad: 0, activa: true,
 };
 
@@ -23,8 +23,8 @@ function resumenProgramacion(p: DatosPromocion): string {
 }
 
 export default function Promociones({
-  promociones, secciones, plan,
-}: { promociones: Promocion[]; secciones: SeccionPropia[]; plan: string }) {
+  promociones, secciones, plan, platos = [],
+}: { promociones: Promocion[]; secciones: SeccionPropia[]; plan: string; platos?: { id: string; nombre: string }[] }) {
   const ampliado = plan === 'ampliado';
   const [editando, setEditando] = useState<{ id: string | null; d: DatosPromocion } | null>(null);
   const [pendiente, iniciar] = useTransition();
@@ -93,12 +93,32 @@ export default function Promociones({
           {!d.imagenUrl && (
             <textarea value={d.texto ?? ''} onChange={(e) => set('texto', e.target.value || null)} maxLength={160} rows={2} placeholder="Texto corto (para banners sin imagen)" className={campo} />
           )}
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input value={d.botonTexto ?? ''} onChange={(e) => set('botonTexto', e.target.value || null)} maxLength={30} placeholder="Texto del botón (ej: Ver el menú)" className={campo} />
-            <select value={d.botonSeccion ?? ''} onChange={(e) => set('botonSeccion', e.target.value || null)} className={campo} aria-label="Sección a la que lleva el botón">
-              <option value="">El botón lleva a… (inicio de la carta)</option>
-              {secciones.map((s) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
-            </select>
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-[#3F434B]">Botón del banner</p>
+            <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="A dónde lleva el botón">
+              {([['ninguno', 'Sin botón'], ['seccion', 'A una sección'], ['plato', 'A un plato'], ...(ampliado ? [['reservar', 'A reservar']] : []), ['inicio', 'Solo el banner']] as [DatosPromocion['botonDestino'], string][]).map(([v, t]) => (
+                <button key={v} type="button" role="radio" aria-checked={d.botonDestino === v} onClick={() => set('botonDestino', v)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${d.botonDestino === v ? 'border-[#17191E] bg-[#17191E] text-white' : 'border-[#E6E6E2] bg-white'}`}>{t}</button>
+              ))}
+            </div>
+            {d.botonDestino !== 'ninguno' && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input value={d.botonTexto ?? ''} onChange={(e) => set('botonTexto', e.target.value || null)} maxLength={30} placeholder={d.botonDestino === 'reservar' ? 'Texto del botón (ej: Reserva tu mesa)' : 'Texto del botón (ej: Ver el menú)'} className={campo} />
+                {d.botonDestino === 'seccion' && (
+                  <select value={d.botonSeccion ?? ''} onChange={(e) => set('botonSeccion', e.target.value || null)} className={campo} aria-label="Sección a la que lleva el botón">
+                    <option value="">Elige la sección…</option>
+                    {secciones.map((s) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+                  </select>
+                )}
+                {d.botonDestino === 'plato' && (
+                  <select value={d.botonPlato ?? ''} onChange={(e) => set('botonPlato', e.target.value || null)} className={campo} aria-label="Plato que abre el botón">
+                    <option value="">Elige el plato…</option>
+                    {platos.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                  </select>
+                )}
+              </div>
+            )}
+            <p className="text-[11px] text-[#6B7079]">{({ ninguno: 'El banner solo informa: no lleva botón.', seccion: 'Al tocarlo, la carta baja hasta esa sección.', plato: 'Al tocarlo, se abre la ficha de ese plato con su foto y precio.', reservar: 'Al tocarlo, se abre el formulario de reserva.', inicio: 'El botón se muestra, pero el cliente se queda en la carta.' } as Record<string, string>)[d.botonDestino]}</p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
