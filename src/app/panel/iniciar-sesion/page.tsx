@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
 
@@ -13,6 +13,11 @@ export default function IniciarSesion() {
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
 
+  // Con sesión abierta no tiene sentido ver el login (p. ej. al pulsar «atrás» desde el panel): vuelve al panel.
+  useEffect(() => {
+    authClient.getSession().then(({ data }) => { if (data?.session) router.replace('/panel'); }).catch(() => {});
+  }, [router]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -24,7 +29,7 @@ export default function IniciarSesion() {
         setCargando(false);
         return;
       }
-      router.push('/panel');
+      router.replace('/panel');
     } catch {
       setError('No se pudo conectar. Inténtalo de nuevo en unos segundos.');
       setCargando(false);

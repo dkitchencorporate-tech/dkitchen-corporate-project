@@ -87,13 +87,26 @@ export default function PanelShell({
     : (id !== 'camarero' && id !== 'reservas') || restaurante.plan === 'ampliado';
   const [pestana, setPestanaBase] = useState<Pestana>('inicio');
   const [menu, setMenu] = useState(false);
-  const setPestana = (p: Pestana) => { setPestanaBase(p); setMenu(false); window.scrollTo({ top: 0 }); };
+  // Cada sección entra en el historial del navegador: el botón «atrás» del móvil vuelve a la sección anterior en vez de sacar al usuario del panel.
+  const setPestana = (p: Pestana, historial: 'push' | 'replace' | 'no' = 'push') => {
+    setPestanaBase(p); setMenu(false); window.scrollTo({ top: 0 });
+    if (historial === 'no') return;
+    const url = p === 'inicio' ? window.location.pathname : `${window.location.pathname}?pestana=${p}`;
+    if (historial === 'replace' || window.history.state?.pestana === p) window.history.replaceState({ ...window.history.state, pestana: p }, '', url);
+    else window.history.pushState({ ...window.history.state, pestana: p }, '', url);
+  };
+  useEffect(() => {
+    const alVolver = (e: PopStateEvent) => setPestana((e.state?.pestana as Pestana) ?? 'inicio', 'no');
+    window.addEventListener('popstate', alVolver);
+    return () => window.removeEventListener('popstate', alVolver);
+  }, []);
 
   // Enlaces directos a una sección (p. ej. desde los correos: /panel?pestana=reservas)
   useEffect(() => {
     const q = new URLSearchParams(window.location.search).get('pestana');
     const pedida = q === 'mejoras' ? 'modulos' : q;
-    if (pedida && PESTANAS.some((x) => x.id === pedida)) setPestana(pedida as Pestana);
+    if (pedida && PESTANAS.some((x) => x.id === pedida)) setPestana(pedida as Pestana, 'replace');
+    else window.history.replaceState({ ...window.history.state, pestana: 'inicio' }, '');
   }, []);
 
   const salir = async () => { await authClient.signOut(); window.location.href = '/panel/iniciar-sesion'; };
