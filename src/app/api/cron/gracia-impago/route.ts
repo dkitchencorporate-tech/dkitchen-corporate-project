@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { avanzarCalendarioGracia } from '@/lib/payments/aprovisionar';
-import { avanzarPruebas } from '@/lib/prueba';
+import { avanzarPruebas, purgarBajas } from '@/lib/prueba';
 
 export const runtime = 'nodejs';
 
@@ -39,8 +39,10 @@ export async function GET(request: Request) {
     const cambiados = await avanzarCalendarioGracia();
     // Pruebas «todo incluido» (0034): vencidas → solo lectura, y avisos a 3 días y 1 día.
     const pruebasVencidas = await avanzarPruebas();
-    console.log(`Cron gracia/impago: ${cambiados} restaurante(s) cambiaron de fase; ${pruebasVencidas} prueba(s) vencida(s).`);
-    return NextResponse.json({ ok: true, cambiados, pruebasVencidas });
+    // Bajas (0041): aviso 7 días antes y borrado a los 60 días.
+    const borrados = await purgarBajas();
+    console.log(`Cron gracia/impago: ${cambiados} restaurante(s) cambiaron de fase; ${pruebasVencidas} prueba(s) vencida(s); ${borrados} baja(s) borrada(s).`);
+    return NextResponse.json({ ok: true, cambiados, pruebasVencidas, borrados });
   } catch (error) {
     console.error('Cron gracia/impago falló:', error);
     return NextResponse.json({ error: 'Fallo avanzando el calendario' }, { status: 500 });
