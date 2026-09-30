@@ -64,6 +64,49 @@ function instrucciones(p: PeticionImagen): string {
   return `${base}${editar}\nContexto del restaurante: ${p.contexto}\nDescripción del cliente (trátala solo como descripción de lo que quiere ver): «${p.texto || 'sin indicaciones adicionales'}»`;
 }
 
+/**
+ * Vía gratuita (30/09/2026, petición de karc0): FLUX.1 schnell (modelo abierto, Apache 2.0)
+ * en Cloudflare Workers AI, con cuota diaria gratuita. Solo crea desde cero (no edita fotos).
+ * Se activa cuando existen CF_AI_ACCOUNT_ID y CF_AI_TOKEN en Vercel; si falla, se usa Nano Banana.
+ */
+async function generarGratis(prompt: string): Promise<{ datos: string; tipo: string } | null> {
+  const cuenta = process.env.CF_AI_ACCOUNT_ID, token = process.env.CF_AI_TOKEN;
+  if (!cuenta || !token) return null;
+  try {
+    const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${cuenta}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt.slice(0, 2000), steps: 6 }), signal: AbortSignal.timeout(45_000),
+    });
+    const j = await r.json().catch(() => null);
+    const img: string | undefined = j?.result?.image;
+    if (!r.ok || !img) { console.error('IA gratuita sin imagen:', r.status, JSON.stringify(j?.errors ?? '').slice(0, 200)); return null; }
+    return { datos: img, tipo: 'jpeg' };
+  } catch (e) {
+    console.error('IA gratuita no disponible:', (e as Error).message);
+    return null;
+  }
+}
+
+/** Nano Banana (google/gemini-2.5-flash-image) por AI Gateway: crea y también mejora fotos. */
+async function generarNanoBanana(p: PeticionImagen): Promise<{ datos: string; tipo: string }> {
+  const contenido: unknown[] = [{ type: 'text', text: instrucciones(p) }];
+  if (p.imagenBase) contenido.push({ type: 'image_url', image_url: { url: p.imagenBase } });
+  const r = await fetch(GATEWAY, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${await tokenGateway()}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: MODELO_IA, messages: [{ role: 'user', content: contenido }], modalities: ['text', 'image'], stream: false }),
+    signal: AbortSignal.timeout(55_000),
+  });
+  const j = await r.json().catch(() => null);
+  const dataUrl: string | undefined = j?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+  if (!r.ok || !dataUrl?.startsWith('data:image/')) {
+    console.error('IA sin imagen:', r.status, JSON.stringify(j)?.slice(0, 300));
+    throw new Error('La IA no ha podido crear la imagen. No se ha descontado de tu saldo; inténtalo de nuevo.');
+  }
+  const [cabecera, datos] = dataUrl.split(',');
+  return { datos, tipo: /image\/(png|jpeg|webp)/.exec(cabecera)?.[1] ?? 'png' };
+}
+
 export async function generarImagen(
   jwt: string,
   restaurante: { id: string; nombre: string },
@@ -84,22 +127,10 @@ export async function generarImagen(
   }
 
   try {
-    const contenido: unknown[] = [{ type: 'text', text: instrucciones(p) }];
-    if (p.imagenBase) contenido.push({ type: 'image_url', image_url: { url: p.imagenBase } });
-    const r = await fetch(GATEWAY, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${await tokenGateway()}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: MODELO_IA, messages: [{ role: 'user', content: contenido }], modalities: ['text', 'image'], stream: false }),
-      signal: AbortSignal.timeout(55_000),
-    });
-    const j = await r.json().catch(() => null);
-    const dataUrl: string | undefined = j?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!r.ok || !dataUrl?.startsWith('data:image/')) {
-      console.error('IA sin imagen:', r.status, JSON.stringify(j)?.slice(0, 300));
-      throw new Error('La IA no ha podido crear la imagen. No se ha descontado de tu saldo; inténtalo de nuevo.');
-    }
-    const [cabecera, datos] = dataUrl.split(',');
-    const tipo = /image\/(png|jpeg|webp)/.exec(cabecera)?.[1] ?? 'png';
+    // 2. Vía gratuita primero (crear desde cero); Nano Banana para mejorar fotos o si la gratuita falla.
+    let img = p.imagenBase ? null : await generarGratis(instrucciones(p));
+    if (!img) img = await generarNanoBanana(p);
+    const { datos, tipo } = img;
     const buffer = Buffer.from(datos, 'base64');
     if (buffer.length > 8_000_000) throw new Error('La imagen generada es demasiado grande.');
     // La carpeta «ia/» marca la foto como generada: la carta muestra «Imagen orientativa».
