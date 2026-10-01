@@ -1,5 +1,6 @@
 'use client';
 
+import HerramientasTexto from './HerramientasTexto';
 import { useState, useTransition } from 'react';
 import { ALERGENOS, CODIGOS_ALERGENOS } from '@/lib/alergenos';
 import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
@@ -254,12 +255,17 @@ function FormularioPlato({
       </div>
 
       <div className="grid sm:grid-cols-2 gap-3">
-        <input
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          placeholder="Nombre del plato"
-          className="rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]"
-        />
+        <div>
+          <input
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Nombre del plato"
+            spellCheck
+            lang="es"
+            className="w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]"
+          />
+          <HerramientasTexto valor={nombre} onCambio={setNombre} tipo="titulo" />
+        </div>
         <input
           value={precio}
           onChange={(e) => setPrecio(e.target.value)}
@@ -278,8 +284,11 @@ function FormularioPlato({
           onChange={(e) => setDescripcion(e.target.value.slice(0, 300))}
           placeholder="Ej: Croquetas caseras de jamón ibérico, cremosas por dentro y crujientes por fuera. 6 unidades."
           rows={3}
+          spellCheck
+          lang="es"
           className="w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]"
         />
+        <HerramientasTexto valor={descripcion} onCambio={(v) => setDescripcion(v.slice(0, 300))} tipo="descripcion" contexto={nombre} />
         <span className="block text-[11px] text-[#9A9EA6]">Se ve en la carta y completa al abrir el plato. Una buena descripción vende más.</span>
       </label>
 

@@ -1,5 +1,6 @@
 'use client';
 
+import HerramientasTexto from './HerramientasTexto';
 import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
@@ -175,7 +176,8 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
         <p className="text-xs text-[#6B7079]">El estilo, el fondo, la letra y el color de tu carta se eligen en la pestaña <a href="/panel?pestana=diseno" className="font-semibold text-[#6E0C2B] underline">Diseño</a>.</p>
         <label className="block space-y-1">
           <span className="text-xs text-[#6B7079]">Descripción corta ({d.descripcion.length}/280)</span>
-          <textarea value={d.descripcion} onChange={set('descripcion')} maxLength={280} rows={2} placeholder="Ej: Cocina mediterránea de mercado desde 1998" className={campo} />
+          <textarea value={d.descripcion} onChange={set('descripcion')} maxLength={280} rows={2} spellCheck lang="es" placeholder="Ej: Cocina mediterránea de mercado desde 1998" className={campo} />
+          <HerramientasTexto valor={d.descripcion} onCambio={(v) => setD((p) => ({ ...p, descripcion: v.slice(0, 280) }))} tipo="descripcion" />
         </label>
       </section>
 

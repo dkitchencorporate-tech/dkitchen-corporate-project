@@ -2,12 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 import { claveDeLimite, limiteSuperado } from '@/lib/limite-frecuencia';
+import { mejorarTexto as dbMejorarTexto, type TipoTexto } from '@/lib/texto-ia';
 import { saldoIa as dbSaldoIa, generarImagen as dbGenerarImagen, limpiarTextoIa } from '@/lib/ia';
 import { moverSeccion as dbMoverSeccion, guardarExtras as dbGuardarExtras, guardarCombo as dbGuardarCombo, guardarLegal as dbGuardarLegal, ETIQUETAS, type Etiqueta, type DatosCombo, type DatosLegal } from '@/lib/estudio';
 import { obtenerJwtDeSesion, identidadActual } from '@/lib/sesion';
 import { randomUUID } from 'node:crypto';
 import { put } from '@vercel/blob';
-import { obtenerMiRestaurante, actualizarDatosLocal, type DatosLocal, guardarEstilo } from '@/lib/mi-restaurante';
+import { obtenerMiRestaurante, actualizarDatosLocal, type DatosLocal, guardarEstilo, guardarPortada as dbGuardarPortada } from '@/lib/mi-restaurante';
 import { atenderLlamada, llamadasPendientes } from '@/lib/llamadas-camarero';
 import {
   crearSeccion as dbCrearSeccion,
@@ -17,6 +18,7 @@ import {
   editarPlato as dbEditarPlato,
   eliminarPlato as dbEliminarPlato,
   listarMiCarta,
+  guardarDescripcionSeccion as dbGuardarDescripcionSeccion,
   type DatosPlato,
 } from '@/lib/menu-propietario';
 import { crearSolicitudQrFisico as dbCrearSolicitudQrFisico, type TipoQrFisico } from '@/lib/solicitudes-qr-fisico';
@@ -650,3 +652,44 @@ export async function guardarLegalAction(...a: Parameters<typeof guardarLegalAct
 export async function moverSeccionAction(...a: Parameters<typeof moverSeccionAction_>) { return envolver(() => moverSeccionAction_(...a)); }
 export async function generarImagenIaAction(...a: Parameters<typeof generarImagenIaAction_>) { return envolver(() => generarImagenIaAction_(...a)); }
 export async function crearTicketAyudaAction(...a: Parameters<typeof crearTicketAyudaAction_>) { return envolver(() => crearTicketAyudaAction_(...a)); }
+
+// Corrector y mejora de textos (01/10/2026): 80 usos al día por restaurante.
+async function mejorarTextoAction_(tipo: TipoTexto, texto: string, contexto?: string) {
+  if (!['corregir', 'titulo', 'descripcion', 'instruccion'].includes(tipo)) throw new Error('Tipo no válido.');
+  const { restaurante } = await requerirSesionYRestaurante();
+  if (await limiteSuperado(claveDeLimite('texto-ia', restaurante.id), 80, 24 * 60 * 60)) throw new Error('Has usado mucho el asistente de textos hoy. Mañana podrás seguir.');
+  const ctx = [restaurante.nombre, typeof contexto === 'string' ? contexto.replace(/[\u0000-\u001f]/g, ' ').slice(0, 150) : ''].filter(Boolean).join(' · ');
+  return { texto: await dbMejorarTexto(tipo, String(texto ?? ''), ctx) };
+}
+export async function mejorarTextoAction(...a: Parameters<typeof mejorarTextoAction_>) { return envolver(() => mejorarTextoAction_(...a)); }
+
+async function guardarPortadaAction_(url: string | null) {
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  const valida = url === null || (typeof url === 'string' && FOTO_PROPIA.test(url) && url.includes(`/restaurantes/${restaurante.id}/`));
+  if (!valida) throw new Error('La imagen no es válida. Súbela de nuevo.');
+  await dbGuardarPortada(jwt, restaurante.id, url);
+  revalidatePath('/panel');
+  revalidatePath(`/m/${restaurante.slug}`);
+}
+export async function guardarPortadaAction(...a: Parameters<typeof guardarPortadaAction_>) { return envolver(() => guardarPortadaAction_(...a)); }
+
+async function guardarDescripcionSeccionAction_(seccionId: string, descripcion: string) {
+  if (!UUID.test(seccionId)) throw new Error('Categoría no válida.');
+  const { jwt } = await requerirSesionYRestaurante();
+  await dbGuardarDescripcionSeccion(jwt, seccionId, textoEstudio(descripcion, 200));
+  revalidatePath('/panel');
+}
+export async function guardarDescripcionSeccionAction(...a: Parameters<typeof guardarDescripcionSeccionAction_>) { return envolver(() => guardarDescripcionSeccionAction_(...a)); }
+
+/** Alta rápida de un plato desde su categoría (Estudio). */
+async function crearPlatoRapidoAction_(d: { seccionId: string; nombre: string; precio: string | number; descripcion?: string }) {
+  if (!UUID.test(d?.seccionId)) throw new Error('Categoría no válida.');
+  const nombre = textoEstudio(d.nombre, 80);
+  const precio = importe(d.precio);
+  if (!nombre) throw new Error('Escribe el nombre del plato.');
+  if (precio === null || precio <= 0) throw new Error('Escribe el precio (por ejemplo 9,50).');
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  await dbCrearPlato(jwt, restaurante.id, { seccionId: d.seccionId, nombre, precio, descripcion: textoEstudio(d.descripcion, 300), fotoUrl: null, alergenos: [] });
+  revalidatePath('/panel');
+}
+export async function crearPlatoRapidoAction(...a: Parameters<typeof crearPlatoRapidoAction_>) { return envolver(() => crearPlatoRapidoAction_(...a)); }

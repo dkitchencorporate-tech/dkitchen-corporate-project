@@ -6,9 +6,10 @@ import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
 import type { ExtraPlato, DatosLegal } from '@/lib/estudio';
 import {
   crearSeccionAction, editarSeccionAction, eliminarSeccionAction, eliminarPlatoAction,
-  guardarExtrasPlatoAction, guardarComboAction, guardarLegalAction, moverSeccionAction,
+  guardarExtrasPlatoAction, guardarComboAction, guardarLegalAction, moverSeccionAction, guardarDescripcionSeccionAction, crearPlatoRapidoAction,
 } from '@/app/panel/actions';
 import SubirImagen from './SubirImagen';
+import HerramientasTexto from './HerramientasTexto';
 
 /**
  * Estudio de carta (30/09/2026, 0037): donde se construye la carta.
@@ -29,7 +30,7 @@ const tarjeta = 'rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6';
 const botonPrincipal = 'rounded-full bg-[#6E0C2B] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#4A0819] disabled:opacity-40';
 
 export default function Estudio({
-  secciones, platos, extras, legal, restaurante, demo = false,
+  secciones, platos, extras, legal, restaurante, demo = false, irAPlatos,
 }: {
   secciones: SeccionPropia[];
   platos: PlatoPropio[];
@@ -38,6 +39,8 @@ export default function Estudio({
   restaurante: { slug: string; nombre: string; direccion: string | null };
   /** Panel de demostración: nada se guarda. */
   demo?: boolean;
+  /** Lleva a Carta → Platos (fotos y alérgenos). */
+  irAPlatos?: () => void;
 }) {
   const [zona, setZona] = useState<Zona>('categorias');
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
@@ -78,7 +81,7 @@ export default function Estudio({
 
       {aviso && <p role="status" className={`rounded-xl px-4 py-3 text-sm ${aviso.ok ? 'bg-[#2F8F6B]/10 text-[#1F6B4F]' : 'bg-red-50 text-red-700'}`}>{aviso.texto}</p>}
 
-      {zona === 'categorias' && <Categorias secciones={secciones} platos={platos} pendiente={pendiente} ejecutar={ejecutar} />}
+      {zona === 'categorias' && <Categorias secciones={secciones} platos={platos} pendiente={pendiente} ejecutar={ejecutar} irAPlatos={irAPlatos} demo={demo} />}
       {zona === 'destacados' && <Destacados platos={normales} extra={extra} pendiente={pendiente} ejecutar={ejecutar} />}
       {zona === 'combos' && <Combos combos={combos} normales={normales} secciones={secciones} extra={extra} pendiente={pendiente} ejecutar={ejecutar} />}
       {zona === 'legal' && <Legal inicial={legal} restaurante={restaurante} pendiente={pendiente} ejecutar={ejecutar} />}
@@ -88,46 +91,117 @@ export default function Estudio({
 
 type Ejecutar = (fn: () => Promise<unknown>, ok: string) => void;
 
-function Categorias({ secciones, platos, pendiente, ejecutar }: { secciones: SeccionPropia[]; platos: PlatoPropio[]; pendiente: boolean; ejecutar: Ejecutar }) {
+function Categorias({ secciones, platos, pendiente, ejecutar, irAPlatos, demo }: {
+  secciones: SeccionPropia[]; platos: PlatoPropio[]; pendiente: boolean; ejecutar: Ejecutar; irAPlatos?: () => void; demo: boolean;
+}) {
   const [nueva, setNueva] = useState('');
+  const [abierta, setAbierta] = useState<string | null>(secciones[0]?.id ?? null);
   const [nombres, setNombres] = useState<Record<string, string>>({});
+  const [descs, setDescs] = useState<Record<string, string>>({});
+  const [plato, setPlato] = useState<{ nombre: string; precio: string; descripcion: string }>({ nombre: '', precio: '', descripcion: '' });
   const [borrar, setBorrar] = useState<string | null>(null);
+  const euros = (n: string) => Number(n).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+
   return (
     <div className="space-y-4">
+      {/* Paso 1: crear categoría */}
       <div className={tarjeta}>
-        <p className="font-semibold">Nueva categoría</p>
-        <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); const n = nueva.trim(); if (!n) return; ejecutar(async () => { await crearSeccionAction(n.slice(0, 60)); setNueva(''); }, `Categoría «${n}» creada.`); }}>
-          <input value={nueva} onChange={(e) => setNueva(e.target.value)} maxLength={60} placeholder="Ej.: Para compartir, Del mar, Menú infantil…" className={campo} />
+        <p className="font-semibold"><span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#6E0C2B] text-xs text-white">1</span>Crea una categoría</p>
+        <p className="mt-1 text-sm text-[#6B7079]">Por ejemplo «Entrantes», «Principales», «Postres» o «Bebidas». Después ábrela y añade sus platos ahí mismo.</p>
+        <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); const n = nueva.trim(); if (!n) return; ejecutar(async () => { await crearSeccionAction(n.slice(0, 60)); setNueva(''); }, `Categoría «${n}» creada. Ábrela abajo para añadir platos.`); }}>
+          <input value={nueva} onChange={(e) => setNueva(e.target.value)} maxLength={60} spellCheck lang="es" placeholder="Nombre de la categoría" className={campo} />
           <button disabled={pendiente || !nueva.trim()} className={botonPrincipal}>Crear</button>
         </form>
+        <HerramientasTexto valor={nueva} onCambio={setNueva} tipo="titulo" demo={demo} />
       </div>
+
+      {/* Paso 2: cada categoría, con sus platos dentro */}
       {secciones.length === 0 ? (
         <p className={`${tarjeta} text-center text-sm text-[#6B7079]`}>Todavía no tienes categorías. Crea la primera arriba.</p>
       ) : (
-        <ul className="divide-y divide-[#EEECE8] overflow-hidden rounded-[22px] border border-[#E6E6E2] bg-white">
+        <ul className="space-y-3">
           {secciones.map((s, i) => {
-            const n = platos.filter((p) => p.seccionId === s.id).length;
+            const suyos = platos.filter((p) => p.seccionId === s.id);
             const valor = nombres[s.id] ?? s.nombre;
+            const desc = descs[s.id] ?? s.descripcion ?? '';
+            const abiertaEsta = abierta === s.id;
             return (
-              <li key={s.id} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
-                <span className="flex flex-col">
-                  <button disabled={pendiente || i === 0} onClick={() => ejecutar(() => moverSeccionAction(s.id, -1), 'Orden guardado.')} aria-label={`Subir ${s.nombre}`} className="h-6 w-7 rounded-md text-[#6B7079] hover:bg-[#F3F1EE] disabled:opacity-25">▲</button>
-                  <button disabled={pendiente || i === secciones.length - 1} onClick={() => ejecutar(() => moverSeccionAction(s.id, 1), 'Orden guardado.')} aria-label={`Bajar ${s.nombre}`} className="h-6 w-7 rounded-md text-[#6B7079] hover:bg-[#F3F1EE] disabled:opacity-25">▼</button>
-                </span>
-                <input value={valor} onChange={(e) => setNombres({ ...nombres, [s.id]: e.target.value })} maxLength={60} aria-label="Nombre de la categoría"
-                  className="min-w-0 flex-1 rounded-lg border border-transparent px-2 py-1.5 font-medium hover:border-[#E6E6E2] focus:border-[#6E0C2B] focus:outline-none" />
-                <span className="text-xs text-[#6B7079]">{n} {n === 1 ? 'plato' : 'platos'}</span>
-                {valor.trim() && valor !== s.nombre && (
-                  <button disabled={pendiente} onClick={() => ejecutar(() => editarSeccionAction(s.id, valor.trim()), 'Nombre guardado.')} className="rounded-full bg-[#17191E] px-3 py-1.5 text-xs font-semibold text-white">Guardar</button>
-                )}
-                {borrar === s.id ? (
-                  <span className="flex items-center gap-2 text-xs">
-                    <span className="text-[#6B7079]">{n ? 'Sus platos quedarán sin categoría.' : '¿Seguro?'}</span>
-                    <button disabled={pendiente} onClick={() => ejecutar(() => eliminarSeccionAction(s.id), 'Categoría eliminada.')} className="rounded-full bg-red-600 px-3 py-1.5 font-semibold text-white">Eliminar</button>
-                    <button onClick={() => setBorrar(null)} className="px-2 py-1.5 text-[#6B7079]">No</button>
+              <li key={s.id} className="overflow-hidden rounded-[22px] border border-[#E6E6E2] bg-white">
+                <div className="flex items-center gap-2 px-4 py-3">
+                  <span className="flex flex-col">
+                    <button disabled={pendiente || i === 0} onClick={() => ejecutar(() => moverSeccionAction(s.id, -1), 'Orden guardado.')} aria-label={`Subir ${s.nombre}`} className="h-5 w-7 rounded-md text-xs text-[#6B7079] hover:bg-[#F3F1EE] disabled:opacity-25">▲</button>
+                    <button disabled={pendiente || i === secciones.length - 1} onClick={() => ejecutar(() => moverSeccionAction(s.id, 1), 'Orden guardado.')} aria-label={`Bajar ${s.nombre}`} className="h-5 w-7 rounded-md text-xs text-[#6B7079] hover:bg-[#F3F1EE] disabled:opacity-25">▼</button>
                   </span>
-                ) : (
-                  <button onClick={() => setBorrar(s.id)} className="text-xs text-[#6B7079] hover:text-red-700">Eliminar</button>
+                  <button onClick={() => { setAbierta(abiertaEsta ? null : s.id); setPlato({ nombre: '', precio: '', descripcion: '' }); }} aria-expanded={abiertaEsta} className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left">
+                    <span className="min-w-0"><span className="block truncate font-semibold">{s.nombre}</span><span className="text-xs text-[#6B7079]">{suyos.length} {suyos.length === 1 ? 'plato' : 'platos'}{s.descripcion ? ' · con descripción' : ''}</span></span>
+                    <span className="shrink-0 rounded-full bg-[#F3EDE6] px-3 py-1 text-xs font-semibold text-[#6E0C2B]">{abiertaEsta ? 'Cerrar' : 'Abrir y añadir platos'}</span>
+                  </button>
+                </div>
+
+                {abiertaEsta && (
+                  <div className="space-y-5 border-t border-[#F1F0EC] bg-[#FCFBF9] px-4 py-4">
+                    {/* Nombre y descripción */}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="block text-xs text-[#6B7079]">Nombre de la categoría
+                        <input value={valor} onChange={(e) => setNombres({ ...nombres, [s.id]: e.target.value })} maxLength={60} spellCheck lang="es" className={`${campo} mt-1`} />
+                        <HerramientasTexto valor={valor} onCambio={(v) => setNombres({ ...nombres, [s.id]: v })} tipo="titulo" demo={demo} />
+                      </label>
+                      <label className="block text-xs text-[#6B7079]">Descripción (opcional, se ve bajo el título en tu carta)
+                        <input value={desc} onChange={(e) => setDescs({ ...descs, [s.id]: e.target.value })} maxLength={200} spellCheck lang="es" placeholder="Ej.: Para picar al centro, ideales para compartir" className={`${campo} mt-1`} />
+                        <HerramientasTexto valor={desc} onCambio={(v) => setDescs({ ...descs, [s.id]: v })} tipo="descripcion" contexto={valor} demo={demo} />
+                      </label>
+                    </div>
+                    {(valor.trim() !== s.nombre || desc !== (s.descripcion ?? '')) && valor.trim() && (
+                      <button disabled={pendiente} className={botonPrincipal} onClick={() => ejecutar(async () => {
+                        if (valor.trim() !== s.nombre) { const r = await editarSeccionAction(s.id, valor.trim()); void r; }
+                        if (desc !== (s.descripcion ?? '')) return guardarDescripcionSeccionAction(s.id, desc);
+                      }, 'Categoría guardada.')}>Guardar categoría</button>
+                    )}
+
+                    {/* Sus platos */}
+                    <div>
+                      <p className="text-sm font-semibold">Platos de «{s.nombre}»</p>
+                      {suyos.length === 0 ? <p className="mt-1 text-sm text-[#6B7079]">Aún no tiene platos. Añade el primero aquí abajo.</p> : (
+                        <ul className="mt-2 divide-y divide-[#EEECE8] rounded-xl border border-[#EEECE8] bg-white">
+                          {suyos.map((p) => (
+                            <li key={p.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                              <span className="min-w-0 truncate">{p.nombre}{!p.fotoUrl && <span className="ml-2 text-xs text-[#9A9EA6]">sin foto</span>}</span>
+                              <span className="shrink-0 font-semibold">{euros(p.precio)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    {/* Añadir plato aquí */}
+                    <form className="space-y-2 rounded-xl border border-dashed border-[#D9D3CB] bg-white p-3" onSubmit={(e) => { e.preventDefault(); ejecutar(async () => { const r = await crearPlatoRapidoAction({ seccionId: s.id, ...plato }); if (r.ok) setPlato({ nombre: '', precio: '', descripcion: '' }); return r; }, `«${plato.nombre}» añadido a ${s.nombre}. Añádele foto y alérgenos en Platos.`); }}>
+                      <p className="text-sm font-semibold"><span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#6E0C2B] text-xs text-white">2</span>Añadir un plato a «{s.nombre}»</p>
+                      <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
+                        <div>
+                          <input value={plato.nombre} onChange={(e) => setPlato({ ...plato, nombre: e.target.value })} maxLength={80} spellCheck lang="es" placeholder="Nombre del plato" className={campo} />
+                          <HerramientasTexto valor={plato.nombre} onCambio={(v) => setPlato({ ...plato, nombre: v })} tipo="titulo" demo={demo} />
+                        </div>
+                        <input value={plato.precio} onChange={(e) => setPlato({ ...plato, precio: e.target.value })} inputMode="decimal" placeholder="Precio €" className={`${campo} h-fit`} />
+                      </div>
+                      <textarea value={plato.descripcion} onChange={(e) => setPlato({ ...plato, descripcion: e.target.value })} maxLength={300} rows={2} spellCheck lang="es" placeholder="Descripción (opcional): ingredientes, cómo se sirve…" className={campo} />
+                      <HerramientasTexto valor={plato.descripcion} onCambio={(v) => setPlato({ ...plato, descripcion: v })} tipo="descripcion" contexto={plato.nombre} demo={demo} />
+                      <div className="flex flex-wrap items-center gap-3">
+                        <button disabled={pendiente || !plato.nombre.trim() || !plato.precio.trim()} className={botonPrincipal}>+ Añadir plato</button>
+                        {irAPlatos && <button type="button" onClick={irAPlatos} className="text-sm font-semibold text-[#6E0C2B]">Fotos y alérgenos: ir a Platos →</button>}
+                      </div>
+                    </form>
+
+                    {/* Eliminar */}
+                    <div className="text-right text-xs">
+                      {borrar === s.id ? (
+                        <span className="inline-flex items-center gap-2">
+                          <span className="text-[#6B7079]">{suyos.length ? 'Sus platos quedarán sin categoría.' : '¿Seguro?'}</span>
+                          <button disabled={pendiente} onClick={() => ejecutar(() => eliminarSeccionAction(s.id), 'Categoría eliminada.')} className="rounded-full bg-red-600 px-3 py-1.5 font-semibold text-white">Eliminar</button>
+                          <button onClick={() => setBorrar(null)} className="px-2 py-1.5 text-[#6B7079]">No</button>
+                        </span>
+                      ) : <button onClick={() => setBorrar(s.id)} className="text-[#6B7079] hover:text-red-700">Eliminar esta categoría</button>}
+                    </div>
+                  </div>
                 )}
               </li>
             );
@@ -204,12 +278,12 @@ function Combos({ combos, normales, secciones, extra, pendiente, ejecutar }: {
       <div className={`${tarjeta} space-y-4`}>
         <p className="font-display text-xl font-semibold">{b.id ? 'Editar combo' : 'Nuevo combo'}</p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <input value={b.nombre} onChange={(e) => setB({ ...b, nombre: e.target.value })} maxLength={80} placeholder="Nombre (ej.: Menú Burger)" className={campo} />
+          <div><input value={b.nombre} onChange={(e) => setB({ ...b, nombre: e.target.value })} maxLength={80} spellCheck lang="es" placeholder="Nombre (ej.: Menú Burger)" className={campo} /><HerramientasTexto valor={b.nombre} onCambio={(v) => setB({ ...b, nombre: v })} tipo="titulo" /></div>
           <select value={b.seccionId} onChange={(e) => setB({ ...b, seccionId: e.target.value })} className={campo} aria-label="Categoría del combo">
             <option value="">Sin categoría</option>{secciones.map((s) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
           </select>
         </div>
-        <textarea value={b.descripcion} onChange={(e) => setB({ ...b, descripcion: e.target.value })} maxLength={300} rows={2} placeholder="Descripción corta (opcional)" className={campo} />
+        <div><textarea value={b.descripcion} onChange={(e) => setB({ ...b, descripcion: e.target.value })} maxLength={300} rows={2} spellCheck lang="es" placeholder="Descripción corta (opcional)" className={campo} /><HerramientasTexto valor={b.descripcion} onCambio={(v) => setB({ ...b, descripcion: v })} tipo="descripcion" contexto={b.nombre} /></div>
         <div>
           <p className="text-sm font-semibold">Platos que incluye <span className="font-normal text-[#6B7079]">({n}, mínimo 2)</span></p>
           <ul className="mt-2 max-h-72 divide-y divide-[#EEECE8] overflow-y-auto rounded-xl border border-[#E6E6E2]">

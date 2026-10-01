@@ -38,6 +38,7 @@ export interface PlatoCarta {
 export interface SeccionCarta {
   id: string;
   nombre: string;
+  descripcion?: string | null;
   platos: PlatoCarta[];
 }
 
@@ -60,6 +61,8 @@ export interface Carta {
   /** papel | blanco | oscuro y sans | serif (0031). */
   estiloFondo?: string;
   estiloLetra?: string;
+  /** Foto de cabecera elegida por el cliente (0043). */
+  portadaUrl?: string | null;
   /** Idiomas activos del Pack de idiomas (0027). */
   idiomas?: string[];
   secciones: SeccionCarta[];
@@ -98,12 +101,13 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       url_resenas: string | null;
       plantilla: string;
       nivel_diseno: string;
+      portada_url: string | null;
       estilo_fondo: string;
       estilo_letra: string;
       idiomas: string[];
     }>(
       `SELECT id, slug, nombre, logo_url, plan, color_marca, descripcion, telefono,
-              direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, estilo_fondo, estilo_letra
+              direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, estilo_fondo, estilo_letra, portada_url
          FROM restaurantes WHERE slug = $1`,
       [slug]
     );
@@ -111,8 +115,8 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
     const restaurante = restaurantes[0];
     if (!restaurante) return null;
 
-    const { rows: secciones } = await c.query<{ id: string; nombre: string }>(
-      'SELECT id, nombre FROM menu_secciones WHERE restaurante_id = $1 ORDER BY orden, nombre',
+    const { rows: secciones } = await c.query<{ id: string; nombre: string; descripcion: string | null }>(
+      'SELECT id, nombre, descripcion FROM menu_secciones WHERE restaurante_id = $1 ORDER BY orden, nombre',
       [restaurante.id]
     );
 
@@ -175,6 +179,7 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       urlResenas: restaurante.url_resenas,
       plantilla: restaurante.plantilla,
       nivelDiseno: restaurante.nivel_diseno,
+      portadaUrl: restaurante.portada_url ?? null,
       estiloFondo: restaurante.estilo_fondo,
       estiloLetra: restaurante.estilo_letra,
       idiomas: restaurante.idiomas ?? [],
@@ -182,6 +187,7 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
         .map((s) => ({
           id: s.id,
           nombre: s.nombre,
+          descripcion: s.descripcion,
           platos: platos.filter((p) => p.seccion_id === s.id).map(enCarta),
         }))
         // Una sección cuyos platos están todos agotados no se enseña vacía.

@@ -18,6 +18,8 @@ export interface MiRestaurante {
   urlResenas: string | null;
   plantilla: string;
   nivelDiseno: string;
+  /** Foto de cabecera de la carta (0043). Sin ella, la carta usa la primera foto de un plato. */
+  portadaUrl?: string | null;
   idiomas: string[];
   whatsapp: string | null;
   creadoEn: string;
@@ -45,6 +47,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       url_resenas: string | null;
       plantilla: string;
       nivel_diseno: string;
+      portada_url: string | null;
       idiomas: string[];
       whatsapp: string | null;
       creado_en: Date;
@@ -52,7 +55,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       estilo_letra: string;
     }>(
       `SELECT id, slug, nombre, logo_url, plan, activo, color_marca, estado_acceso,
-              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en, estilo_fondo, estilo_letra
+              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en, estilo_fondo, estilo_letra, portada_url
          FROM restaurantes
         WHERE propietario = dk.identidad_actual()`
     );
@@ -75,6 +78,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       urlResenas: fila.url_resenas,
       plantilla: fila.plantilla,
       nivelDiseno: fila.nivel_diseno,
+      portadaUrl: fila.portada_url,
       idiomas: fila.idiomas ?? [],
       whatsapp: fila.whatsapp,
       creadoEn: new Date(fila.creado_en).toISOString(),
@@ -126,4 +130,9 @@ export async function guardarEstilo(jwt: string, restauranteId: string, e: { pla
   await comoCliente(jwt, (c) => c.query(
     'UPDATE restaurantes SET plantilla = $2, estilo_fondo = $3, estilo_letra = $4, color_marca = $5 WHERE id = $1',
     [restauranteId, e.plantilla, e.fondo, e.letra, e.color]));
+}
+
+/** Foto de portada (0043). */
+export async function guardarPortada(jwt: string, restauranteId: string, url: string | null) {
+  await comoCliente(jwt, (c) => c.query('UPDATE restaurantes SET portada_url = $2 WHERE id = $1', [restauranteId, url]));
 }

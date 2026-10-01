@@ -1,5 +1,6 @@
 'use client';
 
+import HerramientasTexto from './HerramientasTexto';
 import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import type { Promocion, DatosPromocion } from '@/lib/promociones';
@@ -90,9 +91,9 @@ export default function Promociones({
             <SubirImagen valor={d.imagenUrl} onCambio={(url) => set('imagenUrl', url)} etiqueta="Imagen del banner" ia={{ modo: 'banner' }} />
             <p className="text-[11px] text-[#6B7079]">Formato horizontal 16:9 (recomendado 1200 × 675 px). Si tu banner ya lleva el texto, deja el título vacío.</p>
           </div>
-          <input value={d.titulo ?? ''} onChange={(e) => set('titulo', e.target.value || null)} maxLength={60} placeholder="Título (opcional con imagen; ej: Menú del día 12,90 €)" className={campo} />
+          <div><input value={d.titulo ?? ''} onChange={(e) => set('titulo', e.target.value || null)} maxLength={60} spellCheck lang="es" placeholder="Título (opcional con imagen; ej: Menú del día 12,90 €)" className={campo} /><HerramientasTexto valor={d.titulo ?? ''} onCambio={(v) => set('titulo', v || null)} tipo="titulo" /></div>
           {!d.imagenUrl && (
-            <textarea value={d.texto ?? ''} onChange={(e) => set('texto', e.target.value || null)} maxLength={160} rows={2} placeholder="Texto corto (para banners sin imagen)" className={campo} />
+            <div><textarea value={d.texto ?? ''} onChange={(e) => set('texto', e.target.value || null)} maxLength={160} rows={2} spellCheck lang="es" placeholder="Texto corto (para banners sin imagen)" className={campo} /><HerramientasTexto valor={d.texto ?? ''} onCambio={(v) => set('texto', v || null)} tipo="descripcion" contexto={d.titulo ?? ''} /></div>
           )}
           <div className="space-y-2">
             <p className="text-xs font-semibold text-[#3F434B]">Botón del banner</p>

@@ -7,6 +7,7 @@ import type { MiRestaurante } from '@/lib/mi-restaurante';
 import { comprarServicioAction } from '@/app/panel/actions';
 import EstiloCarta from './EstiloCarta';
 import SaltoSignature from './SaltoSignature';
+import PortadaCarta from './PortadaCarta';
 import ActivarNucleoOperativoBoton from '@/components/sections/ActivarNucleoOperativoBoton';
 
 const WHATSAPP_DK = '#solicitud-signature';
@@ -69,6 +70,7 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
       {vista === 'diseno' && (<>
       <EstiloCarta fotos={fotos} nombre={restaurante.nombre} bloqueado={restaurante.nivelDiseno !== 'esencial'}
         inicial={{ plantilla: restaurante.plantilla || 'clasica', fondo: restaurante.estiloFondo || 'papel', letra: restaurante.estiloLetra || 'sans', color: (restaurante.colorMarca || '#E8592A').toUpperCase() }} />
+      <PortadaCarta inicial={restaurante.portadaUrl ?? null} demo={restaurante.id === 'demo'} />
       <section className="space-y-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-[#6E0C2B]">Niveles de diseño</p>

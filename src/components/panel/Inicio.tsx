@@ -70,7 +70,7 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
         <motion.button {...entra(0)} onClick={() => ir('escaneos')} className={`${tarjeta} col-span-2 text-left lg:col-span-2`}>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs text-[#6B7079]">Escaneos este mes</p>
+              <p className="text-xs text-[#6B7079]">Escaneos este mes <span className="text-[#9A9EA6]">(el día 1 vuelve a 0)</span></p>
               <p className="font-display mt-2 text-5xl font-semibold tabular-nums tracking-tight"><Contador hasta={escaneosMes} /></p>
               <p className="mt-1 text-xs text-[#6B7079]">{semana} en los últimos 7 días</p>
             </div>

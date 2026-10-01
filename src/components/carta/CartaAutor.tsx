@@ -36,7 +36,7 @@ export default function CartaAutor({
   ];
   const alergenosEnCarta = [...new Set(grupos.flatMap((g) => g.platos.flatMap((p) => p.alergenos)))].sort();
   const nombres = Object.fromEntries(alergenosEnCarta.map((a) => [a, nombreAlergeno(a)]));
-  const portada = grupos.flatMap((g) => g.platos).find((p) => p.fotoUrl)?.fotoUrl ?? null;
+  const portada = carta.portadaUrl || grupos.flatMap((g) => g.platos).find((p) => p.fotoUrl)?.fotoUrl || null;
   const tel = carta.telefono?.replace(/\s/g, '');
   const mapa = carta.direccion ? `https://maps.google.com/?q=${encodeURIComponent(carta.direccion)}` : null;
 

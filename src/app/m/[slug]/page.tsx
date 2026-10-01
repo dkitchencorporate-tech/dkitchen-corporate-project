@@ -108,7 +108,7 @@ export default async function CartaPublica({
   ];
   const alergenosEnCarta = [...new Set(grupos.flatMap((g) => g.platos.flatMap((p) => p.alergenos)))].sort();
   const nombres = Object.fromEntries(alergenosEnCarta.map((a) => [a, nombreAlergeno(a)]));
-  const fotoPortada = grupos.flatMap((g) => g.platos).find((p) => p.fotoUrl)?.fotoUrl ?? null;
+  const fotoPortada = carta.portadaUrl || grupos.flatMap((g) => g.platos).find((p) => p.fotoUrl)?.fotoUrl || null;
   const ancho = plantilla === 'visual' ? 'max-w-3xl' : 'max-w-2xl';
   const reservar = ampliado ? <Reservar slug={carta.slug} color={color} nombreLocal={carta.nombre} /> : null;
 
@@ -157,6 +157,7 @@ export default async function CartaPublica({
                   </span>
                 )}
               </h2>
+              {'descripcion' in grupo && grupo.descripcion && <p className={`-mt-1 mb-4 px-1 text-sm leading-relaxed opacity-60 ${plantilla === 'editorial' ? 'text-center italic' : ''}`}>{grupo.descripcion}</p>}
               {plantilla === 'editorial' ? (
                 <ul className="space-y-6">
                   {grupo.platos.map((plato) => (

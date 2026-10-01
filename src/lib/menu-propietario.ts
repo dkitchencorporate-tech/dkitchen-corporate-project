@@ -14,6 +14,8 @@ export interface SeccionPropia {
   id: string;
   nombre: string;
   orden: number;
+  /** Descripción opcional (0043). */
+  descripcion?: string | null;
 }
 
 export interface PlatoPropio {
@@ -35,8 +37,8 @@ export async function listarMiCarta(
   restauranteId: string
 ): Promise<{ secciones: SeccionPropia[]; platos: PlatoPropio[] }> {
   return comoCliente(jwt, async (c) => {
-    const { rows: secciones } = await c.query<{ id: string; nombre: string; orden: number }>(
-      `SELECT id, nombre, orden FROM menu_secciones WHERE restaurante_id = $1 ORDER BY orden, nombre`,
+    const { rows: secciones } = await c.query<{ id: string; nombre: string; orden: number; descripcion: string | null }>(
+      `SELECT id, nombre, orden, descripcion FROM menu_secciones WHERE restaurante_id = $1 ORDER BY orden, nombre`,
       [restauranteId]
     );
     const { rows: platos } = await c.query<{
@@ -168,4 +170,8 @@ export async function editarPlato(
 
 export async function eliminarPlato(jwt: string, platoId: string): Promise<void> {
   await comoCliente(jwt, (c) => c.query(`DELETE FROM menu_items WHERE id = $1`, [platoId]));
+}
+
+export async function guardarDescripcionSeccion(jwt: string, seccionId: string, descripcion: string | null): Promise<void> {
+  await comoCliente(jwt, (c) => c.query('UPDATE menu_secciones SET descripcion = $2 WHERE id = $1', [seccionId, descripcion]));
 }
