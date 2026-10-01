@@ -31,7 +31,8 @@ export const metadata = {
     locale: "es_ES",
     type: "website",
   },
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/favicon-32.png", sizes: "32x32", type: "image/png" }], apple: "/apple-touch-icon.png" },
+  manifest: "/manifest.webmanifest",
   twitter: {
     card: "summary_large_image",
     title: "DKitchen · Tu restaurante, con sistema propio",

@@ -54,10 +54,10 @@ export default function AuditoriaCanales() {
           <div className="relative pl-10 space-y-10 mb-6 before:absolute before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-orange-200">
             {PASOS.map((p) => (
               <div key={p.numero} className="relative">
-                <span className="absolute -left-10 flex items-center justify-center w-8 h-8 rounded-full bg-[#D9531E] text-white shrink-0 text-lg font-bold">
+                <span className="absolute -left-10 flex items-center justify-center w-8 h-8 rounded-full bg-[#6E0C2B] text-white shrink-0 text-lg font-bold">
                   {p.numero}
                 </span>
-                <p className="text-xs font-black uppercase tracking-widest text-[#D9531E] mb-1">{p.titulo}</p>
+                <p className="text-xs font-black uppercase tracking-widest text-[#6E0C2B] mb-1">{p.titulo}</p>
                 <p className="text-gray-700 text-lg">{p.texto}</p>
               </div>
             ))}
@@ -72,7 +72,7 @@ export default function AuditoriaCanales() {
           {/* PRICING-BLOCK (Parte 6, Sección 5; precio confirmado en Parte 8,
               Sección 3): producto 1 a 1 con reunión, no automatizado — el
               precio se muestra, la reserva sigue siendo por contacto directo. */}
-          <div className="max-w-md mx-auto bg-white border-2 border-[#D9531E] rounded-3xl p-8 text-center shadow-xl">
+          <div className="max-w-md mx-auto bg-white border-2 border-[#6E0C2B] rounded-3xl p-8 text-center shadow-xl">
             <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Pago único · sin garantía de resultado</p>
             <div className="flex items-center justify-center gap-3 mb-2">
               <span className="text-2xl text-gray-400 line-through">{formatPrecio(AUDITORIA_CANALES.precioAncla)}</span>
@@ -81,7 +81,7 @@ export default function AuditoriaCanales() {
             <p className="text-gray-600 mb-8">Oferta especial de lanzamiento — producto 1 a 1, con reunión incluida.</p>
             <a
               href={WHATSAPP_AUDITORIA_CANALES}
-              className="inline-flex w-full justify-center bg-[#D9531E] text-white px-8 py-4 rounded-full font-black text-lg hover:bg-orange-600 transition-all shadow-lg"
+              className="inline-flex w-full justify-center bg-[#6E0C2B] text-white px-8 py-4 rounded-full font-black text-lg hover:bg-orange-600 transition-all shadow-lg"
             >
               Reservar mi Auditoría
             </a>
@@ -90,14 +90,14 @@ export default function AuditoriaCanales() {
           {/* CTA-FINAL — puente visual explícito hacia Núcleo Operativo (Parte 6,
               Sección 5), no solo mencionado dentro del paso 3. */}
           <div className="mt-16 bg-[#FDFCF8] border border-orange-100 rounded-3xl p-8 text-center">
-            <p className="text-sm font-black uppercase tracking-widest text-[#D9531E] mb-2">¿Y si hace falta más que un parche?</p>
+            <p className="text-sm font-black uppercase tracking-widest text-[#6E0C2B] mb-2">¿Y si hace falta más que un parche?</p>
             <p className="text-gray-700 text-lg mb-6">
               Cuando el diagnóstico revela algo estructural, el siguiente paso es Núcleo Operativo: la PWA completa
               como sistema operativo del negocio.
             </p>
             <Link
               href="/base-operativa"
-              className="inline-flex items-center gap-2 text-gray-900 font-black hover:text-[#D9531E] transition-colors"
+              className="inline-flex items-center gap-2 text-gray-900 font-black hover:text-[#6E0C2B] transition-colors"
             >
               Ver Núcleo Operativo →
             </Link>

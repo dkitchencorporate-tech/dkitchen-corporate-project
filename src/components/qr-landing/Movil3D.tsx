@@ -70,7 +70,7 @@ export default function Movil3D() {
       <Canvas camera={{ position: [0, 0, 9.5], fov: 38 }} dpr={[1, 1.6]} gl={{ antialias: true, alpha: true }}>
         <ambientLight intensity={0.6} />
         <directionalLight position={[4, 6, 5]} intensity={1.6} />
-        <pointLight position={[-5, -2, 4]} intensity={40} color="#E8592A" />
+        <pointLight position={[-5, -2, 4]} intensity={40} color="#A3184A" />
         <pointLight position={[5, 3, 6]} intensity={30} color="#ffffff" />
         <Telefono />
       </Canvas>

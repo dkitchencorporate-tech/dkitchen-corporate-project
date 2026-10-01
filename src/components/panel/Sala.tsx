@@ -55,7 +55,7 @@ export default function Sala({
           {zonas.length > 0 && (
             <ul className="mt-4 flex flex-wrap gap-2 text-xs">
               {zonas.map((z, i) => (
-                <li key={i} className="rounded-full px-3 py-1" style={{ background: `${z.color ?? '#D9531E'}33` }}>
+                <li key={i} className="rounded-full px-3 py-1" style={{ background: `${z.color ?? '#6E0C2B'}33` }}>
                   {z.etiqueta ?? 'Zona'} · {camareros.find((c) => c.id === z.camareroId)?.nombre ?? 'sin camarero'}
                 </li>
               ))}

@@ -26,12 +26,12 @@ export default function DarkKitchen() {
         
         {/* ENCABEZADO ENTERPRISE */}
         <div className="text-center max-w-4xl mx-auto mb-20 space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[#D9531E] text-xs font-bold tracking-widest uppercase">
-            <span className="w-2 h-2 bg-[#D9531E] rounded-full animate-pulse"></span> INGENIERÍA DE PROYECTOS & MARCAS VIRTUALES
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[#6E0C2B] text-xs font-bold tracking-widest uppercase">
+            <span className="w-2 h-2 bg-[#6E0C2B] rounded-full animate-pulse"></span> INGENIERÍA DE PROYECTOS & MARCAS VIRTUALES
           </div>
           <h2 className="text-4xl lg:text-6xl font-black leading-tight text-white tracking-tight text-balance">
             El Caos Operativo tiene un precio.<br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D9531E] to-orange-400">La Ingeniería, un retorno.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#6E0C2B] to-orange-400">La Ingeniería, un retorno.</span>
           </h2>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed font-medium">
             Muchos hosteleros intentan escalar subiéndose a 4 aplicaciones de delivery a la vez. ¿El resultado? <strong>Fogones colapsados, pérdida de calidad y rentabilidad nula.</strong> El delivery masivo no necesita más apps; necesita procesos estandarizados.
@@ -104,7 +104,7 @@ export default function DarkKitchen() {
             <p className="text-gray-400 max-w-2xl mx-auto">
               Cada una operó 2020-2022 en una dark kitchen en Madrid. Ficha técnica, proveedores y carta ya
               cerrados —{' '}
-              <Link href="/marcas" className="text-[#D9531E] font-semibold hover:underline">
+              <Link href="/marcas" className="text-[#6E0C2B] font-semibold hover:underline">
                 ver el catálogo completo
               </Link>
               .
@@ -115,7 +115,7 @@ export default function DarkKitchen() {
               <TiltCard key={m.slug}>
                 <Link
                   href={`/marcas#${m.slug}`}
-                  className="block bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:border-[#D9531E]/50 hover:bg-white/10 transition-all"
+                  className="block bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:border-[#6E0C2B]/50 hover:bg-white/10 transition-all"
                 >
                   <div className="text-4xl mb-3">{m.emoji}</div>
                   <p className="font-bold text-white text-sm mb-1">{m.nombre}</p>
@@ -128,20 +128,20 @@ export default function DarkKitchen() {
 
         {/* FASES DE ADMISIÓN (El Filtro High-Ticket) */}
         <div className="max-w-5xl mx-auto bg-gradient-to-b from-white/5 to-transparent p-1 rounded-[3rem] border border-white/10 mb-20 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#D9531E] to-transparent opacity-50"></div>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#6E0C2B] to-transparent opacity-50"></div>
           <div className="bg-[#0A0A0A] rounded-[2.8rem] p-8 md:p-16">
             <div className="text-center mb-12">
               <h3 className="text-3xl md:text-4xl font-black text-white mb-4">Proceso de Admisión y Desarrollo Enterprise</h3>
               <p className="text-gray-400 max-w-2xl mx-auto">Esto no es un software preconfigurado. Es una integración de procesos y tecnología a medida. Por ello, exigimos un análisis estricto antes de iniciar.</p>
             </div>
 
-            <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-[#D9531E] before:via-orange-500/20 before:to-transparent">
+            <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-[#6E0C2B] before:via-orange-500/20 before:to-transparent">
               
               {/* Fase 1 */}
               <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#0A0A0A] bg-[#D9531E] text-white shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_20px_rgba(255,69,0,0.5)] z-10 font-bold text-sm">1</div>
+                <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#0A0A0A] bg-[#6E0C2B] text-white shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_20px_rgba(255,69,0,0.5)] z-10 font-bold text-sm">1</div>
                 <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 bg-white/5 rounded-2xl border border-white/10 ml-4 md:ml-0 text-left">
-                  <div className="text-[#D9531E] font-black text-xs tracking-widest uppercase mb-2">Evaluación Estricta</div>
+                  <div className="text-[#6E0C2B] font-black text-xs tracking-widest uppercase mb-2">Evaluación Estricta</div>
                   <h4 className="text-xl font-bold text-white mb-2">Auditoría Operativa y Viabilidad</h4>
                   <p className="text-sm text-gray-400 leading-relaxed">Analizamos la capacidad instalada de tu cocina, radio de reparto y costes base (Food Cost). Si los números no garantizan rentabilidad, rechazaremos el proyecto antes de que gastes un euro.</p>
                 </div>

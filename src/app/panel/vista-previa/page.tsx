@@ -28,7 +28,7 @@ export default async function VistaPreviaAutor() {
       <div className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-3 bg-[#1C1712] px-4 py-3 text-center text-sm text-white">
         <span><strong>Vista previa</strong> · Así quedaría tu carta con el diseño de autor (no está publicada).</span>
         <a href={`/panel?pestana=soporte&asunto=${encodeURIComponent('Quiero la Carta de Autor (Setup Experto)')}`}
-           className="rounded-full bg-[#D9531E] px-4 py-1.5 font-bold">Lo quiero · 199 €</a>
+           className="rounded-full bg-[#6E0C2B] px-4 py-1.5 font-bold">Lo quiero · 199 €</a>
         <a href="/panel?pestana=local" className="text-white/60 underline">Volver</a>
       </div>
       <CartaAutor carta={{ ...carta, colorMarca: carta.colorMarca }} banners={banners} vistaPrevia />

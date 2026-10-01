@@ -95,7 +95,7 @@ export async function POST(request: Request) {
       subject: `NUEVO LEAD HOSTELERIA: ${name.replace(/[\r\n]/g, ' ').slice(0, 120)}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 10px;">
-          <h2 style="color: #D9531E; text-align: center;">Nuevo lead captado</h2>
+          <h2 style="color: #6E0C2B; text-align: center;">Nuevo lead captado</h2>
           <p style="text-align: center; color: #6b7280;">Alguien acaba de solicitar la consultoría y los bonos desde el popup de salida.</p>
 
           <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-top: 20px;">

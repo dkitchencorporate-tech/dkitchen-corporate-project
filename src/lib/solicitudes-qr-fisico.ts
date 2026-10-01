@@ -51,7 +51,7 @@ export async function crearSolicitudQrFisico(
     await enviarCorreoInterno(
       `QR FÍSICO solicitado: ${escaparHtml(contexto.restauranteNombre)} (${solicitud.tipo} x${solicitud.cantidad})`,
       `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #D9531E;">Nueva solicitud de QR físico — pendiente de presupuesto</h2>
+        <h2 style="color: #6E0C2B;">Nueva solicitud de QR físico — pendiente de presupuesto</h2>
         <p><strong>Restaurante:</strong> ${escaparHtml(contexto.restauranteNombre)}</p>
         <p><strong>Correo:</strong> ${escaparHtml(contexto.email)}</p>
         <p><strong>Tipo:</strong> ${escaparHtml(solicitud.tipo)} — <strong>Cantidad:</strong> ${solicitud.cantidad}</p>

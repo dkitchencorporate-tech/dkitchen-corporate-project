@@ -75,7 +75,7 @@ export default async function SoporteQr() {
                 />
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-2 text-xs text-[#6B7079]">
-                    <input type="checkbox" name="cerrar" className="accent-[#D9531E]" /> Cerrar el ticket
+                    <input type="checkbox" name="cerrar" className="accent-[#6E0C2B]" /> Cerrar el ticket
                   </label>
                   <button className="rounded-full bg-[#6E0C2B] px-4 py-2 text-sm font-bold hover:bg-[#4A0819]">Responder</button>
                 </div>

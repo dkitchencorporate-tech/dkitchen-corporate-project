@@ -96,11 +96,11 @@ export default function EnterpriseModal({ isOpen, onClose }: EnterpriseModalProp
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Nombre Completo</label>
-                    <input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-[#D9531E] outline-none transition-colors" placeholder="Tu nombre" />
+                    <input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-[#6E0C2B] outline-none transition-colors" placeholder="Tu nombre" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Cargo / Perfil</label>
-                    <select required value={formData.role} onChange={e=>setFormData({...formData, role: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-[#1A1A1A] border border-white/10 text-white focus:border-[#D9531E] outline-none transition-colors appearance-none cursor-pointer">
+                    <select required value={formData.role} onChange={e=>setFormData({...formData, role: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-[#1A1A1A] border border-white/10 text-white focus:border-[#6E0C2B] outline-none transition-colors appearance-none cursor-pointer">
                       <option value="" disabled>Selecciona tu perfil</option>
                       <option value="Propietario">Propietario / Fundador</option>
                       <option value="Director Operaciones">Director de Operaciones</option>
@@ -113,22 +113,22 @@ export default function EnterpriseModal({ isOpen, onClose }: EnterpriseModalProp
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Email Profesional</label>
-                    <input required type="email" value={formData.email} onChange={e=>setFormData({...formData, email: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-[#D9531E] outline-none transition-colors" placeholder="email@empresa.com" />
+                    <input required type="email" value={formData.email} onChange={e=>setFormData({...formData, email: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-[#6E0C2B] outline-none transition-colors" placeholder="email@empresa.com" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Teléfono (WhatsApp)</label>
-                    <input required type="tel" value={formData.phone} onChange={e=>setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-[#D9531E] outline-none transition-colors" placeholder="+34 600 000 000" />
+                    <input required type="tel" value={formData.phone} onChange={e=>setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-[#6E0C2B] outline-none transition-colors" placeholder="+34 600 000 000" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Nombre del Proyecto o Restaurante</label>
-                  <input required type="text" value={formData.projectName} onChange={e=>setFormData({...formData, projectName: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-[#D9531E] outline-none transition-colors" placeholder="Ej. Burger Station o Nueva Apertura" />
+                  <input required type="text" value={formData.projectName} onChange={e=>setFormData({...formData, projectName: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-[#6E0C2B] outline-none transition-colors" placeholder="Ej. Burger Station o Nueva Apertura" />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Facturación Mensual Promedio (Actual)</label>
-                  <select required value={formData.revenue} onChange={e=>setFormData({...formData, revenue: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-[#1A1A1A] border border-white/10 text-white focus:border-[#D9531E] outline-none transition-colors appearance-none cursor-pointer">
+                  <select required value={formData.revenue} onChange={e=>setFormData({...formData, revenue: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-[#1A1A1A] border border-white/10 text-white focus:border-[#6E0C2B] outline-none transition-colors appearance-none cursor-pointer">
                     <option value="" disabled>Selecciona un rango</option>
                     <option value="Proyecto desde Cero (Sin facturación)">Proyecto desde Cero (Sin facturación)</option>
                     <option value="Menos de 10.000€/mes">Menos de 10.000€/mes</option>
@@ -140,7 +140,7 @@ export default function EnterpriseModal({ isOpen, onClose }: EnterpriseModalProp
 
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Presupuesto de Inversión Inicial Disponible</label>
-                  <select required value={formData.budget} onChange={e=>setFormData({...formData, budget: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-[#1A1A1A] border border-white/10 text-white focus:border-[#D9531E] outline-none transition-colors appearance-none cursor-pointer">
+                  <select required value={formData.budget} onChange={e=>setFormData({...formData, budget: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-[#1A1A1A] border border-white/10 text-white focus:border-[#6E0C2B] outline-none transition-colors appearance-none cursor-pointer">
                     <option value="" disabled>Selecciona una opción</option>
                     <option value="Menos de 3.000€ (Buscamos soluciones básicas)">Menos de 3.000€ (Buscamos soluciones básicas)</option>
                     <option value="3.000€ - 6.000€">3.000€ - 6.000€</option>
@@ -150,7 +150,7 @@ export default function EnterpriseModal({ isOpen, onClose }: EnterpriseModalProp
                 </div>
 
                 <div className="flex items-start gap-3 pt-2 bg-white/5 p-4 rounded-xl border border-white/5">
-                  <input required type="checkbox" id="consent" checked={formData.consent} onChange={e=>setFormData({...formData, consent: e.target.checked})} className="mt-1 bg-black border-gray-600 rounded text-[#D9531E] focus:ring-[#D9531E]" />
+                  <input required type="checkbox" id="consent" checked={formData.consent} onChange={e=>setFormData({...formData, consent: e.target.checked})} className="mt-1 bg-black border-gray-600 rounded text-[#6E0C2B] focus:ring-[#6E0C2B]" />
                   <label htmlFor="consent" className="text-[11px] text-gray-400 leading-tight">Entiendo que esta es una solicitud sujeta a evaluación y no garantiza la aceptación del proyecto. Consiento ser contactado para recibir la evaluación de viabilidad.</label>
                 </div>
 
@@ -189,7 +189,7 @@ export default function EnterpriseModal({ isOpen, onClose }: EnterpriseModalProp
               </div>
               
               <div className="w-full bg-[#1A1A1A] border border-white/5 p-4 rounded-xl mb-8">
-                 <p className="text-[#D9531E] font-bold text-xs uppercase tracking-widest mb-1">Estado de tu plaza:</p>
+                 <p className="text-[#6E0C2B] font-bold text-xs uppercase tracking-widest mb-1">Estado de tu plaza:</p>
                  <p className="text-white font-black">EN LISTA DE ESPERA DE EVALUACIÓN</p>
               </div>
 

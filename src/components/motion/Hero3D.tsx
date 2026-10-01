@@ -14,7 +14,7 @@ export type PresetHero3D =
   | 'dark-kitchen'
   | 'marcas';
 
-const NARANJA = '#D9531E';
+const NARANJA = '#6E0C2B';
 const AMBAR = '#B8863B';
 
 /** Sigue el cursor dentro del lienzo y aplica un tilt suave al grupo hijo. */

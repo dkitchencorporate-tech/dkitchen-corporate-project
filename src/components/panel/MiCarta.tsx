@@ -339,7 +339,7 @@ function FormularioPlato({
             type="checkbox"
             checked={disponible}
             onChange={(e) => setDisponible(e.target.checked)}
-            className="w-4 h-4 accent-[#D9531E]"
+            className="w-4 h-4 accent-[#6E0C2B]"
           />
           Disponible (desmarca para "agotado" sin borrar el plato)
         </label>

@@ -17,7 +17,7 @@ export default function MarcaEnCaja() {
     <section className="py-16 md:py-24 bg-[#0A0A0A] text-white">
       <div className="max-w-5xl mx-auto px-6 md:px-8">
         <div className="text-center max-w-3xl mx-auto mb-14 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[#D9531E] text-xs font-bold tracking-widest uppercase">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[#6E0C2B] text-xs font-bold tracking-widest uppercase">
             Ruta B — Ya tengo cocina
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight text-balance">
@@ -25,7 +25,7 @@ export default function MarcaEnCaja() {
           </h2>
           <p className="text-lg text-gray-400 text-pretty">
             Sin comité de admisión, sin evaluación trimestral — eliges la marca del{' '}
-            <Link href="/marcas" className="text-[#D9531E] font-semibold hover:underline">
+            <Link href="/marcas" className="text-[#6E0C2B] font-semibold hover:underline">
               catálogo
             </Link>{' '}
             y en semanas tienes kit de marca, PWA de pedido y alta en delivery.
@@ -93,7 +93,7 @@ export default function MarcaEnCaja() {
         <div className="text-center">
           <a
             href={WHATSAPP_MARCA_EN_CAJA}
-            className="inline-flex bg-[#D9531E] text-white px-8 py-4 rounded-full font-black text-lg hover:bg-orange-600 transition-all shadow-xl hover:shadow-orange-500/30 hover:-translate-y-1"
+            className="inline-flex bg-[#6E0C2B] text-white px-8 py-4 rounded-full font-black text-lg hover:bg-orange-600 transition-all shadow-xl hover:shadow-orange-500/30 hover:-translate-y-1"
           >
             Quiero sumar una marca
           </a>

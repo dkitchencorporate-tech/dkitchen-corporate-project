@@ -9,7 +9,7 @@ type MesaE = MesaPlano & { clave: string };
 type ElemE = ElementoPlano & { clave: string };
 type Sel = { tipo: 'mesa' | 'elemento'; clave: string } | null;
 
-const COLORES_ZONA = ['#D9531E', '#2F5D50', '#1F4E79', '#C58B2A', '#5B3E8A', '#B23A48'];
+const COLORES_ZONA = ['#6E0C2B', '#2F5D50', '#1F4E79', '#C58B2A', '#5B3E8A', '#B23A48'];
 const HERRAMIENTAS: { tipo: TipoElemento | 'mesa'; nombre: string }[] = [
   { tipo: 'mesa', nombre: 'Mesa' },
   { tipo: 'zona', nombre: 'Zona' },
@@ -182,7 +182,7 @@ export default function EditorSala({
             {elementos.map((e) => {
               const s = sel?.clave === e.clave;
               const estilo = e.tipo === 'zona'
-                ? { background: `${e.color ?? '#D9531E'}22`, border: `2px dashed ${e.color ?? '#D9531E'}` }
+                ? { background: `${e.color ?? '#6E0C2B'}22`, border: `2px dashed ${e.color ?? '#6E0C2B'}` }
                 : e.tipo === 'pared' ? { background: '#3F434B' }
                 : e.tipo === 'division' ? { background: '#9A9EA6' }
                 : e.tipo === 'barra' ? { background: '#6B4E2E' }

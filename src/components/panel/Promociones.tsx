@@ -164,7 +164,7 @@ export default function Promociones({
           )}
 
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={d.activa} onChange={(e) => set('activa', e.target.checked)} className="accent-[#D9531E]" /> Activa
+            <input type="checkbox" checked={d.activa} onChange={(e) => set('activa', e.target.checked)} className="accent-[#6E0C2B]" /> Activa
           </label>
           <div className="flex gap-3">
             <button onClick={guardar} disabled={pendiente || (!d.titulo?.trim() && !d.imagenUrl)} className="rounded-full bg-[#6E0C2B] px-5 py-2 text-sm font-bold disabled:opacity-50">

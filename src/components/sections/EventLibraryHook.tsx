@@ -26,7 +26,7 @@ const FORMATOS = [
 export default function EventLibraryHook() {
   return (
     <section className="relative py-24 overflow-hidden bg-gradient-to-b from-[#111] to-[#0a0a0a] text-white">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[#D9531E] rounded-full blur-[120px] opacity-10 pointer-events-none"></div>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[#6E0C2B] rounded-full blur-[120px] opacity-10 pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-8 relative z-10">
 
@@ -37,7 +37,7 @@ export default function EventLibraryHook() {
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-6xl font-black leading-tight text-balance">
             Un evento entero, montado.<br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D9531E] to-orange-400">La taquilla entera, tuya.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#6E0C2B] to-orange-400">La taquilla entera, tuya.</span>
           </h2>
 
           {/* Elemento 3D del hero (Parte 7, Sección 2.3): composición ligada
@@ -59,7 +59,7 @@ export default function EventLibraryHook() {
       <div className="max-w-7xl mx-auto px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20">
           <div className="flex gap-6">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D9531E] to-orange-600 flex items-center justify-center text-2xl shadow-lg shadow-orange-500/20 shrink-0">🎯</div>
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#6E0C2B] to-orange-600 flex items-center justify-center text-2xl shadow-lg shadow-orange-500/20 shrink-0">🎯</div>
             <div>
               <h3 className="text-xl font-bold mb-2">Ya está construido</h3>
               <p className="text-gray-400 leading-relaxed text-sm">
@@ -154,15 +154,15 @@ export default function EventLibraryHook() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-[#1A1A1A] border border-white/5 rounded-3xl p-8 hover:border-orange-500/30 transition-colors shadow-2xl">
-              <div className="w-14 h-14 bg-gradient-to-br from-[#D9531E] to-orange-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-orange-500/20">⚡</div>
+              <div className="w-14 h-14 bg-gradient-to-br from-[#6E0C2B] to-orange-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-orange-500/20">⚡</div>
               <h4 className="text-xl font-bold text-white mb-5">Lo que hacemos nosotros</h4>
               <ul className="space-y-4 text-sm text-gray-400">
-                <li className="flex items-start gap-3"><span className="text-[#D9531E] mt-0.5">✓</span> <span>Definir el concepto del evento y su guía de desarrollo.</span></li>
-                <li className="flex items-start gap-3"><span className="text-[#D9531E] mt-0.5">✓</span> <span>Brief operativo: qué pasa antes, durante y después.</span></li>
-                <li className="flex items-start gap-3"><span className="text-[#D9531E] mt-0.5">✓</span> <span>Piezas de marketing digital y diseño de flyer físico.</span></li>
-                <li className="flex items-start gap-3"><span className="text-[#D9531E] mt-0.5">✓</span> <span>Landing de venta de entradas, conectada a tu pasarela.</span></li>
-                <li className="flex items-start gap-3"><span className="text-[#D9531E] mt-0.5">✓</span> <span>Montar y gestionar la campaña de anuncios.</span></li>
-                <li className="flex items-start gap-3"><span className="text-[#D9531E] mt-0.5">✓</span> <span>Informe de cierre con entradas vendidas e ingresos.</span></li>
+                <li className="flex items-start gap-3"><span className="text-[#6E0C2B] mt-0.5">✓</span> <span>Definir el concepto del evento y su guía de desarrollo.</span></li>
+                <li className="flex items-start gap-3"><span className="text-[#6E0C2B] mt-0.5">✓</span> <span>Brief operativo: qué pasa antes, durante y después.</span></li>
+                <li className="flex items-start gap-3"><span className="text-[#6E0C2B] mt-0.5">✓</span> <span>Piezas de marketing digital y diseño de flyer físico.</span></li>
+                <li className="flex items-start gap-3"><span className="text-[#6E0C2B] mt-0.5">✓</span> <span>Landing de venta de entradas, conectada a tu pasarela.</span></li>
+                <li className="flex items-start gap-3"><span className="text-[#6E0C2B] mt-0.5">✓</span> <span>Montar y gestionar la campaña de anuncios.</span></li>
+                <li className="flex items-start gap-3"><span className="text-[#6E0C2B] mt-0.5">✓</span> <span>Informe de cierre con entradas vendidas e ingresos.</span></li>
               </ul>
             </div>
             <div className="bg-[#1A1A1A] border border-white/5 rounded-3xl p-8 hover:border-white/20 transition-colors shadow-2xl">
@@ -183,7 +183,7 @@ export default function EventLibraryHook() {
         {/* LOS 7 FORMATOS */}
         <div className="text-center max-w-4xl mx-auto mb-14 space-y-6 relative z-10">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-[1.1] text-balance">
-            Siete formatos <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D9531E] to-orange-400">ya desarrollados</span>.
+            Siete formatos <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#6E0C2B] to-orange-400">ya desarrollados</span>.
           </h2>
           <p className="text-gray-400 leading-relaxed text-lg text-pretty max-w-2xl mx-auto">
             Cada formato va emparejado con una de nuestras marcas propias, que ya operaron en una cocina real.
@@ -204,7 +204,7 @@ export default function EventLibraryHook() {
         <div className="max-w-3xl mx-auto text-center">
           <a
             href={`${WHATSAPP}?text=Hola,%20quiero%20montar%20un%20evento%20con%20DKitchen%20Experience`}
-            className="inline-block bg-[#D9531E] text-white text-center py-4 px-10 rounded-xl font-black text-lg hover:bg-orange-600 transition-all shadow-lg hover:shadow-orange-500/50 hover:-translate-y-1"
+            className="inline-block bg-[#6E0C2B] text-white text-center py-4 px-10 rounded-xl font-black text-lg hover:bg-orange-600 transition-all shadow-lg hover:shadow-orange-500/50 hover:-translate-y-1"
           >
             Montar mi primer evento
           </a>

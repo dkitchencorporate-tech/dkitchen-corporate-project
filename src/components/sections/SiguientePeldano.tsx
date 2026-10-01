@@ -19,9 +19,9 @@ export default function SiguientePeldano({ siguiente }: { siguiente: keyof typeo
         <p className="text-gray-400 text-sm font-bold uppercase tracking-widest mb-3">¿Qué sigue después de esto?</p>
         <Link
           href={peldano.href}
-          className="group inline-flex flex-col items-center gap-2 rounded-2xl border border-white/10 px-10 py-8 hover:border-[#D9531E] hover:bg-white/5 transition-all"
+          className="group inline-flex flex-col items-center gap-2 rounded-2xl border border-white/10 px-10 py-8 hover:border-[#6E0C2B] hover:bg-white/5 transition-all"
         >
-          <span className="text-2xl md:text-3xl font-black text-white group-hover:text-[#D9531E] transition-colors">
+          <span className="text-2xl md:text-3xl font-black text-white group-hover:text-[#6E0C2B] transition-colors">
             {peldano.etiqueta} →
           </span>
           <span className="text-gray-400">{peldano.descripcion}</span>

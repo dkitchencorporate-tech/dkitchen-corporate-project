@@ -42,7 +42,7 @@ export async function crearTicket(
     await enviarCorreoInterno(
       `TICKET DE SOPORTE: ${escaparHtml(contexto.restauranteNombre)} — ${escaparHtml(ticket.asunto)}`,
       `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #D9531E;">Nuevo ticket de soporte</h2>
+        <h2 style="color: #6E0C2B;">Nuevo ticket de soporte</h2>
         <p><strong>Restaurante:</strong> ${escaparHtml(contexto.restauranteNombre)}</p>
         <p><strong>Correo:</strong> ${escaparHtml(contexto.email)}</p>
         <p><strong>Asunto:</strong> ${escaparHtml(ticket.asunto)}</p>

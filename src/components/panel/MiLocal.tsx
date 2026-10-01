@@ -18,7 +18,7 @@ const PLANTILLAS = [
 
 /** Paleta curada del nivel Esencial: la misma lista blanca que dk.paleta_esencial() (0026). */
 const PALETA = [
-  { hex: '#D9531E', nombre: 'Naranja teja' },
+  { hex: '#6E0C2B', nombre: 'Naranja teja' },
   { hex: '#B23A48', nombre: 'Burdeos' },
   { hex: '#C58B2A', nombre: 'Mostaza' },
   { hex: '#2F5D50', nombre: 'Verde oliva' },
@@ -93,7 +93,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
   const [d, setD] = useState({
     nombre: restaurante.nombre,
     logoUrl: restaurante.logoUrl,
-    colorMarca: restaurante.colorMarca ?? '#D9531E',
+    colorMarca: restaurante.colorMarca ?? '#6E0C2B',
     descripcion: restaurante.descripcion ?? '',
     telefono: restaurante.telefono ?? '',
     direccion: restaurante.direccion ?? '',

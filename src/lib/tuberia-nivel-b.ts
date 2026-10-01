@@ -56,7 +56,7 @@ export async function dispararTuberiaPostPago(pedido: DatosPedidoParaTuberia): P
       pedido.email,
       `Tu ${nombreProducto} — qué sigue ahora`,
       `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #D9531E;">¡Gracias, ${escaparHtml(pedido.nombreContacto)}!</h2>
+        <h2 style="color: #6E0C2B;">¡Gracias, ${escaparHtml(pedido.nombreContacto)}!</h2>
         <p>Tu pago de ${nombreProducto} (${formatEuros(pedido.importeCentimos)}) quedó confirmado. Esto es lo que
         sigue, en orden:</p>
         <ol style="line-height: 1.8;">
@@ -78,7 +78,7 @@ export async function dispararTuberiaPostPago(pedido: DatosPedidoParaTuberia): P
     await enviarCorreoInterno(
       `NIVEL B PAGADO: ${nombreProducto} — ${pedido.nombreContacto} (${formatEuros(pedido.importeCentimos)})`,
       `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #D9531E;">Nuevo pedido de Nivel B — pendiente de contrato y factura</h2>
+        <h2 style="color: #6E0C2B;">Nuevo pedido de Nivel B — pendiente de contrato y factura</h2>
         <p>Esto no está automatizado todavía (falta Signaturit y decidir el proveedor de facturación Verifactu)
         — genera y envía estos dos documentos tú mismo con estos datos:</p>
         <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-top: 12px;">

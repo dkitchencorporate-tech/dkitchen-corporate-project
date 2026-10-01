@@ -72,7 +72,7 @@ export default function ActivarPlanBoton({
                 <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-black/15 sm:hidden" />
                 <div className="flex items-start justify-between gap-4 px-7 pt-6">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#D9531E]">QR Menú · Plan {p.nombre}</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6E0C2B]">QR Menú · Plan {p.nombre}</p>
                     <h3 id={`alta-${plan}`} className="mt-2 text-2xl font-bold tracking-tight">Activa tu carta</h3>
                     <p className="mt-1 text-sm text-black/55">{p.resumen}</p>
                   </div>

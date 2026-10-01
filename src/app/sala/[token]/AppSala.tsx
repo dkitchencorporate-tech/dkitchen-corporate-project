@@ -50,7 +50,7 @@ export default function AppSala({ token }: { token: string }) {
 
   useEffect(() => { cargar(); const t = setInterval(cargar, 6000); return () => clearInterval(t); }, [cargar]);
 
-  const color = ctx?.restaurante.color || '#D9531E';
+  const color = ctx?.restaurante.color || '#6E0C2B';
   const mesas = useMemo(() => (ctx?.mesas ?? []).filter((m) => !soloMias || m.mia || !m.camarero), [ctx, soloMias]);
   const llamadasMesa = (numero: string) => (ctx?.llamadas ?? []).filter((l) => l.mesa === numero);
 

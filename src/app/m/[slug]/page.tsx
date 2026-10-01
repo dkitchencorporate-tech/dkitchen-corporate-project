@@ -99,7 +99,7 @@ export default async function CartaPublica({
   const plantilla = ['visual', 'express', 'editorial'].includes(carta.plantilla ?? '') ? (carta.plantilla as string) : 'clasica';
   const fondo = FONDO[carta.estiloFondo ?? 'papel'] ?? FONDO.papel;
   const letra = carta.estiloLetra === 'serif' || plantilla === 'editorial' ? `carta-serif ${serifCarta.variable}` : '';
-  const color = carta.colorMarca || '#D9531E';
+  const color = carta.colorMarca || '#6E0C2B';
   const ampliado = carta.plan === 'ampliado';
 
   const grupos: SeccionCarta[] = [

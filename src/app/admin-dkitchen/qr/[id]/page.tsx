@@ -328,7 +328,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             <p className="mb-2 font-bold">Entrega del {s.servicio === 'setup_experto' ? 'Setup Experto' : 'Setup Esencial'}</p>
             <div className="grid gap-1.5 sm:grid-cols-2">
               {PUNTOS_SETUP.filter(([k]) => s.servicio === 'setup_experto' || !['redes', 'soporte'].includes(k)).map(([k, t]) => (
-                <label key={k} className="flex items-center gap-2"><input type="checkbox" name={k} defaultChecked={s.checklist[k] === true} className="accent-[#D9531E]" /> {t}</label>
+                <label key={k} className="flex items-center gap-2"><input type="checkbox" name={k} defaultChecked={s.checklist[k] === true} className="accent-[#6E0C2B]" /> {t}</label>
               ))}
             </div>
             <button className="mt-3 rounded-md bg-[#EDEDEA] px-3 py-1.5 text-xs font-bold">Guardar progreso</button>
@@ -344,7 +344,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
               <input name="endpoint" required type="url" placeholder="https://… (endpoint del fabricante)" className="rounded-lg border border-[#E6E6E2] bg-white px-3 py-2" />
             </div>
             <input name="credencial" type="password" autoComplete="off" placeholder="Cabecera Authorization (p. ej. Bearer xxx). Vacío = mantener" className="w-full rounded-lg border border-[#E6E6E2] bg-white px-3 py-2" />
-            <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="activa" defaultChecked className="accent-[#D9531E]" /> Activa</label>
+            <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="activa" defaultChecked className="accent-[#6E0C2B]" /> Activa</label>
             <p className="text-[11px] text-[#9A9EA6]">La credencial se cifra (AES-256-GCM) antes de guardarse; nadie puede volver a leerla desde el panel.</p>
             <button className="rounded-md bg-[#6E0C2B] px-3 py-1.5 text-xs font-bold">Guardar conexión</button>
           </form>
@@ -376,7 +376,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           </label>
           <label className="space-y-1">
             <span className="block text-xs text-[#6B7079]">Color (libre)</span>
-            <input type="color" name="color" defaultValue={r.color_marca ?? '#D9531E'} className="h-[38px] w-16 rounded-lg border border-[#E6E6E2] bg-white p-1" />
+            <input type="color" name="color" defaultValue={r.color_marca ?? '#6E0C2B'} className="h-[38px] w-16 rounded-lg border border-[#E6E6E2] bg-white p-1" />
           </label>
           <button className="rounded-full bg-[#6E0C2B] px-4 py-2 font-bold hover:bg-[#4A0819]">Aplicar diseño</button>
         </form>
