@@ -156,7 +156,7 @@ export default function GeneradorIa({
                   </div>
                 </div>
               )}
-              <p className="text-xs text-[#6B7079]">En tu carta se mostrará con la nota «Imagen orientativa».</p>
+              <p className="text-xs text-[#6B7079]">{modo === 'portada' ? 'Al pulsar «Usar esta imagen» se guarda y se ve en tu carta al momento.' : <>Al pulsar «Usar esta imagen» se coloca en el formulario: <strong>después pulsa «Guardar»</strong> para que quede en tu carta.{modo !== 'logo' && ' Se mostrará con la nota «Imagen orientativa».'}</>}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -167,9 +167,9 @@ export default function GeneradorIa({
                 </button>
               )}
               {modo === 'plato' && (
-                <button disabled={sinSaldo} onClick={() => crear('nuevo')} className="w-full rounded-2xl border border-[#E6E2DC] bg-white p-4 text-left hover:border-[#6E0C2B]/40 disabled:opacity-50">
+                <button disabled={sinSaldo || !plato?.nombre?.trim()} onClick={() => crear('nuevo')} className="w-full rounded-2xl border border-[#E6E2DC] bg-white p-4 text-left hover:border-[#6E0C2B]/40 disabled:opacity-50">
                   <span className="font-semibold">Crear la foto desde el nombre del plato</span>
-                  <span className="block text-sm text-[#6B7079]">Usamos el nombre y la descripción. Si quieres algo concreto, escríbelo abajo antes.</span>
+                  <span className="block text-sm text-[#6B7079]">{plato?.nombre?.trim() ? 'Usamos el nombre y la descripción. Si quieres algo concreto, escríbelo abajo antes.' : 'Primero escribe el nombre del plato (cierra esta ventana, ponlo y vuelve).'}</span>
                 </button>
               )}
               {modo === 'logo' && (
