@@ -668,11 +668,11 @@ async function mejorarTextoAction_(tipo: TipoTexto, texto: string, contexto?: st
 }
 export async function mejorarTextoAction(...a: Parameters<typeof mejorarTextoAction_>) { return envolver(() => mejorarTextoAction_(...a)); }
 
-async function guardarPortadaAction_(url: string | null) {
+async function guardarPortadaAction_(url: string | null, conNombre = false) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   const valida = url === null || (typeof url === 'string' && FOTO_PROPIA.test(url) && url.includes(`/restaurantes/${restaurante.id}/`));
   if (!valida) throw new Error('La imagen no es válida. Súbela de nuevo.');
-  await dbGuardarPortada(jwt, restaurante.id, url);
+  await dbGuardarPortada(jwt, restaurante.id, url, !!conNombre);
   revalidatePath('/panel');
   revalidatePath(`/m/${restaurante.slug}`);
 }

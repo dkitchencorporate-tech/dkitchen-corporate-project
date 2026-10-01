@@ -63,6 +63,8 @@ export interface Carta {
   estiloLetra?: string;
   /** Foto de cabecera elegida por el cliente (0043). */
   portadaUrl?: string | null;
+  /** La portada ya lleva el nombre escrito: no se repite encima (0044). */
+  portadaConNombre?: boolean;
   /** Idiomas activos del Pack de idiomas (0027). */
   idiomas?: string[];
   secciones: SeccionCarta[];
@@ -102,12 +104,13 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       plantilla: string;
       nivel_diseno: string;
       portada_url: string | null;
+      portada_con_nombre: boolean;
       estilo_fondo: string;
       estilo_letra: string;
       idiomas: string[];
     }>(
       `SELECT id, slug, nombre, logo_url, plan, color_marca, descripcion, telefono,
-              direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, estilo_fondo, estilo_letra, portada_url
+              direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, estilo_fondo, estilo_letra, portada_url, portada_con_nombre
          FROM restaurantes WHERE slug = $1`,
       [slug]
     );
@@ -182,6 +185,7 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       plantilla: restaurante.plantilla,
       nivelDiseno: restaurante.nivel_diseno,
       portadaUrl: restaurante.portada_url ?? null,
+      portadaConNombre: !!restaurante.portada_con_nombre,
       estiloFondo: restaurante.estilo_fondo,
       estiloLetra: restaurante.estilo_letra,
       idiomas: restaurante.idiomas ?? [],

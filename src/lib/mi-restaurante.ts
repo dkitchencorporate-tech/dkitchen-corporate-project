@@ -20,6 +20,7 @@ export interface MiRestaurante {
   nivelDiseno: string;
   /** Foto de cabecera de la carta (0043). Sin ella, la carta usa la primera foto de un plato. */
   portadaUrl?: string | null;
+  portadaConNombre?: boolean;
   idiomas: string[];
   whatsapp: string | null;
   creadoEn: string;
@@ -48,6 +49,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       plantilla: string;
       nivel_diseno: string;
       portada_url: string | null;
+      portada_con_nombre: boolean;
       idiomas: string[];
       whatsapp: string | null;
       creado_en: Date;
@@ -55,7 +57,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       estilo_letra: string;
     }>(
       `SELECT id, slug, nombre, logo_url, plan, activo, color_marca, estado_acceso,
-              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en, estilo_fondo, estilo_letra, portada_url
+              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en, estilo_fondo, estilo_letra, portada_url, portada_con_nombre
          FROM restaurantes
         WHERE propietario = dk.identidad_actual()`
     );
@@ -79,6 +81,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       plantilla: fila.plantilla,
       nivelDiseno: fila.nivel_diseno,
       portadaUrl: fila.portada_url,
+      portadaConNombre: fila.portada_con_nombre,
       idiomas: fila.idiomas ?? [],
       whatsapp: fila.whatsapp,
       creadoEn: new Date(fila.creado_en).toISOString(),
@@ -133,6 +136,6 @@ export async function guardarEstilo(jwt: string, restauranteId: string, e: { pla
 }
 
 /** Foto de portada (0043). */
-export async function guardarPortada(jwt: string, restauranteId: string, url: string | null) {
-  await comoCliente(jwt, (c) => c.query('UPDATE restaurantes SET portada_url = $2 WHERE id = $1', [restauranteId, url]));
+export async function guardarPortada(jwt: string, restauranteId: string, url: string | null, conNombre = false) {
+  await comoCliente(jwt, (c) => c.query('UPDATE restaurantes SET portada_url = $2, portada_con_nombre = $3 WHERE id = $1', [restauranteId, url, !!url && conNombre]));
 }

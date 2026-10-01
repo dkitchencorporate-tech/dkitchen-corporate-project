@@ -302,7 +302,7 @@ function CabeceraVisual({ carta, foto, accion }: { carta: Carta; foto: string | 
         <div className="relative flex min-h-[300px] flex-col justify-end gap-3 px-6 pb-7 pt-24 text-white sm:min-h-[400px] sm:px-10 sm:pb-10">
           <div className="flex items-end gap-4">
             <Logo carta={carta} tam={64} />
-            <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight drop-shadow sm:text-6xl">{carta.nombre}</h1>
+            <h1 className={carta.portadaConNombre && carta.portadaUrl ? 'sr-only' : 'text-4xl font-semibold leading-[1.05] tracking-tight drop-shadow sm:text-6xl'}>{carta.nombre}</h1>
           </div>
           {carta.descripcion && <p className="max-w-xl text-[15px] leading-relaxed text-white/85 sm:text-base">{carta.descripcion}</p>}
           {(carta.horario || carta.direccion) && (

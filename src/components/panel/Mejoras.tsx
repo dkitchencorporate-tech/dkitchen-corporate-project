@@ -70,7 +70,7 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
       {vista === 'diseno' && (<>
       <EstiloCarta fotos={fotos} nombre={restaurante.nombre} bloqueado={restaurante.nivelDiseno !== 'esencial'}
         inicial={{ plantilla: restaurante.plantilla || 'clasica', fondo: restaurante.estiloFondo || 'papel', letra: restaurante.estiloLetra || 'sans', color: (restaurante.colorMarca || '#E8592A').toUpperCase() }} />
-      <PortadaCarta inicial={restaurante.portadaUrl ?? null} demo={restaurante.id === 'demo'} />
+      <PortadaCarta inicial={restaurante.portadaUrl ?? null} conNombreInicial={!!restaurante.portadaConNombre} demo={restaurante.id === 'demo'} />
       <section className="space-y-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-[#6E0C2B]">Niveles de diseño</p>
