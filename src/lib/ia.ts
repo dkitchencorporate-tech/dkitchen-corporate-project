@@ -124,6 +124,47 @@ async function generarGratisHF(prompt: string, modo: 'plato' | 'banner'): Promis
   }
 }
 
+/**
+ * Modelos de imagen incluidos en el crédito GRATUITO de AI Gateway (5 $/mes; comprobado el 01/10/2026):
+ * FLUX.2 flex (el que mejor entiende platos españoles) y Grok Imagine. Los dos crean
+ * (/images/generations) y mejoran una foto propia manteniendo el plato (/images/edits).
+ */
+export const MODELOS_GATEWAY_GRATIS = ['bfl/flux-2-flex', 'spacexai/grok-imagine-image'];
+
+async function generarGateway(modelo: string, p: PeticionImagen): Promise<{ datos: string; tipo: string } | null> {
+  try {
+    const auth = { Authorization: `Bearer ${await tokenGateway()}` };
+    const tamano = p.modo === 'banner' ? '1280x720' : '1024x768';
+    let r: Response;
+    if (p.imagenBase) {
+      const base = await fetch(p.imagenBase, { signal: AbortSignal.timeout(15_000) });
+      if (!base.ok) return null;
+      const fd = new FormData();
+      fd.append('model', modelo);
+      fd.append('prompt', instruccionesFlux(p));
+      fd.append('image', new Blob([await base.arrayBuffer()], { type: base.headers.get('content-type') ?? 'image/jpeg' }), 'foto');
+      r = await fetch('https://ai-gateway.vercel.sh/v1/images/edits', { method: 'POST', headers: auth, body: fd, signal: AbortSignal.timeout(50_000) });
+    } else {
+      r = await fetch('https://ai-gateway.vercel.sh/v1/images/generations', {
+        method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: modelo, prompt: instruccionesFlux(p), n: 1, size: tamano }), signal: AbortSignal.timeout(50_000),
+      });
+    }
+    const j = await r.json().catch(() => null);
+    const img: string | undefined = j?.data?.[0]?.b64_json || j?.data?.[0]?.url;
+    if (!r.ok || !img) { console.error(`IA ${modelo} sin imagen:`, r.status, JSON.stringify(j?.error ?? j)?.slice(0, 200)); return null; }
+    if (img.startsWith('http')) {
+      const d = await fetch(img, { signal: AbortSignal.timeout(15_000) });
+      if (!d.ok) return null;
+      return { datos: Buffer.from(await d.arrayBuffer()).toString('base64'), tipo: (d.headers.get('content-type') ?? '').includes('png') ? 'png' : 'jpeg' };
+    }
+    return { datos: img, tipo: img.startsWith('iVBOR') ? 'png' : 'jpeg' };
+  } catch (e) {
+    console.error(`IA ${modelo} no disponible:`, (e as Error).message);
+    return null;
+  }
+}
+
 /** Nano Banana (google/gemini-2.5-flash-image) por AI Gateway: crea y también mejora fotos. */
 async function generarNanoBanana(p: PeticionImagen): Promise<{ datos: string; tipo: string }> {
   const contenido: unknown[] = [{ type: 'text', text: instrucciones(p) }];
@@ -166,7 +207,11 @@ export async function generarImagen(
   try {
     // 2. Vía gratuita primero (crear desde cero); Nano Banana para mejorar fotos o si la gratuita falla.
     // FLUX entiende mucho mejor el inglés (comprobado el 01/10): instrucciones en inglés, plato y petición tal cual.
-    let img = p.imagenBase ? null : await generarGratis(instruccionesFlux(p));
+    // Orden (01/10/2026): crédito gratuito de AI Gateway (FLUX.2 flex → Grok Imagine), después
+    // vías gratuitas externas (Cloudflare, Hugging Face; solo crear) y, al final, Nano Banana (crédito de pago).
+    let img: { datos: string; tipo: string } | null = null;
+    for (const m of MODELOS_GATEWAY_GRATIS) { img = await generarGateway(m, p); if (img) break; }
+    if (!img && !p.imagenBase) img = await generarGratis(instruccionesFlux(p));
     if (!img && !p.imagenBase) img = await generarGratisHF(instruccionesFlux(p), p.modo);
     if (!img) img = await generarNanoBanana(p);
     const { datos, tipo } = img;
