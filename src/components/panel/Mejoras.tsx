@@ -64,7 +64,7 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
       <header>
         <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">{vista === 'diseno' ? 'Diseño de tu carta' : 'Módulos para tu local'}</h2>
         <p className="mt-1 text-sm text-[#6B7079]">{vista === 'diseno'
-          ? 'Tú gestionas platos, precios y fotos. El diseño lo prepara DKitchen.'
+          ? (restaurante.nivelDiseno === 'esencial' ? 'Elige cómo se ve tu carta: estilo, fondo, letra, color y foto de portada. La vista previa cambia al momento.' : 'Tú gestionas platos, precios y fotos. El diseño de autor lo prepara DKitchen.')
           : 'Herramientas que se suman a tu carta QR, una a una. Activas solo lo que necesitas.'}</p>
         {error && <p className="mt-3 rounded-lg bg-red-500/10 p-3 text-sm text-red-600">{error}</p>}
       </header>
