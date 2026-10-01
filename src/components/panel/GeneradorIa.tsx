@@ -4,6 +4,7 @@ import { mensajeError } from '@/lib/mensaje-error';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { generarImagenIaAction, saldoIaAction, comprarServicioAction } from '@/app/panel/actions';
 import HerramientasTexto from './HerramientasTexto';
+import VisorImagen from './VisorImagen';
 
 /**
  * Creación de imágenes con IA (0038; rediseño 01/10/2026 por el feedback de la probadora):
@@ -27,12 +28,25 @@ const IDEAS_LOGO = [
   'Rústico y artesanal',
   'Divertido y con mucho color',
 ];
+/** Qué hace cada creador (decisión de karc0, 01/10): cada uno distinto y explicado. */
+const INFO: Record<'plato' | 'banner' | 'portada' | 'logo', { titulo: string; explica: string; ejemplo: string }> = {
+  plato: { titulo: 'Foto de plato', explica: 'Una fotografía realista de este plato para tu carta.', ejemplo: 'Ej.: en plato de barro, vista desde arriba, sobre mesa de madera' },
+  banner: { titulo: 'Banner de promoción', explica: 'Una imagen horizontal para anunciar algo en tu carta (menú del día, una oferta, una novedad). Puede llevar un título escrito.', ejemplo: 'Ej.: menú de mediodía con el texto "Menú del día 12,90 €", tonos cálidos' },
+  portada: { titulo: 'Portada de tu carta', explica: 'La imagen grande y panorámica de la cabecera. No tiene por qué ser un plato: tu local, un ambiente, un letrero con tu nombre…', ejemplo: 'Ej.: letrero de madera con "El nombre de tu local" sobre brasas, con romero' },
+  logo: { titulo: 'Logo de tu restaurante', explica: 'El símbolo de tu marca, cuadrado y sencillo, para la cabecera y tus redes.', ejemplo: 'Ej.: una espiga dorada sobre fondo verde oscuro, elegante' },
+};
+const IDEAS_PORTADA = [
+  'Letrero de madera con el nombre del local, ambiente cálido',
+  'Mesa de madera con producto fresco de temporada, luz natural',
+  'Fachada acogedora de restaurante al atardecer',
+  'Brasas y fuego de leña, ambiente de asador',
+];
 const PASOS = ['Entendiendo lo que pides…', 'Componiendo la imagen…', 'Ajustando luz y color…', 'Últimos detalles…'];
 
 export default function GeneradorIa({
   modo, imagenActual, plato, onUsar, onCerrar, demo = false,
 }: {
-  modo: 'plato' | 'banner' | 'logo';
+  modo: 'plato' | 'banner' | 'portada' | 'logo';
   imagenActual?: string | null;
   plato?: { nombre?: string; descripcion?: string | null };
   onUsar: (url: string) => void;
@@ -92,7 +106,9 @@ export default function GeneradorIa({
   }
 
   const sinSaldo = saldo !== null && saldo.restantes <= 0;
-  const proporcion = modo === 'banner' ? 'aspect-[16/9]' : modo === 'logo' ? 'mx-auto aspect-square max-w-sm' : 'aspect-[4/3]';
+  const proporcion = modo === 'banner' ? 'aspect-[16/9]' : modo === 'portada' ? 'aspect-[12/5]' : modo === 'logo' ? 'mx-auto aspect-square max-w-sm' : 'aspect-[4/3]';
+  const info = INFO[modo];
+  const [ampliada, setAmpliada] = useState(false);
   const boton = 'rounded-full bg-[#6E0C2B] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4A0819] disabled:opacity-40';
   const secundario = 'rounded-full border border-[#E6E2DC] bg-white px-4 py-2.5 text-sm font-semibold disabled:opacity-40';
 
@@ -102,7 +118,8 @@ export default function GeneradorIa({
         <div ref={arriba} className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#6E0C2B]">Crear con IA</p>
-            <h3 className="font-display mt-1 text-2xl font-semibold">{modo === 'plato' ? `Foto de ${plato?.nombre?.trim() || 'tu plato'}` : modo === 'logo' ? 'Logo de tu restaurante' : 'Imagen para tu carta'}</h3>
+            <h3 className="font-display mt-1 text-2xl font-semibold">{modo === 'plato' ? `Foto de ${plato?.nombre?.trim() || 'tu plato'}` : info.titulo}</h3>
+            <p className="mt-1 text-sm text-[#6B7079]">{info.explica}</p>
           </div>
           <button onClick={onCerrar} aria-label="Cerrar" className="rounded-full px-3 py-1 text-xl text-[#6B7079] hover:bg-white">×</button>
         </div>
@@ -122,7 +139,8 @@ export default function GeneradorIa({
           ) : actual ? (
             <div className="space-y-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={actual} alt="Imagen creada" className={`w-full rounded-2xl object-cover ${proporcion}`} />
+              <button type="button" onClick={() => setAmpliada(true)} className="group relative block w-full" aria-label="Ver en grande"><img src={actual} alt="Imagen creada" className={`w-full rounded-2xl object-cover ${proporcion}`} /><span className="absolute right-3 top-3 rounded-full bg-black/55 px-3 py-1 text-xs font-semibold text-white opacity-90 group-hover:opacity-100">⤢ Ver en grande</span></button>
+              {ampliada && <VisorImagen url={actual} titulo={info.titulo} onCerrar={() => setAmpliada(false)} onEliminar={() => { const resto = versiones.filter((v) => v !== actual); setVersiones(resto); setActual(resto[0] ?? null); }} />}
               <div className="flex flex-wrap gap-2">
                 <button onClick={() => { onUsar(actual); onCerrar(); }} className={boton}>✓ Usar esta imagen</button>
                 <button disabled={sinSaldo} onClick={() => crear('nuevo', '')} className={secundario}>Crear otra desde cero</button>
@@ -165,6 +183,16 @@ export default function GeneradorIa({
                   </div>
                 </div>
               )}
+              {modo === 'portada' && (
+                <div>
+                  <p className="text-sm font-semibold">Ideas para tu portada</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {IDEAS_PORTADA.map((i) => (
+                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-[#E6E2DC] bg-white px-3.5 py-2 text-[13px] hover:border-[#6E0C2B]/40 disabled:opacity-50">{i}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {modo === 'banner' && (
                 <div>
                   <p className="text-sm font-semibold">Diseños recomendados para tu carta</p>
@@ -187,15 +215,16 @@ export default function GeneradorIa({
         )}
         <form className="mt-4 rounded-2xl border border-[#E6E2DC] bg-white p-3" onSubmit={(e) => { e.preventDefault(); if (texto.trim()) crear(actual ? 'retocar' : 'nuevo'); }}>
           <label className="block text-sm font-semibold">
-            {actual ? '¿Qué quieres cambiar de esta imagen?' : modo === 'plato' ? 'Describe cómo la quieres (opcional)' : modo === 'logo' ? 'O describe tu logo' : 'O describe tu banner'}
+            {actual ? '¿Qué quieres cambiar de esta imagen?' : modo === 'plato' ? 'Describe cómo la quieres (opcional)' : 'O describe exactamente lo que quieres'}
             <textarea value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={400} rows={2} spellCheck lang="es" disabled={pendiente}
-              placeholder={actual ? 'Ej.: más luz, fondo de madera, sin servilleta' : modo === 'plato' ? 'Ej.: en plato de barro, vista desde arriba' : 'Ej.: menú de mediodía a 12,90 €, tonos cálidos'}
+              placeholder={actual ? 'Ej.: más luz, fondo de madera, letras más grandes' : info.ejemplo}
               className="mt-1.5 w-full rounded-xl border border-[#E6E2DC] bg-[#FBFAF8] px-3 py-2.5 text-sm font-normal placeholder-[#9A9EA6] focus:border-[#6E0C2B] focus:outline-none" />
           </label>
+          {modo !== 'plato' && <p className="mt-1.5 text-[12px] text-[#6B7079]">💡 ¿Quieres un texto escrito en la imagen (tu nombre, un precio…)? Escríbelo <strong>entre comillas</strong>: «letrero con "El Rincón del Flores"». Lo escribiremos tal cual.</p>}
           <HerramientasTexto valor={texto} onCambio={setTexto} tipo="instruccion" contexto={plato?.nombre ?? undefined} demo={demo} />
           <div className="mt-3 flex justify-end">
             <button type="submit" disabled={pendiente || sinSaldo || !texto.trim()} className={boton}>
-              {pendiente ? 'Creando…' : actual ? 'Aplicar cambios a esta imagen' : modo === 'plato' ? 'Crear con mi descripción' : modo === 'logo' ? 'Crear logo' : 'Crear banner'}
+              {pendiente ? 'Creando…' : actual ? 'Aplicar cambios a esta imagen' : modo === 'plato' ? 'Crear con mi descripción' : modo === 'logo' ? 'Crear logo' : modo === 'portada' ? 'Crear portada' : 'Crear banner'}
             </button>
           </div>
         </form>

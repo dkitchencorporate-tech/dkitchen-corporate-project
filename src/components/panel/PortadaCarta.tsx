@@ -27,7 +27,7 @@ export default function PortadaCarta({ inicial, demo = false }: { inicial: strin
         Es la imagen grande de la <strong>cabecera de tu carta</strong> (se ve en el estilo Visual). Si no eliges ninguna, usamos la primera foto de tus platos.
         Formato horizontal; puedes subirla o crearla con IA.
       </p>
-      <div className="mt-4"><SubirImagen valor={url} onCambio={(u) => cambiar(u)} etiqueta="Portada" ia={{ modo: 'banner' }} /></div>
+      <div className="mt-4"><SubirImagen valor={url} onCambio={(u) => cambiar(u)} etiqueta="Portada" ia={{ modo: 'portada' }} /></div>
       {aviso && <p className={`mt-3 text-sm ${aviso.ok ? 'text-[#2F8F6B]' : 'text-red-600'}`}>{aviso.texto}</p>}
     </section>
   );

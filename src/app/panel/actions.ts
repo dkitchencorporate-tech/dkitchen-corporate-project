@@ -613,25 +613,27 @@ export async function saldoIaAction() {
   return dbSaldoIa(jwt, restaurante.id);
 }
 
-async function generarImagenIaAction_(d: { modo: 'plato' | 'banner' | 'logo'; texto: string; imagenBase?: string | null; plato?: { nombre?: string; descripcion?: string | null } }) {
-  const modo = d?.modo === 'banner' ? 'banner' : d?.modo === 'logo' ? 'logo' : 'plato';
+async function generarImagenIaAction_(d: { modo: 'plato' | 'banner' | 'portada' | 'logo'; texto: string; imagenBase?: string | null; plato?: { nombre?: string; descripcion?: string | null } }) {
+  const modo = (['banner', 'portada', 'logo'] as const).find((m) => m === d?.modo) ?? 'plato';
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   // La foto base solo puede ser del propio almacén del restaurante.
   const base = typeof d.imagenBase === 'string' && FOTO_PROPIA.test(d.imagenBase) && d.imagenBase.includes(`/restaurantes/${restaurante.id}/`) ? d.imagenBase : null;
   const estilo = `${restaurante.nombre}; estilo de carta ${restaurante.plantilla || 'clásico'}, color de marca ${restaurante.colorMarca || 'neutro'}`;
   let contexto = estilo;
-  if (modo === 'logo') {
+  if (modo === 'logo' || modo === 'portada') {
+    // Logo y portada: identidad del local, sin platos que empujen a la IA a pintar comida.
     contexto = `Nombre del restaurante: «${restaurante.nombre}»; color de marca ${restaurante.colorMarca || 'libre'}`;
   } else if (modo === 'plato') {
     const nombre = limpiarTextoIa(d.plato?.nombre, 80);
     const desc = limpiarTextoIa(d.plato?.descripcion, 200);
     contexto += nombre ? `. Plato: ${nombre}${desc ? ` (${desc})` : ''}` : '';
-  } else {
+  } else if (!limpiarTextoIa(d.texto)) {
+    // Banner sin indicaciones: se inspira en la carta. Con indicaciones, manda lo que pide el cliente.
     const carta = await listarMiCarta(jwt, restaurante.id).catch(() => ({ platos: [] as { nombre: string; disponible: boolean }[] }));
     const destacados = carta.platos.filter((p) => p.disponible).slice(0, 6).map((p) => limpiarTextoIa(p.nombre, 60)).filter(Boolean);
     if (destacados.length) contexto += `. Platos de su carta: ${destacados.join(', ')}`;
   }
-  const r = await dbGenerarImagen(jwt, { id: restaurante.id, nombre: restaurante.nombre }, { modo, texto: limpiarTextoIa(d.texto), contexto, imagenBase: base });
+  const r = await dbGenerarImagen(jwt, { id: restaurante.id, nombre: restaurante.nombre }, { modo, texto: limpiarTextoIa(d.texto), contexto, nombre: restaurante.nombre, imagenBase: base });
   return r;
 }
 

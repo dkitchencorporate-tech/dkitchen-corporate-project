@@ -4,6 +4,7 @@ import { mensajeError } from '@/lib/mensaje-error';
 import { useRef, useState } from 'react';
 import { comprimirImagen } from '@/lib/comprimir-imagen';
 import GeneradorIa from './GeneradorIa';
+import VisorImagen from './VisorImagen';
 import { subirImagenAction } from '@/app/panel/actions';
 
 /** Botón de subida con vista previa. Comprime en el navegador y devuelve la URL pública. */
@@ -22,13 +23,14 @@ export default function SubirImagen({
   /** «plato»: recorte 4:3 y luz automática (desactivable). */
   formato?: 'plato';
   /** Activa «Crear con IA» (0038). */
-  ia?: { modo: 'plato' | 'banner' | 'logo'; plato?: { nombre?: string; descripcion?: string | null } };
+  ia?: { modo: 'plato' | 'banner' | 'portada' | 'logo'; plato?: { nombre?: string; descripcion?: string | null } };
 }) {
   const entrada = useRef<HTMLInputElement>(null);
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [auto, setAuto] = useState(true);
   const [generador, setGenerador] = useState(false);
+  const [ver, setVer] = useState(false);
 
   async function alElegir(archivo: File | undefined) {
     if (!archivo) return;
@@ -56,7 +58,7 @@ export default function SubirImagen({
         }`}
       >
         {valor ? (
-          <img src={valor} alt="" className="h-full w-full object-cover" />
+          <button type="button" onClick={() => setVer(true)} aria-label={`Ver ${etiqueta.toLowerCase()} en grande`} className="h-full w-full"><img src={valor} alt="" className="h-full w-full object-cover" /></button>
         ) : (
           <span className="text-[10px] uppercase tracking-wider text-[#9A9EA6]">Sin {etiqueta.toLowerCase()}</span>
         )}
@@ -91,6 +93,7 @@ export default function SubirImagen({
         )}
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
+      {ver && valor && <VisorImagen url={valor} titulo={etiqueta} onCerrar={() => setVer(false)} onEliminar={() => onCambio(null)} />}
       {generador && ia && (
         <GeneradorIa modo={ia.modo} plato={ia.plato} imagenActual={valor} onUsar={(url) => onCambio(url)} onCerrar={() => setGenerador(false)} />
       )}
