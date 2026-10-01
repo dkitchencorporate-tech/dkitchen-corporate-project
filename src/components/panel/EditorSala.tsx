@@ -178,7 +178,7 @@ export default function EditorSala({
         <div className="min-h-0 flex-1 overflow-auto p-2 sm:p-3">
           <div ref={lienzo} onPointerMove={mover} onPointerUp={soltar} onPointerCancel={soltar} onPointerDown={() => { setSel(null); setAyuda(false); }}
             style={zoom > 1 ? { width: `${zoom * 100}%`, maxWidth: 'none' } : undefined}
-            className="relative mx-auto aspect-[4/3] w-full max-w-4xl touch-pan-x touch-pan-y select-none overflow-hidden rounded-xl border border-[#D6D6D1] bg-white bg-[linear-gradient(rgba(23,25,30,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(23,25,30,.06)_1px,transparent_1px)] bg-[size:4%_5.33%]">
+            className="relative mx-auto aspect-[4/3] w-full max-w-[min(56rem,calc((100dvh-12rem)*4/3))] touch-pan-x touch-pan-y select-none overflow-hidden rounded-xl border border-[#D6D6D1] bg-white bg-[linear-gradient(rgba(23,25,30,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(23,25,30,.06)_1px,transparent_1px)] bg-[size:4%_5.33%]">
             {elementos.map((e) => {
               const s = sel?.clave === e.clave;
               const estilo = e.tipo === 'zona'

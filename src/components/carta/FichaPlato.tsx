@@ -53,13 +53,13 @@ export default function FichaPlato({
             {plato.fotoUrl?.includes('/ia/') && <p className="px-6 pt-2 text-[11px] text-black/45">Imagen orientativa, creada con IA.</p>}
             <div className="space-y-3 p-6 text-[#1a1a1a]">
               <div className="flex items-start justify-between gap-4">
-                <h2 className="text-xl font-semibold leading-tight"><EtiquetaPlato plato={plato} />{plato.nombre}</h2>
+                <h2 className="text-xl font-semibold leading-tight first-letter:uppercase"><EtiquetaPlato plato={plato} />{plato.nombre}</h2>
                 <span className="shrink-0 whitespace-nowrap text-lg font-bold tabular-nums" style={{ color: 'var(--marca)' }}>
                   <PrecioAnterior plato={plato} />{euros.format(Number(plato.precio))}
                 </span>
               </div>
               <ComboPlato plato={plato} completo />
-              {plato.descripcion && <p className="whitespace-pre-line leading-relaxed text-black/65">{plato.descripcion}</p>}
+              {plato.descripcion && <p className="whitespace-pre-line leading-relaxed text-black/65 first-letter:uppercase">{plato.descripcion}</p>}
               {plato.alergenos.length > 0 && (
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-black/40">Alérgenos</p>

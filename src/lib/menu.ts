@@ -151,11 +151,13 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       [restaurante.id]
     );
 
+    // Mayúscula inicial en la carta (muchos clientes escriben todo en minúsculas).
+    const may = (t: string | null) => (t ? t.charAt(0).toLocaleUpperCase('es') + t.slice(1) : t);
     const enCarta = (p: (typeof platos)[number]): PlatoCarta => ({
       id: p.id,
       seccionId: p.seccion_id,
-      nombre: p.nombre,
-      descripcion: p.descripcion,
+      nombre: may(p.nombre) ?? p.nombre,
+      descripcion: may(p.descripcion),
       precio: p.precio,
       fotoUrl: p.foto_url,
       alergenos: p.alergenos ?? [],
@@ -186,7 +188,7 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       secciones: secciones
         .map((s) => ({
           id: s.id,
-          nombre: s.nombre,
+          nombre: s.nombre.charAt(0).toLocaleUpperCase('es') + s.nombre.slice(1),
           descripcion: s.descripcion,
           platos: platos.filter((p) => p.seccion_id === s.id).map(enCarta),
         }))

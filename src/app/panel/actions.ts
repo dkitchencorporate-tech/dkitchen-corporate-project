@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { claveDeLimite, limiteSuperado } from '@/lib/limite-frecuencia';
+import { escaneosRango as dbEscaneosRango } from '@/lib/escaneos-cliente';
 import { mejorarTexto as dbMejorarTexto, type TipoTexto } from '@/lib/texto-ia';
 import { saldoIa as dbSaldoIa, generarImagen as dbGenerarImagen, limpiarTextoIa } from '@/lib/ia';
 import { moverSeccion as dbMoverSeccion, guardarExtras as dbGuardarExtras, guardarCombo as dbGuardarCombo, guardarLegal as dbGuardarLegal, ETIQUETAS, type Etiqueta, type DatosCombo, type DatosLegal } from '@/lib/estudio';
@@ -612,14 +613,16 @@ export async function saldoIaAction() {
   return dbSaldoIa(jwt, restaurante.id);
 }
 
-async function generarImagenIaAction_(d: { modo: 'plato' | 'banner'; texto: string; imagenBase?: string | null; plato?: { nombre?: string; descripcion?: string | null } }) {
-  const modo = d?.modo === 'banner' ? 'banner' : 'plato';
+async function generarImagenIaAction_(d: { modo: 'plato' | 'banner' | 'logo'; texto: string; imagenBase?: string | null; plato?: { nombre?: string; descripcion?: string | null } }) {
+  const modo = d?.modo === 'banner' ? 'banner' : d?.modo === 'logo' ? 'logo' : 'plato';
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   // La foto base solo puede ser del propio almacén del restaurante.
   const base = typeof d.imagenBase === 'string' && FOTO_PROPIA.test(d.imagenBase) && d.imagenBase.includes(`/restaurantes/${restaurante.id}/`) ? d.imagenBase : null;
   const estilo = `${restaurante.nombre}; estilo de carta ${restaurante.plantilla || 'clásico'}, color de marca ${restaurante.colorMarca || 'neutro'}`;
   let contexto = estilo;
-  if (modo === 'plato') {
+  if (modo === 'logo') {
+    contexto = `Nombre del restaurante: «${restaurante.nombre}»; color de marca ${restaurante.colorMarca || 'libre'}`;
+  } else if (modo === 'plato') {
     const nombre = limpiarTextoIa(d.plato?.nombre, 80);
     const desc = limpiarTextoIa(d.plato?.descripcion, 200);
     contexto += nombre ? `. Plato: ${nombre}${desc ? ` (${desc})` : ''}` : '';
@@ -693,3 +696,12 @@ async function crearPlatoRapidoAction_(d: { seccionId: string; nombre: string; p
   revalidatePath('/panel');
 }
 export async function crearPlatoRapidoAction(...a: Parameters<typeof crearPlatoRapidoAction_>) { return envolver(() => crearPlatoRapidoAction_(...a)); }
+
+async function escaneosRangoAction_(desde: string, hasta: string, agrupar: 'day' | 'week' | 'month') {
+  const fecha = /^\d{4}-\d{2}-\d{2}$/;
+  if (!fecha.test(desde) || !fecha.test(hasta) || desde > hasta) throw new Error('Elige un rango de fechas válido.');
+  if (!['day', 'week', 'month'].includes(agrupar)) throw new Error('Agrupación no válida.');
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  return { filas: await dbEscaneosRango(jwt, restaurante.id, desde, hasta, agrupar) };
+}
+export async function escaneosRangoAction(...a: Parameters<typeof escaneosRangoAction_>) { return envolver(() => escaneosRangoAction_(...a)); }

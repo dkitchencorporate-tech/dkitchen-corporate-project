@@ -33,3 +33,20 @@ export async function escaneosUltimos30Dias(jwt: string, restauranteId: string):
     return rows.map((r) => ({ fecha: r.fecha, total: Number(r.total) }));
   });
 }
+
+/** Escaneos de un rango con agrupación por día, semana o mes, en hora de Madrid (filtros, 01/10/2026). */
+export async function escaneosRango(jwt: string, restauranteId: string, desde: string, hasta: string, agrupar: 'day' | 'week' | 'month'): Promise<EscaneosPorDia[]> {
+  return comoCliente(jwt, async (c) => {
+    const { rows } = await c.query<{ fecha: string; total: string }>(
+      `SELECT to_char(date_trunc($4, e.ocurrido_en AT TIME ZONE 'Europe/Madrid'), 'YYYY-MM-DD') AS fecha, count(*) AS total
+         FROM escaneos e
+         JOIN codigos_qr q ON q.codigo = e.codigo
+        WHERE q.restaurante_id = $1
+          AND (e.ocurrido_en AT TIME ZONE 'Europe/Madrid')::date BETWEEN $2::date AND $3::date
+        GROUP BY 1
+        ORDER BY 1`,
+      [restauranteId, desde, hasta, agrupar]
+    );
+    return rows.map((r) => ({ fecha: r.fecha, total: Number(r.total) }));
+  });
+}

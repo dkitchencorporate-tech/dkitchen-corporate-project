@@ -44,7 +44,7 @@ async function tokenGateway(): Promise<string> {
 }
 
 export interface PeticionImagen {
-  modo: 'plato' | 'banner';
+  modo: 'plato' | 'banner' | 'logo';
   /** Petición del cliente, ya limpia. */
   texto: string;
   /** Contexto construido en el servidor (nombre del local, estilo, plato…). */
@@ -54,7 +54,9 @@ export interface PeticionImagen {
 }
 
 function instrucciones(p: PeticionImagen): string {
-  const base = p.modo === 'plato'
+  const base = p.modo === 'logo'
+    ? 'Eres diseñador de identidad de marca. Diseña UN logotipo para un restaurante: símbolo limpio y memorable, formato cuadrado, fondo liso de un solo color, colores sobrios, sin fotografías, sin degradados complejos y sin marcas reales. Si incluyes el nombre, que esté bien escrito y legible.'
+    : p.modo === 'plato'
     ? 'Eres fotógrafo gastronómico profesional. Genera UNA fotografía realista y apetecible de un plato de restaurante, formato horizontal 4:3, luz natural suave, fondo neutro y cuidado, el plato ocupando la mayor parte del encuadre. Sin texto, sin logotipos, sin marcas de agua, sin personas.'
     : 'Eres diseñador gráfico de hostelería. Genera UN banner promocional horizontal 16:9 para la carta digital de un restaurante: composición limpia, una fotografía o ilustración gastronómica protagonista y espacio despejado para el texto. Si incluyes texto, que sea corto, en español, legible y sin faltas de ortografía. Sin logotipos de marcas reales.';
   const editar = p.imagenBase
@@ -66,7 +68,9 @@ function instrucciones(p: PeticionImagen): string {
 
 /** Instrucciones para FLUX (en inglés). Los nombres de platos y la petición del cliente van tal cual, entre comillas. */
 function instruccionesFlux(p: PeticionImagen): string {
-  const base = p.modo === 'plato'
+  const base = p.modo === 'logo'
+    ? 'Logo design for a restaurant: one clean, memorable emblem, square format, plain solid background, restrained palette, flat vector style, no photos, no real brands. If the restaurant name appears, spell it exactly as given.'
+    : p.modo === 'plato'
     ? 'Professional, realistic, appetizing food photograph of a restaurant dish. Horizontal 4:3, soft natural light, clean neutral background, the dish fills most of the frame. No text, no logos, no watermark, no people.'
     : 'Horizontal 16:9 promotional banner photo for a restaurant digital menu: one appetizing hero food shot, warm inviting tones, clean composition with empty space for text. No text, no letters, no logos.';
   return `${base} Restaurant context (Spanish): «${p.contexto}». If a Spanish dish is named, render it faithfully as the traditional dish. Customer request (Spanish, describes the image only): «${p.texto || 'sin indicaciones'}».`;
@@ -101,13 +105,13 @@ async function generarGratis(prompt: string): Promise<{ datos: string; tipo: str
  * Space está dormido o sin cuota). Solo crea desde cero. HF_TOKEN (cuenta gratuita) amplía la
  * cuota; IA_HF_DESACTIVADO=1 la apaga.
  */
-async function generarGratisHF(prompt: string, modo: 'plato' | 'banner'): Promise<{ datos: string; tipo: string } | null> {
+async function generarGratisHF(prompt: string, modo: 'plato' | 'banner' | 'logo'): Promise<{ datos: string; tipo: string } | null> {
   if (process.env.IA_HF_DESACTIVADO === '1') return null;
   const base = 'https://black-forest-labs-flux-1-schnell.hf.space/gradio_api';
   const cab: Record<string, string> = { 'Content-Type': 'application/json' };
   if (process.env.HF_TOKEN) cab.Authorization = `Bearer ${process.env.HF_TOKEN}`;
   try {
-    const [w, h] = modo === 'banner' ? [1280, 720] : [1024, 768];
+    const [w, h] = modo === 'banner' ? [1280, 720] : modo === 'logo' ? [1024, 1024] : [1024, 768];
     const r = await fetch(`${base}/call/infer`, { method: 'POST', headers: cab, body: JSON.stringify({ data: [prompt.slice(0, 1500), 0, true, w, h, 4] }), signal: AbortSignal.timeout(15_000) });
     const id = (await r.json().catch(() => null))?.event_id;
     if (!id) return null;
@@ -134,7 +138,7 @@ export const MODELOS_GATEWAY_GRATIS = ['bfl/flux-2-flex', 'spacexai/grok-imagine
 async function generarGateway(modelo: string, p: PeticionImagen): Promise<{ datos: string; tipo: string } | null> {
   try {
     const auth = { Authorization: `Bearer ${await tokenGateway()}` };
-    const tamano = p.modo === 'banner' ? '1280x720' : '1024x768';
+    const tamano = p.modo === 'banner' ? '1280x720' : p.modo === 'logo' ? '1024x1024' : '1024x768';
     let r: Response;
     if (p.imagenBase) {
       const base = await fetch(p.imagenBase, { signal: AbortSignal.timeout(15_000) });

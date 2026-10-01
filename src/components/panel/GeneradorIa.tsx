@@ -21,12 +21,18 @@ const IDEAS_BANNER = [
   'Promoción de fin de semana, ambiente cálido',
   'Novedad en la carta, estilo elegante',
 ];
+const IDEAS_LOGO = [
+  'Elegante y clásico, con una inicial',
+  'Moderno y minimalista',
+  'Rústico y artesanal',
+  'Divertido y con mucho color',
+];
 const PASOS = ['Entendiendo lo que pides…', 'Componiendo la imagen…', 'Ajustando luz y color…', 'Últimos detalles…'];
 
 export default function GeneradorIa({
   modo, imagenActual, plato, onUsar, onCerrar, demo = false,
 }: {
-  modo: 'plato' | 'banner';
+  modo: 'plato' | 'banner' | 'logo';
   imagenActual?: string | null;
   plato?: { nombre?: string; descripcion?: string | null };
   onUsar: (url: string) => void;
@@ -86,7 +92,7 @@ export default function GeneradorIa({
   }
 
   const sinSaldo = saldo !== null && saldo.restantes <= 0;
-  const proporcion = modo === 'banner' ? 'aspect-[16/9]' : 'aspect-[4/3]';
+  const proporcion = modo === 'banner' ? 'aspect-[16/9]' : modo === 'logo' ? 'mx-auto aspect-square max-w-sm' : 'aspect-[4/3]';
   const boton = 'rounded-full bg-[#6E0C2B] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4A0819] disabled:opacity-40';
   const secundario = 'rounded-full border border-[#E6E2DC] bg-white px-4 py-2.5 text-sm font-semibold disabled:opacity-40';
 
@@ -96,7 +102,7 @@ export default function GeneradorIa({
         <div ref={arriba} className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#6E0C2B]">Crear con IA</p>
-            <h3 className="font-display mt-1 text-2xl font-semibold">{modo === 'plato' ? `Foto de ${plato?.nombre?.trim() || 'tu plato'}` : 'Imagen para tu carta'}</h3>
+            <h3 className="font-display mt-1 text-2xl font-semibold">{modo === 'plato' ? `Foto de ${plato?.nombre?.trim() || 'tu plato'}` : modo === 'logo' ? 'Logo de tu restaurante' : 'Imagen para tu carta'}</h3>
           </div>
           <button onClick={onCerrar} aria-label="Cerrar" className="rounded-full px-3 py-1 text-xl text-[#6B7079] hover:bg-white">×</button>
         </div>
@@ -148,6 +154,17 @@ export default function GeneradorIa({
                   <span className="block text-sm text-[#6B7079]">Usamos el nombre y la descripción. Si quieres algo concreto, escríbelo abajo antes.</span>
                 </button>
               )}
+              {modo === 'logo' && (
+                <div>
+                  <p className="text-sm font-semibold">Elige un estilo para tu logo</p>
+                  <p className="mt-1 text-xs text-[#6B7079]">Usamos el nombre y el color de tu local. Luego puedes pedir cambios hasta dar con él.</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {IDEAS_LOGO.map((i) => (
+                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-[#E6E2DC] bg-white px-3.5 py-2 text-[13px] hover:border-[#6E0C2B]/40 disabled:opacity-50">{i}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {modo === 'banner' && (
                 <div>
                   <p className="text-sm font-semibold">Diseños recomendados para tu carta</p>
@@ -170,7 +187,7 @@ export default function GeneradorIa({
         )}
         <form className="mt-4 rounded-2xl border border-[#E6E2DC] bg-white p-3" onSubmit={(e) => { e.preventDefault(); if (texto.trim()) crear(actual ? 'retocar' : 'nuevo'); }}>
           <label className="block text-sm font-semibold">
-            {actual ? '¿Qué quieres cambiar de esta imagen?' : modo === 'plato' ? 'Describe cómo la quieres (opcional)' : 'O describe tu banner'}
+            {actual ? '¿Qué quieres cambiar de esta imagen?' : modo === 'plato' ? 'Describe cómo la quieres (opcional)' : modo === 'logo' ? 'O describe tu logo' : 'O describe tu banner'}
             <textarea value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={400} rows={2} spellCheck lang="es" disabled={pendiente}
               placeholder={actual ? 'Ej.: más luz, fondo de madera, sin servilleta' : modo === 'plato' ? 'Ej.: en plato de barro, vista desde arriba' : 'Ej.: menú de mediodía a 12,90 €, tonos cálidos'}
               className="mt-1.5 w-full rounded-xl border border-[#E6E2DC] bg-[#FBFAF8] px-3 py-2.5 text-sm font-normal placeholder-[#9A9EA6] focus:border-[#6E0C2B] focus:outline-none" />
@@ -178,7 +195,7 @@ export default function GeneradorIa({
           <HerramientasTexto valor={texto} onCambio={setTexto} tipo="instruccion" contexto={plato?.nombre ?? undefined} demo={demo} />
           <div className="mt-3 flex justify-end">
             <button type="submit" disabled={pendiente || sinSaldo || !texto.trim()} className={boton}>
-              {pendiente ? 'Creando…' : actual ? 'Aplicar cambios a esta imagen' : modo === 'plato' ? 'Crear con mi descripción' : 'Crear banner'}
+              {pendiente ? 'Creando…' : actual ? 'Aplicar cambios a esta imagen' : modo === 'plato' ? 'Crear con mi descripción' : modo === 'logo' ? 'Crear logo' : 'Crear banner'}
             </button>
           </div>
         </form>

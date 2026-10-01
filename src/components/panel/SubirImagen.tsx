@@ -22,7 +22,7 @@ export default function SubirImagen({
   /** «plato»: recorte 4:3 y luz automática (desactivable). */
   formato?: 'plato';
   /** Activa «Crear con IA» (0038). */
-  ia?: { modo: 'plato' | 'banner'; plato?: { nombre?: string; descripcion?: string | null } };
+  ia?: { modo: 'plato' | 'banner' | 'logo'; plato?: { nombre?: string; descripcion?: string | null } };
 }) {
   const entrada = useRef<HTMLInputElement>(null);
   const [subiendo, setSubiendo] = useState(false);

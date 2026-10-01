@@ -166,7 +166,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
 
       <section className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-5">
         <h3 className="text-lg font-semibold">Identidad</h3>
-        <SubirImagen valor={d.logoUrl} onCambio={(url) => setD((p) => ({ ...p, logoUrl: url }))} etiqueta="Logo" redonda />
+        <SubirImagen valor={d.logoUrl} onCambio={(url) => setD((p) => ({ ...p, logoUrl: url }))} etiqueta="Logo" redonda ia={{ modo: 'logo' }} />
         <div className="grid sm:grid-cols-[1fr_auto] gap-3">
           <label className="space-y-1">
             <span className="text-xs text-[#6B7079]">Nombre del local *</span>

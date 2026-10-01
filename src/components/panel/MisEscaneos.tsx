@@ -2,6 +2,7 @@
 
 import type { EscaneosPorDia } from '@/lib/escaneos-cliente';
 import { motion } from 'framer-motion';
+import FiltroEscaneos from './FiltroEscaneos';
 
 export default function MisEscaneos({
   escaneosMes,
@@ -49,6 +50,7 @@ export default function MisEscaneos({
           ))}
         </div>
       </div>
+      <FiltroEscaneos />
     </div>
   );
 }

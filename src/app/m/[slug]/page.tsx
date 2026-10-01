@@ -200,7 +200,7 @@ export default async function CartaPublica({
         )}
 
         {alergenosEnCarta.length > 0 && (
-          <section className="mt-14 rounded-lg border border-black/10 bg-white p-5">
+          <section className="mt-14 rounded-[24px] bg-white/80 p-6 shadow-[0_14px_40px_-26px_rgba(0,0,0,.35)] ring-1 ring-black/[0.04]">
             <h2 className="text-sm font-semibold">Alérgenos</h2>
             <p className="mt-1 text-xs leading-relaxed text-black/50">
               Información facilitada conforme al Reglamento (UE) 1169/2011. Si tienes una
@@ -425,9 +425,9 @@ function Plato({ plato }: { plato: PlatoCarta }) {
   return (
     <span className="flex items-start gap-4">
       <span className="block min-w-0 flex-1">
-        <span className="nombre-plato block font-semibold leading-snug"><EtiquetaPlato plato={plato} />{plato.nombre}</span>
+        <span className="first-letter:uppercase nombre-plato block font-semibold leading-snug"><EtiquetaPlato plato={plato} />{plato.nombre}</span>
         <ComboPlato plato={plato} />
-        {plato.descripcion && <span className="mt-1 line-clamp-2 block text-sm leading-relaxed text-black/55">{plato.descripcion}</span>}
+        {plato.descripcion && <span className="mt-1 line-clamp-2 block first-letter:uppercase text-sm leading-relaxed text-black/55">{plato.descripcion}</span>}
         <Alergenos plato={plato} />
         <span className="mt-2 block text-[15px]"><Precio plato={plato} /></span>
       </span>
@@ -453,11 +453,11 @@ function PlatoVisual({ plato }: { plato: PlatoCarta }) {
       )}
       <span className="block p-4">
         <span className="flex items-baseline justify-between gap-3">
-          <span className="nombre-plato font-semibold leading-snug"><EtiquetaPlato plato={plato} />{plato.nombre}</span>
+          <span className="first-letter:uppercase nombre-plato font-semibold leading-snug"><EtiquetaPlato plato={plato} />{plato.nombre}</span>
           <Precio plato={plato} destacado />
         </span>
         <ComboPlato plato={plato} />
-        {plato.descripcion && <span className="mt-1 line-clamp-2 block text-sm leading-relaxed text-black/55">{plato.descripcion}</span>}
+        {plato.descripcion && <span className="mt-1 line-clamp-2 block first-letter:uppercase text-sm leading-relaxed text-black/55">{plato.descripcion}</span>}
         <Alergenos plato={plato} />
       </span>
     </span>
@@ -468,7 +468,7 @@ function PlatoEditorial({ plato }: { plato: PlatoCarta }) {
   return (
     <span className="block text-left">
       <span className="flex items-baseline gap-3">
-        <span className="nombre-plato text-[21px] font-semibold leading-tight"><EtiquetaPlato plato={plato} />{plato.nombre}</span>
+        <span className="first-letter:uppercase nombre-plato text-[21px] font-semibold leading-tight"><EtiquetaPlato plato={plato} />{plato.nombre}</span>
         <span aria-hidden="true" className="min-w-6 flex-1 -translate-y-1 border-b border-dotted border-current opacity-30" />
         <span className="whitespace-nowrap text-[20px] font-semibold tabular-nums"><PrecioAnterior plato={plato} />{euros.format(Number(plato.precio)).replace(/\s?€/, '')}</span>
       </span>
@@ -487,7 +487,7 @@ function PlatoExpress({ plato }: { plato: PlatoCarta }) {
   return (
     <span className="block px-4 py-3">
       <span className="flex items-baseline justify-between gap-3">
-        <span className="nombre-plato text-[15px] font-medium leading-snug"><EtiquetaPlato plato={plato} />{plato.nombre}</span>
+        <span className="first-letter:uppercase nombre-plato text-[15px] font-medium leading-snug"><EtiquetaPlato plato={plato} />{plato.nombre}</span>
         <Precio plato={plato} />
       </span>
       <ComboPlato plato={plato} />
