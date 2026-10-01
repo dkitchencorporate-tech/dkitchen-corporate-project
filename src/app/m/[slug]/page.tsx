@@ -291,15 +291,17 @@ function CabeceraEditorial({ carta, accion }: { carta: Carta; accion: ReactNode 
 function CabeceraVisual({ carta, foto, accion }: { carta: Carta; foto: string | null; accion: ReactNode }) {
   // Portada (01/10/2026, feedback de la probadora): imagen grande con degradado suave y todo
   // dentro (nombre, descripción, horario y reservar), sin franjas rectas debajo.
+  // Portada con el nombre ya escrito (0044): en el móvil se ve entera (12:5) y lo demás va debajo, sin tapar el letrero.
+  const conNombre = !!(carta.portadaConNombre && carta.portadaUrl && foto === carta.portadaUrl);
   return (
     <header className="px-0 sm:px-5 sm:pt-5">
-      <div className="relative mx-auto min-h-[300px] w-full max-w-5xl overflow-hidden sm:min-h-[400px] sm:rounded-[32px]" style={{ background: 'var(--marca)' }}>
+      <div className={`relative mx-auto w-full max-w-5xl overflow-hidden sm:min-h-[400px] sm:rounded-[32px] ${conNombre ? 'bg-[#0A080C]' : 'min-h-[300px]'}`} style={conNombre ? undefined : { background: 'var(--marca)' }}>
         {foto && (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={foto} alt="" className="absolute inset-0 h-full w-full scale-[1.02] object-cover" />
+          <img src={foto} alt="" className={conNombre ? 'block aspect-[12/5] w-full object-cover sm:absolute sm:inset-0 sm:aspect-auto sm:h-full' : 'absolute inset-0 h-full w-full scale-[1.02] object-cover'} />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/5" />
-        <div className="relative flex min-h-[300px] flex-col justify-end gap-3 px-6 pb-7 pt-24 text-white sm:min-h-[400px] sm:px-10 sm:pb-10">
+        <div className={`absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/5 ${conNombre ? 'hidden sm:block' : ''}`} />
+        <div className={`relative flex flex-col justify-end gap-3 text-white sm:min-h-[400px] sm:px-10 sm:pb-10 ${conNombre ? 'px-5 py-4 sm:pt-24' : 'min-h-[300px] px-6 pb-7 pt-24'}`}>
           <div className="flex items-end gap-4">
             <Logo carta={carta} tam={64} />
             <h1 className={carta.portadaConNombre && carta.portadaUrl ? 'sr-only' : 'text-4xl font-semibold leading-[1.05] tracking-tight drop-shadow sm:text-6xl'}>{carta.nombre}</h1>
