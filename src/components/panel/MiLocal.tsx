@@ -1,5 +1,6 @@
 'use client';
 
+import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import { actualizarLocalAction } from '@/app/panel/actions';
@@ -114,7 +115,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
         await actualizarLocalAction(d);
         setAviso({ ok: true, texto: 'Guardado. Tu carta ya muestra los cambios.' });
       } catch (e) {
-        setAviso({ ok: false, texto: e instanceof Error ? e.message : 'No se pudo guardar.' });
+        setAviso({ ok: false, texto: mensajeError(e, 'No se pudo guardar.') });
       }
     });
   }

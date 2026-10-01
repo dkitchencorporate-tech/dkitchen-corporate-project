@@ -1,5 +1,6 @@
 'use client';
 
+import { mensajeError } from '@/lib/mensaje-error';
 import { useEffect, useState, useTransition } from 'react';
 import { generarImagenIaAction, saldoIaAction, comprarServicioAction } from '@/app/panel/actions';
 
@@ -49,11 +50,12 @@ export default function GeneradorIa({
       try {
         const base = desde === 'mejorar' ? imagenActual : desde === 'retocar' ? actual : null;
         const r = await generarImagenIaAction({ modo, texto: indicacion, imagenBase: base ?? null, plato });
+        if (!r.ok) throw new Error(r.error);
         setVersiones((v) => [r.url, ...v].slice(0, 8));
         setActual(r.url);
         setSaldo((s) => (s ? { ...s, restantes: r.restantes } : s));
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'No se pudo crear la imagen.');
+        setError(mensajeError(e, 'No se pudo crear la imagen.'));
         saldoIaAction().then(setSaldo).catch(() => {});
       }
     });
@@ -63,7 +65,7 @@ export default function GeneradorIa({
     if (demo) { setError('En la demo no se puede comprar.'); return; }
     setComprando(true);
     try { const { url } = await comprarServicioAction('bono_ia'); window.location.href = url; }
-    catch (e) { setError(e instanceof Error ? e.message : 'No se pudo abrir el pago.'); setComprando(false); }
+    catch (e) { setError(mensajeError(e, 'No se pudo abrir el pago.')); setComprando(false); }
   }
 
   const sinSaldo = saldo !== null && saldo.restantes <= 0;

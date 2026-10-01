@@ -1,5 +1,6 @@
 'use client';
 
+import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import type { EstadoServicios } from '@/lib/servicios';
@@ -45,7 +46,7 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
         const { url } = await iniciarUpgradeAmpliadoAction();
         window.location.href = url;
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'No se pudo iniciar el pago.');
+        setError(mensajeError(e, 'No se pudo iniciar el pago.'));
       }
     });
   }

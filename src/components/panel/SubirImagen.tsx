@@ -1,5 +1,6 @@
 'use client';
 
+import { mensajeError } from '@/lib/mensaje-error';
 import { useRef, useState } from 'react';
 import { comprimirImagen } from '@/lib/comprimir-imagen';
 import GeneradorIa from './GeneradorIa';
@@ -40,7 +41,7 @@ export default function SubirImagen({
       const { url } = await subirImagenAction(formulario);
       onCambio(url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo subir la imagen.');
+      setError(mensajeError(e, 'No se pudo subir la imagen.'));
     } finally {
       setSubiendo(false);
       if (entrada.current) entrada.current.value = '';

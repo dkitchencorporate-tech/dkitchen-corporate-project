@@ -1,5 +1,6 @@
 'use client';
 
+import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import type { Reserva } from '@/lib/reservas';
 import { cambiarEstadoReservaAction } from '@/app/panel/actions';
@@ -81,7 +82,7 @@ function FichaReserva({ reserva, pasada, onCerrar }: { reserva: Reserva; pasada:
         setEstado(nuevo);
         setResultado({ ...r, accion: nuevo });
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'No se pudo actualizar.');
+        setError(mensajeError(e, 'No se pudo actualizar.'));
       }
     });
   }

@@ -1,5 +1,6 @@
 'use client';
 
+import { mensajeError } from '@/lib/mensaje-error';
 import { useRef, useState, useTransition } from 'react';
 import type { ElementoPlano, MesaPlano, Camarero, TipoElemento } from '@/lib/sala';
 import { guardarPlanoAction } from '@/app/panel/actions';
@@ -136,7 +137,7 @@ export default function EditorSala({
         setMesas(finales);
         await guardarPlanoAction(finales.map(({ clave: _c, ...m }) => m), elementos.map(({ clave: _c, id: _i, ...e }) => e));
         setCambios(false); setAviso({ ok: true, texto: 'Plano guardado.' });
-      } catch (e) { setAviso({ ok: false, texto: e instanceof Error ? e.message : 'No se pudo guardar.' }); }
+      } catch (e) { setAviso({ ok: false, texto: mensajeError(e, 'No se pudo guardar.') }); }
     });
   }
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import dynamic from 'next/dynamic';
 import type { ElementoPlano, MesaPlano, Camarero, FilaInforme } from '@/lib/sala';
@@ -28,7 +29,7 @@ export default function Sala({
     setAviso(null);
     iniciar(async () => {
       try { await fn(); setAviso({ ok: true, texto: ok }); }
-      catch (e) { setAviso({ ok: false, texto: e instanceof Error ? e.message : 'No se pudo completar.' }); }
+      catch (e) { setAviso({ ok: false, texto: mensajeError(e, 'No se pudo completar.') }); }
     });
   };
   const zonas = elementos.filter((e) => e.tipo === 'zona');

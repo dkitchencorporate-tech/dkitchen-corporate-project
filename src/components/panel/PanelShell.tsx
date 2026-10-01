@@ -233,7 +233,8 @@ export default function PanelShell({
         } } : null}
         onPersona={async (d) => {
           if (demo) return 'En la demo no se envían mensajes. En tu panel real, esto llega a una persona de DKitchen con todo el contexto.';
-          await crearTicketAyudaAction(d);
+          const r = await crearTicketAyudaAction(d);
+          if (!r.ok) throw new Error(r.error);
         }}
       />
 

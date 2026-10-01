@@ -1,5 +1,6 @@
 'use client';
 
+import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
 import { fijarIdiomasAction } from '@/app/panel/actions';
@@ -23,7 +24,7 @@ export default function Idiomas({ activos, platos, traducciones }: {
     setAviso(null);
     iniciar(async () => {
       try { await fijarIdiomasAction(idiomas); setAviso({ ok: true, texto: 'Idiomas guardados. DKitchen se pone con la traducción.' }); }
-      catch (e) { setAviso({ ok: false, texto: e instanceof Error ? e.message : 'No se pudo guardar.' }); }
+      catch (e) { setAviso({ ok: false, texto: mensajeError(e, 'No se pudo guardar.') }); }
     });
   }
 

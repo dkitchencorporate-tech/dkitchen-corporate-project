@@ -1,5 +1,6 @@
 'use client';
 
+import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import type { Promocion, DatosPromocion } from '@/lib/promociones';
 import type { SeccionPropia } from '@/lib/menu-propietario';
@@ -41,7 +42,7 @@ export default function Promociones({
         setEditando(null);
         setAviso({ ok: true, texto: 'Banner guardado. Aparecerá en tu carta en menos de un minuto.' });
       } catch (e) {
-        setAviso({ ok: false, texto: e instanceof Error ? e.message : 'No se pudo guardar.' });
+        setAviso({ ok: false, texto: mensajeError(e, 'No se pudo guardar.') });
       }
     });
   }
@@ -50,7 +51,7 @@ export default function Promociones({
     setAviso(null);
     iniciar(async () => {
       try { await fn(); setAviso({ ok: true, texto: ok }); }
-      catch (e) { setAviso({ ok: false, texto: e instanceof Error ? e.message : 'No se pudo completar.' }); }
+      catch (e) { setAviso({ ok: false, texto: mensajeError(e, 'No se pudo completar.') }); }
     });
   }
 

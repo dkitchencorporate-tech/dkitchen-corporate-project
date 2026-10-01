@@ -1,5 +1,6 @@
 'use client';
 
+import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import { guardarEstiloAction } from '@/app/panel/actions';
 
@@ -164,7 +165,7 @@ export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [] }: 
 
       {aviso && <p className={`mt-5 text-sm ${aviso.ok ? 'text-[#2F8F6B]' : 'text-red-600'}`}>{aviso.texto}</p>}
       <div className="mt-6 flex flex-wrap gap-3">
-        <button disabled={!cambiado || pendiente} onClick={() => { setAviso(null); iniciar(async () => { try { await guardarEstiloAction(e); setAviso({ ok: true, texto: 'Estilo guardado. Tu carta ya se ve así.' }); } catch (err) { setAviso({ ok: false, texto: err instanceof Error ? err.message : 'No se pudo guardar.' }); } }); }}
+        <button disabled={!cambiado || pendiente} onClick={() => { setAviso(null); iniciar(async () => { try { await guardarEstiloAction(e); setAviso({ ok: true, texto: 'Estilo guardado. Tu carta ya se ve así.' }); } catch (err) { setAviso({ ok: false, texto: mensajeError(err, 'No se pudo guardar.') }); } }); }}
           className="rounded-full bg-[#17191E] px-6 py-3 text-sm font-semibold text-white disabled:opacity-35">{pendiente ? 'Guardando…' : 'Guardar estilo'}</button>
         {cambiado && <button onClick={() => setE(inicial)} className="rounded-full border border-[#E6E6E2] px-5 py-3 text-sm font-semibold">Deshacer cambios</button>}
       </div>

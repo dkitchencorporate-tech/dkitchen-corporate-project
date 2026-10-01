@@ -123,7 +123,7 @@ export async function crearTicketAction(datos: { asunto: string; mensaje: string
 }
 
 /** Paso a una persona desde el chat de ayuda: el contexto se limpia aquí y el plan lo pone el servidor. */
-export async function crearTicketAyudaAction(datos: {
+async function crearTicketAyudaAction_(datos: {
   asunto: string;
   mensaje: string;
   contexto: { seccion: string | null; camino: string[]; busquedas: string[]; pagina?: string };
@@ -530,15 +530,20 @@ const importe = (v: unknown): number | null => {
 };
 const textoEstudio = (v: unknown, max: number) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null);
 function errorEstudio(e: unknown): never {
+  throw new Error(traducirErrorEstudio(e));
+}
+function traducirErrorEstudio(e: unknown): string {
   const m = e instanceof Error ? e.message : '';
-  if (/promo_check/.test(m)) throw new Error('El precio de promoción debe ser menor que el precio normal y la fecha de inicio anterior a la de fin.');
-  if (/combo|12 platos|otro restaurante/.test(m)) throw new Error(m.replace(/^.*?: /, '').replace(/^\w/, (x) => x.toUpperCase()) + '.');
-  if (/legal_nif/.test(m)) throw new Error('El NIF/CIF no es válido (solo letras, números y guiones).');
-  if (/legal_email/.test(m)) throw new Error('El correo legal no es válido.');
-  throw new Error('No se pudo guardar. Revisa los datos e inténtalo de nuevo.');
+  if (/promo_check/.test(m)) return ('El precio de promoción debe ser menor que el precio normal y la fecha de inicio anterior a la de fin.');
+  if (/combo|12 platos|otro restaurante/.test(m)) return (m.replace(/^.*?: /, '').replace(/^\w/, (x) => x.toUpperCase()) + '.');
+  if (/legal_nif/.test(m)) return ('El NIF/CIF no es válido (solo letras, números y guiones).');
+  if (/legal_email/.test(m)) return ('El correo legal no es válido.');
+  // Mensajes propios ya escritos en español: se respetan. Los técnicos (base de datos, red) no se enseñan.
+  if (m && !/violates|constraint|syntax|relation|permission|column|null value|duplicate|ECONN|timeout|fetch|Server Components|sesión no es válida/i.test(m)) return m;
+  return 'No se pudo guardar. Revisa los datos e inténtalo de nuevo.';
 }
 
-export async function guardarExtrasPlatoAction(platoId: string, d: { etiqueta: string | null; precioPromo: string | number | null; promoDesde: string | null; promoHasta: string | null }) {
+async function guardarExtrasPlatoAction_(platoId: string, d: { etiqueta: string | null; precioPromo: string | number | null; promoDesde: string | null; promoHasta: string | null }) {
   if (!UUID.test(platoId)) throw new Error('Plato no válido.');
   const { jwt } = await requerirSesionYRestaurante();
   const etiqueta = d.etiqueta && (ETIQUETAS as string[]).includes(d.etiqueta) ? (d.etiqueta as Etiqueta) : null;
@@ -551,7 +556,7 @@ export async function guardarExtrasPlatoAction(platoId: string, d: { etiqueta: s
   revalidatePath('/panel');
 }
 
-export async function guardarComboAction(comboId: string | null, d: DatosCombo) {
+async function guardarComboAction_(comboId: string | null, d: DatosCombo) {
   if (comboId !== null && !UUID.test(comboId)) throw new Error('Combo no válido.');
   const nombre = textoEstudio(d?.nombre, 80);
   const precio = importe(d?.precio);
@@ -575,7 +580,7 @@ export async function guardarComboAction(comboId: string | null, d: DatosCombo) 
   revalidatePath('/panel');
 }
 
-export async function guardarLegalAction(d: DatosLegal) {
+async function guardarLegalAction_(d: DatosLegal) {
   const nif = textoEstudio(d?.nif, 12)?.toUpperCase().replace(/\s/g, '') ?? null;
   const datos: DatosLegal = {
     titular: textoEstudio(d?.titular, 160), nif, email: textoEstudio(d?.email, 160)?.toLowerCase() ?? null,
@@ -587,7 +592,7 @@ export async function guardarLegalAction(d: DatosLegal) {
   revalidatePath('/panel');
 }
 
-export async function moverSeccionAction(seccionId: string, direccion: -1 | 1) {
+async function moverSeccionAction_(seccionId: string, direccion: -1 | 1) {
   if (!UUID.test(seccionId) || (direccion !== -1 && direccion !== 1)) throw new Error('Datos no válidos.');
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   await dbMoverSeccion(jwt, restaurante.id, seccionId, direccion);
@@ -605,7 +610,7 @@ export async function saldoIaAction() {
   return dbSaldoIa(jwt, restaurante.id);
 }
 
-export async function generarImagenIaAction(d: { modo: 'plato' | 'banner'; texto: string; imagenBase?: string | null; plato?: { nombre?: string; descripcion?: string | null } }) {
+async function generarImagenIaAction_(d: { modo: 'plato' | 'banner'; texto: string; imagenBase?: string | null; plato?: { nombre?: string; descripcion?: string | null } }) {
   const modo = d?.modo === 'banner' ? 'banner' : 'plato';
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   // La foto base solo puede ser del propio almacén del restaurante.
@@ -624,3 +629,24 @@ export async function generarImagenIaAction(d: { modo: 'plato' | 'banner'; texto
   const r = await dbGenerarImagen(jwt, { id: restaurante.id, nombre: restaurante.nombre }, { modo, texto: limpiarTextoIa(d.texto), contexto, imagenBase: base });
   return r;
 }
+
+// ---------------------------------------------------------------------------
+// Envoltorios (01/10/2026): Next.js oculta en producción el mensaje de los errores
+// lanzados desde el servidor; estas acciones devuelven { ok, error } en español.
+// ---------------------------------------------------------------------------
+type Resultado<T> = ({ ok: true } & T) | { ok: false; error: string };
+async function envolver<T extends object | void>(fn: () => Promise<T>): Promise<Resultado<T extends object ? T : object>> {
+  try {
+    const r = await fn();
+    return { ok: true, ...((r ?? {}) as object) } as Resultado<T extends object ? T : object>;
+  } catch (e) {
+    if ((e as { digest?: string })?.digest?.startsWith('NEXT_REDIRECT')) throw e;
+    return { ok: false, error: traducirErrorEstudio(e) };
+  }
+}
+export async function guardarExtrasPlatoAction(...a: Parameters<typeof guardarExtrasPlatoAction_>) { return envolver(() => guardarExtrasPlatoAction_(...a)); }
+export async function guardarComboAction(...a: Parameters<typeof guardarComboAction_>) { return envolver(() => guardarComboAction_(...a)); }
+export async function guardarLegalAction(...a: Parameters<typeof guardarLegalAction_>) { return envolver(() => guardarLegalAction_(...a)); }
+export async function moverSeccionAction(...a: Parameters<typeof moverSeccionAction_>) { return envolver(() => moverSeccionAction_(...a)); }
+export async function generarImagenIaAction(...a: Parameters<typeof generarImagenIaAction_>) { return envolver(() => generarImagenIaAction_(...a)); }
+export async function crearTicketAyudaAction(...a: Parameters<typeof crearTicketAyudaAction_>) { return envolver(() => crearTicketAyudaAction_(...a)); }

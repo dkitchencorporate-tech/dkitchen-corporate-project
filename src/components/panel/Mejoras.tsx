@@ -1,5 +1,6 @@
 'use client';
 
+import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import type { EstadoServicios, Servicio } from '@/lib/servicios';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
@@ -36,7 +37,7 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
     setError(null);
     iniciar(async () => {
       try { const { url } = await comprarServicioAction(s); window.location.href = url; }
-      catch (e) { setError(e instanceof Error ? e.message : 'No se pudo iniciar el pago.'); }
+      catch (e) { setError(mensajeError(e, 'No se pudo iniciar el pago.')); }
     });
   }
 

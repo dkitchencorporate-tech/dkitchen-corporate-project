@@ -1,5 +1,6 @@
 'use client';
 
+import { mensajeError } from '@/lib/mensaje-error';
 import { useMemo, useState, useTransition } from 'react';
 import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
 import type { ExtraPlato, DatosLegal } from '@/lib/estudio';
@@ -49,8 +50,12 @@ export default function Estudio({
     if (demo) { setAviso({ ok: true, texto: 'Esto es una demostración: en tu panel real este cambio se guardaría y aparecería en tu carta al momento.' }); return; }
     setAviso(null);
     iniciar(async () => {
-      try { await fn(); setAviso({ ok: true, texto: ok }); }
-      catch (e) { setAviso({ ok: false, texto: e instanceof Error ? e.message : 'No se pudo guardar.' }); }
+      try {
+        const r = await fn();
+        if (r && typeof r === 'object' && 'ok' in r && r.ok === false) throw new Error(String((r as { error?: string }).error ?? ''));
+        setAviso({ ok: true, texto: ok });
+      }
+      catch (e) { setAviso({ ok: false, texto: mensajeError(e, 'No se pudo guardar.') }); }
     });
   };
 
