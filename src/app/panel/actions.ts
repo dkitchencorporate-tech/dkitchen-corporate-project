@@ -38,6 +38,12 @@ import { estadoServicios, tiene, registrarOferta as dbRegistrarOferta, type Serv
 import { guardarMesa, eliminarMesa, crearCamarero, desactivarCamarero, guardarPlano, cargarPlano, type MesaPlano, type ElementoPlano } from '@/lib/sala';
 import { fijarIdiomas } from '@/lib/idiomas';
 
+/** Todo cambio del panel se ve al momento en la carta pública (01/10: antes tardaba hasta 60 s). */
+function refrescarCartas() {
+  revalidatePath('/m/[slug]', 'page');
+  revalidatePath('/m/[slug]/legal', 'page');
+}
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** WhatsApp en formato internacional sin espacios (+34600111222). España por defecto. */
@@ -70,36 +76,42 @@ export async function crearSeccionAction(nombre: string) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   await dbCrearSeccion(jwt, restaurante.id, nombre);
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 export async function editarSeccionAction(seccionId: string, nombre: string) {
   const { jwt } = await requerirSesionYRestaurante();
   await dbEditarSeccion(jwt, seccionId, nombre);
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 export async function eliminarSeccionAction(seccionId: string) {
   const { jwt } = await requerirSesionYRestaurante();
   await dbEliminarSeccion(jwt, seccionId);
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 export async function crearPlatoAction(datos: DatosPlato) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   await dbCrearPlato(jwt, restaurante.id, datos);
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 export async function editarPlatoAction(platoId: string, datos: Partial<DatosPlato> & { disponible?: boolean }) {
   const { jwt } = await requerirSesionYRestaurante();
   await dbEditarPlato(jwt, platoId, datos);
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 export async function eliminarPlatoAction(platoId: string) {
   const { jwt } = await requerirSesionYRestaurante();
   await dbEliminarPlato(jwt, platoId);
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 export async function crearSolicitudQrFisicoAction(datos: {
@@ -114,6 +126,7 @@ export async function crearSolicitudQrFisicoAction(datos: {
     email: identidad.email,
   });
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 export async function crearTicketAction(datos: { asunto: string; mensaje: string }) {
@@ -123,6 +136,7 @@ export async function crearTicketAction(datos: { asunto: string; mensaje: string
     email: identidad.email,
   });
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 /** Paso a una persona desde el chat de ayuda: el contexto se limpia aquí y el plan lo pone el servidor. */
@@ -152,6 +166,7 @@ async function crearTicketAyudaAction_(datos: {
     email: identidad.email,
   });
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 const TIPOS_IMAGEN = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -203,6 +218,7 @@ export async function actualizarLocalAction(d: DatosLocal) {
     throw new Error('No se pudo guardar. Revisa los datos e inténtalo de nuevo.');
   });
   revalidatePath('/panel');
+  refrescarCartas();
   revalidatePath(`/m/${restaurante.slug}`);
 }
 
@@ -302,6 +318,7 @@ export async function crearPromocionAction(d: DatosPromocion) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   await dbCrearPromocion(jwt, restaurante.id, limpiarPromocion(d)).catch(mensajeBase);
   revalidatePath('/panel');
+  refrescarCartas();
   revalidatePath(`/m/${restaurante.slug}`);
 }
 
@@ -310,6 +327,7 @@ export async function editarPromocionAction(id: string, d: DatosPromocion) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   await dbEditarPromocion(jwt, id, limpiarPromocion(d)).catch(mensajeBase);
   revalidatePath('/panel');
+  refrescarCartas();
   revalidatePath(`/m/${restaurante.slug}`);
 }
 
@@ -318,6 +336,7 @@ export async function eliminarPromocionAction(id: string) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   await dbEliminarPromocion(jwt, id);
   revalidatePath('/panel');
+  refrescarCartas();
   revalidatePath(`/m/${restaurante.slug}`);
 }
 
@@ -336,6 +355,7 @@ export async function cambiarEstadoReservaAction(
   const reserva = await dbCambiarEstadoReserva(jwt, id, estado);
   if (!reserva) throw new Error('No se encontró la reserva.');
   revalidatePath('/panel');
+  refrescarCartas();
   if (estado === 'pendiente') return { correoEnviado: false, whatsappUrl: null };
 
   const marca = { nombre: restaurante.nombre, logoUrl: restaurante.logoUrl, color: restaurante.colorMarca };
@@ -403,6 +423,7 @@ export async function guardarMesaAction(m: {
     plazas: Math.min(30, Math.max(1, Math.trunc(Number(m.plazas)) || 4)), x: acotar(m.x), y: acotar(m.y), camareroId: m.camareroId,
   }).catch(mensajeSala);
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 export async function eliminarMesaAction(id: string) {
@@ -410,6 +431,7 @@ export async function eliminarMesaAction(id: string) {
   const { jwt } = await requerirSesionYRestaurante();
   await eliminarMesa(jwt, id);
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 /** Devuelve el enlace de acceso del camarero UNA vez (solo se guarda su huella). */
@@ -419,6 +441,7 @@ export async function crearCamareroAction(nombre: string): Promise<{ enlace: str
   const { jwt } = await requerirSesionYRestaurante();
   const token = await crearCamarero(jwt, n).catch(mensajeSala);
   revalidatePath('/panel');
+  refrescarCartas();
   const origen = process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es';
   return { enlace: `${origen}/sala/${token}` };
 }
@@ -428,6 +451,7 @@ export async function desactivarCamareroAction(id: string) {
   const { jwt } = await requerirSesionYRestaurante();
   await desactivarCamarero(jwt, id);
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 export async function fijarIdiomasAction(idiomas: string[]) {
@@ -439,6 +463,7 @@ export async function fijarIdiomasAction(idiomas: string[]) {
     throw new Error(/Pack de idiomas/.test(m) ? m : 'No se pudieron guardar los idiomas.');
   });
   revalidatePath('/panel');
+  refrescarCartas();
   revalidatePath(`/m/${restaurante.slug}`);
 }
 
@@ -469,6 +494,7 @@ export async function guardarPlanoAction(mesas: MesaPlano[], elementos: Elemento
   }));
   await guardarPlano(jwt, restaurante.id, mesasLimpias, elementosLimpios).catch(mensajeSala);
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 /** Asigna un grupo de mesas a un camarero (o las libera con camareroId null). */
@@ -480,6 +506,7 @@ export async function asignarMesasAction(camareroId: string | null, mesaIds: str
   const mesas = plano.mesas.map((m) => (ids.includes(m.id) ? { ...m, camareroId } : m.camareroId === camareroId && camareroId ? { ...m, camareroId: null } : m));
   await guardarPlano(jwt, restaurante.id, mesas, plano.elementos).catch(mensajeSala);
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 /** Estilo de la carta elegido por el cliente (0031). Lista blanca aquí y en la base. */
@@ -492,6 +519,7 @@ export async function guardarEstiloAction(e: { plantilla: string; fondo: string;
     throw new Error(/paleta|DKitchen/.test(m) ? m : 'No se pudo guardar el estilo.');
   });
   revalidatePath('/panel');
+  refrescarCartas();
   revalidatePath(`/m/${restaurante.slug}`);
 }
 
@@ -520,6 +548,7 @@ export async function solicitarBajaAction(motivo: string) {
      <p>Si ha sido un error o quieres contarnos algo, responde a este correo.</p>`,
     { titulo: 'Baja recibida' }).catch((e) => console.error('Baja: confirmación no enviada', e));
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 // ---------------------------------------------------------------------------
@@ -557,6 +586,7 @@ async function guardarExtrasPlatoAction_(platoId: string, d: { etiqueta: string 
     await dbGuardarExtras(jwt, platoId, { etiqueta, precioPromo, promoDesde: precioPromo === null ? null : fecha(d.promoDesde), promoHasta: precioPromo === null ? null : fecha(d.promoHasta) });
   } catch (e) { errorEstudio(e); }
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 async function guardarComboAction_(comboId: string | null, d: DatosCombo) {
@@ -581,6 +611,7 @@ async function guardarComboAction_(comboId: string | null, d: DatosCombo) {
     });
   } catch (e) { errorEstudio(e); }
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 async function guardarLegalAction_(d: DatosLegal) {
@@ -593,6 +624,7 @@ async function guardarLegalAction_(d: DatosLegal) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   try { await dbGuardarLegal(jwt, restaurante.id, datos); } catch (e) { errorEstudio(e); }
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 async function moverSeccionAction_(seccionId: string, direccion: -1 | 1) {
@@ -600,6 +632,7 @@ async function moverSeccionAction_(seccionId: string, direccion: -1 | 1) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   await dbMoverSeccion(jwt, restaurante.id, seccionId, direccion);
   revalidatePath('/panel');
+  refrescarCartas();
 }
 
 // ---------------------------------------------------------------------------
@@ -674,6 +707,7 @@ async function guardarPortadaAction_(url: string | null, conNombre = false) {
   if (!valida) throw new Error('La imagen no es válida. Súbela de nuevo.');
   await dbGuardarPortada(jwt, restaurante.id, url, !!conNombre);
   revalidatePath('/panel');
+  refrescarCartas();
   revalidatePath(`/m/${restaurante.slug}`);
 }
 export async function guardarPortadaAction(...a: Parameters<typeof guardarPortadaAction_>) { return envolver(() => guardarPortadaAction_(...a)); }
@@ -683,6 +717,7 @@ async function guardarDescripcionSeccionAction_(seccionId: string, descripcion: 
   const { jwt } = await requerirSesionYRestaurante();
   await dbGuardarDescripcionSeccion(jwt, seccionId, textoEstudio(descripcion, 200));
   revalidatePath('/panel');
+  refrescarCartas();
 }
 export async function guardarDescripcionSeccionAction(...a: Parameters<typeof guardarDescripcionSeccionAction_>) { return envolver(() => guardarDescripcionSeccionAction_(...a)); }
 
@@ -696,6 +731,7 @@ async function crearPlatoRapidoAction_(d: { seccionId: string; nombre: string; p
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   await dbCrearPlato(jwt, restaurante.id, { seccionId: d.seccionId, nombre, precio, descripcion: textoEstudio(d.descripcion, 300), fotoUrl: null, alergenos: [] });
   revalidatePath('/panel');
+  refrescarCartas();
 }
 export async function crearPlatoRapidoAction(...a: Parameters<typeof crearPlatoRapidoAction_>) { return envolver(() => crearPlatoRapidoAction_(...a)); }
 

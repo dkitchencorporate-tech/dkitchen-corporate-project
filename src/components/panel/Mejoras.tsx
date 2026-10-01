@@ -29,6 +29,8 @@ const MODULOS: { id: Servicio; titulo: string; resuelve: string; como: string; i
 export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: { restaurante: MiRestaurante; servicios: EstadoServicios; vista: 'diseno' | 'modulos'; fotos?: string[] }) {
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  // Portada compartida con la vista previa de Diseño (se actualiza al momento).
+  const [portada, setPortada] = useState<{ url: string | null; conNombre: boolean }>({ url: restaurante.portadaUrl ?? null, conNombre: !!restaurante.portadaConNombre });
   const ampliado = restaurante.plan === 'ampliado';
   const precio = (s: Servicio) => servicios.catalogo.find((c) => c.servicio === s);
   const tiene = (s: Servicio) => servicios.contratados.some((c) => c.servicio === s || (c.servicio === 'pack_sala' && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(s)));
@@ -68,9 +70,9 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
       </header>
 
       {vista === 'diseno' && (<>
-      <EstiloCarta fotos={fotos} nombre={restaurante.nombre} bloqueado={restaurante.nivelDiseno !== 'esencial'}
+      <EstiloCarta fotos={fotos} logo={restaurante.logoUrl ?? null} portada={portada.url} portadaConNombre={portada.conNombre} nombre={restaurante.nombre} bloqueado={restaurante.nivelDiseno !== 'esencial'}
         inicial={{ plantilla: restaurante.plantilla || 'clasica', fondo: restaurante.estiloFondo || 'papel', letra: restaurante.estiloLetra || 'sans', color: (restaurante.colorMarca || '#E8592A').toUpperCase() }} />
-      <PortadaCarta inicial={restaurante.portadaUrl ?? null} conNombreInicial={!!restaurante.portadaConNombre} demo={restaurante.id === 'demo'} />
+      <PortadaCarta inicial={restaurante.portadaUrl ?? null} conNombreInicial={!!restaurante.portadaConNombre} demo={restaurante.id === 'demo'} onCambio={(url, conNombre) => setPortada({ url, conNombre })} />
       <section className="space-y-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-[#6E0C2B]">Niveles de diseño</p>

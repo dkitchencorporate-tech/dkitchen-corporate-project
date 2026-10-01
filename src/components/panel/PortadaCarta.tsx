@@ -9,14 +9,15 @@ import { guardarPortadaAction } from '@/app/panel/actions';
  * (estilo Visual y Carta de Autor) usaba la primera foto de un plato sin que el
  * cliente supiera de dónde salía ni cómo cambiarla.
  */
-export default function PortadaCarta({ inicial, conNombreInicial = false, demo = false }: { inicial: string | null; conNombreInicial?: boolean; demo?: boolean }) {
+export default function PortadaCarta({ inicial, conNombreInicial = false, demo = false, onCambio }: { inicial: string | null; conNombreInicial?: boolean; demo?: boolean; onCambio?: (url: string | null, conNombre: boolean) => void }) {
   const [url, setUrl] = useState<string | null>(inicial);
   const [conNombre, setConNombre] = useState(conNombreInicial);
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
 
-  async function cambiar(nueva: string | null, nombre = conNombre) {
+  async function cambiar(nueva: string | null, nombre = nueva === url ? conNombre : false) {
     setUrl(nueva);
     setConNombre(nombre);
+    onCambio?.(nueva, nombre);
     if (demo) { setAviso({ ok: true, texto: 'En tu panel real, la portada se guardaría al momento.' }); return; }
     const r = await guardarPortadaAction(nueva, nombre);
     setAviso(r.ok ? { ok: true, texto: nueva ? 'Portada guardada. Ya se ve en tu carta.' : 'Portada quitada: se usará la primera foto de tus platos.' } : { ok: false, texto: r.error });

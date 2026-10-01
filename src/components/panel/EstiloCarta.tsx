@@ -31,7 +31,7 @@ type Estilo = { plantilla: string; fondo: string; letra: string; color: string }
 /** Fotos de ejemplo: solo se usan hasta que el cliente sube las suyas. */
 const FOTOS_EJEMPLO = ['/images/demo/s5.png', '/images/demo/s18.png', '/images/demo/s22.png'];
 
-function Vista({ e, nombre, fotos }: { e: Estilo; nombre: string; fotos: string[] }) {
+function Vista({ e, nombre, fotos, portada = null, portadaConNombre = false, logo = null }: { e: Estilo; nombre: string; fotos: string[]; portada?: string | null; portadaConNombre?: boolean; logo?: string | null }) {
   const img = (i: number) => fotos.length ? fotos[i % fotos.length] : FOTOS_EJEMPLO[i];
   const conFoto = e.plantilla === 'visual' || e.plantilla === 'clasica';
   const f = FONDOS.find((x) => x.id === e.fondo) ?? FONDOS[0];
@@ -44,17 +44,21 @@ function Vista({ e, nombre, fotos }: { e: Estilo; nombre: string; fotos: string[
         {e.plantilla === 'visual' ? (
           <div className="relative flex h-24 items-end overflow-hidden p-3" style={{ background: e.color }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={img(0)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            <img src={portada || img(0)} alt="" className="absolute inset-0 h-full w-full object-cover" />
             <span className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-            <p style={{ fontFamily: serif }} className="relative text-lg font-bold text-white">{nombre}</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {!(portada && portadaConNombre) && <p style={{ fontFamily: serif }} className="relative text-lg font-bold text-white">{logo && <img src={logo} alt="" className="relative mr-2 inline-block h-7 w-7 rounded-full bg-white object-cover align-middle" />}{nombre}</p>}
           </div>
         ) : e.plantilla === 'express' ? (
           <div className="px-3 py-3" style={{ borderTop: `4px solid ${e.color}` }}>
-            <p style={{ fontFamily: serif }} className="font-bold">{nombre}</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <p style={{ fontFamily: serif }} className="font-bold">{logo && <img src={logo} alt="" className="relative mr-2 inline-block h-7 w-7 rounded-full bg-white object-cover align-middle" />}{nombre}</p>
           </div>
         ) : (
           <div className="px-3 pb-3 pt-6 text-center">
             {e.plantilla === 'editorial' && <p className="text-[8px] uppercase tracking-[0.3em]" style={{ color: e.color }}>La carta</p>}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {logo && <img src={logo} alt="" className="mx-auto mb-1 h-9 w-9 rounded-full object-cover" />}
             <p style={{ fontFamily: serif }} className={`mt-1 font-semibold ${e.plantilla === 'editorial' ? 'text-2xl' : 'text-lg'}`}>{nombre}</p>
           </div>
         )}
@@ -89,7 +93,7 @@ function Vista({ e, nombre, fotos }: { e: Estilo; nombre: string; fotos: string[
   );
 }
 
-export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [] }: { inicial: Estilo; nombre: string; bloqueado: boolean; fotos?: string[] }) {
+export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [], portada = null, portadaConNombre = false, logo = null }: { inicial: Estilo; nombre: string; bloqueado: boolean; fotos?: string[]; portada?: string | null; portadaConNombre?: boolean; logo?: string | null }) {
   const [e, setE] = useState<Estilo>(inicial);
   const [pendiente, iniciar] = useTransition();
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
@@ -159,7 +163,7 @@ export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [] }: 
         </div>
         <div className="lg:sticky lg:top-6 lg:self-start">
           <p className="mb-3 text-center text-xs font-medium uppercase tracking-[0.18em] text-[#9A9EA6]">Vista previa</p>
-          <Vista e={e} nombre={nombre} fotos={fotos} />
+          <Vista e={e} nombre={nombre} fotos={fotos} portada={portada} portadaConNombre={portadaConNombre} logo={logo} />
         </div>
       </div>
 
