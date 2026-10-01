@@ -109,7 +109,7 @@ export default async function CartaPublica({
   const alergenosEnCarta = [...new Set(grupos.flatMap((g) => g.platos.flatMap((p) => p.alergenos)))].sort();
   const nombres = Object.fromEntries(alergenosEnCarta.map((a) => [a, nombreAlergeno(a)]));
   const fotoPortada = carta.portadaUrl || grupos.flatMap((g) => g.platos).find((p) => p.fotoUrl)?.fotoUrl || null;
-  const ancho = plantilla === 'visual' ? 'max-w-3xl' : 'max-w-2xl';
+  const ancho = plantilla === 'visual' ? 'max-w-5xl' : 'max-w-2xl';
   const reservar = ampliado ? <Reservar slug={carta.slug} color={color} nombreLocal={carta.nombre} /> : null;
 
   return (
@@ -147,6 +147,8 @@ export default async function CartaPublica({
                     ? 'mb-6 text-center text-4xl font-medium'
                     : plantilla === 'express'
                     ? 'mb-2 text-xs font-bold uppercase tracking-widest text-black/50'
+                    : plantilla === 'visual'
+                    ? 'mb-5 flex items-center gap-4 px-1 text-2xl font-semibold capitalize tracking-tight sm:text-3xl after:h-px after:flex-1 after:bg-current after:opacity-15'
                     : 'mb-3 flex items-baseline justify-between px-1 text-xl font-semibold tracking-tight'
                 }
               >
@@ -167,7 +169,7 @@ export default async function CartaPublica({
                   ))}
                 </ul>
               ) : plantilla === 'visual' ? (
-                <ul className="grid gap-4 sm:grid-cols-2">
+                <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {grupo.platos.map((plato) => (
                     <li key={plato.id}>
                       <FichaPlato plato={plato} nombresAlergenos={nombres}><PlatoVisual plato={plato} /></FichaPlato>
@@ -287,22 +289,30 @@ function CabeceraEditorial({ carta, accion }: { carta: Carta; accion: ReactNode 
 }
 
 function CabeceraVisual({ carta, foto, accion }: { carta: Carta; foto: string | null; accion: ReactNode }) {
+  // Portada (01/10/2026, feedback de la probadora): imagen grande con degradado suave y todo
+  // dentro (nombre, descripción, horario y reservar), sin franjas rectas debajo.
   return (
-    <header className="bg-white">
-      <div className="relative h-52 w-full sm:h-64" style={{ background: 'var(--marca)' }}>
+    <header className="px-0 sm:px-5 sm:pt-5">
+      <div className="relative mx-auto min-h-[300px] w-full max-w-5xl overflow-hidden sm:min-h-[400px] sm:rounded-[32px]" style={{ background: 'var(--marca)' }}>
         {foto && (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={foto} alt="" className="h-full w-full object-cover" />
+          <img src={foto} alt="" className="absolute inset-0 h-full w-full scale-[1.02] object-cover" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-3xl items-end gap-4 px-5 pb-5">
-          <Logo carta={carta} tam={64} />
-          <h1 className="text-3xl font-bold leading-tight text-white drop-shadow sm:text-4xl">{carta.nombre}</h1>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/5" />
+        <div className="relative flex min-h-[300px] flex-col justify-end gap-3 px-6 pb-7 pt-24 text-white sm:min-h-[400px] sm:px-10 sm:pb-10">
+          <div className="flex items-end gap-4">
+            <Logo carta={carta} tam={64} />
+            <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight drop-shadow sm:text-6xl">{carta.nombre}</h1>
+          </div>
+          {carta.descripcion && <p className="max-w-xl text-[15px] leading-relaxed text-white/85 sm:text-base">{carta.descripcion}</p>}
+          {(carta.horario || carta.direccion) && (
+            <p className="flex flex-wrap gap-2 text-xs text-white/80">
+              {carta.horario && <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">{carta.horario}</span>}
+              {carta.direccion && <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">{carta.direccion}</span>}
+            </p>
+          )}
+          {accion && <div className="pt-1">{accion}</div>}
         </div>
-      </div>
-      <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-4">
-        {carta.descripcion && <p className="min-w-0 flex-1 text-sm leading-relaxed text-black/60">{carta.descripcion}</p>}
-        {accion}
       </div>
     </header>
   );
@@ -322,8 +332,8 @@ function CabeceraExpress({ carta, accion }: { carta: Carta; accion: ReactNode })
 
 function IndiceSecciones({ grupos, plantilla, ancho }: { grupos: SeccionCarta[]; plantilla: string; ancho: string }) {
   return (
-    <nav aria-label="Secciones de la carta" className="sticky top-0 z-10 mt-4 border-y border-black/10 bg-white/95 backdrop-blur">
-      <ul className={`mx-auto flex gap-2 overflow-x-auto px-5 py-3 ${ancho}`}>
+    <nav aria-label="Secciones de la carta" className={`sticky top-0 z-10 mt-4 ${plantilla === 'visual' ? 'bg-transparent' : 'border-y border-black/10 bg-white/95 backdrop-blur'}`}>
+      <ul className={`mx-auto flex gap-2 overflow-x-auto px-5 py-3 ${ancho} ${plantilla === 'visual' ? 'my-1 w-fit max-w-[calc(100%-2rem)] rounded-full bg-white/75 px-2 py-2 shadow-[0_10px_30px_-12px_rgba(0,0,0,.25)] backdrop-blur-md' : ''}`}>
         {grupos.map((g) => (
           <li key={g.id} className="shrink-0">
             <a
@@ -331,6 +341,8 @@ function IndiceSecciones({ grupos, plantilla, ancho }: { grupos: SeccionCarta[];
               className={
                 plantilla === 'express'
                   ? 'block rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-black/60 hover:text-[var(--marca)]'
+                  : plantilla === 'visual'
+                  ? 'block rounded-full px-4 py-1.5 text-[13px] font-medium capitalize text-black/70 transition-colors hover:bg-[var(--marca)] hover:text-white'
                   : 'block rounded-full border border-black/10 px-3 py-1.5 text-xs font-medium text-black/70 transition-colors hover:border-[var(--marca)] hover:text-[var(--marca)]'
               }
             >
@@ -429,7 +441,7 @@ function Plato({ plato }: { plato: PlatoCarta }) {
 
 function PlatoVisual({ plato }: { plato: PlatoCarta }) {
   return (
-    <span className="block overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
+    <span className="block h-full overflow-hidden rounded-[24px] bg-white shadow-[0_14px_40px_-22px_rgba(0,0,0,.35)] ring-1 ring-black/[0.04] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_-22px_rgba(0,0,0,.45)]">
       {plato.fotoUrl ? (
         /* eslint-disable-next-line @next/next/no-img-element */
         <span className="relative block">
