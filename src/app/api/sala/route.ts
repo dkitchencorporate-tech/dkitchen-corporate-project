@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { contextoSala, atenderLlamadaSala, registrarSala } from '@/lib/sala';
 import { enviarRegistroAlTpv } from '@/lib/envio-tpv';
+import { abrirCuenta, cuentaDeMesa, cerrarCuentaCamarero } from '@/lib/comandero';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
 
 export const runtime = 'nodejs';
@@ -13,6 +14,8 @@ const MESA = /^[A-Za-z0-9-]{1,12}$/;
  * App de sala (0027). El camarero entra con su enlace personal; el token solo
  * viaja en el cuerpo y la base valida su huella SHA-256 en cada llamada (se
  * revoca desactivando al camarero). Freno por IP contra fuerza bruta de tokens.
+ * Comandero (0045): abrir cuenta, ver la cuenta de una mesa y cerrarla
+ * («cobrada fuera»). Los importes los pone la base; aquí no se calcula nada.
  */
 export async function POST(peticion: Request) {
   try {
@@ -48,6 +51,23 @@ export async function POST(peticion: Request) {
         if (!id) return NextResponse.json({ error: 'acceso' }, { status: 401 });
         const tpv = await enviarRegistroAlTpv(token, id);
         return NextResponse.json({ ok: true, id, tpv });
+      }
+      case 'abrir': {
+        const mesa = String(c?.mesa ?? '');
+        const n = Math.trunc(Number(c?.comensales));
+        if (!MESA.test(mesa)) return NextResponse.json({ error: 'datos' }, { status: 400 });
+        const id = await abrirCuenta(token, mesa, n >= 1 && n <= 99 ? n : null);
+        return id ? NextResponse.json({ ok: true, id }) : NextResponse.json({ error: 'acceso' }, { status: 401 });
+      }
+      case 'cuenta': {
+        const mesa = String(c?.mesa ?? '');
+        if (!MESA.test(mesa)) return NextResponse.json({ error: 'datos' }, { status: 400 });
+        return NextResponse.json({ cuenta: await cuentaDeMesa(token, mesa) });
+      }
+      case 'cerrar': {
+        const id = String(c?.cuentaId ?? '');
+        if (!UUID.test(id)) return NextResponse.json({ error: 'datos' }, { status: 400 });
+        return NextResponse.json({ ok: await cerrarCuentaCamarero(token, id) });
       }
       default:
         return NextResponse.json({ error: 'accion' }, { status: 400 });

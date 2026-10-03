@@ -286,4 +286,6 @@ export const SERVICIOS_QR = {
   bonoIa: 9,
   imagenesBonoIa: 50,
   imagenesGratisIa: 3,
+  /** Comandero Pro (0045): histórico, descargas, anulaciones y ranking. 12 € + IVA al mes. Espejo de catalogo_servicios. */
+  comanderoPro: 12,
 } as const;

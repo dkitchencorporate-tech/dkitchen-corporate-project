@@ -37,6 +37,11 @@ import { quedarmeConTodo, fijarUrlPrueba } from '@/lib/prueba';
 import { estadoServicios, tiene, registrarOferta as dbRegistrarOferta, type Servicio } from '@/lib/servicios';
 import { guardarMesa, eliminarMesa, crearCamarero, desactivarCamarero, guardarPlano, cargarPlano, type MesaPlano, type ElementoPlano } from '@/lib/sala';
 import { fijarIdiomas } from '@/lib/idiomas';
+import {
+  mesasEnVivo as dbMesasEnVivo, cuentaDetalle as dbCuentaDetalle, rondaRevisada as dbRondaRevisada, cerrarCuenta as dbCerrarCuenta,
+  anularLinea as dbAnularLinea, anularCuenta as dbAnularCuenta, resumenSala as dbResumenSala, informeCuentas as dbInformeCuentas,
+  informeAnulaciones as dbInformeAnulaciones, type Filtro,
+} from '@/lib/comandero';
 
 /** Todo cambio del panel se ve al momento en la carta pública (01/10: antes tardaba hasta 60 s). */
 function refrescarCartas() {
@@ -376,7 +381,7 @@ export async function cambiarEstadoReservaAction(
 // Servicios, ofertas, Sala e idiomas (0027)
 // ---------------------------------------------------------------------------
 
-const SERVICIOS_VALIDOS: Servicio[] = ['setup_esencial', 'setup_experto', 'idiomas', 'plano_mesas', 'app_sala', 'conexion_tpv', 'pack_sala', 'bono_ia'];
+const SERVICIOS_VALIDOS: Servicio[] = ['setup_esencial', 'setup_experto', 'idiomas', 'plano_mesas', 'app_sala', 'conexion_tpv', 'pack_sala', 'bono_ia', 'comandero_pro'];
 
 /** Pago de un servicio: el precio lo decide la base; aquí solo se valida la elección. */
 export async function comprarServicioAction(servicio: Servicio): Promise<{ url: string }> {
@@ -743,3 +748,58 @@ async function escaneosRangoAction_(desde: string, hasta: string, agrupar: 'day'
   return { filas: await dbEscaneosRango(jwt, restaurante.id, desde, hasta, agrupar) };
 }
 export async function escaneosRangoAction(...a: Parameters<typeof escaneosRangoAction_>) { return envolver(() => escaneosRangoAction_(...a)); }
+
+// ------------------------------------------------------------------ comandero (0045)
+// Devuelven { ok, error } en vez de lanzar: en producción Next oculta el mensaje
+// de los errores lanzados y el encargado debe ver el motivo real (en español).
+type Res<T> = { ok: true; datos: T } | { ok: false; error: string };
+const FECHA = /^\d{4}-\d{2}-\d{2}$/;
+
+async function comandero<T>(fn: (jwt: string) => Promise<T>): Promise<Res<T>> {
+  try {
+    const { jwt } = await requerirSesionYRestaurante();
+    return { ok: true, datos: await fn(jwt) };
+  } catch (e) {
+    const m = e instanceof Error ? e.message : '';
+    const propio = /Comandero Pro|App de sala|motivo|Rango de fechas|histórico/i.test(m);
+    if (!propio) console.error('Comandero:', m);
+    return { ok: false, error: propio ? m : 'No se pudo completar. Inténtalo de nuevo.' };
+  }
+}
+
+function filtroValido(f: Filtro): Filtro {
+  if (!FECHA.test(f?.desde ?? '') || !FECHA.test(f?.hasta ?? '')) throw new Error('Rango de fechas no válido.');
+  const mesa = f.mesa && /^[A-Za-z0-9-]{1,12}$/.test(f.mesa) ? f.mesa : null;
+  const camareroId = f.camareroId && UUID.test(f.camareroId) ? f.camareroId : null;
+  return { desde: f.desde, hasta: f.hasta, mesa, camareroId };
+}
+
+export async function mesasEnVivoAction() { return comandero((jwt) => dbMesasEnVivo(jwt)); }
+
+export async function cuentaDetalleAction(id: string) {
+  return comandero((jwt) => { if (!UUID.test(id)) throw new Error('x'); return dbCuentaDetalle(jwt, id); });
+}
+
+export async function rondaRevisadaAction(id: string) {
+  return comandero((jwt) => { if (!UUID.test(id)) throw new Error('x'); return dbRondaRevisada(jwt, id); });
+}
+
+export async function cerrarCuentaAction(id: string) {
+  return comandero((jwt) => { if (!UUID.test(id)) throw new Error('x'); return dbCerrarCuenta(jwt, id); });
+}
+
+export async function anularLineaAction(id: string, motivo: string) {
+  return comandero((jwt) => { if (!UUID.test(id)) throw new Error('x'); return dbAnularLinea(jwt, id, String(motivo ?? '').slice(0, 200)); });
+}
+
+export async function anularCuentaAction(id: string, motivo: string) {
+  return comandero((jwt) => { if (!UUID.test(id)) throw new Error('x'); return dbAnularCuenta(jwt, id, String(motivo ?? '').slice(0, 200)); });
+}
+
+export async function resumenSalaAction(f: Filtro) { return comandero((jwt) => dbResumenSala(jwt, filtroValido(f))); }
+
+export async function informeCuentasAction(f: Filtro) { return comandero((jwt) => dbInformeCuentas(jwt, filtroValido(f))); }
+
+export async function informeAnulacionesAction(f: Filtro) {
+  return comandero((jwt) => { const v = filtroValido(f); return dbInformeAnulaciones(jwt, v.desde, v.hasta); });
+}

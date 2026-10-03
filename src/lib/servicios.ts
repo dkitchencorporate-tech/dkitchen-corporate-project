@@ -7,8 +7,8 @@ import { comoCliente, comoVisitante } from '@/lib/db';
  * Estrategia: DKITCHEN_ESTRATEGIA_PRECIOS_ESCALERA_Y_RETENCION_2026-09-28.md
  */
 
-export type Servicio = 'setup_esencial' | 'setup_experto' | 'idiomas' | 'plano_mesas' | 'app_sala' | 'conexion_tpv' | 'pack_sala' | 'bono_ia';
-export const SERVICIOS: Servicio[] = ['setup_esencial', 'setup_experto', 'idiomas', 'plano_mesas', 'app_sala', 'conexion_tpv', 'pack_sala'];
+export type Servicio = 'setup_esencial' | 'setup_experto' | 'idiomas' | 'plano_mesas' | 'app_sala' | 'conexion_tpv' | 'pack_sala' | 'bono_ia' | 'comandero_pro';
+export const SERVICIOS: Servicio[] = ['setup_esencial', 'setup_experto', 'idiomas', 'plano_mesas', 'app_sala', 'conexion_tpv', 'pack_sala', 'comandero_pro'];
 export const MODULOS_SALA: Servicio[] = ['plano_mesas', 'app_sala', 'conexion_tpv'];
 
 export interface ItemCatalogo {

@@ -5,6 +5,8 @@ import { useState, useTransition } from 'react';
 import dynamic from 'next/dynamic';
 import type { ElementoPlano, MesaPlano, Camarero, FilaInforme } from '@/lib/sala';
 import { crearCamareroAction, desactivarCamareroAction } from '@/app/panel/actions';
+import MesasEnVivo from './MesasEnVivo';
+import InformesComandero from './InformesComandero';
 
 // El editor solo se descarga y renderiza al abrirlo (no pesa en el panel).
 const EditorSala = dynamic(() => import('./EditorSala'), { ssr: false });
@@ -13,7 +15,7 @@ type Tpv = { proveedor: string; activa: boolean; ultimoEnvio: string | null; ult
 
 const duracion = (s: number | null) => (s === null ? '—' : s < 60 ? `${s} s` : `${Math.round(s / 60)} min`);
 
-/** Módulos de Sala: resumen, editor de plano (modal), camareros e informes, estado TPV. */
+/** Módulos de Sala: mesas en vivo y resumen de sala (comandero, 0045), editor de plano (modal), camareros e informes, estado TPV. */
 export default function Sala({
   mesas, elementos, camareros, tpv, modulos, informe,
 }: {
@@ -42,6 +44,9 @@ export default function Sala({
         <p className="text-sm text-[#6B7079]">Tu local, tu equipo y su trabajo. La carta sigue siendo solo para mirar: aquí se organiza el servicio.</p>
         {aviso && <p className={`mt-2 text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</p>}
       </header>
+
+      {modulos.app && <MesasEnVivo />}
+      {modulos.app && <InformesComandero camareros={camareros.map((c) => ({ id: c.id, nombre: c.nombre }))} mesas={mesas.map((m) => m.numero)} />}
 
       {modulos.plano && (
         <section className="rounded-2xl border border-[#E6E6E2] bg-white p-5">
@@ -128,7 +133,7 @@ export default function Sala({
               </div>
               </>
             )}
-            <p className="text-[11px] text-[#9A9EA6]">Todo lo que registra cada camarero queda guardado 6 meses (sin importes: la facturación la lleva tu TPV).</p>
+            <p className="text-[11px] text-[#9A9EA6]">Las cuentas de mesa y sus rondas se guardan para tus informes. La facturación y el ticket los lleva siempre tu TPV.</p>
           </div>
         </section>
       )}

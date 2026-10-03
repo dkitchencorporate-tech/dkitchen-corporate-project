@@ -191,6 +191,22 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
             <div className="w-full sm:w-56">{ampliado ? <Boton s="pack_sala" texto="Activar el Pack" /> : null}</div>
           </div>
         )}
+        {tiene('app_sala') && precio('comandero_pro') && (
+          <article className="grid gap-4 rounded-2xl border border-[#E6E6E2] bg-white p-5 md:grid-cols-[1fr_14rem]">
+            <div>
+              <h4 className="text-lg font-bold">Comandero Pro</h4>
+              <p className="mt-1 text-sm text-[#3F434B]">Sabes qué mesa, qué camarero y qué día te deja más, y qué se anula y por qué.</p>
+              <ul className="mt-3 grid gap-1 text-sm text-[#3F434B] sm:grid-cols-2">
+                {['Histórico por fechas, mesa y camarero', 'Descarga en Excel y CSV', 'Informe de anulaciones con motivo', 'Ranking de camareros'].map((i) => <li key={i}>✓ {i}</li>)}
+              </ul>
+              <p className="mt-2 text-xs text-[#6B7079]">Sin Pro, la App de sala ya incluye la cuenta por mesa, las rondas, las mesas en vivo y el resumen de hoy.</p>
+            </div>
+            <div className="flex flex-col justify-center gap-2">
+              <p className="text-center text-2xl font-black">{euros(precio('comandero_pro')!.precioCentimos)}<span className="text-xs font-normal text-[#6B7079]"> /mes + IVA</span></p>
+              <Boton s="comandero_pro" />
+            </div>
+          </article>
+        )}
       </section>
 
       </>)}

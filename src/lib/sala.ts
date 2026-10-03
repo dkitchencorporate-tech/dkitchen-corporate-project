@@ -5,8 +5,9 @@ import { comoCliente, comoVisitante } from '@/lib/db';
 /**
  * Módulos de Sala (0027). Frontera con el Núcleo: el cliente final nunca pide
  * desde la carta; aquí solo el CAMARERO registra lo que pide cada mesa y se
- * envía al TPV del local (que factura). Sin cocina, tickets, pagos ni
- * historial de ventas (los registros se purgan a los 30 días, sin importes).
+ * envía al TPV del local (que factura). Sin cocina, tickets ni pagos.
+ * Desde 0045 cada ronda pertenece a una cuenta de mesa con importes del
+ * servidor (ver lib/comandero.ts); las rondas sin cuenta se purgan a los 180 días.
  */
 
 export interface Mesa {
