@@ -34,17 +34,20 @@ export interface EstadoServicios {
   plazasExperto: number;
   oferta: { oferta: string; motivo: string } | null;
   credito: { centimos: number; venceEn: string } | null;
+  /** Comandero Pro activo por cualquier vía (contratado, prueba o incluido en Signature), según la base. */
+  comanderoPro?: boolean;
 }
 
 export async function estadoServicios(jwt: string, restauranteId: string): Promise<EstadoServicios> {
   return comoCliente(jwt, async (c) => {
-    const [cat, con, plazas, oferta, credito] = await Promise.all([
+    const [cat, con, plazas, oferta, credito, pro] = await Promise.all([
       c.query('SELECT servicio, nombre, tipo, dk.precio_servicio(servicio) AS precio, precio_ancla_centimos, requiere_ampliado FROM catalogo_servicios ORDER BY precio_centimos'),
       c.query(`SELECT servicio, estado, origen, contratado_en, checklist FROM servicios_contratados
                 WHERE restaurante_id = $1 AND estado <> 'cancelado'`, [restauranteId]),
       c.query('SELECT dk.plazas_setup_experto() AS n'),
       c.query('SELECT * FROM dk.ofertas_para_mi()'),
       c.query('SELECT * FROM dk.credito_migracion_mio()'),
+      c.query("SELECT dk.tiene_servicio($1, 'comandero_pro') AS si", [restauranteId]),
     ]);
     return {
       catalogo: cat.rows.map((r) => ({
@@ -57,6 +60,7 @@ export async function estadoServicios(jwt: string, restauranteId: string): Promi
       plazasExperto: Number(plazas.rows[0]?.n ?? 0),
       oferta: oferta.rows[0] ?? null,
       credito: credito.rows[0] ? { centimos: Number(credito.rows[0].centimos), venceEn: new Date(credito.rows[0].vence_en).toISOString() } : null,
+      comanderoPro: pro.rows[0]?.si === true,
     };
   });
 }

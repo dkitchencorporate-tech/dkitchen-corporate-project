@@ -390,7 +390,7 @@ export async function comprarServicioAction(servicio: Servicio): Promise<{ url: 
   const estado = await estadoServicios(jwt, restaurante.id);
   const item = estado.catalogo.find((c) => c.servicio === servicio);
   if (!item) throw new Error('Servicio no disponible.');
-  if (tiene(estado.contratados, servicio)) throw new Error('Ya tienes este servicio.');
+  if (tiene(estado.contratados, servicio) || (servicio === 'comandero_pro' && estado.comanderoPro)) throw new Error('Ya tienes este servicio.');
   if (item.requiereAmpliado && restaurante.plan !== 'ampliado') throw new Error('Los Módulos de Sala requieren el plan Ampliado.');
   const origen = process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es';
   await dbRegistrarOferta(jwt, servicio, 'aceptada').catch(() => {});

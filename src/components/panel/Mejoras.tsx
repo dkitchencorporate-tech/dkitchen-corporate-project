@@ -203,7 +203,9 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
             </div>
             <div className="flex flex-col justify-center gap-2">
               <p className="text-center text-2xl font-black">{euros(precio('comandero_pro')!.precioCentimos)}<span className="text-xs font-normal text-[#6B7079]"> /mes + IVA</span></p>
-              <Boton s="comandero_pro" />
+              {servicios.comanderoPro && !tiene('comandero_pro')
+                ? <span className="block rounded-xl bg-green-500/15 py-3 text-center text-sm font-bold text-green-700">✓ Incluido en tu plan</span>
+                : <Boton s="comandero_pro" />}
             </div>
           </article>
         )}
