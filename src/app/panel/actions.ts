@@ -753,7 +753,6 @@ export async function escaneosRangoAction(...a: Parameters<typeof escaneosRangoA
 // Devuelven { ok, error } en vez de lanzar: en producción Next oculta el mensaje
 // de los errores lanzados y el encargado debe ver el motivo real (en español).
 type Res<T> = { ok: true; datos: T } | { ok: false; error: string };
-const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
 async function comandero<T>(fn: (jwt: string) => Promise<T>): Promise<Res<T>> {
   try {
