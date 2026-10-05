@@ -22,7 +22,7 @@ const GRUPOS: { t: string; href: string; p: [string, string][] }[] = [
     ['¿Pierdo la carta de papel?', 'No tiene por qué. Muchos locales combinan las dos: la digital para cambiar al momento y la física como apoyo en mesa.'],
     ['¿Y si me voy?', 'Te llevas tu carta y tus datos. No los retenemos.'],
   ] },
-  { t: 'DKitchen Signature', href: '/base-operativa', p: [
+  { t: 'DKitchen Signature', href: '/signature', p: [
     ['¿Cuánto cuesta?', '700 € de entrada en pago único, o en 2 cuotas de 375 € (750 € en total). Los 2 primeros meses de mantenimiento van incluidos; después, 69 €/mes sin permanencia.'],
     ['¿Tengo que dejar las plataformas de delivery?', 'No. Tu app es el canal donde no pagas comisión; puedes seguir en las plataformas para captar clientes nuevos.'],
   ] },

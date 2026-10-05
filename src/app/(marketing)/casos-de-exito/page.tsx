@@ -69,7 +69,7 @@ export default function CasosDeExito() {
         </div>
       </section>
 
-      <Cierre titulo="El próximo caso puede ser el tuyo." sub="Cuéntanos cómo vendes hoy y te decimos qué tendría sentido para tu negocio." cta={{ href: WA, t: 'Hablar sobre mi negocio' }} secundario={{ href: '/base-operativa', t: 'Ver DKitchen Signature' }} />
+      <Cierre titulo="El próximo caso puede ser el tuyo." sub="Cuéntanos cómo vendes hoy y te decimos qué tendría sentido para tu negocio." cta={{ href: WA, t: 'Hablar sobre mi negocio' }} secundario={{ href: '/signature', t: 'Ver DKitchen Signature' }} />
     </div>
   );
 }

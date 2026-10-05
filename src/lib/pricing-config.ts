@@ -288,4 +288,13 @@ export const SERVICIOS_QR = {
   imagenesGratisIa: 3,
   /** Comandero Pro (0045): histórico, descargas, anulaciones y ranking. 12 € + IVA al mes. Espejo de catalogo_servicios. */
   comanderoPro: 12,
+  /** Idiomas (hasta 3, traducidos por DKitchen): pago único. Espejo de catalogo_servicios (05/10). */
+  idiomas: 29,
+  /** Módulos de sala (0027), mensuales y con plan Ampliado. Espejo de catalogo_servicios (05/10). */
+  planoMesas: 24,
+  appSala: 49,
+  conexionTpv: 59,
+  packSala: 119,
+  /** Suma de los tres módulos sueltos: el precio tachado del Pack Sala. */
+  packSalaAncla: 132,
 } as const;

@@ -6,15 +6,18 @@ import { MovilApp, CalculadoraComisiones, CapitulosSignature } from '@/component
 import { ModelosReales } from '@/components/dk/Modelos';
 import { Titulo } from '@/components/dk/Bloques';
 import ComparativaQr from '@/components/qr-landing/ComparativaQr';
+import { BASE_OPERATIVA } from '@/lib/pricing-config';
 
 /**
  * DKitchen Signature (antes «Núcleo Operativo») — rediseño 29/09/2026.
  * Palabra clave: app propia de pedidos para restaurantes sin comisiones.
  */
+const URL_SIGNATURE = 'https://dkitchencorporate.es/signature';
+
 export const metadata: Metadata = {
   title: 'App propia de pedidos sin comisiones · DKitchen Signature',
   description: 'Tu app con tu marca: pedidos en mesa, recogida y domicilio, comandas a cocina, fidelización y conexión con tu TPV. Entrada 700 € y 69 €/mes.',
-  alternates: { canonical: 'https://dkitchencorporate.es/base-operativa' },
+  alternates: { canonical: 'https://dkitchencorporate.es/signature' },
 };
 
 const FUNCIONES = [
@@ -40,8 +43,21 @@ const PREGUNTAS: [string, string][] = [
 
 export default function PaginaSignature() {
   const ld = [
+    // Precios leídos de pricing-config (SEO bloque 2, 05/10): entrada única + mantenimiento mensual, ambos + IVA.
     { '@context': 'https://schema.org', '@type': 'Product', name: 'DKitchen Signature', description: 'App propia de pedidos para restaurantes, con tu marca y sin comisiones de plataforma.', brand: { '@type': 'Brand', name: 'DKitchen' },
-      offers: { '@type': 'Offer', price: '700', priceCurrency: 'EUR', url: 'https://dkitchencorporate.es/base-operativa#precio', availability: 'https://schema.org/InStock' } },
+      url: URL_SIGNATURE, image: `${URL_SIGNATURE}/opengraph-image`,
+      offers: {
+        '@type': 'Offer', url: `${URL_SIGNATURE}#precio`, priceCurrency: 'EUR', price: String(BASE_OPERATIVA.pagoUnico), availability: 'https://schema.org/InStock',
+        seller: { '@type': 'Organization', name: 'DKitchen', url: 'https://dkitchencorporate.es' },
+        priceSpecification: [
+          { '@type': 'UnitPriceSpecification', name: 'Entrada (pago único)', price: BASE_OPERATIVA.pagoUnico, priceCurrency: 'EUR', valueAddedTaxIncluded: false },
+          { '@type': 'UnitPriceSpecification', name: `Mantenimiento mensual desde el mes ${BASE_OPERATIVA.mantenimiento.empiezaEnMes}`, price: BASE_OPERATIVA.mantenimiento.mensual, priceCurrency: 'EUR', valueAddedTaxIncluded: false, unitCode: 'MON', referenceQuantity: { '@type': 'QuantitativeValue', value: 1, unitCode: 'MON' } },
+        ],
+      } },
+    { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://dkitchencorporate.es' },
+      { '@type': 'ListItem', position: 2, name: 'DKitchen Signature', item: URL_SIGNATURE },
+    ] },
     { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: PREGUNTAS.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
   ];
   return (

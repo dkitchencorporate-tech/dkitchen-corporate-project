@@ -59,7 +59,7 @@ export async function POST(request: Request) {
      <p>Mientras tanto, puedes ver lo que hacemos:</p>
      <ul>
        <li><a href="https://dkitchencorporate.es/qr">Carta digital QR</a>: tu carta al día desde el móvil, primer mes por 1 €.</li>
-       <li><a href="https://dkitchencorporate.es/base-operativa">DKitchen Signature</a>: tu propia app de pedidos, con tu marca.</li>
+       <li><a href="https://dkitchencorporate.es/signature">DKitchen Signature</a>: tu propia app de pedidos, con tu marca.</li>
        <li><a href="https://dkitchencorporate.es/casos-de-exito">Casos de éxito</a>: apps reales que ya venden.</li>
      </ul>
      <p>Un saludo,<br>El equipo de DKitchen</p>`).catch((e) => console.error('Solicitud: no se pudo enviar la confirmación', e));

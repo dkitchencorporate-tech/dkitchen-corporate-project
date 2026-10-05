@@ -330,7 +330,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
       'Con Signature tienes una app instalable con tu marca, pedidos a domicilio y para recoger, y pago online (Stripe, SumUp o Revolut Pay), con datáfono o en efectivo.',
       'Además: seguimiento del pedido con avisos, club de puntos, campañas por correo, kiosko de autoservicio y comandas impresas en cocina.',
     ],
-    acciones: [{ tipo: 'enlace', href: '/base-operativa', texto: 'Ver Signature y sus apps reales' }, { tipo: 'ir', pestana: 'soporte', texto: 'Pedir una propuesta' }],
+    acciones: [{ tipo: 'enlace', href: '/signature', texto: 'Ver Signature y sus apps reales' }, { tipo: 'ir', pestana: 'soporte', texto: 'Pedir una propuesta' }],
     siguientes: ['plan-ampliado'],
   },
   {
@@ -415,7 +415,7 @@ export const TEMAS_WEB: TemaAyuda[] = [
       'Incluye app instalable con tu marca, pedidos a domicilio y para recoger, pago online (Stripe, SumUp o Revolut Pay), club de puntos, campañas por correo, kiosko y comandas en cocina.',
       `Pago de entrada de ${BASE_OPERATIVA.pagoUnico} € + IVA y mantenimiento mensual. Te preparamos una propuesta para tu local sin compromiso.`,
     ],
-    acciones: [{ tipo: 'enlace', href: '/base-operativa', texto: 'Ver Signature' }, { tipo: 'solicitud', interes: 'signature', texto: 'Quiero mi propuesta' }],
+    acciones: [{ tipo: 'enlace', href: '/signature', texto: 'Ver Signature' }, { tipo: 'solicitud', interes: 'signature', texto: 'Quiero mi propuesta' }],
   },
   {
     id: 'diferencia', pregunta: 'Qué diferencia hay entre la carta QR y Signature',
@@ -424,7 +424,7 @@ export const TEMAS_WEB: TemaAyuda[] = [
       'La carta QR es tu carta digital: la cambias al momento, con alérgenos, reservas y llamada al camarero.',
       'Signature es tu propio negocio digital: app con tu marca, pedidos y pago online sin comisiones, tus clientes y tus datos. Aunque contrates la carta QR con todo, Signature está en otra liga.',
     ],
-    acciones: [{ tipo: 'enlace', href: '/qr#planes', texto: 'Ver la carta QR' }, { tipo: 'enlace', href: '/base-operativa', texto: 'Ver Signature' }],
+    acciones: [{ tipo: 'enlace', href: '/qr#planes', texto: 'Ver la carta QR' }, { tipo: 'enlace', href: '/signature', texto: 'Ver Signature' }],
     siguientes: ['signature', 'precio-qr'],
   },
   {

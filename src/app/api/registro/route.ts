@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
   const servicios = `<ul>
     <li><a href="https://dkitchencorporate.es/qr">Carta digital QR</a>: tu carta al día desde el móvil, desde 9 €/mes.</li>
-    <li><a href="https://dkitchencorporate.es/base-operativa">DKitchen Signature</a>: tu propia app de pedidos, con tu marca.</li>
+    <li><a href="https://dkitchencorporate.es/signature">DKitchen Signature</a>: tu propia app de pedidos, con tu marca.</li>
     <li><a href="https://dkitchencorporate.es/experience">Experience</a>: eventos que llenan tus días flojos.</li>
     <li><a href="https://dkitchencorporate.es/dark-kitchen">Dark Kitchen</a>: marcas virtuales para vender a domicilio.</li></ul>`;
   await enviarCorreoCliente(email, tipo === 'partner' ? 'Hemos recibido tu solicitud de partner · DKitchen' : 'Gracias por tu recomendación · DKitchen',

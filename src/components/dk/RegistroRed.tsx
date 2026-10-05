@@ -12,7 +12,7 @@ import { CURVA } from './Movimiento';
  */
 type Tipo = 'recomendacion' | 'partner';
 const PERFILES = [['tpv', 'Comercial de TPV'], ['horeca', 'Distribuidor HORECA'], ['independiente', 'Comercial independiente'], ['agencia', 'Agencia'], ['otro', 'Otro']];
-const SERVICIOS = [['/qr', 'Carta digital QR', 'Tu carta al día desde el móvil'], ['/base-operativa', 'DKitchen Signature', 'Tu propia app de pedidos'], ['/experience', 'Experience', 'Eventos que llenan el local'], ['/dark-kitchen', 'Dark Kitchen', 'Marcas para domicilio']];
+const SERVICIOS = [['/qr', 'Carta digital QR', 'Tu carta al día desde el móvil'], ['/signature', 'DKitchen Signature', 'Tu propia app de pedidos'], ['/experience', 'Experience', 'Eventos que llenan el local'], ['/dark-kitchen', 'Dark Kitchen', 'Marcas para domicilio']];
 
 function Formulario({ tipo, onCerrar }: { tipo: Tipo; onCerrar: () => void }) {
   const [estado, setEstado] = useState<'idle' | 'enviando' | 'ok' | 'error'>('idle');

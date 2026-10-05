@@ -39,7 +39,7 @@ export default function PreguntasQr() {
           <p className="mx-auto mt-5 max-w-lg text-lg text-white/60">Actívala por 1 € y súbela en una tarde. Si algo no te convence, lo dejas.</p>
           <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
             <a href="#planes" className="rounded-full bg-white px-8 py-4 text-[15px] font-semibold text-[#17191E]">Ver planes</a>
-            <Link href="/base-operativa" className="rounded-full border border-white/20 px-8 py-4 text-[15px] font-semibold">Conocer DKitchen Signature</Link>
+            <Link href="/signature" className="rounded-full border border-white/20 px-8 py-4 text-[15px] font-semibold">Conocer DKitchen Signature</Link>
           </div>
         </div>
       </section>

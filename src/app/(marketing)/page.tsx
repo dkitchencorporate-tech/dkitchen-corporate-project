@@ -27,7 +27,7 @@ const DOLORES = [
 ];
 const ESCALERA = [
   { n: '01', t: 'Carta QR', d: 'Tu carta digital al día desde el móvil. Estilos propios, alérgenos, reservas y llamada al camarero.', p: 'Desde 9 €/mes + IVA · primer mes 1 €', href: '/qr', destacado: true },
-  { n: '02', t: 'DKitchen Signature', d: 'Tu propia app con tu marca: tus clientes piden y pagan, cocina y TPV integrados. Es tuya.', p: 'Entrada 700 € · 69 €/mes · + IVA', href: '/base-operativa' },
+  { n: '02', t: 'DKitchen Signature', d: 'Tu propia app con tu marca: tus clientes piden y pagan, cocina y TPV integrados. Es tuya.', p: 'Entrada 700 € · 69 €/mes · + IVA', href: '/signature' },
   { n: '03', t: 'Experience', d: 'Eventos gastronómicos ya diseñados para llenar tus días flojos, con su propia web de reservas.', p: 'Desde 299 € + IVA por evento', href: '/experience' },
   { n: '04', t: 'Dark Kitchen', d: 'Marcas virtuales ya operadas para vender a domicilio con la cocina que ya tienes.', p: 'A medida', href: '/dark-kitchen' },
 ];
@@ -44,7 +44,7 @@ export default function Home() {
             <Aparecer retraso={0.3}><p className="mt-7 max-w-lg text-lg leading-relaxed text-white/70">Empieza con la carta digital por 1 €. Cuando crezcas, tu propia app de pedidos. Sin comisiones por ticket y con tus clientes siempre en tu casa.</p></Aparecer>
             <Aparecer retraso={0.4} className="mt-9 flex flex-col gap-3 sm:flex-row">
               <BotonMagnetico href="/qr" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#6E0C2B] px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(163,24,74,.45)] hover:bg-[#4A0819]">Empieza por 1 € →</BotonMagnetico>
-              <BotonMagnetico href="/base-operativa" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-8 py-4 text-[15px] font-semibold backdrop-blur hover:border-white/50">Quiero mi propia app</BotonMagnetico>
+              <BotonMagnetico href="/signature" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-8 py-4 text-[15px] font-semibold backdrop-blur hover:border-white/50">Quiero mi propia app</BotonMagnetico>
             </Aparecer>
           </div>
           <DispositivoVivo ancho={280} />
@@ -95,6 +95,9 @@ export default function Home() {
               </Aparecer>
             ))}
           </div>
+          <Aparecer className="mt-8">
+            <Link href="/precios" className="inline-block font-semibold underline decoration-[#6E0C2B] decoration-2 underline-offset-4">Ver todos los precios →</Link>
+          </Aparecer>
         </div>
       </section>
 

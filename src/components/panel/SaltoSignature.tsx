@@ -26,7 +26,7 @@ export default function SaltoSignature() {
         ))}
       </ul>
       <div className="relative mt-6 flex flex-wrap gap-3">
-        <a href="/base-operativa" target="_blank" rel="noopener" className="rounded-full bg-[#6E0C2B] px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-[#D9B25C]/40">Ver Signature y sus apps reales</a>
+        <a href="/signature" target="_blank" rel="noopener" className="rounded-full bg-[#6E0C2B] px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-[#D9B25C]/40">Ver Signature y sus apps reales</a>
         <a href="/panel?pestana=soporte&asunto=Quiero%20saber%20m%C3%A1s%20de%20Signature" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold text-white">Pedir una propuesta</a>
       </div>
     </section>

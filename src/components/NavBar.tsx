@@ -13,7 +13,8 @@ import { AnimatePresence, motion } from 'framer-motion';
  */
 const ENLACES = [
   { href: '/qr', etiqueta: 'Carta QR' },
-  { href: '/base-operativa', etiqueta: 'Signature' },
+  { href: '/signature', etiqueta: 'Signature' },
+  { href: '/precios', etiqueta: 'Precios' },
   { href: '/experience', etiqueta: 'Experience' },
   { href: '/dark-kitchen', etiqueta: 'Dark Kitchen' },
   { href: '/casos-de-exito', etiqueta: 'Casos' },

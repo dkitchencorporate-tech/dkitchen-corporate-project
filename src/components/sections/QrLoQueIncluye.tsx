@@ -83,7 +83,7 @@ export default function QrLoQueIncluye() {
               </div>
             ))}
           </div>
-          <Link href="/base-operativa" className="mt-6 inline-block font-bold text-gray-900 underline decoration-[#6E0C2B] decoration-2 underline-offset-4">
+          <Link href="/signature" className="mt-6 inline-block font-bold text-gray-900 underline decoration-[#6E0C2B] decoration-2 underline-offset-4">
             Conocer DKitchen Signature
           </Link>
         </div>

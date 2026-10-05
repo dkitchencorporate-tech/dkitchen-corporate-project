@@ -7,7 +7,7 @@ import { QR_MENU } from '@/lib/pricing-config';
  * siempre muy por encima de QR, aunque el cliente QR contrate todo. Solo se
  * marca en Signature lo que existe de verdad en el motor (ver
  * SIGNATURE_VS_QR_2026-09-30.md en la carpeta del proyecto).
- * Variantes: «qr» (en /qr), «signature» (en /base-operativa), «portada» (compacta).
+ * Variantes: «qr» (en /qr), «signature» (en /signature), «portada» (compacta).
  */
 type Fila = { t: string; qr: boolean | string; sig: boolean | string; clave?: boolean };
 const GRUPOS: { g: string; filas: Fila[] }[] = [
@@ -94,7 +94,7 @@ export default function ComparativaQr({ variante = 'qr' }: { variante?: 'qr' | '
           {variante === 'signature' ? (
             <a href="#precio" className="inline-flex rounded-full bg-[#6E0C2B] px-7 py-4 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(163,24,74,.35)]">Quiero mi app →</a>
           ) : (
-            <Link href="/base-operativa" className="inline-flex rounded-full bg-[#17191E] px-7 py-4 text-[15px] font-semibold text-white">Conocer DKitchen Signature →</Link>
+            <Link href="/signature" className="inline-flex rounded-full bg-[#17191E] px-7 py-4 text-[15px] font-semibold text-white">Conocer DKitchen Signature →</Link>
           )}
           {variante !== 'signature' && <p className="text-sm text-[#6B7079]">Empieza con la carta por 1 € y da el salto cuando tu negocio lo pida.</p>}
         </div>

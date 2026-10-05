@@ -96,7 +96,7 @@ export default function AuditoriaCanales() {
               como sistema operativo del negocio.
             </p>
             <Link
-              href="/base-operativa"
+              href="/signature"
               className="inline-flex items-center gap-2 text-gray-900 font-black hover:text-[#6E0C2B] transition-colors"
             >
               Ver Núcleo Operativo →

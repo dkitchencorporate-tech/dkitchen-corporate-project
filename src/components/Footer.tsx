@@ -3,7 +3,7 @@ import RegistroRed from '@/components/dk/RegistroRed';
 
 /** Pie de la web (rediseño 29/09/2026): enlaces agrupados para SEO interno y contacto directo. */
 const COLUMNAS: [string, [string, string][]][] = [
-  ['Productos', [['/qr', 'Carta digital QR'], ['/base-operativa', 'DKitchen Signature'], ['/experience', 'Experience'], ['/dark-kitchen', 'Dark Kitchen'], ['/marcas', 'Marcas'], ['/auditoria', 'Auditoría']]],
+  ['Productos', [['/qr', 'Carta digital QR'], ['/signature', 'DKitchen Signature'], ['/experience', 'Experience'], ['/dark-kitchen', 'Dark Kitchen'], ['/marcas', 'Marcas'], ['/auditoria', 'Auditoría'], ['/precios', 'Precios']]],
   ['Aprende', [['/blog', 'Blog'], ['/casos-de-exito', 'Casos de éxito'], ['/faq', 'Preguntas frecuentes']]],
   ['Cuenta', [['/panel/iniciar-sesion', 'Entrar en mi panel'], ['/qr#planes', 'Empezar por 1 €']]],
   ['Legal', [['/privacy', 'Privacidad'], ['/terms', 'Términos']]],

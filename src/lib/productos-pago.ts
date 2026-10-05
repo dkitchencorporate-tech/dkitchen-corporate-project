@@ -39,7 +39,7 @@ export const PRODUCTOS_PAGO: Record<string, ProductoPago> = {
     incluye: ['App instalable con tu marca, tus colores y tu carta', 'Pedidos en mesa, para recoger y a domicilio', 'Club de fidelización con puntos y premios', 'Panel para gestionar pedidos y carta', `${BASE_OPERATIVA.mantenimiento.mesesGratis} meses de mantenimiento incluidos`, 'Sin comisión por pedido'],
     despues: [['Al momento', 'Recibes la confirmación del pago y el contrato en tu correo.'], ['En 24 horas laborables', 'Te llamamos para recoger tu marca, tu carta y tus fotos.'], ['Primera versión', 'Te enseñamos tu app funcionando para que pidas cambios.'], ['Publicación', 'Tu app queda publicada con tu dominio y empiezas a vender.']],
     garantias: ['Pago seguro con Whop', 'Contrato y factura', 'La app y los datos de tus clientes son tuyos'],
-    volver: { href: '/base-operativa', t: 'Volver a Signature' },
+    volver: { href: '/signature', t: 'Volver a Signature' },
   },
   experience: {
     id: 'experience', metadataWhop: 'experience', nombre: 'DKitchen Experience',

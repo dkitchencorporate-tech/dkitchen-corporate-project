@@ -62,7 +62,7 @@ export default function PaginaAuditoria() {
         ['¿Y si el problema es más grande que un parche?', 'Te lo diremos. Si hace falta algo estructural, el paso natural es tu propia app con DKitchen Signature.'],
       ]} />
 
-      <Cierre titulo="Tus clientes ya te están buscando." sub="Por 47 € sabrás exactamente por qué algunos no llegan." cta={{ href: WA, t: 'Reservar mi auditoría' }} secundario={{ href: '/base-operativa', t: 'Ver DKitchen Signature' }} />
+      <Cierre titulo="Tus clientes ya te están buscando." sub="Por 47 € sabrás exactamente por qué algunos no llegan." cta={{ href: WA, t: 'Reservar mi auditoría' }} secundario={{ href: '/signature', t: 'Ver DKitchen Signature' }} />
     </div>
   );
 }

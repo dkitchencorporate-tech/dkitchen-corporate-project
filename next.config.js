@@ -121,6 +121,12 @@ const nextConfig = {
   // tanto Turbopack como webpack, sin acoplarse a ninguno de los dos.
   serverExternalPackages: ['@neondatabase/serverless', 'ws', 'bufferutil', 'utf-8-validate'],
 
+  // SEO bloque 2 (05/10): Signature vive en /signature. Solo la ruta exacta:
+  // /base-operativa/bienvenida sigue siendo la vuelta de Whop tras pagar.
+  async redirects() {
+    return [{ source: '/base-operativa', destination: '/signature', permanent: true }];
+  },
+
   async headers() {
     return [
       { source: '/:path*', headers: cabecerasDeSeguridad },
