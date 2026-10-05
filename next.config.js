@@ -124,7 +124,11 @@ const nextConfig = {
   // SEO bloque 2 (05/10): Signature vive en /signature. Solo la ruta exacta:
   // /base-operativa/bienvenida sigue siendo la vuelta de Whop tras pagar.
   async redirects() {
-    return [{ source: '/base-operativa', destination: '/signature', permanent: true }];
+    return [
+      { source: '/base-operativa', destination: '/signature', permanent: true },
+      // La demo del panel enlaza a la carta del restaurante "demo", que vive en /demo/carta.
+      { source: '/m/demo', destination: '/demo/carta', permanent: false },
+    ];
   },
 
   async headers() {

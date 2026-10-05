@@ -140,7 +140,7 @@ export default function PaginaSignature() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-2 md:px-8">
           <div>
             <p className="etiqueta-dk text-[#6E0C2B]">Precio</p>
-            <TextoRevelado texto="Pagas una vez. Tu app es tuya." className="font-display mt-4 text-5xl font-semibold leading-[1.0] md:text-7xl" />
+            <TextoRevelado texto="Entrada única. El código de tu app es tuyo." className="font-display mt-4 text-5xl font-semibold leading-[1.0] md:text-7xl" />
             <p className="mt-5 max-w-md text-lg text-white/60">Entrada única y un mantenimiento mensual que cuesta menos que las comisiones de unos pocos pedidos.</p>
           </div>
           <Aparecer className="rounded-[32px] border border-white/10 bg-white/[0.05] p-8 backdrop-blur md:p-10">

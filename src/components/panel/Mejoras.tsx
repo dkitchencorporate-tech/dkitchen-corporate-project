@@ -282,7 +282,7 @@ function MapaNucleo({ credito, nModulos, precioTodo }: { credito: { euros: strin
         <p className="text-xs font-bold uppercase tracking-widest text-[#6E0C2B]">El siguiente nivel</p>
         <h3 className="font-display mt-1 text-2xl font-semibold tracking-tight">QR Menú y DKitchen Signature no son lo mismo</h3>
         <p className="mt-1 text-sm text-[#6B7079]">
-          El QR es una herramienta para tu carta y tu sala. DKitchen Signature (nuestro Núcleo Operativo) es el sistema que gestiona todo tu restaurante, y es tuyo.
+          El QR es una herramienta para tu carta y tu sala. DKitchen Signature es el sistema que gestiona todo tu restaurante, y el código de tu app es tuyo.
         </p>
       </div>
       <div className="overflow-hidden rounded-2xl border border-[#E6E6E2]">

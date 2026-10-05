@@ -127,7 +127,7 @@ export async function crearCheckoutNucleoOperativo(datos: DatosCheckoutNucleoOpe
       plan_type: 'one_time',
       initial_price: BASE_OPERATIVA.pagoUnico,
       product: {
-        title: 'Núcleo Operativo — Activación',
+        title: 'DKitchen Signature — Entrada',
         external_identifier: 'dk-nucleo-operativo',
       },
     },
@@ -252,7 +252,7 @@ export async function crearCheckoutMantenimientoNucleoOperativo(
       renewal_price: precioCentimos / 100,
       billing_period: 30,
       product: {
-        title: 'Núcleo Operativo — Mantenimiento mensual',
+        title: 'DKitchen Signature — Cuota mensual',
         external_identifier: 'dk-nucleo-operativo-mantenimiento',
       },
     },

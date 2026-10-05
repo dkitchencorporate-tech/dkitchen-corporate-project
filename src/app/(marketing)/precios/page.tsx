@@ -47,7 +47,7 @@ const SERVICIOS: Linea[] = [
 const TRAMOS_SIG = BASE_OPERATIVA.mantenimiento.tramos;
 const OTROS = [
   { id: 'signature', n: '03', t: 'DKitchen Signature', lema: 'Tu propia app de pedidos. El código de tu app es tuyo.',
-    d: `Pagas una entrada única y la app con tu marca es tuya. Los ${BASE_OPERATIVA.mantenimiento.mesesGratis} primeros meses de cuota son gratis y la cuota solo sube si tus ventas por la app crecen.`,
+    d: `Pagas una entrada única y el código de tu app, con tu marca, es tuyo. Los ${BASE_OPERATIVA.mantenimiento.mesesGratis} primeros meses de cuota son gratis y la cuota solo sube si tus ventas por la app crecen.`,
     incluye: ['App instalable con tu marca y tu dominio', 'Pedidos en mesa, recogida y domicilio, con pago', 'Pantalla de cocina y comandero (Comandero Pro incluido)', 'Club de fidelización con puntos y avisos', 'Conexión con tu TPV y con tu cierre fiscal', 'Sin comisión por pedido, nunca'],
     p: eur(BASE_OPERATIVA.pagoUnico), unidad: 'entrada única', nota: `Fraccionable · cuota desde el mes ${BASE_OPERATIVA.mantenimiento.empiezaEnMes}`,
     tabla: [...TRAMOS_SIG.map((x) => [x.nombre, `hasta ${eur(x.hastaVentas)} o ${x.hastaPedidos.toLocaleString('es-ES')} pedidos al mes`, `${eur(x.cuota)}/mes`]), ['A medida', `más de ${eur(TRAMOS_SIG[TRAMOS_SIG.length - 1].hastaVentas)}/mes o varios locales`, `desde ${eur(BASE_OPERATIVA.mantenimiento.aMedida.desde)}/mes`]],

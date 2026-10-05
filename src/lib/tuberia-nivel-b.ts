@@ -26,7 +26,7 @@ import { enviarCorreoCliente, enviarCorreoInterno, escaparHtml } from '@/lib/ema
  */
 
 const NOMBRES_PRODUCTO: Record<string, string> = {
-  'nucleo-operativo': 'Núcleo Operativo',
+  'nucleo-operativo': 'DKitchen Signature',
   'dark-kitchen-ruta-b': 'Dark Kitchen — Marca en Caja',
   experience: 'Experience',
   auditoria: 'Auditoría de canales + Escandallo',

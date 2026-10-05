@@ -51,11 +51,11 @@ export async function GET(request: Request) {
 
         await enviarCorreoCliente(
           pedido.email,
-          'Activa el mantenimiento de tu Núcleo Operativo',
+          'Activa la cuota mensual de tu app DKitchen Signature',
           `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2 style="color: #6E0C2B;">Tus dos primeros meses de mantenimiento ya pasaron</h2>
             <p>Hola ${escaparHtml(pedido.nombreContacto)},</p>
-            <p>Para seguir con la infraestructura y el mantenimiento de tu Núcleo Operativo,
+            <p>Para seguir con la infraestructura y el mantenimiento de tu app DKitchen Signature,
             activa la cuota mensual (desde 99€/mes según volumen) aquí:</p>
             <p><a href="${url}" style="background:#6E0C2B;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;">Activar mantenimiento</a></p>
           </div>`

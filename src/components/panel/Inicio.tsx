@@ -10,6 +10,10 @@ import { registrarOfertaAction } from '@/app/panel/actions';
 import { TEXTOS_OFERTA } from './OfertaFranja';
 import { Contador } from '@/components/dk/Movimiento';
 import { Icono } from './Iconos';
+import { QR_MENU, SERVICIOS_QR } from '@/lib/pricing-config';
+
+// Ampliado + Pack Sala + Comandero Pro: lo que paga un cliente QR con todos los módulos.
+const QR_CON_TODO = QR_MENU.planes.ampliado.mensual + SERVICIOS_QR.packSala + SERVICIOS_QR.comanderoPro;
 
 /**
  * Inicio del panel (rediseño 29/09/2026, ref. REFERENCIAS_DASHBOARD_Y_WEB):
@@ -166,10 +170,10 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
           <div>
             <p className="etiqueta-dk text-[#D9B25C]">Tu siguiente paso</p>
             <p className="font-display mt-3 text-3xl font-semibold leading-tight md:text-4xl">Tu propia app, con tu marca. <span className="acento-serif">Y en propiedad.</span></p>
-            <p className="mt-3 max-w-lg text-[15px] text-white/65">Con DKitchen Signature tus clientes piden y pagan en tu app, acumulan puntos y vuelven. Pedidos, sala y carta en un solo panel, y la app es tuya aunque un día te vayas.</p>
+            <p className="mt-3 max-w-lg text-[15px] text-white/65">Con DKitchen Signature tus clientes piden y pagan en tu app, acumulan puntos y vuelven. Pedidos, sala y carta en un solo panel, y el código de tu app es tuyo.</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-            <div className="flex justify-between text-sm"><span className="text-white/60">Carta QR con todos los módulos</span><span className="tabular-nums">124 €/mes · alquiler</span></div>
+            <div className="flex justify-between text-sm"><span className="text-white/60">Carta QR con todos los módulos</span><span className="tabular-nums">{QR_CON_TODO} €/mes · alquiler</span></div>
             <div className="mt-2 flex justify-between text-sm"><span className="text-white/60">Signature</span><span className="tabular-nums text-[#D9B25C]">desde 99 €/mes · tu app</span></div>
             <p className="mt-3 text-xs text-white/45">Signature: entrada de 700 € y 2 meses de mantenimiento incluidos. Precios + IVA.</p>
             <a href="/pagar/signature" className="mt-4 flex items-center justify-center gap-2 rounded-full bg-[#6E0C2B] px-5 py-3 text-sm font-semibold">Ver Signature <Icono n="flecha" className="h-4 w-4" /></a>
