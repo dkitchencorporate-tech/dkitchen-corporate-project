@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
 import { FondoVivo } from '@/components/dk/Movimiento';
+import Briefing from '@/components/experience/Briefing';
 
 export const metadata: Metadata = { title: 'Pago recibido · DKitchen', robots: { index: false, follow: false } };
 
@@ -25,6 +26,7 @@ export default async function Gracias({ searchParams }: { searchParams: Promise<
             ))}
           </ol>
         )}
+        {p?.id === 'experience' && <Briefing />}
         <Link href="/" className="mt-12 inline-block rounded-full border border-white/20 px-7 py-3.5 text-sm font-semibold hover:border-white/50">Volver a la web</Link>
       </div>
     </section>

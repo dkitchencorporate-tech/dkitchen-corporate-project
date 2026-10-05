@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { FORMATOS_EXPERIENCE } from '@/lib/experience-formatos';
 import { ARTICULOS } from '@/lib/blog';
 
 /**
@@ -17,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { ruta: '/', prioridad: 1, frecuencia: 'weekly' },
     { ruta: '/qr', prioridad: 0.9, frecuencia: 'weekly' },
     { ruta: '/experience', prioridad: 0.8, frecuencia: 'weekly' },
+    ...FORMATOS_EXPERIENCE.map((f) => ({ ruta: `/experience/${f.slug}`, prioridad: 0.7, frecuencia: 'monthly' as const })),
     { ruta: '/auditoria', prioridad: 0.7, frecuencia: 'weekly' },
     { ruta: '/signature', prioridad: 0.9, frecuencia: 'weekly' },
     { ruta: '/precios', prioridad: 0.8, frecuencia: 'weekly' },

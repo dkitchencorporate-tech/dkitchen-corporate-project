@@ -3,6 +3,8 @@ import { HeroPagina, Titulo, Dolores, Faq, Cierre } from '@/components/dk/Bloque
 import { Marquesina, TarjetaTilt } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
 import { TaquillaViva, EscaleraPrecios } from '@/components/dk/PiezasProductos';
+import Link from 'next/link';
+import { FORMATOS_EXPERIENCE } from '@/lib/experience-formatos';
 
 /** DKitchen Experience — rediseño 29/09/2026. Palabra clave: eventos para restaurantes llave en mano. */
 export const metadata: Metadata = {
@@ -12,16 +14,6 @@ export const metadata: Metadata = {
 };
 
 const WA = '/pagar/experience';
-// 7 formatos genéricos aprobados por karc0 (05/10): sirven para cualquier cocina; ya no van ligados a marcas propias.
-const FORMATOS: [string, string, string][] = [
-  ['Noche de maridaje', 'Vino, cerveza, cócteles o sin alcohol', 'Un menú cerrado con su bebida: ticket alto en tu día flojo.'],
-  ['Mesa del chef', 'Menú degustación · 10 a 20 plazas', 'Exclusividad, cercanía con la cocina y reseñas que se notan.'],
-  ['Brunch de domingo', 'Cafeterías, bares y restaurantes', 'Llena la mañana que hoy tienes vacía.'],
-  ['Viaje gastronómico', 'Tu especialidad, tu temporada o tu origen', 'Una noche temática que se puede repetir cada mes.'],
-  ['Taller en vivo', 'Cocina, cócteles, pasta, sushi o pan', 'Una clase práctica que trae público nuevo y grupos.'],
-  ['Afterwork con música', 'Bares y gastrobares', 'Tapeo y música en directo para llenar entre semana.'],
-  ['Reto o batalla', 'Picante, cata a ciegas o concurso', 'Un formato competitivo pensado para moverse en redes.'],
-];
 
 export default function PaginaExperience() {
   return (
@@ -51,14 +43,15 @@ export default function PaginaExperience() {
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Titulo etiqueta="Siete formatos listos" texto="No inventamos desde cero. Ya está probado." sub="Siete formatos pensados para cualquier tipo de cocina. El formato lo ponemos nosotros; el menú y la esencia de tu local, tú." />
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {FORMATOS.map(([t, m, d], i) => (
-              <Aparecer key={t} retraso={(i % 3) * 0.07}>
-                <TarjetaTilt className="group relative h-full overflow-hidden rounded-[28px] bg-[#0A080C] p-7 text-white">
+            {FORMATOS_EXPERIENCE.map(({ slug, nombre: t, etiqueta: m, frase: d }, i) => (
+              <Aparecer key={slug} retraso={(i % 3) * 0.07}>
+                <Link href={`/experience/${slug}`} className="block h-full"><TarjetaTilt className="group relative h-full overflow-hidden rounded-[28px] bg-[#0A080C] p-7 text-white">
                   <div aria-hidden="true" className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.4),transparent)] transition-transform duration-700 group-hover:scale-150" />
                   <p className="relative etiqueta-dk text-[#6E0C2B]">{m}</p>
                   <p className="font-display relative mt-3 text-3xl font-semibold">{t}</p>
                   <p className="relative mt-2 text-white/60">{d}</p>
-                </TarjetaTilt>
+                  <p className="relative mt-5 text-sm font-semibold text-[#D9B25C]">Ver el formato y calcular mi evento →</p>
+                </TarjetaTilt></Link>
               </Aparecer>
             ))}
           </div>
