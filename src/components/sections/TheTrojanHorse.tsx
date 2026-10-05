@@ -235,7 +235,7 @@ export default function TheTrojanHorse() {
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#6E0C2B] to-orange-400"></div>
                 <h4 className="text-[#6E0C2B] font-black text-lg mb-2">🎁 Bono Especial: 2 Meses de Mantenimiento GRATIS</h4>
                 <p className="text-gray-700 font-medium leading-relaxed">
-                  Queremos que tu única preocupación sea atender mesas. Como regalo extra, cubrimos los primeros 2 meses de alojamiento en servidores ultrarrápidos a coste cero. Tiempo de sobra para afinar el sistema juntos. Después, el soporte premium será de solo <strong className="text-gray-900 font-black">69€/mes</strong>, cubriendo el servidor, protección anti-caídas y actualizaciones de seguridad. Sin permanencia.
+                  Queremos que tu única preocupación sea atender mesas. Como regalo extra, cubrimos los primeros 2 meses de alojamiento en servidores ultrarrápidos a coste cero. Tiempo de sobra para afinar el sistema juntos. Después, el soporte premium será de solo <strong className="text-gray-900 font-black">desde 99€/mes</strong>, cubriendo el servidor, protección anti-caídas y actualizaciones de seguridad. Sin permanencia.
                 </p>
               </div>
 

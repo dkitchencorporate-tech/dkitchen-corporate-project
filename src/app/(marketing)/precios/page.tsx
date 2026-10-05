@@ -44,11 +44,29 @@ const SERVICIOS: Linea[] = [
   { nombre: 'Etiquetas QR para mesas', detalle: `Desde ${QR_FISICOS.etiquetas.tandas[0].unidades} unidades`, precio: `desde ${eur(QR_FISICOS.etiquetas.tandas[0].precio)}` },
 ];
 
+const TRAMOS_SIG = BASE_OPERATIVA.tramos;
 const OTROS = [
-  { t: 'DKitchen Signature', d: `Tu propia app de pedidos con tu marca. ${BASE_OPERATIVA.mantenimiento.mesesGratis} primeros meses de mantenimiento gratis y pack de arranque incluido.`, p: `${eur(BASE_OPERATIVA.pagoUnico)} + ${eur(BASE_OPERATIVA.mantenimiento.mensual)}/mes`, nota: `Mantenimiento desde el mes ${BASE_OPERATIVA.mantenimiento.empiezaEnMes}`, cta: { href: '/pagar/signature', t: 'Quiero mi app' }, ver: '/signature', destacado: true },
-  { t: 'Experience', d: 'Eventos gastronómicos ya diseñados para llenar tus días flojos, con su web de reservas. 0 % de comisión sobre la taquilla.', p: eur(EXPERIENCE.tarifas.primeraVez.precio), nota: `Primer evento · ${eur(EXPERIENCE.tarifas.primeraParaClienteQr.precio)} si ya tienes la carta QR · repetir desde ${eur(EXPERIENCE.tarifas.reusoFidelizado.precio)}`, cta: { href: '/pagar/experience', t: 'Reservar mi evento' }, ver: '/experience' },
-  { t: 'Auditoría de canales', d: 'Revisamos dónde te buscan tus clientes y por qué algunos no llegan.', p: eur(AUDITORIA_CANALES.precioOferta), ancla: eur(AUDITORIA_CANALES.precioAncla), nota: 'Pago único', cta: { href: '/pagar/auditoria', t: 'Pedir mi auditoría' }, ver: '/auditoria' },
-  { t: 'Dark Kitchen', d: 'Marcas virtuales ya operadas para vender a domicilio con la cocina que ya tienes.', p: `desde ${eur(DARK_KITCHEN.rutaB.desarrolloPorMarca.primera)}`, nota: `Por marca · proyecto completo de ${eur(DARK_KITCHEN.rutaA.rangoMin)} a ${eur(DARK_KITCHEN.rutaA.rangoMax)}`, cta: { href: '/dark-kitchen', t: 'Ver cómo funciona' }, ver: '/dark-kitchen' },
+  { id: 'signature', n: '03', t: 'DKitchen Signature', lema: 'Tu propia app de pedidos. El código de tu app es tuyo.',
+    d: `Pagas una entrada única y la app con tu marca es tuya. Los ${BASE_OPERATIVA.mantenimiento.mesesGratis} primeros meses de cuota son gratis y la cuota solo sube si tus ventas por la app crecen.`,
+    incluye: ['App instalable con tu marca y tu dominio', 'Pedidos en mesa, recogida y domicilio, con pago', 'Pantalla de cocina y comandero (Comandero Pro incluido)', 'Club de fidelización con puntos y avisos', 'Conexión con tu TPV y con tu cierre fiscal', 'Sin comisión por pedido, nunca'],
+    p: eur(BASE_OPERATIVA.pagoUnico), unidad: 'entrada única', nota: `Fraccionable · cuota desde el mes ${BASE_OPERATIVA.mantenimiento.empiezaEnMes}`,
+    tabla: [...TRAMOS_SIG.map((x) => [x.nombre, `hasta ${eur(x.hastaVentas)} o ${x.hastaPedidos.toLocaleString('es-ES')} pedidos al mes`, `${eur(x.cuota)}/mes`]), ['A medida', `más de ${eur(TRAMOS_SIG[TRAMOS_SIG.length - 1].hastaVentas)}/mes o varios locales`, `desde ${eur(BASE_OPERATIVA.aMedida.desde)}/mes`]],
+    cta: { href: '/pagar/signature', t: 'Quiero mi app' }, ver: '/signature', oscuro: true },
+  { id: 'experience', n: '04', t: 'Experience', lema: 'Eventos listos para llenar tus días flojos.',
+    d: 'Siete formatos ya diseñados que se adaptan a tu cocina: tú pones el menú, nosotros montamos el evento, la web de entradas y la campaña.',
+    incluye: ['Concepto y guía del evento adaptados a tu cocina', 'Web de venta de entradas con tu propia pasarela', 'Campaña de anuncios montada (la inversión la pagas tú)', '0 % de comisión sobre la taquilla', 'Informe final del evento'],
+    p: eur(EXPERIENCE.tarifas.primeraVez.precio), unidad: 'primer evento', nota: `${eur(EXPERIENCE.tarifas.primeraParaClienteQr.precio)} si ya tienes la carta QR · repetir desde ${eur(EXPERIENCE.tarifas.reusoFidelizado.precio)}`,
+    cta: { href: '/pagar/experience', t: 'Reservar mi evento' }, ver: '/experience' },
+  { id: 'auditoria', n: '05', t: 'Auditoría de canales', lema: 'Por qué algunos clientes no te encuentran.',
+    d: 'Un diagnóstico 1 a 1 de tu ficha de Google Maps, tus redes y tus plataformas, con las prioridades ordenadas.',
+    incluye: ['Revisión de tu ficha de Google y de tus canales', 'Diagnóstico con prioridades', 'Reunión 1 a 1 para explicártelo'],
+    p: eur(AUDITORIA_CANALES.precioOferta), ancla: eur(AUDITORIA_CANALES.precioAncla), unidad: 'pago único', nota: 'Sin suscripción',
+    cta: { href: '/pagar/auditoria', t: 'Pedir mi auditoría' }, ver: '/auditoria' },
+  { id: 'dark-kitchen', n: '06', t: 'Dark Kitchen', lema: 'Vende a domicilio con la cocina que ya tienes.',
+    d: 'Marcas virtuales ya operadas, o un proyecto completo desde cero.',
+    incluye: [`Desarrollo de marca desde ${eur(DARK_KITCHEN.rutaB.desarrolloPorMarca.primera)} por marca`, `Proyecto completo de ${eur(DARK_KITCHEN.rutaA.rangoMin)} a ${eur(DARK_KITCHEN.rutaA.rangoMax)}`, 'Fichas técnicas, carta y lanzamiento'],
+    p: `desde ${eur(DARK_KITCHEN.rutaB.desarrolloPorMarca.primera)}`, unidad: 'por marca', nota: 'Presupuesto según el proyecto',
+    cta: { href: '/dark-kitchen', t: 'Ver cómo funciona' }, ver: '/dark-kitchen' },
 ];
 
 const PREGUNTAS: [string, string][] = [
@@ -116,9 +134,17 @@ export default function PaginaPrecios() {
         </div>
       </section>
 
-      <section className="bg-[#F6F3EE] py-24 md:py-32">
+      <div className="border-b border-[#E4DFD8] bg-white">
+        <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-6 py-4 md:px-8">
+          {[['carta-qr', '01 Carta QR'], ['modulos', '02 Módulos y extras'], ['signature', '03 Signature'], ['experience', '04 Experience'], ['auditoria', '05 Auditoría'], ['dark-kitchen', '06 Dark Kitchen']].map(([id, t]) => (
+            <a key={id} href={`#${id}`} className="shrink-0 rounded-full border border-[#E4DFD8] px-4 py-2 text-sm font-semibold hover:border-[#6E0C2B]">{t}</a>
+          ))}
+        </div>
+      </div>
+
+      <section id="carta-qr" className="scroll-mt-20 bg-[#F6F3EE] py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <Titulo etiqueta="Carta digital QR" texto="Tu carta al día, desde el móvil." sub={`Alta de ${eur(QR_MENU.setup.precio)} incluida. Primer mes ${eur(QR_MENU.primerMes)}, después la cuota de tu plan.`} />
+          <Titulo etiqueta="01 · Carta digital QR" texto="Tu carta al día, desde el móvil." sub={`Alta de ${eur(QR_MENU.setup.precio)} incluida. Primer mes ${eur(QR_MENU.primerMes)}, después la cuota de tu plan.`} />
           <div className="mt-14 grid gap-5 md:grid-cols-2">
             {QR_PLANES.map((p, i) => (
               <Aparecer key={p.id} retraso={i * 0.08}>
@@ -135,39 +161,56 @@ export default function PaginaPrecios() {
             ))}
           </div>
 
-          <div className="mt-20 grid gap-14 md:grid-cols-2">
+          <div id="modulos" className="scroll-mt-20 mt-24 border-t border-[#E4DFD8] pt-16">
+            <p className="etiqueta-dk text-[#6E0C2B]">02 · Módulos y extras de la carta QR</p>
+            <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl">Suma solo lo que tu sala necesita.</h2>
+          </div>
+          <div className="mt-12 grid gap-14 md:grid-cols-2">
             <Tabla titulo="Módulos de sala" sub={`Mensuales · con el plan ${QR_MENU.planes.ampliado.nombre} · se activan desde tu panel`} filas={MODULOS} />
             <Tabla titulo="Servicios y extras" sub="Pago único · sin suscripción" filas={SERVICIOS} />
           </div>
         </div>
       </section>
 
-      <section id="signature" className="scroll-mt-20 py-24 md:py-32">
-        <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <Titulo etiqueta="Cuando quieras ir más allá" texto="Tu app, tus eventos, tus marcas." sub="Cada producto tiene su página con el detalle; aquí, lo que cuesta." />
-          <div className="mt-14 grid gap-5">
-            {OTROS.map((o, i) => (
-              <Aparecer key={o.t} retraso={i * 0.06}>
-                <div className={`relative grid items-center gap-6 overflow-hidden rounded-[28px] border p-7 md:grid-cols-[1fr_auto] md:p-9 ${o.destacado ? 'border-[#17191E] bg-[#0A080C] text-white' : 'border-[#E4DFD8] bg-white'}`}>
-                  <div>
-                    <h3 className="font-display text-3xl font-semibold">{o.t}</h3>
-                    <p className={`mt-2 max-w-2xl ${o.destacado ? 'text-white/65' : 'text-[#6B7079]'}`}>{o.d}</p>
-                    <Link href={o.ver} className={`mt-3 inline-block text-sm font-semibold underline decoration-[#6E0C2B] decoration-2 underline-offset-4 ${o.destacado ? 'text-white' : ''}`}>Ver {o.t}</Link>
+      {OTROS.map((o) => (
+        <section key={o.id} id={o.id} className={`scroll-mt-20 py-24 md:py-32 ${o.oscuro ? 'bg-[#0A080C] text-white' : 'border-t border-[#E4DFD8] bg-white'}`}>
+          <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-[1.1fr_1fr] md:px-8">
+            <Aparecer>
+              <p className="etiqueta-dk text-[#6E0C2B]">{o.n} · {o.t}</p>
+              <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl">{o.lema}</h2>
+              <p className={`mt-5 text-lg ${o.oscuro ? 'text-white/65' : 'text-[#6B7079]'}`}>{o.d}</p>
+              <ul className={`mt-7 space-y-3 ${o.oscuro ? 'text-white/80' : 'text-[#3F434B]'}`}>
+                {o.incluye.map((x) => <li key={x} className="flex gap-3"><span aria-hidden="true" className="text-[#6E0C2B]">✓</span>{x}</li>)}
+              </ul>
+              <Link href={o.ver} className="mt-7 inline-block text-sm font-semibold underline decoration-[#6E0C2B] decoration-2 underline-offset-4">Ver {o.t} en detalle</Link>
+            </Aparecer>
+            <Aparecer retraso={0.1}>
+              <div className={`rounded-[28px] p-8 md:p-10 ${o.oscuro ? 'border border-white/10 bg-white/5' : 'bg-[#F6F3EE]'}`}>
+                <p className="font-display text-5xl font-semibold">
+                  {o.ancla && <span className={`mr-3 font-sans text-xl font-normal line-through ${o.oscuro ? 'text-white/40' : 'text-[#9A9EA6]'}`}>{o.ancla}</span>}
+                  {o.p}
+                </p>
+                <p className={`mt-2 text-sm ${o.oscuro ? 'text-white/60' : 'text-[#6B7079]'}`}>{o.unidad} · {o.nota} · + IVA</p>
+                {o.tabla && (
+                  <div className="mt-7">
+                    <p className="text-sm font-semibold">Cuota mensual según tus ventas por la app</p>
+                    <ul className="mt-3 divide-y divide-white/10 border-y border-white/10">
+                      {o.tabla.map(([nombre, cuando, cuota]) => (
+                        <li key={nombre} className="grid grid-cols-[1fr_auto] items-baseline gap-4 py-3">
+                          <div><p className="font-semibold">{nombre}</p><p className="text-xs text-white/55">{cuando}</p></div>
+                          <p className="font-semibold whitespace-nowrap">{cuota}</p>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-3 text-xs text-white/50">Solo sube tras 2 meses seguidos por encima de tu tramo y con 30 días de aviso; baja sola si tus ventas bajan.</p>
                   </div>
-                  <div className="md:text-right">
-                    <p className="font-display text-3xl font-semibold whitespace-nowrap">
-                      {o.ancla && <span className={`mr-2 font-sans text-base font-normal line-through ${o.destacado ? 'text-white/40' : 'text-[#9A9EA6]'}`}>{o.ancla}</span>}
-                      {o.p}
-                    </p>
-                    <p className={`mt-1 text-sm ${o.destacado ? 'text-white/60' : 'text-[#6B7079]'}`}>{o.nota} · + IVA</p>
-                    <Link href={o.cta.href} className={`mt-4 inline-flex rounded-full px-6 py-3 text-[15px] font-semibold text-white ${o.destacado ? 'bg-[#6E0C2B]' : 'bg-[#17191E]'}`}>{o.cta.t} →</Link>
-                  </div>
-                </div>
-              </Aparecer>
-            ))}
+                )}
+                <Link href={o.cta.href} className="mt-8 inline-flex rounded-full bg-[#6E0C2B] px-7 py-3.5 text-[15px] font-semibold text-white">{o.cta.t} →</Link>
+              </div>
+            </Aparecer>
           </div>
-        </div>
-      </section>
+        </section>
+      ))}
 
       <section className="bg-[#F6F3EE] py-24 md:py-32">
         <div className="mx-auto max-w-3xl px-6 md:px-8">

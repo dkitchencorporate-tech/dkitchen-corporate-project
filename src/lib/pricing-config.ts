@@ -137,7 +137,20 @@ export const BASE_OPERATIVA = {
   pagoUnico: 700,
   fraccionable: true,
   mantenimiento: {
-    mensual: 69,
+    /** Cuota del tramo Arranque (aprobado por karc0 el 05/10; antes 69). Sube por volumen, ver `tramos`. */
+    mensual: 99,
+    /**
+     * Tramos por volumen (05/10, ANALISIS_PRECIOS_Y_DOCUMENTOS §1). Se alcanza un tramo
+     * por ventas por la app (sin IVA) O por pedidos al mes, lo que llegue antes.
+     * Sube tras 2 meses seguidos por encima (30 días de aviso); baja tras 3 por debajo.
+     */
+    tramos: [
+      { id: 'arranque', nombre: 'Arranque', cuota: 99, hastaVentas: 8000, hastaPedidos: 800, usuarios: 10, productos: 300 },
+      { id: 'crecimiento', nombre: 'Crecimiento', cuota: 149, hastaVentas: 15000, hastaPedidos: 1500, usuarios: 20, productos: 600 },
+      { id: 'alto', nombre: 'Alto', cuota: 199, hastaVentas: 30000, hastaPedidos: 3000, usuarios: 30, productos: 1000 },
+    ],
+    /** Más de 30.000 €/mes, más de 3.000 pedidos, pasar un límite de uso o 2 o más locales. */
+    aMedida: { desde: 279, porLocalAdicional: 49 },
     /** Los dos primeros meses son gratis; el recurrente arranca en el mes 3. */
     mesesGratis: 2,
     empiezaEnMes: 3,

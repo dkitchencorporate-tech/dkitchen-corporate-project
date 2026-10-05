@@ -12,14 +12,15 @@ export const metadata: Metadata = {
 };
 
 const WA = '/pagar/experience';
+// 7 formatos genéricos aprobados por karc0 (05/10): sirven para cualquier cocina; ya no van ligados a marcas propias.
 const FORMATOS: [string, string, string][] = [
-  ['Noche de Asado', 'Santa Brazza', 'Parrilla en vivo como espectáculo.'],
-  ['Wings Battle', 'Wing Boss', 'Reto de picante con potencial viral.'],
-  ['Fry Fest', 'Seven Food Fries', 'Degustación de loaded fries.'],
-  ['Bowl Night', 'My Latin Bowl', 'Estación «arma tu bowl».'],
-  ['Brunch Pop-Up', 'Natureza Brunch', 'Activa el domingo flojo.'],
-  ['Bocadillos Gourmet', 'Bokadipan', 'Sobremesa nocturna casual.'],
-  ['Cata de maridaje', 'Cualquier marca', 'El formato ya validado en un evento real.'],
+  ['Noche de maridaje', 'Vino, cerveza, cócteles o sin alcohol', 'Un menú cerrado con su bebida: ticket alto en tu día flojo.'],
+  ['Mesa del chef', 'Menú degustación · 10 a 20 plazas', 'Exclusividad, cercanía con la cocina y reseñas que se notan.'],
+  ['Brunch de domingo', 'Cafeterías, bares y restaurantes', 'Llena la mañana que hoy tienes vacía.'],
+  ['Viaje gastronómico', 'Tu especialidad, tu temporada o tu origen', 'Una noche temática que se puede repetir cada mes.'],
+  ['Taller en vivo', 'Cocina, cócteles, pasta, sushi o pan', 'Una clase práctica que trae público nuevo y grupos.'],
+  ['Afterwork con música', 'Bares y gastrobares', 'Tapeo y música en directo para llenar entre semana.'],
+  ['Reto o batalla', 'Picante, cata a ciegas o concurso', 'Un formato competitivo pensado para moverse en redes.'],
 ];
 
 export default function PaginaExperience() {
@@ -48,7 +49,7 @@ export default function PaginaExperience() {
 
       <section className="py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <Titulo etiqueta="Siete formatos listos" texto="No inventamos desde cero. Ya está probado." sub="Cada formato va unido a una marca propia que ya funcionó en una cocina real. O usamos tu carta: el formato se mantiene, el menú lo pones tú." />
+          <Titulo etiqueta="Siete formatos listos" texto="No inventamos desde cero. Ya está probado." sub="Siete formatos pensados para cualquier tipo de cocina. El formato lo ponemos nosotros; el menú y la esencia de tu local, tú." />
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {FORMATOS.map(([t, m, d], i) => (
               <Aparecer key={t} retraso={(i % 3) * 0.07}>

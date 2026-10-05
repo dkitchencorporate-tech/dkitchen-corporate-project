@@ -170,7 +170,7 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
             <div className="flex justify-between text-sm"><span className="text-white/60">Carta QR con todos los módulos</span><span className="tabular-nums">124 €/mes · alquiler</span></div>
-            <div className="mt-2 flex justify-between text-sm"><span className="text-white/60">Signature</span><span className="tabular-nums text-[#D9B25C]">69 €/mes · tuya</span></div>
+            <div className="mt-2 flex justify-between text-sm"><span className="text-white/60">Signature</span><span className="tabular-nums text-[#D9B25C]">desde 99 €/mes · tu app</span></div>
             <p className="mt-3 text-xs text-white/45">Signature: entrada de 700 € y 2 meses de mantenimiento incluidos. Precios + IVA.</p>
             <a href="/pagar/signature" className="mt-4 flex items-center justify-center gap-2 rounded-full bg-[#6E0C2B] px-5 py-3 text-sm font-semibold">Ver Signature <Icono n="flecha" className="h-4 w-4" /></a>
           </div>

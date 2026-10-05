@@ -100,7 +100,7 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
               </div>
             } />
           <NivelCard titulo="DKitchen Signature" subtitulo="Tu propia app, con tu marca y en propiedad" actual={restaurante.nivelDiseno === 'signature'}
-            puntos={['App instalable (PWA) con tu marca y tu dominio', 'Tus clientes piden y pagan: en mesa, recogida y domicilio', 'Comandas a cocina, TPV propio e historial de ventas', 'Es tuya: pagas la entrada y 69 €/mes de mantenimiento']}
+            puntos={['App instalable (PWA) con tu marca y tu dominio', 'Tus clientes piden y pagan: en mesa, recogida y domicilio', 'Comandas a cocina, TPV propio e historial de ventas', 'El código de tu app es tuyo: entrada única y desde 99 €/mes según tus ventas']}
             maqueta={<MaquetaSignature />}
             pie={
               <div className="space-y-2">
@@ -274,7 +274,7 @@ function MapaNucleo({ credito, nModulos, precioTodo }: { credito: { euros: strin
     ['Cobros y ventas', 'Los gestiona tu TPV', 'TPV propio, historial de ventas y cierres'],
     ['Marca', 'Plantillas de DKitchen', 'App/web con tu marca, diseño de autor'],
     ['Propiedad', 'Servicio mensual: si lo dejas, se apaga', 'En propiedad: el sistema es tuyo'],
-    ['Precio', `QR Ampliado + Pack Sala = ${precioTodo}/mes`, 'Entrada + 69 €/mes de mantenimiento'],
+    ['Precio', `QR Ampliado + Pack Sala = ${precioTodo}/mes`, 'Entrada + desde 99 €/mes (según volumen)'],
   ];
   return (
     <section className="space-y-4">
@@ -301,7 +301,7 @@ function MapaNucleo({ credito, nModulos, precioTodo }: { credito: { euros: strin
         ))}
       </div>
       <div className="rounded-2xl bg-gradient-to-r from-[#6E0C2B]/25 to-transparent p-5">
-        <p className="font-bold">Con todos los módulos del QR pagarías {precioTodo}/mes y nunca sería tuyo. Con DKitchen Signature pagas 69 €/mes y el sistema es tuyo.</p>
+        <p className="font-bold">Con todos los módulos del QR pagarías {precioTodo}/mes y nunca sería tuyo. Con DKitchen Signature empiezas desde 99 €/mes y el código de tu app es tuyo.</p>
         {credito && nModulos > 0 ? (
           <p className="mt-2 text-sm">
             🎁 Te descontamos lo que ya llevas pagado en módulos: <strong>{credito.euros}</strong> de la entrada de Signature (hasta la mitad).

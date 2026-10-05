@@ -16,7 +16,7 @@ const URL_SIGNATURE = 'https://dkitchencorporate.es/signature';
 
 export const metadata: Metadata = {
   title: 'App propia de pedidos sin comisiones · DKitchen Signature',
-  description: 'Tu app con tu marca: pedidos en mesa, recogida y domicilio, comandas a cocina, fidelización y conexión con tu TPV. Entrada 700 € y 69 €/mes.',
+  description: 'Tu app con tu marca: pedidos en mesa, recogida y domicilio, comandas a cocina, fidelización y conexión con tu TPV. Entrada 700 €, desde 99 €/mes.',
   alternates: { canonical: 'https://dkitchencorporate.es/signature' },
 };
 
@@ -140,13 +140,13 @@ export default function PaginaSignature() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 md:grid-cols-2 md:px-8">
           <div>
             <p className="etiqueta-dk text-[#6E0C2B]">Precio</p>
-            <TextoRevelado texto="Pagas una vez. Es tuya." className="font-display mt-4 text-5xl font-semibold leading-[1.0] md:text-7xl" />
+            <TextoRevelado texto="Pagas una vez. Tu app es tuya." className="font-display mt-4 text-5xl font-semibold leading-[1.0] md:text-7xl" />
             <p className="mt-5 max-w-md text-lg text-white/60">Entrada única y un mantenimiento mensual que cuesta menos que las comisiones de unos pocos pedidos.</p>
           </div>
           <Aparecer className="rounded-[32px] border border-white/10 bg-white/[0.05] p-8 backdrop-blur md:p-10">
             <p className="text-sm text-white/60">Entrada</p>
             <p className="font-display text-7xl font-semibold">700 €</p>
-            <p className="mt-2 text-white/70">o 2 cuotas de 375 € · después 69 €/mes · precios + IVA</p>
+            <p className="mt-2 text-white/70">o 2 cuotas de 375 € · después desde 99 €/mes según ventas · precios + IVA</p>
             <p className="mt-1 text-sm text-[#7FD1AE]">Los 2 primeros meses de mantenimiento, incluidos</p>
             <ul className="mt-6 space-y-2 text-sm text-white/75">
               {['App con tu marca y dominio', 'Pedidos, cocina, fidelización y cierre fiscal', 'Pack de arranque incluido', 'Soporte en español'].map((x) => <li key={x} className="flex gap-2"><span className="text-[#6E0C2B]">✓</span>{x}</li>)}

@@ -24,7 +24,7 @@ const faqs = [
   },
   {
     question: "¿Existen costes ocultos o comisiones por reserva?",
-    answer: "Cero comisiones por venta. Nunca. El pago de Núcleo Operativo es de 700€ en pago único, o fraccionado en 2 cuotas de 375€ (750€ en total) si lo prefieres. Además, te regalamos los 2 primeros meses de mantenimiento. A partir del tercer mes, el soporte premium y servidor cuesta solo 69€/mes, sin permanencia."
+    answer: "Cero comisiones por venta. Nunca. El pago de Núcleo Operativo es de 700€ en pago único, o fraccionado en 2 cuotas de 375€ (750€ en total) si lo prefieres. Además, te regalamos los 2 primeros meses de mantenimiento. A partir del tercer mes, el soporte premium y servidor cuesta desde 99€/mes según el volumen de ventas, sin permanencia."
   },
   {
     question: "¿Cómo es el formato de trabajo y la comunicación?",

@@ -36,7 +36,7 @@ const GRUPOS: { g: string; filas: Fila[] }[] = [
   ] },
   { g: 'Tu negocio', filas: [
     { t: 'Panel de ventas: pedidos, historial y analítica', qr: 'Solo visitas', sig: true },
-    { t: 'La app es tuya: pago único y mantenimiento', qr: 'Cuota mensual', sig: true },
+    { t: 'El código de tu app es tuyo: pago único y cuota según ventas', qr: 'Cuota mensual', sig: true },
   ] },
 ];
 const PORTADA = ['App propia instalable en el móvil, con tu marca', 'Pedidos a domicilio y para recoger, con carrito', 'Cero comisiones por pedido (frente a las plataformas)', 'Base de clientes propia, con correo verificado', 'Club de fidelización con puntos canjeables', 'Kiosko de autoservicio y TPV propio'];

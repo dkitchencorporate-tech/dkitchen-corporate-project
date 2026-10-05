@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion';
 import { CURVA } from '@/components/dk/Movimiento';
+import { BASE_OPERATIVA } from '@/lib/pricing-config';
 
 /* ------------------------------------------------------------------ Móvil con la app funcionando sola */
 const FLUJO = [
@@ -85,7 +86,11 @@ export function CalculadoraComisiones() {
   const [comision, setComision] = useState(25);
   const mensual = Math.round(pedidos * ticket * (comision / 100));
   const anual = mensual * 12;
-  const ahorro = Math.max(0, mensual - 69);
+  // Cuota del tramo que tocaría con ese volumen (ventas o pedidos, lo primero que se alcance).
+  const ventas = pedidos * ticket;
+  const tramo = BASE_OPERATIVA.tramos.find((t) => ventas <= t.hastaVentas && pedidos <= t.hastaPedidos);
+  const cuota = tramo ? tramo.cuota : BASE_OPERATIVA.aMedida.desde;
+  const ahorro = Math.max(0, mensual - cuota);
   const barra = 'mt-3 h-2 w-full cursor-pointer appearance-none rounded-full bg-white/15 accent-[#6E0C2B]';
   const fmt = (n: number) => n.toLocaleString('es-ES');
   return (
@@ -105,7 +110,7 @@ export function CalculadoraComisiones() {
         <p className="mt-1 text-sm text-white/50">{fmt(anual)} € al año</p>
         <div className="my-6 h-px bg-white/10" />
         <p className="text-sm text-white/60">Con DKitchen Signature</p>
-        <p className="font-display mt-1 text-3xl font-semibold">69 €<span className="text-base text-white/50">/mes</span></p>
+        <p className="font-display mt-1 text-3xl font-semibold">{tramo ? '' : 'desde '}{cuota} €<span className="text-base text-white/50">/mes</span></p>
         {ahorro > 0 && <p className="mt-4 rounded-xl bg-[#2F8F6B]/15 px-4 py-3 text-sm text-[#7FD1AE]">Te quedarías con <strong className="text-white">{fmt(ahorro)} € más cada mes</strong> por los pedidos que te llegan por tu propia app.</p>}
       </div>
     </div>

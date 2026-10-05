@@ -56,7 +56,7 @@ export default function ActivarNucleoOperativoBoton({ className }: { className?:
         className="bg-white rounded-2xl p-7 max-w-sm w-full shadow-2xl text-gray-900"
       >
         <h3 className="text-xl font-black mb-1">Activar DKitchen Signature</h3>
-        <p className="text-gray-500 text-sm mb-6">Entrada única de 700 € (después, 69 €/mes de mantenimiento). Te escribimos para ponerla en marcha.</p>
+        <p className="text-gray-500 text-sm mb-6">Entrada única de 700 € (después, desde 99 €/mes según volumen). Te escribimos para ponerla en marcha.</p>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del negocio</label>

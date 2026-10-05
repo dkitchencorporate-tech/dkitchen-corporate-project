@@ -22,7 +22,7 @@ const COMPARA: [string, string, string][] = [
   ['Qué es', 'Tu carta digital y herramientas para tu sala', 'Tu propia app con tu marca que gestiona el restaurante'],
   ['Tus clientes', 'Miran la carta y piden al camarero', 'Piden y pagan: en mesa, para recoger y a domicilio'],
   ['Cocina y cobros', 'Tu TPV de siempre sigue cobrando', 'Comandas a cocina, TPV propio e historial de ventas'],
-  ['Propiedad', 'Servicio mensual, sin permanencia', 'Es tuya: entrada única y mantenimiento mensual'],
+  ['Propiedad', 'Servicio mensual, sin permanencia', 'El código de tu app es tuyo: entrada única y cuota según ventas'],
 ];
 
 export default function QrLoQueIncluye() {
