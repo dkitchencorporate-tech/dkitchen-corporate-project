@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ARTICULOS } from '@/lib/blog';
 
 export const metadata: Metadata = {
-  title: 'Blog de DKitchen · Carta digital, alérgenos y tecnología para restaurantes',
+  title: 'Blog de DKitchen · Guías para restaurantes',
   description: 'Guías prácticas para bares y restaurantes: carta digital QR, alérgenos obligatorios, app propia frente a plataformas de delivery y más.',
   alternates: { canonical: 'https://dkitchencorporate.es/blog' },
 };

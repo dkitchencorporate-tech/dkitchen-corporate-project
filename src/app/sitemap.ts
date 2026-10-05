@@ -25,7 +25,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { ruta: '/faq', prioridad: 0.6, frecuencia: 'monthly' },
     { ruta: '/blog', prioridad: 0.7, frecuencia: 'weekly' },
     ...ARTICULOS.map((a) => ({ ruta: `/blog/${a.slug}`, prioridad: 0.7, frecuencia: 'monthly' as const })),
-    { ruta: '/demo/carta', prioridad: 0.5, frecuencia: 'monthly' },
     { ruta: '/privacy', prioridad: 0.2, frecuencia: 'yearly' },
     { ruta: '/terms', prioridad: 0.2, frecuencia: 'yearly' },
   ];

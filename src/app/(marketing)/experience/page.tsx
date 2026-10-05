@@ -6,8 +6,8 @@ import { TaquillaViva, EscaleraPrecios } from '@/components/dk/PiezasProductos';
 
 /** DKitchen Experience — rediseño 29/09/2026. Palabra clave: eventos para restaurantes llave en mano. */
 export const metadata: Metadata = {
-  title: 'Eventos para restaurantes llave en mano · Llena tus días flojos · DKitchen Experience',
-  description: 'Te entregamos un evento completo: concepto, marketing, anuncios y web de venta de entradas. Tú cocinas y te quedas el 100 % de la taquilla. Desde 299 €, sin comisión.',
+  title: 'Eventos para restaurantes llave en mano · DKitchen',
+  description: 'Evento completo para tu restaurante: concepto, marketing, anuncios y web de entradas. Tú cocinas y te quedas el 100 % de la taquilla. Desde 299 €.',
   alternates: { canonical: 'https://dkitchencorporate.es/experience' },
 };
 

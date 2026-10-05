@@ -12,8 +12,8 @@ import ComparativaQr from '@/components/qr-landing/ComparativaQr';
  * Palabra clave: app propia de pedidos para restaurantes sin comisiones.
  */
 export const metadata: Metadata = {
-  title: 'App propia de pedidos para restaurantes, sin comisiones · DKitchen Signature',
-  description: 'Tu propia app con tu marca: tus clientes piden y pagan en mesa, recogida y domicilio; comandas a cocina, fidelización y cierre fiscal conectado a tu TPV. Entrada 700 € y 69 €/mes.',
+  title: 'App propia de pedidos sin comisiones · DKitchen Signature',
+  description: 'Tu app con tu marca: pedidos en mesa, recogida y domicilio, comandas a cocina, fidelización y conexión con tu TPV. Entrada 700 € y 69 €/mes.',
   alternates: { canonical: 'https://dkitchencorporate.es/base-operativa' },
 };
 

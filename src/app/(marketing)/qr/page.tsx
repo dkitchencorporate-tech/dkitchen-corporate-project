@@ -15,9 +15,9 @@ import { Titulo, BandaFoto } from '@/components/dk/Bloques';
 import { FondoVivo } from '@/components/dk/Movimiento';
 
 export const metadata: Metadata = {
-  title: 'Carta digital QR para restaurantes | Primer mes por 1 € · DKitchen',
+  title: 'Carta digital QR para restaurantes · 1 € el primer mes',
   description:
-    'Carta digital con QR para bares y restaurantes: cambia precios, platos, fotos y alérgenos desde el móvil sin reimprimir nunca. Reservas y llamada al camarero. Primer mes por 1 €.',
+    'Carta QR para bares y restaurantes: cambia precios, platos, fotos y alérgenos desde el móvil sin reimprimir. Reservas incluidas. Primer mes por 1 €.',
   alternates: { canonical: 'https://dkitchencorporate.es/qr' },
   openGraph: {
     title: 'Tu carta cambia. Tu QR, nunca. · DKitchen',

@@ -6,7 +6,7 @@ import { InformeVivo } from '@/components/dk/PiezasProductos';
 
 /** Auditoría de canales — rediseño 29/09/2026. Palabra clave: auditoría ficha Google restaurante. */
 export const metadata: Metadata = {
-  title: 'Auditoría de Google Maps y redes para restaurantes · 47 € · DKitchen',
+  title: 'Auditoría de Google Maps y redes para restaurantes · 47 €',
   description: 'Diagnóstico 1 a 1 de tu ficha de Google, tus redes y la rentabilidad de tu carta: qué te está costando clientes hoy y cómo arreglarlo. Pago único de 47 €.',
   alternates: { canonical: 'https://dkitchencorporate.es/auditoria' },
 };

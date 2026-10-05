@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   description:
     'Prueba la carta digital interactiva de DKitchen tal como la ve tu cliente: fotos, alérgenos, varios idiomas y pedido en el móvil, sin descargar nada.',
   alternates: { canonical: 'https://dkitchencorporate.es/demo/carta' },
+  robots: { index: false, follow: true },
 };
 
 export default function DemoCartaLayout({ children }: { children: React.ReactNode }) {

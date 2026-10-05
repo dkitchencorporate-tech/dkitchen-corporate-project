@@ -10,8 +10,8 @@ import { FondoVivo } from '@/components/dk/Movimiento';
 
 /** Dark Kitchen multimarca — rediseño 29/09/2026. Palabra clave: dark kitchen multimarca / marcas virtuales. */
 export const metadata: Metadata = {
-  title: 'Dark kitchen multimarca y marcas virtuales llave en mano · DKitchen',
-  description: 'Opera hasta 7 marcas virtuales desde tu cocina con recetas, proveedores y procesos ya probados, pedidos propios sin comisión y una sola pantalla de cocina. Inversión desde 3.000 €.',
+  title: 'Dark kitchen multimarca llave en mano · DKitchen',
+  description: 'Hasta 7 marcas virtuales en tu cocina con recetas, proveedores y procesos probados, pedidos propios sin comisión y una sola pantalla. Desde 3.000 €.',
   alternates: { canonical: 'https://dkitchencorporate.es/dark-kitchen' },
 };
 
