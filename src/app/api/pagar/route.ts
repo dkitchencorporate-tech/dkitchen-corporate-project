@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+import { BASE_OPERATIVA } from '@/lib/pricing-config';
 import { NextResponse } from 'next/server';
 import { crearCheckoutProductoDirecto } from '@/lib/payments/whop';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
@@ -34,6 +36,9 @@ export async function POST(request: Request) {
       id: p.id, metadataWhop: p.metadataWhop, titulo: p.nombre, precio: p.precio, email, nombreContacto: nombre,
       restauranteNombre: negocio, telefono, detalle: txt(b.detalle, 60).replace(/[^a-z0-9 áéíóúñ-]/gi, ''),
       origen: new URL(request.url).origin,
+      fraccionado: p.id === 'signature' && b.fraccionado === true && BASE_OPERATIVA.fraccionable
+        ? { cuotas: BASE_OPERATIVA.fraccionado.cuotas, importeCuota: BASE_OPERATIVA.fraccionado.importeCuota, dias: BASE_OPERATIVA.fraccionado.diasEntreCuotas, ref: randomUUID() }
+        : undefined,
     });
     return NextResponse.json({ url });
   } catch (e) {

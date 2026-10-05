@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
+import { BASE_OPERATIVA } from '@/lib/pricing-config';
 import PagoDirecto from '@/components/pago/PagoDirecto';
 import { FondoVivo, TextoRevelado } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
@@ -71,7 +72,8 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
             <p className="mt-2 text-sm text-[#6B7079]">{p.nota}</p>
             <p className="mt-1 text-sm text-[#6B7079]">Total con IVA (21 %): <strong className="text-[#17191E]">{(p.precio * 1.21).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</strong></p>
             <div className="my-6 h-px bg-[#E4E1DC]" />
-            <PagoDirecto producto={p.id} precio={p.precio} boton="Pagar y empezar" detalle={modelo} />
+            <PagoDirecto producto={p.id} precio={p.precio} boton="Pagar y empezar" detalle={modelo}
+              fraccionable={p.id === 'signature' && BASE_OPERATIVA.fraccionable ? { cuotas: BASE_OPERATIVA.fraccionado.cuotas, importeCuota: BASE_OPERATIVA.fraccionado.importeCuota } : undefined} />
           </div>
           <p className="mt-5 text-center text-sm text-[#9A9EA6]">¿Dudas antes de pagar? <a href={`#solicitud-${p.id === 'signature' ? 'signature' : p.id}`} className="underline hover:text-[#17191E]">Escríbenos</a> y te respondemos.</p>
         </div>

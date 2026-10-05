@@ -23,7 +23,8 @@ function anotar(producto: string, evento: string, s: string, segundos?: number) 
   } catch {}
 }
 
-export default function PagoDirecto({ producto, precio, boton, detalle = '' }: { producto: string; precio: number; boton: string; detalle?: string }) {
+export default function PagoDirecto({ producto, precio, boton, detalle = '', fraccionable }: { producto: string; precio: number; boton: string; detalle?: string; fraccionable?: { cuotas: number; importeCuota: number } }) {
+  const [enCuotas, setEnCuotas] = useState(false);
   const [estado, setEstado] = useState<'form' | 'enviando'>('form');
   const [error, setError] = useState('');
   const s = useRef('');
@@ -48,7 +49,7 @@ export default function PagoDirecto({ producto, precio, boton, detalle = '' }: {
     setEstado('enviando'); setError('');
     try {
       const r = await fetch('/api/pagar', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...Object.fromEntries(f), condiciones: f.get('condiciones') === 'on', producto, detalle }) });
+        body: JSON.stringify({ ...Object.fromEntries(f), condiciones: f.get('condiciones') === 'on', producto, detalle, fraccionado: Boolean(fraccionable && enCuotas) }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.url) { setError(j.error || 'No se pudo abrir el pago. Inténtalo de nuevo.'); setEstado('form'); return; }
       pagando.current = true;
@@ -69,9 +70,20 @@ export default function PagoDirecto({ producto, precio, boton, detalle = '' }: {
         <input id="pago-condiciones" name="condiciones" type="checkbox" required className="mt-0.5 h-4 w-4 accent-[#6E0C2B]" />
         <span>Acepto los <a href="/terms" className="underline">términos</a> y la <a href="/privacy" className="underline">política de privacidad</a>.</span>
       </label>
+      {fraccionable && (
+        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Forma de pago">
+          {([[false, 'Pago único', `${precio} €`], [true, `${fraccionable.cuotas} cuotas`, `${fraccionable.cuotas} × ${fraccionable.importeCuota} €`]] as [boolean, string, string][]).map(([v, t, d]) => (
+            <button key={t} type="button" role="radio" aria-checked={enCuotas === v} onClick={() => setEnCuotas(v)}
+              className={`rounded-xl border px-3 py-3 text-left text-sm ${enCuotas === v ? 'border-[#6E0C2B] bg-[#6E0C2B]/5' : 'border-[#E4E1DC]'}`}>
+              <span className="block font-semibold">{t}</span><span className="text-[#6B7079]">{d} + IVA</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {fraccionable && enCuotas && <p className="text-xs text-[#6B7079]">Hoy pagas {fraccionable.importeCuota} € + IVA y la segunda cuota se cobra sola a los 30 días ({fraccionable.cuotas * fraccionable.importeCuota} € en total).</p>}
       {error && <p role="alert" className="rounded-xl bg-[#6E0C2B]/10 px-4 py-3 text-sm text-[#6E0C2B]">{error}</p>}
       <button type="submit" disabled={estado === 'enviando'} className="mt-1 rounded-full bg-[#6E0C2B] px-7 py-4 text-[16px] font-semibold text-white disabled:opacity-60">
-        {estado === 'enviando' ? 'Abriendo el pago seguro…' : `${boton} · ${precio} € + IVA`}
+        {estado === 'enviando' ? 'Abriendo el pago seguro…' : `${boton} · ${fraccionable && enCuotas ? fraccionable.importeCuota : precio} € + IVA${fraccionable && enCuotas ? ' hoy' : ''}`}
       </button>
       <p className="text-center text-xs text-[#9A9EA6]">Te llevamos a la pasarela segura de Whop para pagar con tarjeta.</p>
     </form>

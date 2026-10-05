@@ -518,19 +518,33 @@ export async function crearCheckoutProductoDirecto(datos: {
   telefono: string;
   detalle: string;
   origen: string;
+  /** Entrada en cuotas (solo Signature): plan de renovación que Whop pausa tras `cuotas` cobros. */
+  fraccionado?: { cuotas: number; importeCuota: number; dias: number; ref: string };
 }): Promise<{ url: string }> {
   const apiKey = requerirEnv('WHOP_API_KEY');
   const companyId = requerirEnv('WHOP_COMPANY_ID');
   const cuerpo = {
     mode: 'payment',
-    plan: {
-      company_id: companyId,
-      currency: 'eur',
-      plan_type: 'one_time',
-      initial_price: datos.precio,
-      product: { title: datos.titulo, external_identifier: `dk-directo-${datos.id}` },
-    },
+    plan: datos.fraccionado
+      ? {
+          company_id: companyId,
+          currency: 'eur',
+          plan_type: 'renewal',
+          initial_price: datos.fraccionado.importeCuota,
+          renewal_price: datos.fraccionado.importeCuota,
+          billing_period: datos.fraccionado.dias,
+          split_pay_required_payments: datos.fraccionado.cuotas,
+          product: { title: `${datos.titulo} (${datos.fraccionado.cuotas} cuotas)`, external_identifier: `dk-directo-${datos.id}-fraccionado` },
+        }
+      : {
+          company_id: companyId,
+          currency: 'eur',
+          plan_type: 'one_time',
+          initial_price: datos.precio,
+          product: { title: datos.titulo, external_identifier: `dk-directo-${datos.id}` },
+        },
     metadata: {
+      ...(datos.fraccionado ? { fraccionado: String(datos.fraccionado.cuotas), ref: datos.fraccionado.ref } : {}),
       producto: datos.metadataWhop,
       embudo: datos.id,
       email: datos.email,

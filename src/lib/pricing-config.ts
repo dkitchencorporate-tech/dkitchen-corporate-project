@@ -136,6 +136,8 @@ export const AUDITORIA_CANALES = {
 export const BASE_OPERATIVA = {
   pagoUnico: 700,
   fraccionable: true,
+  /** Entrada en 2 cuotas de 375 € (750 € en total), cobradas por Whop con 30 días de separación (split pay, 06/10). */
+  fraccionado: { cuotas: 2, importeCuota: 375, diasEntreCuotas: 30 },
   mantenimiento: {
     /** Cuota del tramo Arranque (aprobado por karc0 el 05/10; antes 69). Sube por volumen, ver `tramos`. */
     mensual: 99,

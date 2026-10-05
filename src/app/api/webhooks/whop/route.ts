@@ -103,7 +103,7 @@ export async function POST(request: Request) {
   // Un fallo aquí nunca bloquea el alta del producto que viene después.
   const metaEmbudo: Record<string, string> = evento.data.metadata ?? {};
   const productoDirecto = metaEmbudo.embudo ? PRODUCTOS_PAGO[String(metaEmbudo.embudo)] : undefined;
-  if (evento.type === 'payment.succeeded' && productoDirecto) {
+  if (evento.type === 'payment.succeeded' && productoDirecto && !metaEmbudo.fraccionado) {
     await comoAprovisionamiento((c) => c.query('SELECT dk.embudo_pagado($1)', [productoDirecto.id])).catch((e) =>
       console.error('Embudo: no se pudo anotar el pago', e));
     if (productoDirecto.metadataWhop !== 'nucleo-operativo' && metaEmbudo.email) {
@@ -168,15 +168,28 @@ export async function POST(request: Request) {
   if (evento.data.metadata?.producto === 'nucleo-operativo') {
     if (evento.type === 'payment.succeeded') {
       const meta = evento.data.metadata;
+      // Entrada fraccionada (06/10): cada cuota llega como un pago distinto; la
+      // referencia propia del checkout (`ref`) hace que solo la primera cree el pedido.
+      const fraccionado = Boolean(meta.fraccionado && meta.ref);
+      const importeEntrada = fraccionado ? BASE_OPERATIVA.fraccionado.cuotas * BASE_OPERATIVA.fraccionado.importeCuota * 100 : BASE_OPERATIVA.pagoUnico * 100;
       try {
         const pedido = await crearPedidoNivelB({
           producto: 'nucleo-operativo',
-          referenciaPago: evento.data.id,
+          referenciaPago: fraccionado ? `fraccionado-${meta.ref}` : evento.data.id,
           email: meta.email,
           nombreContacto: meta.nombreContacto,
           restauranteNombre: meta.restauranteNombre || undefined,
-          importeCentimos: BASE_OPERATIVA.pagoUnico * 100,
+          importeCentimos: importeEntrada,
         });
+        if (fraccionado && !pedido.yaExistia) {
+          await comoAprovisionamiento((c) => c.query('SELECT dk.embudo_pagado($1)', ['signature'])).catch((e) =>
+            console.error('Embudo: no se pudo anotar el pago', e));
+        }
+        if (fraccionado && pedido.yaExistia) {
+          await enviarCorreoInterno(`CUOTA COBRADA · DKitchen Signature · ${meta.nombreContacto || meta.email}`,
+            `<p>Whop ha cobrado otra cuota de la entrada fraccionada (${BASE_OPERATIVA.fraccionado.importeCuota} € + IVA).</p><p><strong>Correo:</strong> ${escaparHtml(meta.email)}</p><p><strong>Id de pago (Whop):</strong> ${escaparHtml(evento.data.id)}</p>`
+          ).catch((e) => console.error('Cuota fraccionada: falló el correo interno', e));
+        }
         if (!pedido.yaExistia) {
           await dispararTuberiaPostPago({
             id: pedido.id,
@@ -185,7 +198,7 @@ export async function POST(request: Request) {
             email: meta.email,
             nombreContacto: meta.nombreContacto,
             restauranteNombre: meta.restauranteNombre || undefined,
-            importeCentimos: BASE_OPERATIVA.pagoUnico * 100,
+            importeCentimos: importeEntrada,
             origen: new URL(request.url).origin,
           });
         }
