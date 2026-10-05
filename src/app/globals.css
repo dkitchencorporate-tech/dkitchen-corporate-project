@@ -53,6 +53,10 @@
 @keyframes marquesina { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes reflejo { 0%, 60% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
 @media (prefers-reduced-motion: reduce) { [class*="animate-[deriva"], [class*="animate-[marquesina"], [class*="animate-[reflejo"] { animation: none !important; } }
+/* H1 revelado palabra a palabra sin JS (Core Web Vitals, 05/10): el LCP ya no espera a la hidratación. */
+@keyframes revelar { from { transform: translateY(105%); } to { transform: translateY(0); } }
+.revelar-css { animation: revelar 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) { .revelar-css { animation: none; } }
 @keyframes recorrido { 0%, 6% { transform: translateY(0); } 94%, 100% { transform: translateY(calc(-100% + 460px)); } }
 
 /* ── Gran Reserva (29/09/2026): vino metalizado, oro técnico y negro profundo ── */

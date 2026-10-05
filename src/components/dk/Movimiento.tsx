@@ -61,6 +61,21 @@ export function TextoRevelado({ texto, className, como: Etiqueta = 'h2' }: { tex
   const quieto = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
   const visto = useInView(ref, { once: true, amount: 0.2 });
+  // El H1 es el LCP de cada página: con framer-motion quedaba oculto bajo su
+  // máscara hasta hidratar (~300 KB de JS en móvil). Misma animación en CSS
+  // puro (keyframe `revelar`, globals.css), que arranca en el primer pintado.
+  if (Etiqueta === 'h1') {
+    const w = texto.split(' '); const corte = w.findIndex((x, j) => j < w.length - 1 && /[.?!]$/.test(x));
+    return (
+      <h1 className={className} aria-label={texto}>
+        {w.map((p, i) => (
+          <span key={i} aria-hidden="true" className="inline-block overflow-hidden pb-[0.1em] align-top">
+            <span className={`revelar-css inline-block${corte >= 0 && i > corte ? ' acento-serif' : ''}`} style={{ animationDelay: `${i * 0.05}s` }}>{p}&nbsp;</span>
+          </span>
+        ))}
+      </h1>
+    );
+  }
   return (
     <Etiqueta ref={ref as never} className={className} aria-label={texto}>
       {(() => { const w = texto.split(' '); const corte = w.findIndex((x, j) => j < w.length - 1 && /[.?!]$/.test(x)); return w.map((p, i) => (
