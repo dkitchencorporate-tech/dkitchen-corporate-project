@@ -12,7 +12,7 @@ export const metadata: Metadata = {
  * anónima del embudo, reservas de comensales como encargado del tratamiento).
  */
 const SECCIONES: [string, React.ReactNode][] = [
-  ['Responsable', <>DKitchen Corporate SL, con domicilio en Alcobendas (Madrid). Puedes escribirnos sobre privacidad a <strong>dkitchen@dkitchencorporate.es</strong>. Los datos identificativos completos del titular (NIF/CIF y domicilio fiscal) se facilitan <strong>a petición expresa</strong> para asuntos legales, fiscales o de consumo: escríbenos a esa misma dirección indicando el motivo y te responderemos a la mayor brevedad.</>],
+  ['Responsable', <>DKitchen (marca comercial; los datos del titular, nombre y NIF, se publicarán aquí al completar su alta), con domicilio en Alcobendas (Madrid). Puedes escribirnos sobre privacidad a <strong>dkitchen@dkitchencorporate.es</strong>. Los datos identificativos completos del titular (NIF/CIF y domicilio fiscal) se facilitan <strong>a petición expresa</strong> para asuntos legales, fiscales o de consumo: escríbenos a esa misma dirección indicando el motivo y te responderemos a la mayor brevedad.</>],
   ['Qué datos tratamos', <>
     <strong>Si eres cliente (hostelero):</strong> tu nombre, correo, teléfono, los datos de tu negocio y el contenido que subes (carta, fotos, horarios). Los datos de pago los trata directamente la pasarela; nosotros no vemos ni guardamos tu tarjeta.<br />
     <strong>Si nos escribes desde la web:</strong> los datos del formulario (nombre, negocio, correo, teléfono y mensaje).<br />

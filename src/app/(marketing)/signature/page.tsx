@@ -97,7 +97,7 @@ export default function PaginaSignature() {
       <section className="relative overflow-hidden bg-[#0A080C] py-24 text-white md:py-32">
         <FondoVivo className="opacity-50" />
         <div className="relative mx-auto max-w-6xl px-6 md:px-8">
-          <Titulo oscuro etiqueta="Modelos en marcha" texto="No te lo contamos. Tócalo." sub="Dos apps reales hechas con DKitchen Signature. Desliza dentro del móvil, ábrelas en grande o visita la web real." />
+          <Titulo oscuro etiqueta="Modelos en marcha" texto="No te lo contamos. Tócalo." sub="Tres apps de proyectos propios de DKitchen, hechas con el mismo motor que la tuya. Desliza dentro del móvil, ábrelas en grande o visita la web real." />
           <ModelosReales />
         </div>
       </section>

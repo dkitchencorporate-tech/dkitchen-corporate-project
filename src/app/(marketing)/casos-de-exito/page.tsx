@@ -53,7 +53,7 @@ export default function CasosDeExito() {
       <section className="relative overflow-hidden bg-[#0A080C] py-24 text-white md:py-32">
         <FondoVivo className="opacity-50" />
         <div className="relative mx-auto max-w-6xl px-6 md:px-8">
-          <Titulo oscuro etiqueta="Desarrollos" texto="Más apps hechas con DKitchen." sub="Modelos reales que puedes probar ahora mismo. Si te gusta uno, lo adaptamos a tu marca." />
+          <Titulo oscuro etiqueta="Proyectos propios" texto="Más apps hechas con DKitchen." sub="Marcas y demos propias de DKitchen, hechas con el mismo motor que tu app. Puedes probarlas ahora mismo; si te gusta una, la adaptamos a tu marca." />
           <ModelosReales />
         </div>
       </section>
@@ -61,8 +61,8 @@ export default function CasosDeExito() {
       <section className="bg-[#F7F5F2] py-20">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Aparecer className="rounded-[28px] border border-[#E6E6E2] bg-white p-8 md:p-10">
-            <p className="etiqueta-dk text-[#6E0C2B]">Velocidad real</p>
-            <p className="font-display mt-2 text-3xl font-semibold md:text-4xl">Bokadipan: una app completa en menos de 3 horas.</p>
+            <p className="etiqueta-dk text-[#6E0C2B]">Velocidad real · proyecto propio</p>
+            <p className="font-display mt-2 text-3xl font-semibold md:text-4xl">Bokadipan, nuestra marca de bocadillos: una app completa en menos de 3 horas.</p>
             <p className="mt-3 max-w-2xl text-[#6B7079]">Carta, club de puntos, idiomas y pedido directo, montados sobre la misma base que Seven Food Fries y Wing Boss. Tu app no empieza de cero: empieza de algo que ya funciona.</p>
             <a href="https://bokadipan.dkitchencorporate.es/" target="_blank" rel="noopener" className="mt-5 inline-flex items-center gap-2 font-semibold">Ver Bokadipan en vivo <span className="text-[#6E0C2B]">↗</span></a>
           </Aparecer>

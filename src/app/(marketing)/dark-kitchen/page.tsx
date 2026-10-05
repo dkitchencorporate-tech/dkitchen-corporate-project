@@ -64,7 +64,7 @@ export default function PaginaDarkKitchen() {
       <section className="relative overflow-hidden bg-[#0A080C] py-24 text-white md:py-32">
         <FondoVivo className="opacity-50" />
         <div className="relative mx-auto max-w-6xl px-6 md:px-8">
-          <Titulo oscuro etiqueta="Desarrollos reales" texto="Tres marcas del catálogo, ya con su app de pedidos." sub="Seven Food Fries, Wing Boss y Bokadipan venden con su propia app, lista para replicar en tu cocina." />
+          <Titulo oscuro etiqueta="Desarrollos reales" texto="Tres marcas del catálogo, ya con su app de pedidos." sub="Seven Food Fries, Wing Boss y Bokadipan, marcas propias de DKitchen, ya tienen su app de pedidos, lista para replicar en tu cocina." />
           <ModelosReales />
         </div>
       </section>

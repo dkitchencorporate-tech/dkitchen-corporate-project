@@ -51,7 +51,7 @@ const jsonLdOrganizacion = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "DKitchen",
-  legalName: "DKitchen Corporate SL",
+  legalName: "DKitchen",
   url: "https://dkitchencorporate.es",
   logo: "https://dkitchencorporate.es/icon.svg",
   description: "Digitalización para hostelería: carta digital con QR, eventos gastronómicos llave en mano y dark kitchen multimarca.",

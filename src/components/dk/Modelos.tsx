@@ -13,11 +13,11 @@ import { CURVA } from './Movimiento';
  * - Las 3 cartas de autor de /demo/carta sí se incrustan en vivo (misma web).
  */
 export const MODELOS = [
-  { id: 'sevenfood', nombre: 'Seven Food Fries', tipo: 'App de pedidos · loaded fries', color: '#F5A30A', url: 'https://sevenfood.dkitchencorporate.es/',
+  { id: 'sevenfood', nombre: 'Seven Food Fries', tipo: 'Proyecto propio · loaded fries', color: '#F5A30A', url: 'https://sevenfood.dkitchencorporate.es/',
     puntos: ['Club VIP con puntos por pedido', 'Carta con fotos y pedido directo', 'Se instala como una app'] },
-  { id: 'wingboss', nombre: 'Wing Boss', tipo: 'App de pedidos · alitas', color: '#E0162B', url: 'https://wingboss.dkitchencorporate.es/',
+  { id: 'wingboss', nombre: 'Wing Boss', tipo: 'Proyecto propio · alitas', color: '#E0162B', url: 'https://wingboss.dkitchencorporate.es/',
     puntos: ['Combos y packs para compartir', 'Club VIP con alitas y postres gratis', 'Marca oscura, pensada para la noche'] },
-  { id: 'bokadipan', nombre: 'Bokadipan', tipo: 'App de pedidos · bocadillos de autor', color: '#C9922E', url: 'https://bokadipan.dkitchencorporate.es/',
+  { id: 'bokadipan', nombre: 'Bokadipan', tipo: 'Proyecto propio · bocadillos de autor', color: '#C9922E', url: 'https://bokadipan.dkitchencorporate.es/',
     puntos: ['Hecha en menos de 3 horas sobre nuestra base', 'Club Bokadi con puntos y premios', 'Carta en dos idiomas y pedido directo'] },
 ];
 const wa = (t: string) => `/pagar/signature?modelo=${encodeURIComponent(t)}`;
