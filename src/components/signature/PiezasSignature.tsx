@@ -88,8 +88,8 @@ export function CalculadoraComisiones() {
   const anual = mensual * 12;
   // Cuota del tramo que tocaría con ese volumen (ventas o pedidos, lo primero que se alcance).
   const ventas = pedidos * ticket;
-  const tramo = BASE_OPERATIVA.tramos.find((t) => ventas <= t.hastaVentas && pedidos <= t.hastaPedidos);
-  const cuota = tramo ? tramo.cuota : BASE_OPERATIVA.aMedida.desde;
+  const tramo = BASE_OPERATIVA.mantenimiento.tramos.find((t) => ventas <= t.hastaVentas && pedidos <= t.hastaPedidos);
+  const cuota = tramo ? tramo.cuota : BASE_OPERATIVA.mantenimiento.aMedida.desde;
   const ahorro = Math.max(0, mensual - cuota);
   const barra = 'mt-3 h-2 w-full cursor-pointer appearance-none rounded-full bg-white/15 accent-[#6E0C2B]';
   const fmt = (n: number) => n.toLocaleString('es-ES');
