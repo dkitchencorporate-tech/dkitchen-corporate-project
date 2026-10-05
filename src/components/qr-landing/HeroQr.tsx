@@ -1,19 +1,18 @@
 'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import DispositivoVivo from '@/components/dk/DispositivoVivo';
 import { FondoVivo, Contador } from '@/components/dk/Movimiento';
 
 const CURVA = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
+/** Titular del H1 (LCP de /qr): revelado con CSS puro (`revelar-css`, globals.css) para no esperar a hidratar. */
 function Titular({ texto, retraso, className }: { texto: string; retraso: number; className?: string }) {
-  const quieto = useReducedMotion();
   return (
     <span className={className}>
       {texto.split(' ').map((p, i) => (
         <span key={i} className="inline-block overflow-hidden pb-[0.08em] align-top">
-          <motion.span className="inline-block" initial={quieto ? false : { y: '110%' }} animate={{ y: 0 }}
-            transition={{ duration: 0.9, delay: retraso + i * 0.07, ease: CURVA }}>{p}&nbsp;</motion.span>
+          <span className="revelar-css inline-block" style={{ animationDelay: `${retraso + i * 0.07}s` }}>{p}&nbsp;</span>
         </span>
       ))}
     </span>
