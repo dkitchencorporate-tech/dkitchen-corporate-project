@@ -2,6 +2,36 @@ import 'server-only';
 import { crearCuentaCliente, enviarEnlaceDeContrasena, ErrorNeonAuth } from '@/lib/neon-auth';
 import { comoAprovisionamiento } from '@/lib/db';
 import { enviarBienvenidaQr } from '@/lib/bienvenida';
+import { enviarCorreoInterno, filasCorreo } from '@/lib/email';
+
+/**
+ * Aviso interno de cada alta QR (07/10/2026, H1/H4/H12 del mapa del cliente):
+ * «NUEVA ALTA QR» si todo fue bien y «ALTA QR FALLIDA» si el cliente pagó y
+ * no tiene carta, con los datos para resolverlo a mano. Nunca lanza: el
+ * resultado del webhook no depende del correo.
+ */
+export async function avisarAltaQr(
+  estado: 'ok' | 'fallo',
+  datos: Partial<DatosPagoQr> & { idPago?: string },
+  motivo?: string
+): Promise<void> {
+  const asunto = estado === 'ok'
+    ? `NUEVA ALTA QR: ${datos.restauranteNombre ?? '¿?'} (${datos.plan ?? '¿?'})`
+    : `ALTA QR FALLIDA, cliente cobrado sin carta: ${datos.restauranteNombre ?? datos.email ?? datos.idPago ?? '¿?'}`;
+  const intro = estado === 'ok'
+    ? '<p>Se acaba de dar de alta un cliente de la carta QR. Ya tiene panel y le llegó la bienvenida.</p>'
+    : '<p><strong>Ha pagado y NO tiene restaurante.</strong> Revísalo hoy en Whop y en Central. Si la cuenta ya existía, hay que vincularla a mano; si fue la base, Whop reintenta solo, pero confirma que entró.</p>';
+  await enviarCorreoInterno(asunto, intro + filasCorreo([
+    ['Motivo', motivo],
+    ['Restaurante', datos.restauranteNombre],
+    ['Contacto', datos.nombreContacto],
+    ['Correo', datos.email],
+    ['Plan', datos.plan],
+    ['Miembro de Whop', datos.referenciaCliente],
+    ['Pago de Whop', datos.idPago],
+    ['Evento', datos.idEvento],
+  ])).catch((e) => console.error('Aviso interno de alta QR no enviado:', e));
+}
 
 /**
  * Lógica de aprovisionamiento común a cualquier pasarela de pago (Stripe,
@@ -86,6 +116,7 @@ export async function aprovisionarClienteQr(datos: DatosPagoQr): Promise<Resulta
       `No se pudo crear la cuenta de Neon Auth para ${datos.email} (evento ${datos.idEvento}):`,
       error instanceof ErrorNeonAuth ? `${error.codigo ?? ''} ${error.message}` : error
     );
+    await avisarAltaQr('fallo', datos, `No se pudo crear la cuenta (¿el correo ya tenía cuenta o es un reintento tras un fallo de la base?): ${error instanceof Error ? error.message : String(error)}`);
     return { ok: false, motivo: 'cuenta_neon_auth_fallo' };
   }
 
@@ -119,9 +150,11 @@ export async function aprovisionarClienteQr(datos: DatosPagoQr): Promise<Resulta
     if (!fila) throw new Error('dk.aprovisionar_cliente_qr no devolvió fila.');
     console.log(`Aprovisionado: restaurante ${fila.slug} (${fila.restaurante_id}) para ${datos.email}.`);
     await enviarBienvenidaQr(datos.email, datos.nombreContacto, datos.restauranteNombre, datos.plan).catch((e) => console.error('Bienvenida no enviada:', e));
+    await avisarAltaQr('ok', datos, `Carta /m/${fila.slug}`);
     return { ok: true, restauranteId: fila.restaurante_id, slug: fila.slug };
   } catch (error) {
     console.error(`Fallo aprovisionando el restaurante para ${datos.email} (evento ${datos.idEvento}):`, error);
+    await avisarAltaQr('fallo', datos, `La cuenta se creó, pero falló la base al crear el restaurante: ${error instanceof Error ? error.message : String(error)}`);
     return { ok: false, motivo: 'db_fallo', reintentable: true };
   }
 }

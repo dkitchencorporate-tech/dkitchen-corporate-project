@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import {
   aprovisionarClienteQr,
+  avisarAltaQr,
   esClienteExistente,
   registrarPagoRecuperado,
   registrarPagoFallido,
@@ -368,6 +369,7 @@ export async function POST(request: Request) {
   const miembroId = evento.data.member?.id;
   if (!miembroId) {
     console.error(`Webhook de Whop: pago ${evento.data.id} sin member.id, no se procesa.`);
+    await avisarAltaQr('fallo', { idPago: evento.data.id, idEvento: evento.id, email: evento.data.metadata?.email, restauranteNombre: evento.data.metadata?.restauranteNombre, nombreContacto: evento.data.metadata?.nombreContacto }, 'El pago llegó sin member.id de Whop');
     return NextResponse.json({ recibido: true });
   }
 
@@ -388,6 +390,7 @@ export async function POST(request: Request) {
 
   if (plan !== 'basico' && plan !== 'ampliado') {
     console.error(`Webhook de Whop: pago ${evento.data.id} sin plan válido en metadata.`);
+    await avisarAltaQr('fallo', { idPago: evento.data.id, idEvento: evento.id, referenciaCliente: miembroId, email, restauranteNombre, nombreContacto }, `Pago sin plan válido en la metadata (plan=${String(plan)})`);
     return NextResponse.json({ recibido: true });
   }
   if (!restauranteNombre || !slugBase || !nombreContacto || !email || !miembroId) {
@@ -398,6 +401,7 @@ export async function POST(request: Request) {
       email: !!email,
       miembroId: !!miembroId,
     });
+    await avisarAltaQr('fallo', { idPago: evento.data.id, idEvento: evento.id, referenciaCliente: miembroId, email, restauranteNombre, nombreContacto, plan }, 'Pago con la metadata incompleta: falta local, slug, contacto o correo');
     return NextResponse.json({ recibido: true });
   }
 
