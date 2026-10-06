@@ -7,7 +7,7 @@ import type { MiRestaurante } from '@/lib/mi-restaurante';
 import { actualizarLocalAction } from '@/app/panel/actions';
 import SubirImagen from './SubirImagen';
 
-const campo = 'w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza';
+const campo = 'w-full rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza';
 
 const PLANTILLAS = [
   { id: 'clasica', nombre: 'Clásica', para: 'Restaurante, menú del día, cartas largas' },
@@ -38,7 +38,7 @@ const NIVELES: Record<string, { nombre: string }> = {
 function MiniPlantilla({ tipo, color }: { tipo: string; color: string }) {
   const barra = 'h-1.5 rounded bg-white';
   return (
-    <div className="h-24 overflow-hidden rounded-lg bg-[#fbfaf8] p-2" aria-hidden="true">
+    <div className="h-24 overflow-hidden rounded-lg bg-crema p-2" aria-hidden="true">
       {tipo === 'visual' ? (
         <>
           <div className="h-8 rounded" style={{ background: color }} />
@@ -224,7 +224,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
                 En tu Perfil de Empresa de Google: «Pedir reseñas» → copia el enlace y pégalo aquí. Aparecerá un botón al final de tu carta.
               </span>
             </label>
-            <div className="rounded-lg bg-[#F3F3F0] p-4 text-xs text-niebla space-y-2">
+            <div className="rounded-lg bg-papel p-4 text-xs text-niebla space-y-2">
               <p className="font-semibold text-grafito">Pon tu carta en Google Maps (2 minutos)</p>
               <ol className="list-decimal pl-4 space-y-1">
                 <li>Entra en tu Perfil de Empresa de Google (búscate en Google Maps estando conectado).</li>
@@ -235,7 +235,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
                 <button
                   type="button"
                   onClick={() => navigator.clipboard?.writeText(urlCarta).then(() => setAviso({ ok: true, texto: 'Enlace copiado.' }))}
-                  className="shrink-0 rounded-md bg-papel px-3 py-1.5 font-semibold hover:bg-[#E5E5E1]"
+                  className="shrink-0 rounded-md bg-papel px-3 py-1.5 font-semibold hover:bg-linea"
                 >
                   Copiar
                 </button>

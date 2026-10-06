@@ -56,7 +56,7 @@ export default function ActivarPlanBoton({
     }
   }
 
-  const campo = 'mt-1.5 w-full rounded-xl border border-[#E7E1D8] bg-white px-4 py-3 text-[15px] text-[#1A1714] outline-none transition focus:border-[#1A1714]';
+  const campo = 'mt-1.5 w-full rounded-xl border border-acero bg-white px-4 py-3 text-[15px] text-[#1A1714] outline-none transition focus:border-[#1A1714]';
 
   return (
     <>
@@ -68,7 +68,7 @@ export default function ActivarPlanBoton({
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !cargando && setAbierto(false)}>
               <motion.form role="dialog" aria-modal="true" aria-labelledby={`alta-${plan}`} onSubmit={activar} onClick={(e) => e.stopPropagation()}
                 initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[28px] bg-[#FBF8F3] text-[#1A1714] shadow-2xl sm:max-w-md sm:rounded-[28px]">
+                className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[28px] bg-crema text-[#1A1714] shadow-2xl sm:max-w-md sm:rounded-[28px]">
                 <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-black/15 sm:hidden" />
                 <div className="flex items-start justify-between gap-4 px-7 pt-6">
                   <div>
@@ -81,7 +81,7 @@ export default function ActivarPlanBoton({
                   </button>
                 </div>
 
-                <div className="mx-7 mt-5 flex items-baseline justify-between rounded-2xl border border-[#E7E1D8] bg-white px-5 py-4">
+                <div className="mx-7 mt-5 flex items-baseline justify-between rounded-2xl border border-linea bg-white px-5 py-4">
                   <div>
                     <p className="text-sm font-semibold">Primer mes</p>
                     <p className="text-xs text-black/45">Después {p.precio} €/mes · sin permanencia</p>

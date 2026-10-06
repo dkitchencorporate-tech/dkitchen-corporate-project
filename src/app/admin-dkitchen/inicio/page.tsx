@@ -34,17 +34,17 @@ function evaluarCapacidad(c?: Capacidad) {
   return { uso, texto, nivel, filas };
 }
 
-const tarjeta = 'rounded-[22px] border border-[#E6E2DC] bg-white p-5';
+const tarjeta = 'rounded-[22px] border border-linea bg-white p-5';
 
 function Lista({ titulo, vacio, filas, accion }: { titulo: string; vacio: string; filas: { c: ClienteQr; d: string }[]; accion?: string }) {
   return (
     <section className={tarjeta}>
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-sm font-semibold">{titulo}</p>
-        <span className="rounded-full bg-[#F3F1EE] px-2.5 py-0.5 text-xs tabular-nums text-niebla">{filas.length}</span>
+        <span className="rounded-full bg-papel px-2.5 py-0.5 text-xs tabular-nums text-niebla">{filas.length}</span>
       </div>
       {filas.length === 0 ? <p className="mt-4 text-sm text-ceniza">{vacio}</p> : (
-        <ul className="mt-3 divide-y divide-[#F0ECE7]">
+        <ul className="mt-3 divide-y divide-linea">
           {filas.slice(0, 6).map(({ c, d }) => (
             <li key={c.restauranteId}>
               <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="flex items-center justify-between gap-3 py-2.5 text-sm hover:text-vino">
@@ -101,7 +101,7 @@ export default async function CentralInicio() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {kpis.map(([t, v, d], i) => (
-          <div key={t} className={`${i === 0 ? 'col-span-2 bg-noche text-white lg:col-span-1' : 'bg-white'} rounded-[22px] border border-[#E6E2DC] p-5`}>
+          <div key={t} className={`${i === 0 ? 'col-span-2 bg-noche text-white lg:col-span-1' : 'bg-white'} rounded-[22px] border border-linea p-5`}>
             <p className={`text-xs ${i === 0 ? 'text-white/55' : 'text-niebla'}`}>{t}</p>
             <p className={`font-display mt-2 text-4xl font-semibold tabular-nums ${i === 0 ? 'text-oro' : i === 2 && riesgo.length ? 'text-vino' : ''}`}>{v}</p>
             <p className={`mt-1 text-xs ${i === 0 ? 'text-white/45' : 'text-ceniza'}`}>{d}</p>
@@ -135,7 +135,7 @@ export default async function CentralInicio() {
           <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${avisos.nivel === 'ok' ? 'bg-exito/15 text-exito' : avisos.nivel === 'aviso' ? 'bg-amber-500/15 text-amber-700' : 'bg-vino/10 text-vino'}`}>{avisos.nivel === 'ok' ? 'Holgado' : avisos.nivel === 'aviso' ? 'Preparar subida' : 'Subir ya'}</span>
         </div>
         <p className="mt-2 text-sm text-niebla">{avisos.texto}</p>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#F1EEEA]"><div className="h-full rounded-full bg-vino" style={{ width: `${Math.min(100, Math.max(1, avisos.uso * 100))}%` }} /></div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-papel"><div className="h-full rounded-full bg-vino" style={{ width: `${Math.min(100, Math.max(1, avisos.uso * 100))}%` }} /></div>
         <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
           {avisos.filas.map(([k, v]) => <div key={k}><dt className="text-xs text-ceniza">{k}</dt><dd className="font-medium tabular-nums">{v}</dd></div>)}
         </dl>

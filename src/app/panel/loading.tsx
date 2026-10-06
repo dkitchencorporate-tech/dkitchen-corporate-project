@@ -26,8 +26,8 @@ export default function CargandoPanel() {
         {[0, 1].map((i) => (
           <div key={i} className="rounded-2xl border border-linea p-6 space-y-3">
             <div className="h-5 w-32 rounded bg-papel animate-pulse" />
-            <div className="h-4 w-full rounded bg-[#F3F3F0] animate-pulse" />
-            <div className="h-4 w-3/4 rounded bg-[#F3F3F0] animate-pulse" />
+            <div className="h-4 w-full rounded bg-papel animate-pulse" />
+            <div className="h-4 w-3/4 rounded bg-papel animate-pulse" />
           </div>
         ))}
       </main>

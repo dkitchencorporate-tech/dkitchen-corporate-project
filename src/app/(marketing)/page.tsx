@@ -63,7 +63,7 @@ export default function Home() {
           <TextoRevelado texto="Lo que le está costando dinero a tu local cada semana." className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] md:text-6xl" />
           <div className="mt-14 grid md:grid-cols-2 md:gap-x-14">
             {DOLORES.map(([a, b], i) => (
-              <Aparecer key={a} retraso={(i % 2) * 0.08} className="grid grid-cols-[56px_1fr] gap-4 border-t border-linea-cava py-8">
+              <Aparecer key={a} retraso={(i % 2) * 0.08} className="grid grid-cols-[56px_1fr] gap-4 border-t border-linea-fuerte py-8">
                 <span className="acento-serif text-4xl leading-none text-vino">{i + 1}</span>
                 <div><p className="text-xl font-semibold leading-snug">{a}</p><p className="mt-2 text-niebla">{b}</p></div>
               </Aparecer>

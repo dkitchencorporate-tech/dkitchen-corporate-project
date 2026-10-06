@@ -36,7 +36,7 @@ export default function Privacidad() {
         <p className="etiqueta-dk text-vino">Política de privacidad</p>
         <h1 className="font-display mt-4 text-4xl font-semibold leading-tight md:text-6xl">Tus datos, claros y en tu mano.</h1>
         <p className="mt-4 text-sm text-niebla">Última actualización: 29 de septiembre de 2026</p>
-        <ol className="mt-12 divide-y divide-linea-calida border-y border-linea-calida">
+        <ol className="mt-12 divide-y divide-linea border-y border-linea">
           {SECCIONES.map(([t, texto], i) => (
             <li key={t} className="grid gap-3 py-7 md:grid-cols-[56px_1fr]">
               <span className="acento-serif text-3xl leading-none">{i + 1}</span>

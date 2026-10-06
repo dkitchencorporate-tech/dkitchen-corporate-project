@@ -42,7 +42,7 @@ export default function SalaViva() {
                 return (
                   <div key={n} className="relative aspect-square">
                     {activa && <span className="absolute inset-0 rounded-xl bg-vino" style={{ animation: 'latido 1.4s ease-in-out infinite' }} />}
-                    <span className={`relative flex h-full w-full items-center justify-center rounded-xl text-sm font-bold shadow-sm transition-colors duration-500 ${activa ? 'bg-vino text-white' : 'bg-[#F3F3F0] text-carbon'}`}>{n}</span>
+                    <span className={`relative flex h-full w-full items-center justify-center rounded-xl text-sm font-bold shadow-sm transition-colors duration-500 ${activa ? 'bg-vino text-white' : 'bg-papel text-carbon'}`}>{n}</span>
                   </div>
                 );
               })}</div>
@@ -54,7 +54,7 @@ export default function SalaViva() {
                 return (
                   <div key={n} className="relative aspect-square">
                     {activa && <span className="absolute inset-0 rounded-xl bg-vino" style={{ animation: 'latido 1.4s ease-in-out infinite' }} />}
-                    <span className={`relative flex h-full w-full items-center justify-center rounded-xl text-sm font-bold shadow-sm transition-colors duration-500 ${activa ? 'bg-vino text-white' : 'bg-[#F3F3F0] text-carbon'}`}>{n}</span>
+                    <span className={`relative flex h-full w-full items-center justify-center rounded-xl text-sm font-bold shadow-sm transition-colors duration-500 ${activa ? 'bg-vino text-white' : 'bg-papel text-carbon'}`}>{n}</span>
                   </div>
                 );
               })}</div>

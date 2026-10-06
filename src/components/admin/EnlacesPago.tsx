@@ -31,7 +31,7 @@ export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId
   const primerFinal = primer === '' ? normal.primer / 100 : numero(primer);
   const mensualFinal = mensual === '' ? normal.mensual / 100 : numero(mensual);
   const descuento = normal.primer ? Math.round((1 - (primerFinal * 100) / normal.primer) * 100) : 0;
-  const campo = 'mt-1.5 w-full rounded-xl border border-linea bg-white px-4 py-3 text-[15px] outline-none focus:border-tinta';
+  const campo = 'mt-1.5 w-full rounded-xl border border-acero bg-white px-4 py-3 text-[15px] outline-none focus:border-tinta';
   const hayAlgo = !!plan || servicios.length > 0;
   const importesOk = primerFinal >= 1 && Number.isFinite(mensualFinal) && mensualFinal >= 0;
 
@@ -112,7 +112,7 @@ export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId
 
       {paso === 3 && (
         <div className="space-y-4">
-          <dl className="divide-y divide-[#ECECE8] rounded-2xl border border-linea text-sm">
+          <dl className="divide-y divide-linea rounded-2xl border border-linea text-sm">
             <div className="flex justify-between gap-4 px-4 py-3"><dt className="text-niebla">Qué incluye</dt><dd className="text-right font-medium">{[plan ? `Plan ${plan === 'ampliado' ? 'Ampliado' : 'Básico'}` : null, ...servicios.map((s) => catalogo.find((c) => c.servicio === s)?.nombre)].filter(Boolean).join(' + ')}</dd></div>
             <div className="flex justify-between gap-4 px-4 py-3"><dt className="text-niebla">Primer pago</dt><dd className="font-semibold">{eur(Math.round(primerFinal * 100))}</dd></div>
             <div className="flex justify-between gap-4 px-4 py-3"><dt className="text-niebla">Después</dt><dd className="font-medium">{mensualFinal ? `${eur(Math.round(mensualFinal * 100))}/mes` : 'Pago único'}</dd></div>

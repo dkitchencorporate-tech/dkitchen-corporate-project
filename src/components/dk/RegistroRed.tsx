@@ -17,7 +17,7 @@ const SERVICIOS = [['/qr', 'Carta digital QR', 'Tu carta al día desde el móvil
 function Formulario({ tipo, onCerrar }: { tipo: Tipo; onCerrar: () => void }) {
   const [estado, setEstado] = useState<'idle' | 'enviando' | 'ok' | 'error'>('idle');
   const [error, setError] = useState('');
-  const campo = 'mt-1.5 w-full rounded-xl border border-linea bg-white px-4 py-3 text-[15px] outline-none focus:border-tinta';
+  const campo = 'mt-1.5 w-full rounded-xl border border-acero bg-white px-4 py-3 text-[15px] outline-none focus:border-tinta';
 
   async function enviar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -91,7 +91,7 @@ export default function RegistroRed() {
           <motion.div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAbierto(null)}>
             <motion.div role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} data-lenis-prevent
               initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }} transition={{ duration: 0.4, ease: CURVA }}
-              className="relative max-h-[92dvh] w-full overflow-y-auto rounded-t-[28px] bg-[#FBFAF8] text-tinta sm:max-w-lg sm:rounded-[28px]">
+              className="relative max-h-[92dvh] w-full overflow-y-auto rounded-t-[28px] bg-crema text-tinta sm:max-w-lg sm:rounded-[28px]">
               <button onClick={() => setAbierto(null)} aria-label="Cerrar" className="absolute right-4 top-4 rounded-full p-2 text-niebla hover:bg-black/5">✕</button>
               <Formulario key={abierto} tipo={abierto} onCerrar={() => setAbierto(null)} />
             </motion.div>

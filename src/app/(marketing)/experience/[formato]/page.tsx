@@ -130,7 +130,7 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               {f.ejemplos.map(([cocina, idea], i) => (
                 <Aparecer key={cocina} retraso={i * 0.06} className="h-full">
-                  <TarjetaTilt className="h-full rounded-[20px] border border-linea-calida bg-white p-5">
+                  <TarjetaTilt className="h-full rounded-[20px] border border-linea bg-white p-5">
                     <p className="etiqueta-dk text-vino">{cocina}</p>
                     <p className="mt-2 text-base text-grafito">{idea}</p>
                   </TarjetaTilt>
@@ -187,7 +187,7 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
           <Titulo etiqueta="Condiciones claras" texto="Las reglas, antes de pagar." />
           <ol className="mt-10 grid md:grid-cols-2 md:gap-x-14">
             {REGLAS.map((r, i) => (
-              <li key={r} className="grid grid-cols-[56px_1fr] gap-4 border-t border-linea-cava py-6">
+              <li key={r} className="grid grid-cols-[56px_1fr] gap-4 border-t border-linea-fuerte py-6">
                 <span aria-hidden="true" className="acento-serif text-4xl leading-none">{i + 1}</span>
                 <p className="text-base leading-relaxed text-grafito">{r}</p>
               </li>
@@ -202,13 +202,13 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
         ['¿Qué pasa después de pagar?', 'Rellenas un cuestionario corto sobre el evento y te contactamos en menos de 48 horas laborables para la videollamada de arranque.'],
       ]} />
 
-      <section className="border-t border-linea-calida bg-white py-16 md:py-20">
+      <section className="border-t border-linea bg-white py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <p className="etiqueta-dk text-vino">Otros formatos</p>
           <ul className="mt-6 flex flex-wrap gap-2">
             {otros.map((o) => (
               <li key={o.slug}>
-                <Link href={`/experience/${o.slug}`} className="inline-flex min-h-11 flex-col justify-center rounded-2xl border border-linea-calida bg-white px-5 py-2.5 transition hover:border-vino">
+                <Link href={`/experience/${o.slug}`} className="inline-flex min-h-11 flex-col justify-center rounded-2xl border border-linea bg-white px-5 py-2.5 transition hover:border-vino">
                   <span className="text-sm font-semibold">{o.nombre}</span>
                   <span className="text-xs text-pizarra">{o.etiqueta}</span>
                 </Link>

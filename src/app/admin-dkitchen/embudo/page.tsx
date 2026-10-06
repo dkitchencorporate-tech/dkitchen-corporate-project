@@ -36,18 +36,18 @@ export default async function Embudo({ searchParams }: { searchParams: Promise<{
           <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Embudo de pago</h1>
           <p className="text-sm text-niebla">Páginas /pagar: quién entra, quién se va y quién paga. Anónimo, datos reales.</p>
         </div>
-        <div className="flex gap-1 rounded-full bg-white p-1 ring-1 ring-linea-calida">
+        <div className="flex gap-1 rounded-full bg-white p-1 ring-1 ring-linea">
           {RANGOS.map((r) => <Link key={r} href={`?dias=${r}`} className={`rounded-full px-4 py-1.5 text-sm font-semibold ${r === dias ? 'bg-tinta text-white' : 'text-niebla'}`}>{r} días</Link>)}
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[['Visitas a páginas de pago', tot.visitas], ['Fueron a pagar', tot.checkout], ['Pagos confirmados', tot.pagados], ['Ingresos por pago directo', `${tot.ingresos.toLocaleString('es-ES')} €`]].map(([t, v]) => (
-          <div key={t as string} className="rounded-2xl border border-linea-calida bg-white p-5"><p className="text-sm text-niebla">{t}</p><p className="font-display mt-2 text-4xl font-semibold tabular-nums">{v}</p></div>
+          <div key={t as string} className="rounded-2xl border border-linea bg-white p-5"><p className="text-sm text-niebla">{t}</p><p className="font-display mt-2 text-4xl font-semibold tabular-nums">{v}</p></div>
         ))}
       </div>
 
-      <div className="rounded-2xl border border-linea-calida bg-white p-5">
+      <div className="rounded-2xl border border-linea bg-white p-5">
         <p className="text-sm text-niebla">Visitas por día · los puntos oro son pagos</p>
         <div className="mt-4 flex h-36 items-end gap-[3px]">
           {diario.map((d) => (
@@ -63,7 +63,7 @@ export default async function Embudo({ searchParams }: { searchParams: Promise<{
         {datos.map((d) => {
           const pasos: [string, number][] = [['Entran', d.visitas], ['Rellenan', d.interes], ['Van a pagar', d.checkout], ['Pagan', d.pagados]];
           return (
-            <div key={d.p.id} className="rounded-2xl border border-linea-calida bg-white p-5">
+            <div key={d.p.id} className="rounded-2xl border border-linea bg-white p-5">
               <div className="flex items-baseline justify-between gap-2">
                 <p className="font-display text-xl font-semibold">{d.p.nombre}</p>
                 <a href={`/pagar/${d.p.id}`} target="_blank" className="text-xs text-niebla underline">ver página</a>
@@ -73,11 +73,11 @@ export default async function Embudo({ searchParams }: { searchParams: Promise<{
                 {pasos.map(([t, v]) => (
                   <div key={t}>
                     <div className="flex justify-between text-sm"><span>{t}</span><span className="tabular-nums font-semibold">{v} <span className="font-normal text-ceniza">· {pct(v, d.visitas)} %</span></span></div>
-                    <div className="mt-1 h-2 rounded-full bg-[#F1EEEA]"><div className="h-2 rounded-full bg-vino" style={{ width: `${pct(v, d.visitas)}%` }} /></div>
+                    <div className="mt-1 h-2 rounded-full bg-papel"><div className="h-2 rounded-full bg-vino" style={{ width: `${pct(v, d.visitas)}%` }} /></div>
                   </div>
                 ))}
               </div>
-              <p className="mt-5 border-t border-linea-calida pt-4 text-sm text-niebla">Se fueron sin pagar: <strong className="text-carbon">{d.salidas}</strong>{d.seg ? ` · tras ${d.seg} s de media` : ''}</p>
+              <p className="mt-5 border-t border-linea pt-4 text-sm text-niebla">Se fueron sin pagar: <strong className="text-carbon">{d.salidas}</strong>{d.seg ? ` · tras ${d.seg} s de media` : ''}</p>
             </div>
           );
         })}

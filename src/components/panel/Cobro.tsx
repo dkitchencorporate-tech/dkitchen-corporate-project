@@ -35,7 +35,7 @@ export function AvisoPrueba({ cobro }: { cobro: ResumenCobro | null }) {
   const vencida = cobro.estado_acceso === 'solo_lectura' || quedan < 0;
   const urgente = !vencida && quedan <= 3;
   return (
-    <section aria-live="polite" className={`mb-6 rounded-[22px] p-5 sm:p-6 ${vencida || urgente ? 'bg-noche text-white' : 'border border-[#E6E2DC] bg-white'}`}>
+    <section aria-live="polite" className={`mb-6 rounded-[22px] p-5 sm:p-6 ${vencida || urgente ? 'bg-noche text-white' : 'border border-linea bg-white'}`}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="min-w-0 max-w-2xl">
           <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${vencida || urgente ? 'text-oro' : 'text-vino'}`}>
@@ -56,18 +56,18 @@ export function AvisoPrueba({ cobro }: { cobro: ResumenCobro | null }) {
 export function DesgloseCobro({ cobro }: { cobro: ResumenCobro | null }) {
   if (!cobro) return null;
   return (
-    <section className="rounded-[22px] border border-[#E6E2DC] bg-white p-5 sm:p-6">
+    <section className="rounded-[22px] border border-linea bg-white p-5 sm:p-6">
       <h2 className="font-display text-xl font-semibold tracking-tight">Tu cobro</h2>
       <p className="mt-1 text-sm text-niebla">Cobramos a todos los clientes el día {cobro.dia_cobro} de cada mes, lejos de los pagos de final de mes. Precios + IVA.</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl bg-[#F3F1EE] p-4"><p className="text-xs text-niebla">Valor de lo que tienes</p><p className="mt-1 text-lg font-black">{euros(cobro.valor_mensual)}/mes</p></div>
-        <div className="rounded-2xl bg-[#F3F1EE] p-4"><p className="text-xs text-niebla">Pagas ahora</p><p className="mt-1 text-lg font-black">{cobro.paga_mensual ? `${euros(cobro.paga_mensual)}/mes` : '0 €'}</p></div>
-        <div className="rounded-2xl bg-[#F3F1EE] p-4">
+        <div className="rounded-2xl bg-papel p-4"><p className="text-xs text-niebla">Valor de lo que tienes</p><p className="mt-1 text-lg font-black">{euros(cobro.valor_mensual)}/mes</p></div>
+        <div className="rounded-2xl bg-papel p-4"><p className="text-xs text-niebla">Pagas ahora</p><p className="mt-1 text-lg font-black">{cobro.paga_mensual ? `${euros(cobro.paga_mensual)}/mes` : '0 €'}</p></div>
+        <div className="rounded-2xl bg-papel p-4">
           <p className="text-xs text-niebla">{cobro.proximo_cobro ? 'Próximo cobro' : cobro.prueba_hasta ? 'Si te quedas hoy, primer cobro' : 'Próximo cobro'}</p>
           <p className="mt-1 text-lg font-black">{cobro.proximo_cobro ? fecha(cobro.proximo_cobro) : cobro.prueba_hasta ? fecha(cobro.cobro_si_paga_hoy) : '—'}</p>
         </div>
       </div>
-      <ul className="mt-4 divide-y divide-[#EFEDE9] text-sm">
+      <ul className="mt-4 divide-y divide-linea text-sm">
         <li className="flex justify-between gap-3 py-2"><span>Plan {cobro.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</span><span className="text-niebla">{euros(cobro.precio_plan)}/mes</span></li>
         {cobro.items.map((i) => (
           <li key={i.servicio} className="flex justify-between gap-3 py-2">

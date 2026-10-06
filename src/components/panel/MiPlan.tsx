@@ -155,7 +155,7 @@ function ResumenCuenta({ restaurante, servicios, precioPlan, nombrePlan }: {
         </div>
         <p className="text-sm text-niebla">Cliente desde el {fechaLarga.format(alta)}</p>
       </div>
-      <ul className="divide-y divide-[#ECECE8]">
+      <ul className="divide-y divide-linea">
         <li className="flex flex-wrap items-start justify-between gap-2 p-5">
           <div>
             <p className="font-semibold">Plan {nombrePlan}</p>
@@ -187,16 +187,16 @@ function DarseDeBaja() {
   const [hecho, setHecho] = useState(false);
   const [error, setError] = useState('');
   const [pendiente, empezar] = useTransition();
-  if (hecho) return <p className="rounded-2xl border border-[#E6E2DC] bg-white p-5 text-sm text-grafito">Hemos recibido tu baja. No se te volverá a cobrar y tu carta sigue activa hasta el final del periodo pagado. Te hemos enviado la confirmación por correo.</p>;
+  if (hecho) return <p className="rounded-2xl border border-linea bg-white p-5 text-sm text-grafito">Hemos recibido tu baja. No se te volverá a cobrar y tu carta sigue activa hasta el final del periodo pagado. Te hemos enviado la confirmación por correo.</p>;
   return (
     <div className="pt-4 text-sm">
       {!abierto ? (
         <button onClick={() => setAbierto(true)} className="text-ceniza underline hover:text-niebla">Darme de baja</button>
       ) : (
-        <div className="rounded-2xl border border-[#E6E2DC] bg-white p-5">
+        <div className="rounded-2xl border border-linea bg-white p-5">
           <p className="font-semibold">¿Seguro que quieres darte de baja?</p>
           <p className="mt-1 text-niebla">No se te volverá a cobrar. Tu carta sigue activa hasta el final del periodo pagado y la guardamos 60 días por si vuelves. Lo ya pagado no se devuelve.</p>
-          <textarea id="baja-motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} maxLength={1000} rows={3} placeholder="¿Nos cuentas por qué? (opcional)" className="mt-3 w-full rounded-xl border border-[#E6E2DC] px-3 py-2.5 outline-none focus:border-vino" />
+          <textarea id="baja-motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} maxLength={1000} rows={3} placeholder="¿Nos cuentas por qué? (opcional)" className="mt-3 w-full rounded-xl border border-acero px-3 py-2.5 outline-none focus:border-vino" />
           {error && <p role="alert" className="mt-2 text-vino">{error}</p>}
           <div className="mt-3 flex flex-wrap gap-2">
             <button disabled={pendiente} onClick={() => empezar(async () => { try { await solicitarBajaAction(motivo); setHecho(true); } catch { setError('No se pudo registrar. Inténtalo de nuevo o escríbenos desde Soporte.'); } })}

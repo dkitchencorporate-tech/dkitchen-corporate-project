@@ -107,10 +107,10 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
             <p className="text-xs text-niebla">{hechos === pasos.length ? 'Tu carta está completa' : 'Primeros pasos'}</p>
             <p className="text-xs tabular-nums text-niebla">{hechos} de {pasos.length}</p>
           </div>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#F1EEEA]">
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-papel">
             <motion.div className="h-full rounded-full bg-vino" initial={{ width: 0 }} animate={{ width: `${(hechos / pasos.length) * 100}%` }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} />
           </div>
-          <ul className="mt-4 divide-y divide-[#F0ECE7]">
+          <ul className="mt-4 divide-y divide-linea">
             {pasos.map((p) => (
               <li key={p.t}>
                 <button onClick={() => ir(p.ir)} className="flex w-full items-center gap-3 py-3 text-left text-sm">
@@ -152,7 +152,7 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
             <p className="text-xs text-niebla">Reservas de hoy</p>
             <button onClick={() => ir('reservas')} className="text-xs text-niebla underline">Ver todas</button>
           </div>
-          <ul className="mt-3 divide-y divide-[#ECECE8]">
+          <ul className="mt-3 divide-y divide-linea">
             {deHoy.slice(0, 5).map((r) => (
               <li key={r.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                 <span className="font-medium tabular-nums">{r.hora}</span>

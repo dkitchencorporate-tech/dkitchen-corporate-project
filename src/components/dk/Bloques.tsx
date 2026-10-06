@@ -63,7 +63,7 @@ export function Dolores({ items, cta }: { items: [string, string][]; cta?: Cta }
     <div>
       <div className="mt-14 grid md:grid-cols-2 md:gap-x-14">
         {items.map(([a, b], i) => (
-          <Aparecer key={a} retraso={(i % 2) * 0.08} className="group grid grid-cols-[56px_1fr] gap-4 border-t border-linea-cava py-8">
+          <Aparecer key={a} retraso={(i % 2) * 0.08} className="group grid grid-cols-[56px_1fr] gap-4 border-t border-linea-fuerte py-8">
             <span className="acento-serif text-4xl leading-none text-vino">{i + 1}</span>
             <div><p className="text-xl font-semibold leading-snug text-tinta">{a}</p><p className="mt-2 text-niebla">{b}</p></div>
           </Aparecer>

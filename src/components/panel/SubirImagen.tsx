@@ -69,7 +69,7 @@ export default function SubirImagen({
             type="button"
             disabled={subiendo}
             onClick={() => entrada.current?.click()}
-            className="rounded-lg bg-papel px-3 py-1.5 text-sm font-semibold hover:bg-[#E5E5E1] disabled:opacity-50"
+            className="rounded-lg bg-papel px-3 py-1.5 text-sm font-semibold hover:bg-linea disabled:opacity-50"
           >
             {subiendo ? 'Subiendo…' : valor ? `Cambiar ${etiqueta.toLowerCase()}` : `Subir ${etiqueta.toLowerCase()}`}
           </button>

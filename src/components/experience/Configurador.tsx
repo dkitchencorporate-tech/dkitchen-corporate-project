@@ -56,7 +56,7 @@ export default function Configurador({ codigo, nombre, aforo, entrada, precio, p
   const ayuda = 'mt-1 block text-xs font-normal text-pizarra';
 
   return (
-    <div className="grid gap-8 rounded-[28px] border border-linea-calida bg-white p-5 shadow-[0_30px_80px_-40px_rgba(62,5,21,.45)] md:grid-cols-2 md:p-10">
+    <div className="grid gap-8 rounded-[28px] border border-linea bg-white p-5 shadow-[0_30px_80px_-40px_rgba(62,5,21,.45)] md:grid-cols-2 md:p-10">
       <div className="space-y-5">
         <label className="block text-sm font-semibold">Tu tipo de cocina
           <select value={cocina} onChange={(e) => setCocina(e.target.value)} className={campo}>

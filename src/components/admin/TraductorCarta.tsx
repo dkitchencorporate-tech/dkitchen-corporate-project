@@ -38,7 +38,7 @@ export default function TraductorCarta({ restauranteId, activos, secciones, plat
     });
   }
 
-  const campo = 'w-full rounded-lg bg-white border border-linea px-3 py-2 text-sm text-carbon placeholder-ceniza';
+  const campo = 'w-full rounded-lg bg-white border border-acero px-3 py-2 text-sm text-carbon placeholder-ceniza';
 
   return (
     <div className="space-y-6">

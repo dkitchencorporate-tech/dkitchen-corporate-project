@@ -123,7 +123,7 @@ export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [], po
                 <button key={x.id} type="button" onClick={() => setE({ ...e, plantilla: x.id })} className={opcion(e.plantilla === x.id)} aria-pressed={e.plantilla === x.id}>
                   <span className="block font-semibold">{x.nombre}</span>
                   <span className="mt-0.5 block text-xs text-niebla">{x.para}</span>
-                  <span className="mt-2 flex flex-wrap gap-1">{x.muestra.map((m) => <span key={m} className="rounded-full bg-[#F3EDE6] px-2 py-0.5 text-[10.5px] font-medium text-vino">{m}</span>)}</span>
+                  <span className="mt-2 flex flex-wrap gap-1">{x.muestra.map((m) => <span key={m} className="rounded-full bg-vino/[.06] px-2 py-0.5 text-[10.5px] font-medium text-vino">{m}</span>)}</span>
                 </button>
               ))}
             </div>

@@ -154,14 +154,14 @@ export default function PanelShell({
 
       <div className="min-w-0">
         {/* Cabecera */}
-        <header className="sticky top-0 z-30 border-b border-[#E6E2DC] bg-crema/90 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 border-b border-linea bg-crema/90 backdrop-blur-xl">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
             <div className="min-w-0">
               <p className="truncate text-[15px] font-semibold">{restaurante.nombre}</p>
               <p className="text-xs text-niebla">{espacio?.nombre}{espacio && espacio.items.length > 1 ? ` · ${titulo}` : ''} · plan {restaurante.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="hidden rounded-full border border-[#E0DBD4] bg-white px-4 py-2 text-sm font-medium sm:inline-flex lg:hidden">Ver carta</a>
+              <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="hidden rounded-full border border-linea-fuerte bg-white px-4 py-2 text-sm font-medium sm:inline-flex lg:hidden">Ver carta</a>
               <button onClick={() => setMenu(true)} aria-label="Cuenta" className="flex h-9 w-9 items-center justify-center rounded-full bg-tinta text-sm font-semibold text-oro lg:hidden">{identidad.nombre.slice(0, 1).toUpperCase()}</button>
             </div>
           </div>
@@ -187,8 +187,8 @@ export default function PanelShell({
               <p className="font-semibold">{identidad.nombre}</p>
               <p className="truncate text-sm text-niebla">{identidad.email}</p>
               <div className="mt-4 grid gap-2">
-                <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="rounded-2xl bg-[#F3F1EE] px-4 py-3.5 text-sm font-medium">Ver mi carta como la ven mis clientes</a>
-                <button onClick={() => setPestana('soporte')} className="rounded-2xl bg-[#F3F1EE] px-4 py-3.5 text-left text-sm font-medium">Soporte</button>
+                <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="rounded-2xl bg-papel px-4 py-3.5 text-sm font-medium">Ver mi carta como la ven mis clientes</a>
+                <button onClick={() => setPestana('soporte')} className="rounded-2xl bg-papel px-4 py-3.5 text-left text-sm font-medium">Soporte</button>
                 <button onClick={salir} className="rounded-2xl px-4 py-3.5 text-left text-sm font-medium text-vino">Cerrar sesión</button>
               </div>
             </div>

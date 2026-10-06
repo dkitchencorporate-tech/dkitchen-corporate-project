@@ -110,7 +110,7 @@ export default function GeneradorIa({
   const info = INFO[modo];
   const [ampliada, setAmpliada] = useState(false);
   const boton = 'rounded-full bg-vino px-4 py-2.5 text-sm font-semibold text-white hover:bg-vino-hondo disabled:opacity-40';
-  const secundario = 'rounded-full border border-[#E6E2DC] bg-white px-4 py-2.5 text-sm font-semibold disabled:opacity-40';
+  const secundario = 'rounded-full border border-linea bg-white px-4 py-2.5 text-sm font-semibold disabled:opacity-40';
 
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/50 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="Crear imagen con IA" onClick={onCerrar}>
@@ -127,7 +127,7 @@ export default function GeneradorIa({
         {/* 1. La imagen (o la carga) siempre arriba */}
         <div className="mt-4">
           {pendiente ? (
-            <div className={`relative flex w-full flex-col items-center justify-center overflow-hidden rounded-2xl bg-[#EDE7E0] ${proporcion}`} role="status" aria-live="polite">
+            <div className={`relative flex w-full flex-col items-center justify-center overflow-hidden rounded-2xl bg-papel ${proporcion}`} role="status" aria-live="polite">
               <div className="absolute inset-0 animate-[dk-brillo_1.6s_linear_infinite] bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,.55)_50%,transparent_75%)] bg-[length:200%_100%]" />
               <div className="relative flex flex-col items-center gap-3 text-center">
                 <span className="h-10 w-10 animate-spin rounded-full border-[3px] border-vino/20 border-t-vino" />
@@ -161,13 +161,13 @@ export default function GeneradorIa({
           ) : (
             <div className="space-y-3">
               {modo === 'plato' && imagenActual && (
-                <button disabled={sinSaldo} onClick={() => crear('mejorar', 'mejora la presentación')} className="w-full rounded-2xl border border-[#E6E2DC] bg-white p-4 text-left hover:border-vino/40 disabled:opacity-50">
+                <button disabled={sinSaldo} onClick={() => crear('mejorar', 'mejora la presentación')} className="w-full rounded-2xl border border-linea bg-white p-4 text-left hover:border-vino/40 disabled:opacity-50">
                   <span className="font-semibold">Mejorar mi foto</span>
                   <span className="block text-sm text-niebla">Mejora luz, color y presentación de tu foto sin cambiar el plato.</span>
                 </button>
               )}
               {modo === 'plato' && (
-                <button disabled={sinSaldo || !plato?.nombre?.trim()} onClick={() => crear('nuevo')} className="w-full rounded-2xl border border-[#E6E2DC] bg-white p-4 text-left hover:border-vino/40 disabled:opacity-50">
+                <button disabled={sinSaldo || !plato?.nombre?.trim()} onClick={() => crear('nuevo')} className="w-full rounded-2xl border border-linea bg-white p-4 text-left hover:border-vino/40 disabled:opacity-50">
                   <span className="font-semibold">Crear la foto desde el nombre del plato</span>
                   <span className="block text-sm text-niebla">{plato?.nombre?.trim() ? 'Usamos el nombre y la descripción. Si quieres algo concreto, escríbelo abajo antes.' : 'Primero escribe el nombre del plato (cierra esta ventana, ponlo y vuelve).'}</span>
                 </button>
@@ -178,7 +178,7 @@ export default function GeneradorIa({
                   <p className="mt-1 text-xs text-niebla">Usamos el nombre y el color de tu local. Luego puedes pedir cambios hasta dar con él.</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {IDEAS_LOGO.map((i) => (
-                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-[#E6E2DC] bg-white px-3.5 py-2 text-[13px] hover:border-vino/40 disabled:opacity-50">{i}</button>
+                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-linea bg-white px-3.5 py-2 text-[13px] hover:border-vino/40 disabled:opacity-50">{i}</button>
                     ))}
                   </div>
                 </div>
@@ -188,7 +188,7 @@ export default function GeneradorIa({
                   <p className="text-sm font-semibold">Ideas para tu portada</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {IDEAS_PORTADA.map((i) => (
-                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-[#E6E2DC] bg-white px-3.5 py-2 text-[13px] hover:border-vino/40 disabled:opacity-50">{i}</button>
+                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-linea bg-white px-3.5 py-2 text-[13px] hover:border-vino/40 disabled:opacity-50">{i}</button>
                     ))}
                   </div>
                 </div>
@@ -198,7 +198,7 @@ export default function GeneradorIa({
                   <p className="text-sm font-semibold">Diseños recomendados para tu carta</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {IDEAS_BANNER.map((i) => (
-                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-[#E6E2DC] bg-white px-3.5 py-2 text-[13px] hover:border-vino/40 disabled:opacity-50">{i}</button>
+                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-linea bg-white px-3.5 py-2 text-[13px] hover:border-vino/40 disabled:opacity-50">{i}</button>
                     ))}
                   </div>
                 </div>
@@ -213,12 +213,12 @@ export default function GeneradorIa({
         {historial.length > 0 && (
           <ul className="mt-4 space-y-1 text-xs text-niebla">{historial.map((h, i) => <li key={i}>• {h}</li>)}</ul>
         )}
-        <form className="mt-4 rounded-2xl border border-[#E6E2DC] bg-white p-3" onSubmit={(e) => { e.preventDefault(); if (texto.trim()) crear(actual ? 'retocar' : 'nuevo'); }}>
+        <form className="mt-4 rounded-2xl border border-linea bg-white p-3" onSubmit={(e) => { e.preventDefault(); if (texto.trim()) crear(actual ? 'retocar' : 'nuevo'); }}>
           <label className="block text-sm font-semibold">
             {actual ? '¿Qué quieres cambiar de esta imagen?' : modo === 'plato' ? 'Describe cómo la quieres (opcional)' : 'O describe exactamente lo que quieres'}
             <textarea value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={400} rows={2} spellCheck lang="es" disabled={pendiente}
               placeholder={actual ? 'Ej.: más luz, fondo de madera, letras más grandes' : info.ejemplo}
-              className="mt-1.5 w-full rounded-xl border border-[#E6E2DC] bg-[#FBFAF8] px-3 py-2.5 text-sm font-normal placeholder-ceniza focus:border-vino focus:outline-none" />
+              className="mt-1.5 w-full rounded-xl border border-linea bg-crema px-3 py-2.5 text-sm font-normal placeholder-ceniza focus:border-vino focus:outline-none" />
           </label>
           {modo !== 'plato' && <p className="mt-1.5 text-[12px] text-niebla">💡 ¿Quieres un texto escrito en la imagen (tu nombre, un precio…)? Escríbelo <strong>entre comillas</strong>: «letrero con "El Rincón del Flores"». Lo escribiremos tal cual.</p>}
           <HerramientasTexto valor={texto} onCambio={setTexto} tipo="instruccion" contexto={plato?.nombre ?? undefined} demo={demo} />

@@ -239,7 +239,7 @@ function NivelCard({ titulo, subtitulo, puntos, maqueta, pie, actual, destacada 
 const barra = 'h-1.5 rounded bg-white';
 function MaquetaEsencial() {
   return (
-    <div className="h-40 space-y-2 bg-[#fbfaf8] p-3" aria-hidden="true">
+    <div className="h-40 space-y-2 bg-crema p-3" aria-hidden="true">
       <div className="mx-auto h-5 w-5 rounded-full bg-vino" /><div className={`mx-auto w-16 ${barra}`} />
       <div className="space-y-1.5 rounded-lg bg-white p-2 shadow-sm">
         {[0, 1, 2].map((i) => <div key={i} className="flex items-center gap-2"><div className="flex-1 space-y-1"><div className={barra} /><div className="h-1 w-2/3 rounded bg-white" /></div><div className="h-6 w-6 rounded bg-white" /></div>)}
@@ -286,7 +286,7 @@ function MapaNucleo({ credito, nModulos, precioTodo }: { credito: { euros: strin
         </p>
       </div>
       <div className="overflow-hidden rounded-2xl border border-linea">
-        <div className="grid grid-cols-2 bg-[#F3F3F0] text-xs font-semibold uppercase tracking-wider">
+        <div className="grid grid-cols-2 bg-papel text-xs font-semibold uppercase tracking-wider">
           <p className="p-3 text-niebla">QR Menú · lo que tienes</p>
           <p className="border-l border-linea p-3 text-vino">DKitchen Signature</p>
         </div>

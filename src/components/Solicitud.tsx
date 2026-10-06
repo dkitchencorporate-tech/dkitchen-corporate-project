@@ -59,7 +59,7 @@ export default function Solicitud() {
     } catch { setError('Sin conexión. Inténtalo de nuevo.'); setEstado('form'); }
   }
 
-  const campo = 'w-full rounded-xl border border-linea-calida bg-white px-4 py-3 text-[15px] text-tinta outline-none transition focus:border-vino focus:ring-2 focus:ring-vino/15';
+  const campo = 'w-full rounded-xl border border-acero bg-white px-4 py-3 text-[15px] text-tinta outline-none transition focus:border-vino focus:ring-2 focus:ring-vino/15';
 
   return (
     <AnimatePresence>

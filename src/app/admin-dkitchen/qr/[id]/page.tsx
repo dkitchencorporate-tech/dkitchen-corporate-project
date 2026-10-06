@@ -140,15 +140,15 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             <p className="text-xs text-niebla">Todos los clientes pagan el día {cobro.dia_cobro} de cada mes · precios + IVA</p>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl bg-[#F3F1EE] p-4">
+            <div className="rounded-2xl bg-papel p-4">
               <p className="text-xs text-niebla">Valor de lo que tiene</p>
               <p className="mt-1 text-lg font-black">{euros(cobro.valor_mensual)}/mes</p>
             </div>
-            <div className="rounded-2xl bg-[#F3F1EE] p-4">
+            <div className="rounded-2xl bg-papel p-4">
               <p className="text-xs text-niebla">Paga</p>
               <p className="mt-1 text-lg font-black">{cobro.paga_mensual ? `${euros(cobro.paga_mensual)}/mes` : '0 €'}</p>
             </div>
-            <div className="rounded-2xl bg-[#F3F1EE] p-4">
+            <div className="rounded-2xl bg-papel p-4">
               <p className="text-xs text-niebla">{cobro.proximo_cobro ? 'Próximo cobro' : cobro.prueba_hasta ? 'Si paga hoy, primer cobro' : 'Cobro'}</p>
               <p className="mt-1 text-lg font-black">
                 {cobro.proximo_cobro ? fechaLarga(cobro.proximo_cobro) : cobro.prueba_hasta ? fechaLarga(cobro.cobro_si_paga_hoy) : cobro.paga_mensual ? '—' : 'Cortesía sin fecha'}
@@ -163,7 +163,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
                 : ` · si paga antes, no paga nada hasta el ${fechaLarga(cobro.cobro_si_paga_hoy)}.`}
             </p>
           )}
-          <ul className="mt-4 divide-y divide-[#EFEDE9] text-sm">
+          <ul className="mt-4 divide-y divide-linea text-sm">
             <li className="flex justify-between gap-3 py-2"><span>Plan {cobro.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</span><span className="text-niebla">{euros(cobro.precio_plan)}/mes</span></li>
             {cobro.items.map((i) => (
               <li key={i.servicio} className="flex justify-between gap-3 py-2">
@@ -204,29 +204,29 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         <h2 className="font-display text-xl font-semibold tracking-tight">Acciones</h2>
         <p className="text-xs text-niebla">Cada acción queda registrada en el historial.</p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <form action={regalarTodoAction} className="flex w-full flex-wrap items-center gap-2 rounded-2xl bg-[#F3F1EE] p-3">
+          <form action={regalarTodoAction} className="flex w-full flex-wrap items-center gap-2 rounded-2xl bg-papel p-3">
             <input type="hidden" name="restauranteId" value={r.id} />
             <label className="text-sm font-semibold" htmlFor="dias-prueba">Todo incluido gratis</label>
-            <select id="dias-prueba" name="dias" defaultValue="15" className="rounded-lg border border-linea-fuerte bg-white px-3 py-2 text-sm">
+            <select id="dias-prueba" name="dias" defaultValue="15" className="rounded-lg border border-acero bg-white px-3 py-2 text-sm">
               <option value="15">15 días</option>
               <option value="30">30 días</option>
               <option value="fecha">Hasta una fecha…</option>
               <option value="sin">Sin fecha de fin (cortesía)</option>
             </select>
-            <input type="date" name="hasta" aria-label="Fecha de fin de la prueba" className="rounded-lg border border-linea-fuerte bg-white px-3 py-2 text-sm" />
+            <input type="date" name="hasta" aria-label="Fecha de fin de la prueba" className="rounded-lg border border-acero bg-white px-3 py-2 text-sm" />
             <button className="rounded-full bg-vino px-4 py-2 text-sm font-bold hover:bg-vino-hondo">Activar</button>
             <p className="w-full text-xs text-niebla">La fecha solo cuenta con «Hasta una fecha…». Si la prueba termina sin pago, el panel pasa a solo lectura y la carta sigue visible.</p>
           </form>
           {ficha.platos === 0 && (
             <form action={cartaDemoAction}>
               <input type="hidden" name="restauranteId" value={r.id} />
-              <button className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-[#E5E5E1]">Cargar carta de demostración</button>
+              <button className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Cargar carta de demostración</button>
             </form>
           )}
           {ficha.email && (
             <form action={reenviarAccesoAction}>
               <input type="hidden" name="email" value={ficha.email} />
-              <button className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-[#E5E5E1]">Reenviar enlace de acceso</button>
+              <button className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Reenviar enlace de acceso</button>
             </form>
           )}
           <form action={cambiarEstadoAction}>
@@ -239,11 +239,11 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           <form action={cambiarPlanAction}>
             <input type="hidden" name="restauranteId" value={r.id} />
             <input type="hidden" name="plan" value={r.plan === 'ampliado' ? 'basico' : 'ampliado'} />
-            <button className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-[#E5E5E1]">
+            <button className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">
               Pasar a {r.plan === 'ampliado' ? 'Básico' : 'Ampliado'}
             </button>
           </form>
-          <Link href="/admin-dkitchen/soporte" className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-[#E5E5E1]">
+          <Link href="/admin-dkitchen/soporte" className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">
             Soporte y QR físico
           </Link>
         </div>
@@ -256,7 +256,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         </div>
         <EnlacesPago restauranteId={r.id} catalogo={catalogo} />
         {enlaces.length > 0 && (
-          <ul className="divide-y divide-[#ECECE8] border-t border-linea pt-2 text-sm">
+          <ul className="divide-y divide-linea border-t border-linea pt-2 text-sm">
             {enlaces.map((e) => (
               <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                 <div className="min-w-0">
@@ -288,7 +288,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           <h2 className="font-display text-xl font-semibold tracking-tight">Servicios y módulos</h2>
           <p className="text-xs text-niebla">"Demo" activa sin cobro (para enseñar o grabar vídeos). "Regalar" = cortesía comercial. Todo queda en el historial.</p>
         </div>
-        <ul className="divide-y divide-[#ECECE8] text-sm">
+        <ul className="divide-y divide-linea text-sm">
           {CATALOGO_SERVICIOS.map(([clave, nombre]) => {
             const s = servicios.find((x) => x.servicio === clave);
             const enPack = !s && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(clave) && servicios.some((x) => x.servicio === 'pack_sala' && x.estado !== 'cancelado');
@@ -310,7 +310,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
                       <input type="hidden" name="restauranteId" value={r.id} />
                       <input type="hidden" name="servicio" value={clave} />
                       <input type="hidden" name="accion" value={accion} />
-                      <button className={`rounded-md px-2.5 py-1 text-xs font-semibold ${accion === 'cancelar' ? 'bg-red-500/15 text-red-600' : 'bg-papel hover:bg-[#E5E5E1]'}`}>
+                      <button className={`rounded-md px-2.5 py-1 text-xs font-semibold ${accion === 'cancelar' ? 'bg-red-500/15 text-red-600' : 'bg-papel hover:bg-linea'}`}>
                         {accion === 'entregado' ? 'Marcar entregado' : accion === 'cancelar' ? 'Cancelar' : accion === 'demo' ? 'Activar demo' : 'Regalar'}
                       </button>
                     </form>
@@ -340,10 +340,10 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             <input type="hidden" name="restauranteId" value={r.id} />
             <p className="font-bold">Conexión con el TPV</p>
             <div className="grid gap-2 sm:grid-cols-2">
-              <input name="proveedor" required placeholder="TPV (Revo, Ágora, Last.app…)" className="rounded-lg border border-linea bg-white px-3 py-2" />
-              <input name="endpoint" required type="url" placeholder="https://… (endpoint del fabricante)" className="rounded-lg border border-linea bg-white px-3 py-2" />
+              <input name="proveedor" required placeholder="TPV (Revo, Ágora, Last.app…)" className="rounded-lg border border-acero bg-white px-3 py-2" />
+              <input name="endpoint" required type="url" placeholder="https://… (endpoint del fabricante)" className="rounded-lg border border-acero bg-white px-3 py-2" />
             </div>
-            <input name="credencial" type="password" autoComplete="off" placeholder="Cabecera Authorization (p. ej. Bearer xxx). Vacío = mantener" className="w-full rounded-lg border border-linea bg-white px-3 py-2" />
+            <input name="credencial" type="password" autoComplete="off" placeholder="Cabecera Authorization (p. ej. Bearer xxx). Vacío = mantener" className="w-full rounded-lg border border-acero bg-white px-3 py-2" />
             <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="activa" defaultChecked className="accent-vino" /> Activa</label>
             <p className="text-[11px] text-ceniza">La credencial se cifra (AES-256-GCM) antes de guardarse; nadie puede volver a leerla desde el panel.</p>
             <button className="rounded-md bg-vino px-3 py-1.5 text-xs font-bold">Guardar conexión</button>
@@ -360,7 +360,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           <input type="hidden" name="restauranteId" value={r.id} />
           <label className="space-y-1">
             <span className="block text-xs text-niebla">Plantilla</span>
-            <select name="plantilla" defaultValue={r.plantilla ?? 'clasica'} className="rounded-lg border border-linea bg-white px-3 py-2">
+            <select name="plantilla" defaultValue={r.plantilla ?? 'clasica'} className="rounded-lg border border-acero bg-white px-3 py-2">
               <option value="clasica">Clásica</option>
               <option value="visual">Visual</option>
               <option value="express">Express</option>
@@ -368,7 +368,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           </label>
           <label className="space-y-1">
             <span className="block text-xs text-niebla">Nivel</span>
-            <select name="nivel" defaultValue={r.nivel_diseno ?? 'esencial'} className="rounded-lg border border-linea bg-white px-3 py-2">
+            <select name="nivel" defaultValue={r.nivel_diseno ?? 'esencial'} className="rounded-lg border border-acero bg-white px-3 py-2">
               <option value="esencial">Esencial</option>
               <option value="autor">Carta de Autor</option>
               <option value="signature">Signature</option>
@@ -376,7 +376,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           </label>
           <label className="space-y-1">
             <span className="block text-xs text-niebla">Color (libre)</span>
-            <input type="color" name="color" defaultValue={r.color_marca ?? '#6E0C2B'} className="h-[38px] w-16 rounded-lg border border-linea bg-white p-1" />
+            <input type="color" name="color" defaultValue={r.color_marca ?? '#6E0C2B'} className="h-[38px] w-16 rounded-lg border border-acero bg-white p-1" />
           </label>
           <button className="rounded-full bg-vino px-4 py-2 font-bold hover:bg-vino-hondo">Aplicar diseño</button>
         </form>

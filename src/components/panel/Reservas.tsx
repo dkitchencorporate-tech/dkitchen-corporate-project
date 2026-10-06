@@ -115,7 +115,7 @@ function FichaReserva({ reserva, pasada, onCerrar }: { reserva: Reserva; pasada:
         </div>
 
         {resultado && (
-          <div className="mt-4 space-y-2 rounded-xl bg-[#F3F3F0] p-4 text-sm">
+          <div className="mt-4 space-y-2 rounded-xl bg-papel p-4 text-sm">
             <p className="font-semibold text-green-700">✓ Reserva {resultado.accion}.</p>
             <p className="text-niebla">
               {resultado.correoEnviado
@@ -139,7 +139,7 @@ function FichaReserva({ reserva, pasada, onCerrar }: { reserva: Reserva; pasada:
                 {pendiente ? 'Enviando…' : 'Confirmar'}
               </button>
             ) : (
-              <span className="rounded-xl bg-[#F3F3F0] py-3 text-center text-sm text-niebla">Confirmada</span>
+              <span className="rounded-xl bg-papel py-3 text-center text-sm text-niebla">Confirmada</span>
             )}
             <button disabled={pendiente} onClick={() => confirm('¿Cancelar esta reserva? Se avisará al cliente.') && cambiar('cancelada')}
                     className="rounded-xl border border-linea-fuerte py-3 font-bold text-grafito hover:text-carbon disabled:opacity-50">

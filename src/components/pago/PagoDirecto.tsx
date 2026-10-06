@@ -58,7 +58,7 @@ export default function PagoDirecto({ producto, precio, boton, detalle = '', fra
     } catch { setError('Sin conexión. Inténtalo de nuevo.'); setEstado('form'); }
   }
 
-  const campo = 'w-full rounded-xl border border-linea-calida bg-white px-4 py-3.5 text-[15px] text-tinta outline-none transition focus:border-vino focus:ring-2 focus:ring-vino/15';
+  const campo = 'w-full rounded-xl border border-acero bg-white px-4 py-3.5 text-[15px] text-tinta outline-none transition focus:border-vino focus:ring-2 focus:ring-vino/15';
 
   return (
     <form onSubmit={pagar} onFocus={tocar} className="grid gap-3">
@@ -74,7 +74,7 @@ export default function PagoDirecto({ producto, precio, boton, detalle = '', fra
         <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Forma de pago">
           {([[false, 'Pago único', `${precio} €`], [true, `${fraccionable.cuotas} cuotas`, `${fraccionable.cuotas} × ${fraccionable.importeCuota} €`]] as [boolean, string, string][]).map(([v, t, d]) => (
             <button key={t} type="button" role="radio" aria-checked={enCuotas === v} onClick={() => setEnCuotas(v)}
-              className={`rounded-xl border px-3 py-3 text-left text-sm ${enCuotas === v ? 'border-vino bg-vino/5' : 'border-linea-calida'}`}>
+              className={`rounded-xl border px-3 py-3 text-left text-sm ${enCuotas === v ? 'border-vino bg-vino/5' : 'border-linea'}`}>
               <span className="block font-semibold">{t}</span><span className="text-niebla">{d} + IVA</span>
             </button>
           ))}

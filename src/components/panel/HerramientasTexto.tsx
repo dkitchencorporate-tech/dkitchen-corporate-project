@@ -39,7 +39,7 @@ export default function HerramientasTexto({
     } finally { setPendiente(''); }
   }
 
-  const boton = 'inline-flex items-center gap-1 rounded-full border border-[#E6E2DC] bg-white px-2.5 py-1 text-[12px] font-medium text-grafito hover:border-vino/40 disabled:opacity-40';
+  const boton = 'inline-flex items-center gap-1 rounded-full border border-linea bg-white px-2.5 py-1 text-[12px] font-medium text-grafito hover:border-vino/40 disabled:opacity-40';
   return (
     <div className="mt-1.5">
       <div className="flex flex-wrap items-center gap-1.5">
@@ -50,7 +50,7 @@ export default function HerramientasTexto({
           {pendiente === 'mejorar' ? 'Mejorando…' : tipo === 'instruccion' ? '✨ Mejorar instrucción' : '✨ Mejorar texto'}
         </button>
         {anterior !== null && <button type="button" onClick={() => { onCambio(anterior); setAnterior(null); setAviso('Has vuelto a tu texto.'); }} className={boton}>↺ Deshacer</button>}
-        <button type="button" onClick={() => setAyuda(!ayuda)} aria-expanded={ayuda} aria-label="¿Para qué sirven estos botones?" className="h-6 w-6 rounded-full border border-[#E6E2DC] bg-white text-[12px] text-niebla">?</button>
+        <button type="button" onClick={() => setAyuda(!ayuda)} aria-expanded={ayuda} aria-label="¿Para qué sirven estos botones?" className="h-6 w-6 rounded-full border border-linea bg-white text-[12px] text-niebla">?</button>
         {aviso && <span className="text-[12px] text-niebla" role="status">{aviso}</span>}
       </div>
       {ayuda && (

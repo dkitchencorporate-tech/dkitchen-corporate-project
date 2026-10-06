@@ -132,7 +132,7 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinB
     else if (a.tipo === 'solicitud') { onSolicitud?.(a.interes, contexto()); setAbierto(false); }
   }
 
-  const botonOpcion = 'block w-full rounded-2xl border border-[#E6E2DC] bg-white px-4 py-3 text-left text-[14px] font-medium text-carbon transition hover:border-vino/40 hover:bg-[#FBF8F5]';
+  const botonOpcion = 'block w-full rounded-2xl border border-linea bg-white px-4 py-3 text-left text-[14px] font-medium text-carbon transition hover:border-vino/40 hover:bg-crema';
 
   return (
     <>
@@ -187,7 +187,7 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinB
                   );
                   if (e.tipo === 'tema') return (
                     <div key={i} className="max-w-[92%] rounded-2xl rounded-bl-md bg-white px-4 py-3 text-[14px] leading-relaxed shadow-sm">
-                      <ol className="space-y-2">{e.tema.respuesta.map((l, j) => <li key={j} className="flex gap-2.5"><span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#F3EDE6] text-[11px] font-bold text-vino">{j + 1}</span><span>{l}</span></li>)}</ol>
+                      <ol className="space-y-2">{e.tema.respuesta.map((l, j) => <li key={j} className="flex gap-2.5"><span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-vino/[.06] text-[11px] font-bold text-vino">{j + 1}</span><span>{l}</span></li>)}</ol>
                       {e.tema.acciones?.length ? (
                         <div className="mt-3 flex flex-wrap gap-2">
                           {e.tema.acciones.map((a) => a.tipo === 'enlace'
@@ -202,8 +202,8 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinB
                     <div key={i} className="flex flex-wrap gap-2 pl-1">
                       <button onClick={() => poner({ tipo: 'yo', texto: 'Sí, resuelto' }, { tipo: 'bot', lineas: ['¡Perfecto! Si surge otra duda, aquí estoy.'] }, { tipo: 'opciones', temas: temasDeSeccion(temas, seccion), titulo: 'Otras dudas frecuentes' })}
                         className="rounded-full border border-exito/40 bg-white px-3.5 py-1.5 text-[13px] font-medium text-exito">Sí, resuelto</button>
-                      <button onClick={() => noSirvio(e.tema)} className="rounded-full border border-[#E0DBD4] bg-white px-3.5 py-1.5 text-[13px] font-medium">No, sigo igual</button>
-                      {e.tema.ofrecerPuesta && puesta && <button onClick={sinTiempo} className="rounded-full border border-[#E0DBD4] bg-white px-3.5 py-1.5 text-[13px] font-medium">No sé o no tengo tiempo</button>}
+                      <button onClick={() => noSirvio(e.tema)} className="rounded-full border border-linea-fuerte bg-white px-3.5 py-1.5 text-[13px] font-medium">No, sigo igual</button>
+                      {e.tema.ofrecerPuesta && puesta && <button onClick={sinTiempo} className="rounded-full border border-linea-fuerte bg-white px-3.5 py-1.5 text-[13px] font-medium">No sé o no tengo tiempo</button>}
                     </div>
                   );
                   if (e.tipo === 'puesta') return (
@@ -220,18 +220,18 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinB
                     </div>
                   );
                   if (e.tipo === 'persona') return (
-                    <div key={i} className="rounded-2xl border border-[#E6E2DC] bg-white p-4">
+                    <div key={i} className="rounded-2xl border border-linea bg-white p-4">
                       <p className="text-[14px] font-semibold">{modo === 'panel' ? 'Hablar con una persona' : 'Te respondemos personalmente'}</p>
                       <p className="mt-1 text-[13px] text-niebla">{modo === 'panel' ? 'Le pasamos lo que has visto aquí, así no tienes que repetirlo.' : 'Déjanos tus datos y te escribimos. Si lo prefieres, también por WhatsApp.'}</p>
                       {modo === 'panel' ? (<>
                         <textarea value={mensaje} onChange={(ev) => setMensaje(ev.target.value)} rows={3} maxLength={2000} placeholder="Cuéntanos qué necesitas"
-                          className="mt-3 w-full rounded-xl border border-[#E6E2DC] bg-white px-3 py-2 text-[14px] placeholder-ceniza focus:border-vino focus:outline-none" />
+                          className="mt-3 w-full rounded-xl border border-linea bg-white px-3 py-2 text-[14px] placeholder-ceniza focus:border-vino focus:outline-none" />
                         {error && <p className="mt-1 text-xs text-red-700">{error}</p>}
                         <button onClick={enviarPersona} disabled={enviando} className="mt-2 w-full rounded-full bg-vino py-2.5 text-[14px] font-semibold text-white hover:bg-vino-hondo disabled:opacity-60">{enviando ? 'Enviando…' : 'Enviar a una persona'}</button>
                       </>) : (
                         <div className="mt-3 grid gap-2">
                           <button onClick={() => { onSolicitud?.('dudas', contexto()); setAbierto(false); }} className="w-full rounded-full bg-vino py-2.5 text-[14px] font-semibold text-white hover:bg-vino-hondo">Escribir mi consulta</button>
-                          <a href="https://wa.me/34622652659?text=Hola,%20tengo%20una%20duda%20sobre%20DKitchen." target="_blank" rel="noopener noreferrer" className="w-full rounded-full border border-[#E0DBD4] py-2.5 text-center text-[14px] font-medium">Por WhatsApp</a>
+                          <a href="https://wa.me/34622652659?text=Hola,%20tengo%20una%20duda%20sobre%20DKitchen." target="_blank" rel="noopener noreferrer" className="w-full rounded-full border border-linea-fuerte py-2.5 text-center text-[14px] font-medium">Por WhatsApp</a>
                         </div>
                       )}
                     </div>
@@ -242,9 +242,9 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinB
                 <div ref={fin} />
               </div>
 
-              <form onSubmit={buscar} className="flex items-center gap-2 border-t border-[#E6E2DC] bg-white px-3 py-3">
+              <form onSubmit={buscar} className="flex items-center gap-2 border-t border-linea bg-white px-3 py-3">
                 <input ref={campo} value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={300} placeholder="Escribe tu duda (p. ej. «foto», «QR», «precio»)" aria-label="Escribe tu duda"
-                  className="min-w-0 flex-1 rounded-full bg-[#F3F1EE] px-4 py-2.5 text-[14px] placeholder-ceniza focus:outline-none focus:ring-2 focus:ring-vino/30" />
+                  className="min-w-0 flex-1 rounded-full bg-papel px-4 py-2.5 text-[14px] placeholder-ceniza focus:outline-none focus:ring-2 focus:ring-vino/30" />
                 <button type="submit" aria-label="Buscar" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-vino text-white">
                   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                 </button>

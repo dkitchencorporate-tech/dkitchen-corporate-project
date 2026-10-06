@@ -75,12 +75,12 @@ export default function ComparativaQr({ variante = 'qr' }: { variante?: 'qr' | '
           {grupos.map((grupo) => (
             <div key={grupo.g || 'portada'}>
               {grupo.g && (
-                <div className="grid grid-cols-[1fr_56px_68px] border-t border-[#ECECE8] sm:grid-cols-[1fr_150px_170px]">
+                <div className="grid grid-cols-[1fr_56px_68px] border-t border-linea sm:grid-cols-[1fr_150px_170px]">
                   <p className="px-5 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-ceniza">{grupo.g}</p><span /><span className="bg-noche" />
                 </div>
               )}
               {grupo.filas.map((f) => (
-                <div key={f.t} className="grid grid-cols-[1fr_56px_68px] items-center border-t border-[#F1F0EC] sm:grid-cols-[1fr_150px_170px]">
+                <div key={f.t} className="grid grid-cols-[1fr_56px_68px] items-center border-t border-linea sm:grid-cols-[1fr_150px_170px]">
                   <p className={`px-4 py-3.5 text-[14px] sm:px-5 sm:text-[14.5px] ${f.clave ? 'font-semibold text-tinta' : 'text-grafito'}`}>{f.t}</p>
                   <p className="py-3.5 text-center"><Marca v={f.qr} /></p>
                   <p className="flex self-stretch items-center justify-center bg-noche py-3.5"><Marca v={f.sig} oscuro /></p>

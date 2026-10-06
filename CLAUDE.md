@@ -10,7 +10,7 @@ Diagnóstico vigente (2026-09-22): el estado visual actual **no cumple el nivel 
 
 **Antes de tocar cualquier página pública (Home, /qr, /experience, /auditoria, /nucleo-operativo (ruta `/base-operativa`), /dark-kitchen, /marcas, /casos-de-exito) o el dashboard, invoca a los subagentes de diseño de este repositorio:**
 
-- `.claude/agents/design-brand-guardian.md` — coherencia de identidad de marca, paleta (ver Parte 7, Sección 5 del plan), voz.
+- `.claude/agents/design-brand-guardian.md` — coherencia de identidad de marca, paleta (ver Parte 7, §5-bis «Gran Reserva»; la §5 está obsoleta), voz.
 - `.claude/agents/design-ui-designer.md` — sistema de componentes, jerarquía visual, accesibilidad.
 - `.claude/agents/design-ux-architect.md` — arquitectura CSS, layout, fundamentos técnicos antes de implementar.
 

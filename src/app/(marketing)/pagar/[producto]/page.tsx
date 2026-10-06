@@ -42,7 +42,7 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
         <div className="space-y-14">
           <div>
             <p className="etiqueta-dk text-vino">Qué compras</p>
-            <ul className="mt-6 divide-y divide-linea-calida border-y border-linea-calida">
+            <ul className="mt-6 divide-y divide-linea border-y border-linea">
               {p.incluye.map((x) => (
                 <li key={x} className="flex gap-4 py-4 text-[17px]"><span className="acento-serif text-xl leading-6">✓</span>{x}</li>
               ))}
@@ -53,7 +53,7 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
             <ol className="mt-6 space-y-0">
               {p.despues.map(([cuando, que], i) => (
                 <li key={cuando} className="relative grid grid-cols-[40px_1fr] gap-4 pb-8 last:pb-0">
-                  {i < p.despues.length - 1 && <span aria-hidden="true" className="absolute left-[15px] top-8 h-[calc(100%-2rem)] w-px bg-linea-cava" />}
+                  {i < p.despues.length - 1 && <span aria-hidden="true" className="absolute left-[15px] top-8 h-[calc(100%-2rem)] w-px bg-linea-fuerte" />}
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-vino text-sm font-semibold text-white">{i + 1}</span>
                   <div><p className="font-semibold">{cuando}</p><p className="mt-1 text-niebla">{que}</p></div>
                 </li>
@@ -61,17 +61,17 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
             </ol>
           </div>
           <div className="flex flex-wrap gap-2">
-            {p.garantias.map((g) => <span key={g} className="rounded-full border border-linea-calida bg-white px-4 py-2 text-sm text-grafito">{g}</span>)}
+            {p.garantias.map((g) => <span key={g} className="rounded-full border border-linea bg-white px-4 py-2 text-sm text-grafito">{g}</span>)}
           </div>
         </div>
 
         <div className="md:sticky md:top-28 md:self-start">
-          <div className="rounded-[28px] border border-linea-calida bg-white p-6 shadow-[0_30px_80px_-40px_rgba(62,5,21,.45)] md:p-8">
+          <div className="rounded-[28px] border border-linea bg-white p-6 shadow-[0_30px_80px_-40px_rgba(62,5,21,.45)] md:p-8">
             <p className="text-sm text-niebla">{p.nombre}</p>
             <p className="font-display mt-1 text-6xl font-semibold tracking-tight">{p.precio} €<span className="ml-2 align-middle font-sans text-base font-medium text-niebla">+ IVA</span></p>
             <p className="mt-2 text-sm text-niebla">{p.nota}</p>
             <p className="mt-1 text-sm text-niebla">Total con IVA (21 %): <strong className="text-tinta">{(p.precio * 1.21).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</strong></p>
-            <div className="my-6 h-px bg-linea-calida" />
+            <div className="my-6 h-px bg-linea" />
             <PagoDirecto producto={p.id} precio={p.precio} boton="Pagar y empezar" detalle={modelo}
               fraccionable={p.id === 'signature' && BASE_OPERATIVA.fraccionable ? { cuotas: BASE_OPERATIVA.fraccionado.cuotas, importeCuota: BASE_OPERATIVA.fraccionado.importeCuota } : undefined} />
           </div>

@@ -67,7 +67,7 @@ export default function InformesComandero({ camareros, mesas }: { camareros: { i
     ['Fecha y hora', 'Tipo', 'Mesa', 'Plato', 'Cantidad', 'Importe (€)', 'Camarero', 'Motivo'],
     anulaciones.map((a) => [hora(a.anuladaEn), a.tipo === 'linea' ? 'Línea' : 'Cuenta entera', a.mesa, a.plato, a.cantidad, a.importe, a.camarero, a.motivo]), excel);
 
-  const campo = 'rounded-lg border border-linea bg-white px-3 py-2 text-sm';
+  const campo = 'rounded-lg border border-acero bg-white px-3 py-2 text-sm';
   const boton = 'rounded-full border border-linea-fuerte px-3 py-1.5 text-xs font-bold disabled:opacity-50';
 
   return (
@@ -118,7 +118,7 @@ export default function InformesComandero({ camareros, mesas }: { camareros: { i
               ['Líneas anuladas', `${resumen.lineas_anuladas} · ${euros(resumen.importe_anulado)}`],
               ['Cuentas anuladas', resumen.cuentas_anuladas],
             ] as const).map(([k, v]) => (
-              <div key={k} className="rounded-xl bg-[#F3F3F0] p-3"><dt className="text-[10px] uppercase tracking-wide text-niebla">{k}</dt><dd className="text-lg font-bold">{v}</dd></div>
+              <div key={k} className="rounded-xl bg-papel p-3"><dt className="text-[10px] uppercase tracking-wide text-niebla">{k}</dt><dd className="text-lg font-bold">{v}</dd></div>
             ))}
           </dl>
 
@@ -136,7 +136,7 @@ export default function InformesComandero({ camareros, mesas }: { camareros: { i
               {resumen.ranking_camareros && resumen.ranking_camareros.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="text-sm font-bold">Ranking de camareros</h4>
-                  <ol className="divide-y divide-[#ECECE8] rounded-xl border border-linea text-sm">
+                  <ol className="divide-y divide-linea rounded-xl border border-linea text-sm">
                     {resumen.ranking_camareros.map((c, i) => (
                       <li key={c.camarero_id ?? i} className="flex flex-wrap justify-between gap-2 p-2.5">
                         <span><strong>{i + 1}.</strong> {c.nombre}</span>
@@ -158,7 +158,7 @@ export default function InformesComandero({ camareros, mesas }: { camareros: { i
                     <p className="text-sm text-niebla">Sin anulaciones en estas fechas.</p>
                   ) : (
                     <>
-                      <ul className="divide-y divide-[#ECECE8] rounded-xl border border-linea text-sm">
+                      <ul className="divide-y divide-linea rounded-xl border border-linea text-sm">
                         {anulaciones.map((a, i) => (
                           <li key={i} className="p-2.5">
                             <p className="flex justify-between gap-2"><span>Mesa {a.mesa} · {a.tipo === 'linea' ? `${a.cantidad} × ${a.plato}` : 'cuenta entera'}</span><strong>{euros(a.importe)}</strong></p>

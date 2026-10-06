@@ -54,7 +54,7 @@ export default function MesasEnVivo() {
       )}
 
       {datos.cuentas.length === 0 ? (
-        <p className="rounded-xl bg-[#F3F3F0] p-4 text-center text-sm text-niebla">Ninguna mesa abierta ahora mismo. Los camareros abren mesas desde su app.</p>
+        <p className="rounded-xl bg-papel p-4 text-center text-sm text-niebla">Ninguna mesa abierta ahora mismo. Los camareros abren mesas desde su app.</p>
       ) : (
         <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {datos.cuentas.map((k) => (
@@ -118,7 +118,7 @@ function DetalleCuenta({ id, onCerrar }: { id: string; onCerrar: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={onCerrar} role="presentation">
       <div role="dialog" aria-modal="true" aria-label="Detalle de la mesa" onClick={(e) => e.stopPropagation()} className="flex max-h-[92vh] w-full max-w-lg flex-col rounded-t-3xl bg-white text-carbon sm:rounded-3xl">
-        <div className="flex items-start justify-between gap-3 border-b border-[#ECECE8] p-4">
+        <div className="flex items-start justify-between gap-3 border-b border-linea p-4">
           <div>
             <h3 className="text-lg font-bold">Mesa {cuenta?.mesa ?? '…'}</h3>
             {cuenta && <p className="text-sm text-niebla">{euros(cuenta.importe)} · {cuenta.minutos} min{cuenta.comensales ? ` · ${cuenta.comensales} pax` : ''}{cuenta.abierta_por ? ` · abrió ${cuenta.abierta_por}` : ''}</p>}
@@ -126,7 +126,7 @@ function DetalleCuenta({ id, onCerrar }: { id: string; onCerrar: () => void }) {
           <button onClick={onCerrar} aria-label="Cerrar" className="p-1 text-ceniza">✕</button>
         </div>
         {aviso && <p className={`px-4 pt-3 text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</p>}
-        <ul className="flex-1 divide-y divide-[#ECECE8] overflow-y-auto px-4">
+        <ul className="flex-1 divide-y divide-linea overflow-y-auto px-4">
           {cuenta?.lineas.map((l) => (
             <li key={l.id} className={`py-2.5 text-sm ${l.anulada ? 'text-ceniza' : ''}`}>
               <div className="flex items-center justify-between gap-3">
@@ -146,7 +146,7 @@ function DetalleCuenta({ id, onCerrar }: { id: string; onCerrar: () => void }) {
           ))}
         </ul>
         {cuenta && (
-          <div className="space-y-2 border-t border-[#ECECE8] p-4">
+          <div className="space-y-2 border-t border-linea p-4">
             <p className="text-center text-[11px] text-ceniza">{cuenta.aviso}. El cobro y el ticket se hacen en tu TPV.</p>
             {abiertaCuenta ? (
               <>

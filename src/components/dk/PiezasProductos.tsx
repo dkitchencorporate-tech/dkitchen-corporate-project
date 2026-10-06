@@ -120,7 +120,7 @@ export function InformeVivo() {
           {PUNTOS.map(([t, n], i) => (
             <li key={t}>
               <div className="flex justify-between text-sm"><span>{t}</span><span className="font-semibold tabular-nums" style={{ color: color(n) }}>{n}/100</span></div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#F3F3F0]"><motion.div className="h-full rounded-full" style={{ background: color(n) }} initial={{ width: 0 }} animate={{ width: visto ? `${n}%` : 0 }} transition={{ duration: 1, delay: 0.2 + i * 0.12, ease: CURVA }} /></div>
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-papel"><motion.div className="h-full rounded-full" style={{ background: color(n) }} initial={{ width: 0 }} animate={{ width: visto ? `${n}%` : 0 }} transition={{ duration: 1, delay: 0.2 + i * 0.12, ease: CURVA }} /></div>
             </li>
           ))}
         </ul>

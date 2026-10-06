@@ -19,13 +19,13 @@ const CAPAS: Capa[] = [
   { id: 'precio', t: 'Precio al momento', d: 'Lo cambias en el móvil y está en todas las mesas.', x: 330, y: -190, xm: 112, ym: -205,
     contenido: <p className="font-display text-lg font-semibold md:text-2xl"><span className="text-ceniza line-through decoration-2">9,50</span> <span className="text-vino">9,90 €</span></p> },
   { id: 'alergenos', t: 'Alérgenos UE', d: 'Los 14 obligatorios, por plato y con aviso legal.', x: -360, y: 30, xm: -112, ym: 0,
-    contenido: <div className="flex flex-wrap gap-1.5">{['Gluten', 'Pescado', 'Soja', 'Sésamo'].map((a) => <span key={a} className="rounded-full bg-[#F3F3F0] px-2 py-1 text-[11px] font-medium">{a}</span>)}</div> },
+    contenido: <div className="flex flex-wrap gap-1.5">{['Gluten', 'Pescado', 'Soja', 'Sésamo'].map((a) => <span key={a} className="rounded-full bg-papel px-2 py-1 text-[11px] font-medium">{a}</span>)}</div> },
   { id: 'qr', t: 'Un QR para siempre', d: 'Lo imprimes una vez. La carta cambia, el QR no.', x: 360, y: 20, xm: 112, ym: 0,
     contenido: <svg viewBox="0 0 21 21" className="h-11 w-11 md:h-16 md:w-16" shapeRendering="crispEdges" aria-hidden="true"><path fill="#17191E" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0z" /><path fill="#fff" d="M1 1h5v5H1zM15 1h5v5h-5zM1 15h5v5H1z" /><path fill="#17191E" d="M2 2h3v3H2zM16 2h3v3h-3zM2 16h3v3H2zM9 0h2v2H9zM8 3h3v2H8zM9 8h3v3H9zM14 9h2v3h-2zM17 8h3v2h-3zM8 13h2v4H8zM12 14h3v2h-3zM16 13h2v2h-2zM13 17h2v3h-2zM17 17h3v3h-3zM3 9h3v2H3z" /><path fill="#6E0C2B" d="M11 11h2v2h-2z" /></svg> },
   { id: 'reservas', t: 'Reservas', d: 'Te avisan al momento y confirmas con un toque.', x: -300, y: 220, xm: -112, ym: 205,
-    contenido: <div className="flex flex-wrap items-center justify-between gap-1 rounded-xl bg-[#F3F3F0] px-2.5 py-2 text-xs md:text-sm"><span className="font-semibold">21:30 · 4 pers.</span><span className="rounded-full bg-exito/15 px-2 py-0.5 text-[11px] text-exito">Confirmada</span></div> },
+    contenido: <div className="flex flex-wrap items-center justify-between gap-1 rounded-xl bg-papel px-2.5 py-2 text-xs md:text-sm"><span className="font-semibold">21:30 · 4 pers.</span><span className="rounded-full bg-exito/15 px-2 py-0.5 text-[11px] text-exito">Confirmada</span></div> },
   { id: 'idiomas', t: 'En su idioma', d: 'La traducimos nosotros a hasta 3 idiomas.', x: 310, y: 230, xm: 112, ym: 205,
-    contenido: <div className="flex gap-1.5">{['ES', 'EN', 'FR', 'DE'].map((l, i) => <span key={l} className={`rounded-lg px-2.5 py-1 text-xs font-bold ${i === 1 ? 'bg-tinta text-white' : 'bg-[#F3F3F0]'}`}>{l}</span>)}</div> },
+    contenido: <div className="flex gap-1.5">{['ES', 'EN', 'FR', 'DE'].map((l, i) => <span key={l} className={`rounded-lg px-2.5 py-1 text-xs font-bold ${i === 1 ? 'bg-tinta text-white' : 'bg-papel'}`}>{l}</span>)}</div> },
 ];
 
 function CapaFlotante({ c, p, movil, i }: { c: Capa; p: MotionValue<number>; movil: boolean; i: number }) {

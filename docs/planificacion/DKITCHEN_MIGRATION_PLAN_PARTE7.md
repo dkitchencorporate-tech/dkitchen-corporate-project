@@ -124,7 +124,8 @@ La paleta naranja de la §5 (`brand` #D9531E) **ya no es la identidad de la web 
 | `noche` / `obsidiana` / `carbon` | #0A080C / #0B0C0F / #1B1D22 | Secciones y superficies oscuras |
 | `tinta` / `grafito` / `pizarra` / `niebla` / `ceniza` | #17191E / #3F434B / #5C616A / #6B7079 / #9A9EA6 | Escala de texto, de principal a terciario |
 | `acero` | #8B8F97 | Borde de controles de formulario (3:1, WCAG 1.4.11) |
-| `linea` / `linea-calida` / `linea-cava` / `linea-fuerte` / `papel` | #E6E6E2 / #E4E1DC / #D9D3CB / #D6D6D1 / #EDEDEA | Bordes y separadores |
+| `linea` / `linea-fuerte` | #E6E6E2 / #D6D6D1 | Bordes y separadores (`linea`) y bordes marcados, hover y discontinuos (`linea-fuerte`). Escala unificada el 07/10/2026: `linea-calida` y `linea-cava` se borraron y unos 20 grises sueltos se migraron |
+| `papel` | #EDEDEA | Relleno de chip, botón secundario, skeleton y pista de barra |
 | `crema` | #F7F5F2 | Fondo de sección alterno |
 | `exito` | #2F8F6B | Estados correctos |
 
@@ -133,7 +134,7 @@ Reglas:
 - Las reglas de `globals.css` dependen de esos nombres de clase (`.bg-vino`, `[class*="bg-noche"]`…): si se renombra un token, se cambia también allí.
 - Los tokens antiguos (`brand`, `brandHover`, `brandAccent`, `trust`, `dash-*`) se BORRARON el 07/10/2026 (con la ruta `/dashboard` y 21 componentes sin uso). Si una clase con esos nombres reaparece, no tiene color: usar el token Gran Reserva.
 - Los colores de las demos y plantillas de clientes (temas de carta, WhatsApp…) no forman parte de esta paleta.
-- Pendiente: unificar los grises de borde casi iguales (`linea`, `linea-calida`, `papel`, `linea-fuerte`) en una escala más corta. Es una decisión de diseño aparte.
+- Grises unificados el 07/10/2026 en `linea`, `linea-fuerte`, `papel` y `crema`. Los chips cálidos usan `bg-vino/[.06]`. Los bordes de los controles de formulario son siempre `border-acero` (WCAG 1.4.11, 3:1), nunca `linea`.
 
 ## 6. Referencia cruzada — actualización de la Parte 6, Sección 8
 

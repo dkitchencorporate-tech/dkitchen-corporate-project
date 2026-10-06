@@ -71,12 +71,12 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
           <Link
             key={f.id}
             href={f.id === 'todos' ? '/admin-dkitchen/qr' : `/admin-dkitchen/qr?estado=${f.id}`}
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${filtro === f.id ? 'bg-vino text-white' : 'bg-papel text-niebla hover:bg-[#E5E5E1]'}`}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${filtro === f.id ? 'bg-vino text-white' : 'bg-papel text-niebla hover:bg-linea'}`}
           >
             {f.nombre} ({f.id === 'todos' ? todos.length : todos.filter((c) => c.estadoAcceso === f.id).length})
           </Link>
         ))}
-        <Link href="/admin-dkitchen/soporte" className="ml-auto rounded-full bg-papel px-3 py-1 text-xs font-semibold text-grafito hover:bg-[#E5E5E1]">
+        <Link href="/admin-dkitchen/soporte" className="ml-auto rounded-full bg-papel px-3 py-1 text-xs font-semibold text-grafito hover:bg-linea">
           Soporte y QR físico →
         </Link>
       </div>
@@ -98,9 +98,9 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${COLOR_ESTADO[c.estadoAcceso] ?? 'bg-papel'}`}>{c.estadoAcceso}</span>
                 </div>
                 <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                  <div className="rounded-lg bg-[#F3F3F0] py-2"><dt className="text-niebla">Plan</dt><dd className="font-semibold capitalize">{c.plan}</dd></div>
-                  <div className="rounded-lg bg-[#F3F3F0] py-2"><dt className="text-niebla">Escaneos mes</dt><dd className="font-semibold tabular-nums">{c.escaneosMes}</dd></div>
-                  <div className="rounded-lg bg-[#F3F3F0] py-2"><dt className="text-niebla">Pendientes</dt><dd className={`font-semibold tabular-nums ${c.ticketsAbiertos + c.solicitudesQrPendientes > 0 ? 'text-amber-700' : ''}`}>{c.ticketsAbiertos + c.solicitudesQrPendientes}</dd></div>
+                  <div className="rounded-lg bg-papel py-2"><dt className="text-niebla">Plan</dt><dd className="font-semibold capitalize">{c.plan}</dd></div>
+                  <div className="rounded-lg bg-papel py-2"><dt className="text-niebla">Escaneos mes</dt><dd className="font-semibold tabular-nums">{c.escaneosMes}</dd></div>
+                  <div className="rounded-lg bg-papel py-2"><dt className="text-niebla">Pendientes</dt><dd className={`font-semibold tabular-nums ${c.ticketsAbiertos + c.solicitudesQrPendientes > 0 ? 'text-amber-700' : ''}`}>{c.ticketsAbiertos + c.solicitudesQrPendientes}</dd></div>
                 </dl>
               </Link>
             </li>
@@ -108,7 +108,7 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
         </ul>
         <div className="hidden overflow-x-auto rounded-2xl border border-linea md:block">
           <table className="w-full text-sm">
-            <thead className="bg-[#F3F3F0] text-left text-xs uppercase tracking-wider text-niebla">
+            <thead className="bg-papel text-left text-xs uppercase tracking-wider text-niebla">
               <tr>
                 <th className="px-4 py-3">Local</th>
                 <th className="px-4 py-3">Contacto</th>
@@ -120,9 +120,9 @@ export default async function ClientesQr({ searchParams }: { searchParams: Promi
                 <th className="px-4 py-3">Alta</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#ECECE8]">
+            <tbody className="divide-y divide-linea">
               {clientes.map((c) => (
-                <tr key={c.restauranteId} className="hover:bg-[#F3F3F0]">
+                <tr key={c.restauranteId} className="hover:bg-papel">
                   <td className="px-4 py-3">
                     <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="font-semibold hover:text-vino">
                       {c.nombre}

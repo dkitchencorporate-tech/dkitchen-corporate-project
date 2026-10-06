@@ -35,7 +35,7 @@ export default function Sala({
     });
   };
   const zonas = elementos.filter((e) => e.tipo === 'zona');
-  const campo = 'rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza';
+  const campo = 'rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza';
 
   return (
     <div className="space-y-8">
@@ -90,7 +90,7 @@ export default function Sala({
               </div>
             </div>
           )}
-          <ul className="divide-y divide-[#ECECE8]">
+          <ul className="divide-y divide-linea">
             {camareros.map((c) => (
               <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
                 <span className={c.activo ? '' : 'text-ceniza line-through'}>
@@ -113,7 +113,7 @@ export default function Sala({
                     <p className="font-semibold">{f.nombre}</p>
                     <dl className="mt-2 grid grid-cols-3 gap-2 text-center">
                       {([['Comandas', f.comandas], ['Productos', f.lineas], ['Mesas', f.mesas], ['Llamadas', f.llamadas], ['Respuesta', duracion(f.respuestaMediaSeg)]] as const).map(([k, v]) => (
-                        <div key={k} className="rounded-lg bg-[#F3F3F0] py-2"><dt className="text-[10px] uppercase tracking-wide text-niebla">{k}</dt><dd className="font-bold">{v}</dd></div>
+                        <div key={k} className="rounded-lg bg-papel py-2"><dt className="text-[10px] uppercase tracking-wide text-niebla">{k}</dt><dd className="font-bold">{v}</dd></div>
                       ))}
                     </dl>
                   </li>
@@ -121,10 +121,10 @@ export default function Sala({
               </ul>
               <div className="hidden rounded-xl border border-linea sm:block">
                 <table className="w-full text-sm">
-                  <thead className="bg-[#F3F3F0] text-left text-xs text-niebla">
+                  <thead className="bg-papel text-left text-xs text-niebla">
                     <tr><th className="p-2.5">Camarero</th><th className="p-2.5 text-right">Comandas</th><th className="p-2.5 text-right">Productos</th><th className="p-2.5 text-right">Mesas</th><th className="p-2.5 text-right">Llamadas</th><th className="p-2.5 text-right">Respuesta media</th></tr>
                   </thead>
-                  <tbody className="divide-y divide-[#ECECE8]">
+                  <tbody className="divide-y divide-linea">
                     {informe.map((f) => (
                       <tr key={f.camareroId}><td className="p-2.5 font-medium">{f.nombre}</td><td className="p-2.5 text-right">{f.comandas}</td><td className="p-2.5 text-right">{f.lineas}</td><td className="p-2.5 text-right">{f.mesas}</td><td className="p-2.5 text-right">{f.llamadas}</td><td className="p-2.5 text-right">{duracion(f.respuestaMediaSeg)}</td></tr>
                     ))}

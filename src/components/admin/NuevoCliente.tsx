@@ -22,7 +22,7 @@ export default function NuevoCliente() {
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const campo = 'mt-1.5 w-full rounded-xl border border-linea bg-white px-4 py-3 text-[15px] outline-none focus:border-tinta';
+  const campo = 'mt-1.5 w-full rounded-xl border border-acero bg-white px-4 py-3 text-[15px] outline-none focus:border-tinta';
   const correoOk = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(d.email);
   const paso1Ok = d.local.trim().length >= 2 && d.contacto.trim().length >= 2 && correoOk;
 
@@ -100,7 +100,7 @@ export default function NuevoCliente() {
       )}
 
       {paso === 3 && (
-        <dl className="mt-6 divide-y divide-[#ECECE8] rounded-2xl border border-linea text-sm">
+        <dl className="mt-6 divide-y divide-linea rounded-2xl border border-linea text-sm">
           {([
             ['Local', d.local], ['Contacto', d.contacto], ['Correo', d.email], ['Plan', d.plan === 'ampliado' ? 'Ampliado' : 'Básico'],
             ['Qué recibe', MODOS.find((m) => m.id === d.modo)!.titulo + (d.modo === 'gratis' ? (d.dias === 'sin' ? ' · sin fecha de fin' : ` · ${d.dias} días`) : '')], ['Carta de ejemplo', d.demo ? 'Sí' : 'No'],

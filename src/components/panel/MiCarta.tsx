@@ -63,7 +63,7 @@ export default function MiCarta({
         <button
           onClick={agregarSeccion}
           disabled={pendiente}
-          className="rounded-lg bg-papel hover:bg-[#E5E5E1] px-4 py-2.5 text-sm font-semibold transition-colors"
+          className="rounded-lg bg-papel hover:bg-linea px-4 py-2.5 text-sm font-semibold transition-colors"
         >
           Añadir sección
         </button>
@@ -155,7 +155,7 @@ function SeccionCard({
       {platos.length === 0 ? (
         <p className="text-ceniza text-sm">Sin platos todavía.</p>
       ) : (
-        <ul className="divide-y divide-[#ECECE8]">
+        <ul className="divide-y divide-linea">
           {platos.map((plato) => (
             <li key={plato.id} className="py-3 flex items-center justify-between gap-3">
               {plato.fotoUrl ? (

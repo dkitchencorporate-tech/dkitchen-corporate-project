@@ -81,7 +81,7 @@ export default function AdminSidebar() {
             <p className="text-xs text-niebla">Otras herramientas</p>
             <ul className="mt-3 grid gap-1.5">
               {MAS.map((m) => (
-                <li key={m.href}><Link href={m.href} onClick={() => setMas(false)} className={`block rounded-2xl px-4 py-3 text-sm font-medium ${activo(m.href) ? 'bg-tinta text-white' : 'bg-[#F3F1EE] text-carbon'}`}>{m.nombre}</Link></li>
+                <li key={m.href}><Link href={m.href} onClick={() => setMas(false)} className={`block rounded-2xl px-4 py-3 text-sm font-medium ${activo(m.href) ? 'bg-tinta text-white' : 'bg-papel text-carbon'}`}>{m.nombre}</Link></li>
               ))}
             </ul>
           </div>

@@ -74,10 +74,10 @@ export default function FiltroEscaneos({ demo = false }: { demo?: boolean }) {
       </div>
       {preset === 'libre' && (
         <form className="mt-3 flex flex-wrap items-end gap-3" onSubmit={(e) => { e.preventDefault(); consultar(); }}>
-          <label className="text-xs text-niebla">Desde<input type="date" value={desde} max={hasta} onChange={(e) => setDesde(e.target.value)} className="mt-1 block rounded-xl border border-linea px-3 py-2 text-sm" /></label>
-          <label className="text-xs text-niebla">Hasta<input type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} className="mt-1 block rounded-xl border border-linea px-3 py-2 text-sm" /></label>
+          <label className="text-xs text-niebla">Desde<input type="date" value={desde} max={hasta} onChange={(e) => setDesde(e.target.value)} className="mt-1 block rounded-xl border border-acero px-3 py-2 text-sm" /></label>
+          <label className="text-xs text-niebla">Hasta<input type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} className="mt-1 block rounded-xl border border-acero px-3 py-2 text-sm" /></label>
           <label className="text-xs text-niebla">Ver por
-            <select value={agrupar} onChange={(e) => setAgrupar(e.target.value as 'day' | 'week' | 'month')} className="mt-1 block rounded-xl border border-linea px-3 py-2 text-sm">
+            <select value={agrupar} onChange={(e) => setAgrupar(e.target.value as 'day' | 'week' | 'month')} className="mt-1 block rounded-xl border border-acero px-3 py-2 text-sm">
               <option value="day">Días</option><option value="week">Semanas</option><option value="month">Meses</option>
             </select>
           </label>
@@ -98,7 +98,7 @@ export default function FiltroEscaneos({ demo = false }: { demo?: boolean }) {
               {filas.map((f) => (
                 <li key={f.fecha} className="grid grid-cols-[140px_1fr_40px] items-center gap-3 text-sm">
                   <span className="capitalize text-grafito">{etiqueta(f.fecha, agrupar)}</span>
-                  <span className="h-2.5 rounded-full bg-[#F3EDE6]"><span className="block h-2.5 rounded-full bg-vino" style={{ width: `${(f.total / maximo) * 100}%` }} /></span>
+                  <span className="h-2.5 rounded-full bg-vino/[.06]"><span className="block h-2.5 rounded-full bg-vino" style={{ width: `${(f.total / maximo) * 100}%` }} /></span>
                   <span className="text-right font-semibold tabular-nums">{f.total}</span>
                 </li>
               ))}

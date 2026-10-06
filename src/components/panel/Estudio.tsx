@@ -25,7 +25,7 @@ const ZONAS: { id: Zona; nombre: string; ayuda: string }[] = [
   { id: 'legal', nombre: 'Páginas legales', ayuda: 'Aviso legal, privacidad y cookies de tu negocio, generados con tus datos.' },
 ];
 const euros = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
-const campo = 'w-full rounded-xl border border-linea bg-white px-3 py-2.5 text-sm placeholder-ceniza focus:border-vino focus:outline-none';
+const campo = 'w-full rounded-xl border border-acero bg-white px-3 py-2.5 text-sm placeholder-ceniza focus:border-vino focus:outline-none';
 const tarjeta = 'rounded-[22px] border border-linea bg-white p-5 sm:p-6';
 const botonPrincipal = 'rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white hover:bg-vino-hondo disabled:opacity-40';
 
@@ -129,17 +129,17 @@ function Categorias({ secciones, platos, pendiente, ejecutar, irAPlatos, demo }:
               <li key={s.id} className="overflow-hidden rounded-[22px] border border-linea bg-white">
                 <div className="flex items-center gap-2 px-4 py-3">
                   <span className="flex flex-col">
-                    <button disabled={pendiente || i === 0} onClick={() => ejecutar(() => moverSeccionAction(s.id, -1), 'Orden guardado.')} aria-label={`Subir ${s.nombre}`} className="h-5 w-7 rounded-md text-xs text-niebla hover:bg-[#F3F1EE] disabled:opacity-25">▲</button>
-                    <button disabled={pendiente || i === secciones.length - 1} onClick={() => ejecutar(() => moverSeccionAction(s.id, 1), 'Orden guardado.')} aria-label={`Bajar ${s.nombre}`} className="h-5 w-7 rounded-md text-xs text-niebla hover:bg-[#F3F1EE] disabled:opacity-25">▼</button>
+                    <button disabled={pendiente || i === 0} onClick={() => ejecutar(() => moverSeccionAction(s.id, -1), 'Orden guardado.')} aria-label={`Subir ${s.nombre}`} className="h-5 w-7 rounded-md text-xs text-niebla hover:bg-papel disabled:opacity-25">▲</button>
+                    <button disabled={pendiente || i === secciones.length - 1} onClick={() => ejecutar(() => moverSeccionAction(s.id, 1), 'Orden guardado.')} aria-label={`Bajar ${s.nombre}`} className="h-5 w-7 rounded-md text-xs text-niebla hover:bg-papel disabled:opacity-25">▼</button>
                   </span>
                   <button onClick={() => { setAbierta(abiertaEsta ? null : s.id); setPlato({ nombre: '', precio: '', descripcion: '' }); }} aria-expanded={abiertaEsta} className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left">
                     <span className="min-w-0"><span className="block truncate font-semibold">{s.nombre}</span><span className="text-xs text-niebla">{suyos.length} {suyos.length === 1 ? 'plato' : 'platos'}{s.descripcion ? ' · con descripción' : ''}</span></span>
-                    <span className="shrink-0 rounded-full bg-[#F3EDE6] px-3 py-1 text-xs font-semibold text-vino">{abiertaEsta ? 'Cerrar' : 'Abrir y añadir platos'}</span>
+                    <span className="shrink-0 rounded-full bg-vino/[.06] px-3 py-1 text-xs font-semibold text-vino">{abiertaEsta ? 'Cerrar' : 'Abrir y añadir platos'}</span>
                   </button>
                 </div>
 
                 {abiertaEsta && (
-                  <div className="space-y-5 border-t border-[#F1F0EC] bg-[#FCFBF9] px-4 py-4">
+                  <div className="space-y-5 border-t border-linea bg-crema px-4 py-4">
                     {/* Nombre y descripción */}
                     <div className="grid gap-3 sm:grid-cols-2">
                       <label className="block text-xs text-niebla">Nombre de la categoría
@@ -162,7 +162,7 @@ function Categorias({ secciones, platos, pendiente, ejecutar, irAPlatos, demo }:
                     <div>
                       <p className="text-sm font-semibold">Platos de «{s.nombre}»</p>
                       {suyos.length === 0 ? <p className="mt-1 text-sm text-niebla">Aún no tiene platos. Añade el primero aquí abajo.</p> : (
-                        <ul className="mt-2 divide-y divide-[#EEECE8] rounded-xl border border-[#EEECE8] bg-white">
+                        <ul className="mt-2 divide-y divide-linea rounded-xl border border-linea bg-white">
                           {suyos.map((p) => (
                             <li key={p.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
                               <span className="min-w-0 truncate">{p.nombre}{!p.fotoUrl && <span className="ml-2 text-xs text-ceniza">sin foto</span>}</span>
@@ -174,7 +174,7 @@ function Categorias({ secciones, platos, pendiente, ejecutar, irAPlatos, demo }:
                     </div>
 
                     {/* Añadir plato aquí */}
-                    <form className="space-y-2 rounded-xl border border-dashed border-linea-cava bg-white p-3" onSubmit={(e) => { e.preventDefault(); ejecutar(async () => { const r = await crearPlatoRapidoAction({ seccionId: s.id, ...plato }); if (r.ok) setPlato({ nombre: '', precio: '', descripcion: '' }); return r; }, `«${plato.nombre}» añadido a ${s.nombre}. Añádele foto y alérgenos en Platos.`); }}>
+                    <form className="space-y-2 rounded-xl border border-dashed border-linea-fuerte bg-white p-3" onSubmit={(e) => { e.preventDefault(); ejecutar(async () => { const r = await crearPlatoRapidoAction({ seccionId: s.id, ...plato }); if (r.ok) setPlato({ nombre: '', precio: '', descripcion: '' }); return r; }, `«${plato.nombre}» añadido a ${s.nombre}. Añádele foto y alérgenos en Platos.`); }}>
                       <p className="text-sm font-semibold"><span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-vino text-xs text-white">2</span>Añadir un plato a «{s.nombre}»</p>
                       <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
                         <div>
@@ -286,12 +286,12 @@ function Combos({ combos, normales, secciones, extra, pendiente, ejecutar }: {
         <div><textarea value={b.descripcion} onChange={(e) => setB({ ...b, descripcion: e.target.value })} maxLength={300} rows={2} spellCheck lang="es" placeholder="Descripción corta (opcional)" className={campo} /><HerramientasTexto valor={b.descripcion} onCambio={(v) => setB({ ...b, descripcion: v })} tipo="descripcion" contexto={b.nombre} /></div>
         <div>
           <p className="text-sm font-semibold">Platos que incluye <span className="font-normal text-niebla">({n}, mínimo 2)</span></p>
-          <ul className="mt-2 max-h-72 divide-y divide-[#EEECE8] overflow-y-auto rounded-xl border border-linea">
+          <ul className="mt-2 max-h-72 divide-y divide-linea overflow-y-auto rounded-xl border border-linea">
             {normales.map((p) => {
               const c = b.componentes[p.id] ?? 0;
               const poner = (v: number) => { const comps = { ...b.componentes }; if (v <= 0) delete comps[p.id]; else comps[p.id] = Math.min(20, v); setB({ ...b, componentes: comps }); };
               return (
-                <li key={p.id} className={`flex items-center justify-between gap-3 px-3 py-2 text-sm ${c ? 'bg-[#FBF6F2]' : ''}`}>
+                <li key={p.id} className={`flex items-center justify-between gap-3 px-3 py-2 text-sm ${c ? 'bg-crema' : ''}`}>
                   <span className="min-w-0 truncate">{p.nombre} <span className="text-niebla">· {euros(Number(p.precio))}</span></span>
                   {c ? (
                     <span className="flex shrink-0 items-center gap-1">

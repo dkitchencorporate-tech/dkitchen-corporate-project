@@ -8,7 +8,7 @@ import type { SeccionPropia } from '@/lib/menu-propietario';
 import { crearPromocionAction, editarPromocionAction, eliminarPromocionAction } from '@/app/panel/actions';
 import SubirImagen from './SubirImagen';
 
-const campo = 'w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza';
+const campo = 'w-full rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza';
 const DIAS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
 const VACIA: DatosPromocion = {
@@ -153,12 +153,12 @@ export default function Promociones({
               </div>
               <label className="flex items-center gap-2 text-sm text-grafito">
                 Prioridad
-                <input type="number" min={0} max={9} value={d.prioridad} onChange={(e) => set('prioridad', Number(e.target.value))} className="w-16 rounded-lg bg-white border border-linea px-2 py-1" />
+                <input type="number" min={0} max={9} value={d.prioridad} onChange={(e) => set('prioridad', Number(e.target.value))} className="w-16 rounded-lg bg-white border border-acero px-2 py-1" />
                 <span className="text-xs text-niebla">(si coinciden varias, se ve la de mayor prioridad)</span>
               </label>
             </div>
           ) : (
-            <p className="rounded-lg bg-[#F3F3F0] p-3 text-xs text-niebla">
+            <p className="rounded-lg bg-papel p-3 text-xs text-niebla">
               Programar por días y horas (ej. «menú del día de lunes a viernes de 12 a 16 h») y tener varias promociones está en el plan Ampliado.
             </p>
           )}

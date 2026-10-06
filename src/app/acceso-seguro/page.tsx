@@ -55,8 +55,8 @@ export default async function AccesoSeguro({ searchParams }: { searchParams: Pro
   }
 
   return (
-    <div className="min-h-screen bg-[#F6F5F3] flex items-center justify-center px-6 py-16">
-      <div className="max-w-md w-full rounded-2xl bg-white p-8 shadow-sm border border-[#E7E3DE] space-y-6">
+    <div className="min-h-screen bg-crema flex items-center justify-center px-6 py-16">
+      <div className="max-w-md w-full rounded-2xl bg-white p-8 shadow-sm border border-linea space-y-6">
         <div className="text-center">
           <p className="text-xl font-bold text-[#1A1714]">
             D<span className="text-vino">Kitchen</span> · Super admin
@@ -99,7 +99,7 @@ export default async function AccesoSeguro({ searchParams }: { searchParams: Pro
             required
             autoFocus
             placeholder="000000"
-            className="w-full rounded-lg border border-[#E7E3DE] px-4 py-3 text-center font-mono text-2xl tracking-[0.5em] text-[#1A1714] focus:border-vino focus:outline-none"
+            className="w-full rounded-lg border border-linea px-4 py-3 text-center font-mono text-2xl tracking-[0.5em] text-[#1A1714] focus:border-vino focus:outline-none"
           />
           <button className="w-full rounded-lg bg-vino py-3 font-bold text-white hover:bg-vino-hondo">Verificar</button>
         </form>

@@ -57,7 +57,7 @@ export default async function SoporteQr() {
               </div>
             )}
             {t.respuesta && (
-              <div className="rounded-lg border-l-2 border-vino bg-[#F3F3F0] p-3 text-sm">
+              <div className="rounded-lg border-l-2 border-vino bg-papel p-3 text-sm">
                 <p className="text-xs text-niebla">Respuesta {t.respondidoEn ? `· ${fechaHora.format(new Date(t.respondidoEn))}` : ''}</p>
                 <p className="whitespace-pre-wrap">{t.respuesta}</p>
               </div>
@@ -92,7 +92,7 @@ export default async function SoporteQr() {
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-linea">
             <table className="w-full text-sm">
-              <thead className="bg-[#F3F3F0] text-left text-xs uppercase tracking-wider text-niebla">
+              <thead className="bg-papel text-left text-xs uppercase tracking-wider text-niebla">
                 <tr>
                   <th className="px-4 py-3">Local</th>
                   <th className="px-4 py-3">Pedido</th>
@@ -100,7 +100,7 @@ export default async function SoporteQr() {
                   <th className="px-4 py-3">Estado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#ECECE8]">
+              <tbody className="divide-y divide-linea">
                 {solicitudes.map((s) => (
                   <tr key={s.id}>
                     <td className="px-4 py-3">
@@ -112,10 +112,10 @@ export default async function SoporteQr() {
                     <td className="px-4 py-3">
                       <form action={estadoSolicitudAction} className="flex items-center gap-2">
                         <input type="hidden" name="solicitudId" value={s.id} />
-                        <select name="estado" defaultValue={s.estado} className="rounded-md border border-linea bg-white px-2 py-1 text-xs">
+                        <select name="estado" defaultValue={s.estado} className="rounded-md border border-acero bg-white px-2 py-1 text-xs">
                           {ESTADOS_SOLICITUD.map((e) => <option key={e} value={e}>{e.replace('_', ' ')}</option>)}
                         </select>
-                        <button className="rounded-md bg-papel px-2 py-1 text-xs font-semibold hover:bg-[#E5E5E1]">Guardar</button>
+                        <button className="rounded-md bg-papel px-2 py-1 text-xs font-semibold hover:bg-linea">Guardar</button>
                       </form>
                     </td>
                   </tr>

@@ -47,7 +47,7 @@ export default function Idiomas({ activos, platos, traducciones }: {
             );
           })}
         </div>
-        <button disabled={pendiente} onClick={guardar} className="rounded-lg bg-papel px-4 py-2 text-sm font-bold hover:bg-[#E5E5E1]">Guardar idiomas ({idiomas.length}/3)</button>
+        <button disabled={pendiente} onClick={guardar} className="rounded-lg bg-papel px-4 py-2 text-sm font-bold hover:bg-linea">Guardar idiomas ({idiomas.length}/3)</button>
       </section>
 
       {activos.length > 0 && (

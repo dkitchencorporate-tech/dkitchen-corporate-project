@@ -19,8 +19,6 @@ module.exports = {
         acero: "#8B8F97", // borde de controles (3:1)
         ceniza: "#9A9EA6", // texto terciario e iconos
         "linea-fuerte": "#D6D6D1",
-        "linea-cava": "#D9D3CB",
-        "linea-calida": "#E4E1DC",
         linea: "#E6E6E2", // borde por defecto
         papel: "#EDEDEA",
         crema: "#F7F5F2", // fondo de sección alterno

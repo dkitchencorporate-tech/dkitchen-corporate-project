@@ -81,7 +81,7 @@ function Tabla({ titulo, sub, filas }: { titulo: string; sub: string; filas: Lin
     <Aparecer>
       <h3 className="font-display text-2xl font-semibold">{titulo}</h3>
       <p className="mt-1 text-sm text-niebla">{sub}</p>
-      <ul className="mt-6 divide-y divide-[#E4DFD8] border-y border-[#E4DFD8]">
+      <ul className="mt-6 divide-y divide-linea border-y border-linea">
         {filas.map((f) => (
           <li key={f.nombre} className="grid grid-cols-[1fr_auto] items-baseline gap-4 py-4">
             <div><p className="font-semibold">{f.nombre}</p><p className="mt-0.5 text-sm text-niebla">{f.detalle}</p></div>
@@ -134,21 +134,21 @@ export default function PaginaPrecios() {
         </div>
       </section>
 
-      <div className="border-b border-[#E4DFD8] bg-white">
+      <div className="border-b border-linea bg-white">
         <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-6 py-4 md:px-8">
           {[['carta-qr', '01 Carta QR'], ['modulos', '02 Módulos y extras'], ['signature', '03 Signature'], ['experience', '04 Experience'], ['auditoria', '05 Auditoría'], ['dark-kitchen', '06 Dark Kitchen']].map(([id, t]) => (
-            <a key={id} href={`#${id}`} className="shrink-0 rounded-full border border-[#E4DFD8] px-4 py-2 text-sm font-semibold hover:border-vino">{t}</a>
+            <a key={id} href={`#${id}`} className="shrink-0 rounded-full border border-linea px-4 py-2 text-sm font-semibold hover:border-vino">{t}</a>
           ))}
         </div>
       </div>
 
-      <section id="carta-qr" className="scroll-mt-20 bg-[#F6F3EE] py-24 md:py-32">
+      <section id="carta-qr" className="scroll-mt-20 bg-crema py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Titulo etiqueta="01 · Carta digital QR" texto="Tu carta al día, desde el móvil." sub={`Alta de ${eur(QR_MENU.setup.precio)} incluida. Primer mes ${eur(QR_MENU.primerMes)}, después la cuota de tu plan.`} />
           <div className="mt-14 grid gap-5 md:grid-cols-2">
             {QR_PLANES.map((p, i) => (
               <Aparecer key={p.id} retraso={i * 0.08}>
-                <div className={`relative h-full overflow-hidden rounded-[28px] border p-8 md:p-10 ${p.destacado ? 'border-tinta bg-noche text-white' : 'border-[#E4DFD8] bg-white'}`}>
+                <div className={`relative h-full overflow-hidden rounded-[28px] border p-8 md:p-10 ${p.destacado ? 'border-tinta bg-noche text-white' : 'border-linea bg-white'}`}>
                   {p.destacado && <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.45),transparent)]" />}
                   <p className="relative etiqueta-dk text-vino">Plan {p.nombre}</p>
                   <p className="relative font-display mt-4 text-6xl font-semibold">{eur(p.mensual)}<span className={`ml-1 font-sans text-base font-normal ${p.destacado ? 'text-white/60' : 'text-niebla'}`}>/mes + IVA</span></p>
@@ -161,7 +161,7 @@ export default function PaginaPrecios() {
             ))}
           </div>
 
-          <div id="modulos" className="scroll-mt-20 mt-24 border-t border-[#E4DFD8] pt-16">
+          <div id="modulos" className="scroll-mt-20 mt-24 border-t border-linea pt-16">
             <p className="etiqueta-dk text-vino">02 · Módulos y extras de la carta QR</p>
             <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl">Suma solo lo que tu sala necesita.</h2>
           </div>
@@ -173,7 +173,7 @@ export default function PaginaPrecios() {
       </section>
 
       {OTROS.map((o) => (
-        <section key={o.id} id={o.id} className={`scroll-mt-20 py-24 md:py-32 ${o.oscuro ? 'bg-noche text-white' : 'border-t border-[#E4DFD8] bg-white'}`}>
+        <section key={o.id} id={o.id} className={`scroll-mt-20 py-24 md:py-32 ${o.oscuro ? 'bg-noche text-white' : 'border-t border-linea bg-white'}`}>
           <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-[1.1fr_1fr] md:px-8">
             <Aparecer>
               <p className="etiqueta-dk text-vino">{o.n} · {o.t}</p>
@@ -185,7 +185,7 @@ export default function PaginaPrecios() {
               <Link href={o.ver} className="mt-7 inline-block text-sm font-semibold underline decoration-vino decoration-2 underline-offset-4">Ver {o.t} en detalle</Link>
             </Aparecer>
             <Aparecer retraso={0.1}>
-              <div className={`rounded-[28px] p-8 md:p-10 ${o.oscuro ? 'border border-white/10 bg-white/5' : 'bg-[#F6F3EE]'}`}>
+              <div className={`rounded-[28px] p-8 md:p-10 ${o.oscuro ? 'border border-white/10 bg-white/5' : 'bg-crema'}`}>
                 <p className="font-display text-5xl font-semibold">
                   {o.ancla && <span className={`mr-3 font-sans text-xl font-normal line-through ${o.oscuro ? 'text-white/40' : 'text-ceniza'}`}>{o.ancla}</span>}
                   {o.p}
@@ -212,10 +212,10 @@ export default function PaginaPrecios() {
         </section>
       ))}
 
-      <section className="bg-[#F6F3EE] py-24 md:py-32">
+      <section className="bg-crema py-24 md:py-32">
         <div className="mx-auto max-w-3xl px-6 md:px-8">
           <Titulo etiqueta="Preguntas sobre precios" texto="Lo que nos preguntan antes de pagar." centrado />
-          <div className="mt-12 divide-y divide-[#E4DFD8] border-y border-[#E4DFD8]">
+          <div className="mt-12 divide-y divide-linea border-y border-linea">
             {PREGUNTAS.map(([q, a]) => (
               <details key={q} className="group py-5">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold">{q}<span aria-hidden="true" className="text-vino transition-transform group-open:rotate-45">+</span></summary>
