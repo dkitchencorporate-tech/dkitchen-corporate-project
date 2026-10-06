@@ -70,10 +70,10 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Llamadas de mesa</h2>
-          <p className="text-sm text-[#6B7079]">Deja esta pantalla abierta en la barra. Se actualiza sola cada 8 segundos.</p>
+          <p className="text-sm text-niebla">Deja esta pantalla abierta en la barra. Se actualiza sola cada 8 segundos.</p>
         </div>
         {!sonido ? (
-          <button onClick={activarSonido} className="shrink-0 bg-[#6E0C2B] hover:bg-[#4A0819] text-white text-sm font-bold px-4 py-2 rounded-full">
+          <button onClick={activarSonido} className="shrink-0 bg-vino hover:bg-vino-hondo text-white text-sm font-bold px-4 py-2 rounded-full">
             🔔 Activar alarma sonora
           </button>
         ) : (
@@ -82,20 +82,20 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
       </div>
 
       {llamadas.length === 0 ? (
-        <div className="bg-white border border-[#E6E6E2] rounded-2xl p-10 text-center text-[#6B7079]">
+        <div className="bg-white border border-linea rounded-2xl p-10 text-center text-niebla">
           Ninguna mesa está llamando ahora mismo.
         </div>
       ) : (
         <ul className="grid sm:grid-cols-2 gap-3">
           {llamadas.map((l) => (
-            <li key={l.id} className="flex items-center justify-between gap-3 rounded-2xl border-2 border-[#6E0C2B] bg-[#6E0C2B]/10 p-5 animate-pulse">
+            <li key={l.id} className="flex items-center justify-between gap-3 rounded-2xl border-2 border-vino bg-vino/10 p-5 animate-pulse">
               <div>
                 <p className="text-2xl font-black">Mesa {l.mesa}</p>
-                <p className="text-sm text-[#6B7079]">
+                <p className="text-sm text-niebla">
                   {l.motivo === 'cuenta' ? 'Pide la cuenta' : 'Llama al camarero'} · {haceCuanto(l.creadaEn)}
                 </p>
               </div>
-              <button onClick={() => atender(l.id)} className="rounded-full bg-[#17191E] text-white px-4 py-2 text-sm font-bold">
+              <button onClick={() => atender(l.id)} className="rounded-full bg-tinta text-white px-4 py-2 text-sm font-bold">
                 Atendida
               </button>
             </li>
@@ -103,12 +103,12 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
         </ul>
       )}
 
-      <section className="bg-white border border-[#E6E6E2] rounded-2xl p-6 space-y-4">
+      <section className="bg-white border border-linea rounded-2xl p-6 space-y-4">
         <h3 className="text-lg font-semibold">QR por mesa</h3>
-        <p className="text-sm text-[#6B7079]">
+        <p className="text-sm text-niebla">
           Cada mesa necesita su propio QR para saber quién llama. Descarga uno por mesa e imprímelos.
         </p>
-        <label className="flex items-center gap-3 text-sm text-[#6B7079]">
+        <label className="flex items-center gap-3 text-sm text-niebla">
           Número de mesas
           <input
             type="number"
@@ -116,7 +116,7 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
             max={80}
             value={mesas}
             onChange={(e) => setMesas(Math.min(80, Math.max(1, Number(e.target.value) || 1)))}
-            className="w-20 rounded-lg bg-white border border-[#E6E6E2] px-2 py-1 text-[#1B1D22]"
+            className="w-20 rounded-lg bg-white border border-linea px-2 py-1 text-carbon"
           />
         </label>
         <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
@@ -124,13 +124,13 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
             <a
               key={n}
               href={`/api/mi-qr/imagen?mesa=${n}`}
-              className="rounded-lg border border-[#E6E6E2] py-2 text-center text-sm font-semibold hover:border-[#6E0C2B] hover:text-[#6E0C2B]"
+              className="rounded-lg border border-linea py-2 text-center text-sm font-semibold hover:border-vino hover:text-vino"
             >
               Mesa {n}
             </a>
           ))}
         </div>
-        <p className="text-[11px] text-[#9A9EA6] break-all">Enlace de ejemplo: {base}?mesa=1</p>
+        <p className="text-[11px] text-ceniza break-all">Enlace de ejemplo: {base}?mesa=1</p>
       </section>
     </div>
   );

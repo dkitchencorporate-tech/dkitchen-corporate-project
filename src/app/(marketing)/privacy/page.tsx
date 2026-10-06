@@ -31,18 +31,18 @@ const SECCIONES: [string, React.ReactNode][] = [
 
 export default function Privacidad() {
   return (
-    <div className="bg-[#F7F5F2] px-6 pb-24 pt-36 text-[#17191E] md:pt-44">
+    <div className="bg-crema px-6 pb-24 pt-36 text-tinta md:pt-44">
       <article className="mx-auto max-w-3xl">
-        <p className="etiqueta-dk text-[#6E0C2B]">Política de privacidad</p>
+        <p className="etiqueta-dk text-vino">Política de privacidad</p>
         <h1 className="font-display mt-4 text-4xl font-semibold leading-tight md:text-6xl">Tus datos, claros y en tu mano.</h1>
-        <p className="mt-4 text-sm text-[#6B7079]">Última actualización: 29 de septiembre de 2026</p>
-        <ol className="mt-12 divide-y divide-[#E4E1DC] border-y border-[#E4E1DC]">
+        <p className="mt-4 text-sm text-niebla">Última actualización: 29 de septiembre de 2026</p>
+        <ol className="mt-12 divide-y divide-linea-calida border-y border-linea-calida">
           {SECCIONES.map(([t, texto], i) => (
             <li key={t} className="grid gap-3 py-7 md:grid-cols-[56px_1fr]">
               <span className="acento-serif text-3xl leading-none">{i + 1}</span>
               <div>
                 <h2 className="text-lg font-semibold">{t}</h2>
-                <p className="mt-2 leading-relaxed text-[#3F434B]">{texto}</p>
+                <p className="mt-2 leading-relaxed text-grafito">{texto}</p>
               </div>
             </li>
           ))}

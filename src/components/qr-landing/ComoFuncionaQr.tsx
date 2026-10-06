@@ -18,7 +18,7 @@ const CURVA = [0.22, 1, 0.36, 1] as [number, number, number, number];
 function PantallaAlta() {
   return (
     <div className="flex h-full flex-col bg-[#FBF8F3] p-6 text-[#1A1714]">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6E0C2B]">QR Menú · Plan Ampliado</p>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-vino">QR Menú · Plan Ampliado</p>
       <p className="font-display mt-2 text-2xl font-semibold">Activa tu carta</p>
       <div className="mt-4 flex items-baseline justify-between rounded-2xl border border-[#E7E1D8] bg-white px-4 py-3">
         <span className="text-sm font-semibold">Primer mes</span><span className="font-display text-2xl font-semibold">1 €</span>
@@ -29,7 +29,7 @@ function PantallaAlta() {
           <div className="mt-1 h-10 rounded-xl border border-[#E7E1D8] bg-white px-3 py-2.5 text-sm text-[#1A1714]/70">{['Casa Brasa', 'Alex', 'alex@casabrasa.es'][i]}</div>
         </div>
       ))}
-      <div className="mt-auto rounded-full bg-[#17191E] py-3.5 text-center text-sm font-semibold text-white">Continuar al pago seguro</div>
+      <div className="mt-auto rounded-full bg-tinta py-3.5 text-center text-sm font-semibold text-white">Continuar al pago seguro</div>
     </div>
   );
 }
@@ -37,23 +37,23 @@ function PantallaAlta() {
 function PantallaPanel() {
   const platos: [string, string, boolean][] = [['Croquetas de jamón', '9,50', true], ['Arroz meloso', '18', true], ['Presa ibérica', '19,50', false]];
   return (
-    <div className="flex h-full flex-col bg-[#F7F5F2] p-5 text-[#1B1D22]">
-      <p className="text-xs text-[#6B7079]">Buenas tardes</p>
+    <div className="flex h-full flex-col bg-crema p-5 text-carbon">
+      <p className="text-xs text-niebla">Buenas tardes</p>
       <p className="font-display text-xl font-semibold">Casa Brasa</p>
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <div className="rounded-2xl border border-[#E6E6E2] bg-white p-3"><p className="text-[10px] text-[#6B7079]">Escaneos</p><p className="font-display text-2xl font-semibold">1.284</p></div>
-        <div className="rounded-2xl bg-[#6E0C2B] p-3 text-white"><p className="text-[10px] text-white/80">Estilo</p><p className="text-sm font-semibold">Editorial · papel</p></div>
+        <div className="rounded-2xl border border-linea bg-white p-3"><p className="text-[10px] text-niebla">Escaneos</p><p className="font-display text-2xl font-semibold">1.284</p></div>
+        <div className="rounded-2xl bg-vino p-3 text-white"><p className="text-[10px] text-white/80">Estilo</p><p className="text-sm font-semibold">Editorial · papel</p></div>
       </div>
       <p className="mt-4 text-xs font-semibold">Mi carta</p>
       <div className="mt-2 space-y-2">
         {platos.map(([n, pr, foto]) => (
-          <div key={n} className="flex items-center gap-3 rounded-xl border border-[#E6E6E2] bg-white p-2.5">
-            <div className={`h-9 w-9 rounded-lg ${foto ? 'bg-[linear-gradient(135deg,#6E0C2B55,#C58B2A44)]' : 'border border-dashed border-[#D6D6D1]'}`} />
+          <div key={n} className="flex items-center gap-3 rounded-xl border border-linea bg-white p-2.5">
+            <div className={`h-9 w-9 rounded-lg ${foto ? 'bg-[linear-gradient(135deg,#6E0C2B55,#C58B2A44)]' : 'border border-dashed border-linea-fuerte'}`} />
             <span className="flex-1 text-sm">{n}</span><span className="text-sm font-semibold tabular-nums">{pr} €</span>
           </div>
         ))}
       </div>
-      <div className="mt-auto flex gap-2 text-[10px]">{['Gluten', 'Lácteos', 'Huevos'].map((a) => <span key={a} className="rounded-full bg-white px-2 py-1 text-[#6B7079]">{a}</span>)}</div>
+      <div className="mt-auto flex gap-2 text-[10px]">{['Gluten', 'Lácteos', 'Huevos'].map((a) => <span key={a} className="rounded-full bg-white px-2 py-1 text-niebla">{a}</span>)}</div>
     </div>
   );
 }
@@ -62,7 +62,7 @@ function Pantalla({ n }: { n: number }) {
   return n === 0 ? <PantallaAlta /> : n === 1 ? <PantallaPanel /> : <CartaMini e={{ plantilla: 'editorial', fondo: 'papel', letra: 'serif', color: '#E8592A' }} desplazar />;
 }
 const Marco = ({ children }: { children: React.ReactNode }) => (
-  <div className="rounded-[46px] bg-[#17191E] p-3 shadow-[0_40px_100px_rgba(23,25,30,.3)]"><div className="relative aspect-[9/18] overflow-hidden rounded-[36px]">{children}</div></div>
+  <div className="rounded-[46px] bg-tinta p-3 shadow-[0_40px_100px_rgba(23,25,30,.3)]"><div className="relative aspect-[9/18] overflow-hidden rounded-[36px]">{children}</div></div>
 );
 
 export default function ComoFuncionaQr() {
@@ -72,8 +72,8 @@ export default function ComoFuncionaQr() {
   useMotionValueEvent(scrollYProgress, 'change', (v) => setPaso(v < 0.34 ? 0 : v < 0.67 ? 1 : 2));
   const cabecera = (
     <>
-      <p className="etiqueta-dk text-[#6E0C2B]">Cómo funciona</p>
-      <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl">De cero a tu carta en las mesas, hoy.</h2>
+      <p className="etiqueta-dk text-vino">Cómo funciona</p>
+      <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-tinta md:text-6xl">De cero a tu carta en las mesas, hoy.</h2>
     </>
   );
 
@@ -87,9 +87,9 @@ export default function ComoFuncionaQr() {
               {cabecera}
               <ol className="mt-10 space-y-2">
                 {PASOS.map((s, i) => (
-                  <li key={s.n} className={`rounded-3xl border p-6 transition-all duration-500 ${paso === i ? 'border-[#17191E] bg-[#F7F5F2]' : 'border-transparent opacity-40'}`}>
-                    <div className="flex gap-5"><span className="font-display text-sm font-semibold text-[#6E0C2B]">{s.n}</span>
-                      <div><h3 className="text-xl font-semibold text-[#17191E]">{s.t}</h3><p className="mt-2 text-[#6B7079]">{s.d}</p></div></div>
+                  <li key={s.n} className={`rounded-3xl border p-6 transition-all duration-500 ${paso === i ? 'border-tinta bg-crema' : 'border-transparent opacity-40'}`}>
+                    <div className="flex gap-5"><span className="font-display text-sm font-semibold text-vino">{s.n}</span>
+                      <div><h3 className="text-xl font-semibold text-tinta">{s.t}</h3><p className="mt-2 text-niebla">{s.d}</p></div></div>
                   </li>
                 ))}
               </ol>
@@ -102,7 +102,7 @@ export default function ComoFuncionaQr() {
                   </motion.div>
                 </AnimatePresence>
               </Marco>
-              <p className="mt-4 text-center text-xs text-[#9A9EA6]">{['Alta y pago seguro', 'Tu panel', 'Lo que ve tu cliente'][paso]}</p>
+              <p className="mt-4 text-center text-xs text-ceniza">{['Alta y pago seguro', 'Tu panel', 'Lo que ve tu cliente'][paso]}</p>
             </div>
           </div>
         </div>
@@ -112,9 +112,9 @@ export default function ComoFuncionaQr() {
         {cabecera}
         {PASOS.map((s, i) => (
           <div key={s.n} className="mt-14">
-            <p className="font-display text-sm font-semibold text-[#6E0C2B]">{s.n}</p>
-            <h3 className="mt-1 text-2xl font-semibold text-[#17191E]">{s.t}</h3>
-            <p className="mt-2 text-[#6B7079]">{s.d}</p>
+            <p className="font-display text-sm font-semibold text-vino">{s.n}</p>
+            <h3 className="mt-1 text-2xl font-semibold text-tinta">{s.t}</h3>
+            <p className="mt-2 text-niebla">{s.d}</p>
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.25 }} transition={{ duration: 0.6, ease: CURVA }} className="mx-auto mt-8 w-[270px]">
               <Marco><div className="absolute inset-0"><Pantalla n={i} /></div></Marco>
             </motion.div>

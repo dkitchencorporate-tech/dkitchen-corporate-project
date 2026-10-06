@@ -10,7 +10,7 @@ export default function AggressiveHero() {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#171008]/80 to-[#171008]"></div>
       
       {/* Resplandor central naranja */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#6E0C2B] rounded-full blur-[150px] opacity-[0.15] pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-vino rounded-full blur-[150px] opacity-[0.15] pointer-events-none"></div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-8 w-full text-center flex flex-col items-center">
 
@@ -26,7 +26,7 @@ export default function AggressiveHero() {
 
         {/* Titular Agresivo (El Dolor Financiero) */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.1] tracking-tight text-white mb-8 animate-fade-in-up text-balance" style={{animationDelay: '0.1s'}}>
-          Atrae más clientes, agiliza tu servicio y <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#6E0C2B] to-orange-400 border-b-4 border-[#6E0C2B]">domina</span><br className="hidden md:block"/>
+          Atrae más clientes, agiliza tu servicio y <span className="text-transparent bg-clip-text bg-gradient-to-r from-vino to-orange-400 border-b-4 border-vino">domina</span><br className="hidden md:block"/>
           tu presencia digital.
         </h1>
 
@@ -42,7 +42,7 @@ export default function AggressiveHero() {
 
         {/* Call To Actions de Alta Fricción y Baja Fricción */}
         <div className="flex flex-col sm:flex-row gap-6 w-full max-w-2xl animate-fade-in-up" style={{animationDelay: '0.3s'}}>
-          <Link href="/qr" className="flex-1 bg-[#6E0C2B] text-white px-8 py-5 rounded-full font-black text-xl hover:bg-orange-600 transition-all shadow-[0_0_40px_rgba(255,69,0,0.4)] hover:shadow-[0_0_60px_rgba(255,69,0,0.6)] hover:-translate-y-1 flex items-center justify-center gap-3">
+          <Link href="/qr" className="flex-1 bg-vino text-white px-8 py-5 rounded-full font-black text-xl hover:bg-orange-600 transition-all shadow-[0_0_40px_rgba(255,69,0,0.4)] hover:shadow-[0_0_60px_rgba(255,69,0,0.6)] hover:-translate-y-1 flex items-center justify-center gap-3">
             Ver Sistema Base
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
           </Link>
@@ -88,7 +88,7 @@ export default function AggressiveHero() {
                {[...Array(2)].map((_, i) => (
                  <React.Fragment key={i}>
                    {["Restaurantes", "Asadores", "Bares de Tapas", "Discotecas", "Cafeterías", "Pubs", "Salones Recreativos", "Catering", "Mesones", "Pizzerías", "Beach Clubs", "Dark Kitchens"].map((niche, idx) => (
-                     <span key={`${i}-${idx}`} className="text-gray-200 font-bold uppercase tracking-wider text-[10px] md:text-xs whitespace-nowrap bg-white/10 px-5 py-2 rounded-full border border-[#6E0C2B]/40 shadow-[0_0_15px_rgba(255,69,0,0.25)] hover:shadow-[0_0_25px_rgba(255,69,0,0.5)] hover:bg-white/20 hover:text-white transition-all cursor-default">
+                     <span key={`${i}-${idx}`} className="text-gray-200 font-bold uppercase tracking-wider text-[10px] md:text-xs whitespace-nowrap bg-white/10 px-5 py-2 rounded-full border border-vino/40 shadow-[0_0_15px_rgba(255,69,0,0.25)] hover:shadow-[0_0_25px_rgba(255,69,0,0.5)] hover:bg-white/20 hover:text-white transition-all cursor-default">
                        {niche}
                      </span>
                    ))}

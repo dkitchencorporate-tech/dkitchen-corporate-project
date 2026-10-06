@@ -19,13 +19,13 @@ export default function DashboardShowcase() {
       <div className="flex justify-center gap-4 mb-8">
         <button 
           onClick={() => setActiveTab('pipeline')}
-          className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${activeTab === 'pipeline' ? 'bg-[#6E0C2B] text-white shadow-lg' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${activeTab === 'pipeline' ? 'bg-vino text-white shadow-lg' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
         >
           Vista: Pipeline de Proyectos
         </button>
         <button 
           onClick={() => setActiveTab('events')}
-          className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${activeTab === 'events' ? 'bg-[#6E0C2B] text-white shadow-lg' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${activeTab === 'events' ? 'bg-vino text-white shadow-lg' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
         >
           Vista: Biblioteca de Eventos
         </button>

@@ -69,7 +69,7 @@ export default function PaginaQr() {
       <BandaFoto src="/images/demo/s1.png" frase="Tu carta, a la altura de tu cocina. Cambia cuando tú cambias." firma="Carta de autor desde 1 €" />
       <ComoFuncionaQr />
       <PruebaloQr />
-      <section className="relative overflow-hidden bg-[#0A080C] py-24 text-white md:py-32">
+      <section className="relative overflow-hidden bg-noche py-24 text-white md:py-32">
         <FondoVivo className="opacity-40" />
         <div className="relative mx-auto max-w-6xl px-6 md:px-8">
           <Titulo oscuro etiqueta="Cartas de autor" texto="Tres cartas. Tres personalidades. Pruébalas." sub="Cartas completas y funcionando: tócalas dentro del móvil, ábrelas en grande o elige la tuya." />

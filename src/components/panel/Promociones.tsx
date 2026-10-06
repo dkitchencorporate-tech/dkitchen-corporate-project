@@ -8,7 +8,7 @@ import type { SeccionPropia } from '@/lib/menu-propietario';
 import { crearPromocionAction, editarPromocionAction, eliminarPromocionAction } from '@/app/panel/actions';
 import SubirImagen from './SubirImagen';
 
-const campo = 'w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]';
+const campo = 'w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza';
 const DIAS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
 const VACIA: DatosPromocion = {
@@ -65,7 +65,7 @@ export default function Promociones({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Banners</h2>
-          <p className="text-sm text-[#6B7079]">
+          <p className="text-sm text-niebla">
             Aparecen arriba del todo de tu carta: menú del día, ofertas, eventos… Sube tu banner ya diseñado (o solo texto).
             {ampliado
               ? ` Hasta 3 activos a la vez, rotando en carrusel, y programa cuándo se ve cada uno. (${activas}/3 activos)`
@@ -75,7 +75,7 @@ export default function Promociones({
         {!editando && (
           <button
             onClick={() => setEditando({ id: null, d: { ...VACIA, activa: activas < (ampliado ? 3 : 1) } })}
-            className="shrink-0 rounded-full bg-[#6E0C2B] px-4 py-2 text-sm font-bold hover:bg-[#4A0819]"
+            className="shrink-0 rounded-full bg-vino px-4 py-2 text-sm font-bold hover:bg-vino-hondo"
           >
             + Nuevo banner
           </button>
@@ -85,22 +85,22 @@ export default function Promociones({
       {aviso && <p className={`text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</p>}
 
       {editando && d && (
-        <section className="space-y-4 rounded-2xl border border-[#6E0C2B]/40 bg-white p-6">
+        <section className="space-y-4 rounded-2xl border border-vino/40 bg-white p-6">
           <h3 className="text-lg font-semibold">{editando.id ? 'Editar banner' : 'Nuevo banner'}</h3>
           <div className="space-y-1">
             <SubirImagen valor={d.imagenUrl} onCambio={(url) => set('imagenUrl', url)} etiqueta="Imagen del banner" ia={{ modo: 'banner' }} />
-            <p className="text-[11px] text-[#6B7079]">Formato horizontal 16:9 (recomendado 1200 × 675 px). Si tu banner ya lleva el texto, deja el título vacío.</p>
+            <p className="text-[11px] text-niebla">Formato horizontal 16:9 (recomendado 1200 × 675 px). Si tu banner ya lleva el texto, deja el título vacío.</p>
           </div>
           <div><input value={d.titulo ?? ''} onChange={(e) => set('titulo', e.target.value || null)} maxLength={60} spellCheck lang="es" placeholder="Título (opcional con imagen; ej: Menú del día 12,90 €)" className={campo} /><HerramientasTexto valor={d.titulo ?? ''} onCambio={(v) => set('titulo', v || null)} tipo="titulo" /></div>
           {!d.imagenUrl && (
             <div><textarea value={d.texto ?? ''} onChange={(e) => set('texto', e.target.value || null)} maxLength={160} rows={2} spellCheck lang="es" placeholder="Texto corto (para banners sin imagen)" className={campo} /><HerramientasTexto valor={d.texto ?? ''} onCambio={(v) => set('texto', v || null)} tipo="descripcion" contexto={d.titulo ?? ''} /></div>
           )}
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-[#3F434B]">Botón del banner</p>
+            <p className="text-xs font-semibold text-grafito">Botón del banner</p>
             <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="A dónde lleva el botón">
               {([['ninguno', 'Sin botón'], ['seccion', 'A una sección'], ['plato', 'A un plato'], ...(ampliado ? [['reservar', 'A reservar']] : []), ['inicio', 'Solo el banner']] as [DatosPromocion['botonDestino'], string][]).map(([v, t]) => (
                 <button key={v} type="button" role="radio" aria-checked={d.botonDestino === v} onClick={() => set('botonDestino', v)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${d.botonDestino === v ? 'border-[#17191E] bg-[#17191E] text-white' : 'border-[#E6E6E2] bg-white'}`}>{t}</button>
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${d.botonDestino === v ? 'border-tinta bg-tinta text-white' : 'border-linea bg-white'}`}>{t}</button>
               ))}
             </div>
             {d.botonDestino !== 'ninguno' && (
@@ -120,92 +120,92 @@ export default function Promociones({
                 )}
               </div>
             )}
-            <p className="text-[11px] text-[#6B7079]">{({ ninguno: 'El banner solo informa: no lleva botón.', seccion: 'Al tocarlo, la carta baja hasta esa sección.', plato: 'Al tocarlo, se abre la ficha de ese plato con su foto y precio.', reservar: 'Al tocarlo, se abre el formulario de reserva.', inicio: 'El botón se muestra, pero el cliente se queda en la carta.' } as Record<string, string>)[d.botonDestino]}</p>
+            <p className="text-[11px] text-niebla">{({ ninguno: 'El banner solo informa: no lleva botón.', seccion: 'Al tocarlo, la carta baja hasta esa sección.', plato: 'Al tocarlo, se abre la ficha de ese plato con su foto y precio.', reservar: 'Al tocarlo, se abre el formulario de reserva.', inicio: 'El botón se muestra, pero el cliente se queda en la carta.' } as Record<string, string>)[d.botonDestino]}</p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="space-y-1"><span className="text-xs text-[#6B7079]">Desde (opcional)</span>
+            <label className="space-y-1"><span className="text-xs text-niebla">Desde (opcional)</span>
               <input type="date" value={d.inicio ?? ''} onChange={(e) => set('inicio', e.target.value || null)} className={campo} /></label>
-            <label className="space-y-1"><span className="text-xs text-[#6B7079]">Hasta (opcional)</span>
+            <label className="space-y-1"><span className="text-xs text-niebla">Hasta (opcional)</span>
               <input type="date" value={d.fin ?? ''} onChange={(e) => set('fin', e.target.value || null)} className={campo} /></label>
           </div>
 
           {ampliado ? (
             <div className="space-y-3">
               <div>
-                <span className="text-xs text-[#6B7079]">Días (vacío = todos)</span>
+                <span className="text-xs text-niebla">Días (vacío = todos)</span>
                 <div className="mt-1 flex gap-1.5">
                   {DIAS.map((l, i) => {
                     const n = i + 1; const on = d.dias?.includes(n) ?? false;
                     return (
                       <button key={l} type="button" aria-pressed={on}
                         onClick={() => set('dias', on ? (d.dias ?? []).filter((x) => x !== n) : [...(d.dias ?? []), n].sort())}
-                        className={`h-9 w-9 rounded-lg text-sm font-bold ${on ? 'bg-[#6E0C2B]' : 'bg-[#EDEDEA] text-[#6B7079]'}`}>{l}</button>
+                        className={`h-9 w-9 rounded-lg text-sm font-bold ${on ? 'bg-vino' : 'bg-papel text-niebla'}`}>{l}</button>
                     );
                   })}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <label className="space-y-1"><span className="text-xs text-[#6B7079]">Desde las</span>
+                <label className="space-y-1"><span className="text-xs text-niebla">Desde las</span>
                   <input type="time" value={d.horaInicio ?? ''} onChange={(e) => set('horaInicio', e.target.value || null)} className={campo} /></label>
-                <label className="space-y-1"><span className="text-xs text-[#6B7079]">Hasta las</span>
+                <label className="space-y-1"><span className="text-xs text-niebla">Hasta las</span>
                   <input type="time" value={d.horaFin ?? ''} onChange={(e) => set('horaFin', e.target.value || null)} className={campo} /></label>
               </div>
-              <label className="flex items-center gap-2 text-sm text-[#3F434B]">
+              <label className="flex items-center gap-2 text-sm text-grafito">
                 Prioridad
-                <input type="number" min={0} max={9} value={d.prioridad} onChange={(e) => set('prioridad', Number(e.target.value))} className="w-16 rounded-lg bg-white border border-[#E6E6E2] px-2 py-1" />
-                <span className="text-xs text-[#6B7079]">(si coinciden varias, se ve la de mayor prioridad)</span>
+                <input type="number" min={0} max={9} value={d.prioridad} onChange={(e) => set('prioridad', Number(e.target.value))} className="w-16 rounded-lg bg-white border border-linea px-2 py-1" />
+                <span className="text-xs text-niebla">(si coinciden varias, se ve la de mayor prioridad)</span>
               </label>
             </div>
           ) : (
-            <p className="rounded-lg bg-[#F3F3F0] p-3 text-xs text-[#6B7079]">
+            <p className="rounded-lg bg-[#F3F3F0] p-3 text-xs text-niebla">
               Programar por días y horas (ej. «menú del día de lunes a viernes de 12 a 16 h») y tener varias promociones está en el plan Ampliado.
             </p>
           )}
 
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={d.activa} onChange={(e) => set('activa', e.target.checked)} className="accent-[#6E0C2B]" /> Activa
+            <input type="checkbox" checked={d.activa} onChange={(e) => set('activa', e.target.checked)} className="accent-vino" /> Activa
           </label>
           <div className="flex gap-3">
-            <button onClick={guardar} disabled={pendiente || (!d.titulo?.trim() && !d.imagenUrl)} className="rounded-full bg-[#6E0C2B] px-5 py-2 text-sm font-bold disabled:opacity-50">
+            <button onClick={guardar} disabled={pendiente || (!d.titulo?.trim() && !d.imagenUrl)} className="rounded-full bg-vino px-5 py-2 text-sm font-bold disabled:opacity-50">
               {pendiente ? 'Guardando…' : 'Guardar'}
             </button>
-            <button onClick={() => setEditando(null)} className="text-sm text-[#6B7079] hover:text-[#1B1D22]">Cancelar</button>
+            <button onClick={() => setEditando(null)} className="text-sm text-niebla hover:text-carbon">Cancelar</button>
           </div>
         </section>
       )}
 
       {promociones.length === 0 && !editando ? (
-        <p className="rounded-2xl border border-[#E6E6E2] bg-white p-8 text-center text-sm text-[#6B7079]">
+        <p className="rounded-2xl border border-linea bg-white p-8 text-center text-sm text-niebla">
           Aún no tienes banners. Crea el primero: es lo primero que verán tus clientes al abrir la carta.
         </p>
       ) : (
         <ul className="space-y-3">
           {promociones.map((p) => (
-            <li key={p.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E6E6E2] bg-white p-4">
+            <li key={p.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-linea bg-white p-4">
               {p.imagenUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={p.imagenUrl} alt="" className="h-12 w-20 shrink-0 rounded-md object-cover" />
               ) : (
-                <div className="flex h-12 w-20 shrink-0 items-center justify-center rounded-md bg-[#6E0C2B]/20 text-[10px] font-bold text-[#6E0C2B]">TEXTO</div>
+                <div className="flex h-12 w-20 shrink-0 items-center justify-center rounded-md bg-vino/20 text-[10px] font-bold text-vino">TEXTO</div>
               )}
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">
                   {p.titulo ?? 'Banner con imagen'}{' '}
-                  <span className={`ml-1 rounded-full px-2 py-0.5 text-[11px] ${p.activa ? 'bg-green-500/15 text-green-700' : 'bg-[#EDEDEA] text-[#6B7079]'}`}>
+                  <span className={`ml-1 rounded-full px-2 py-0.5 text-[11px] ${p.activa ? 'bg-green-500/15 text-green-700' : 'bg-papel text-niebla'}`}>
                     {p.activa ? 'Activa' : 'Pausada'}
                   </span>
                 </p>
-                <p className="text-xs text-[#6B7079]">{resumenProgramacion(p)} · {p.vistas} vistas · {p.clics} clics</p>
+                <p className="text-xs text-niebla">{resumenProgramacion(p)} · {p.vistas} vistas · {p.clics} clics</p>
               </div>
               <button
                 onClick={() => accion(() => editarPromocionAction(p.id, { ...p, activa: !p.activa }), p.activa ? 'Banner pausado.' : 'Banner activado.')}
                 disabled={pendiente}
-                className="text-sm text-[#6B7079] hover:text-[#1B1D22]"
+                className="text-sm text-niebla hover:text-carbon"
               >
                 {p.activa ? 'Pausar' : 'Activar'}
               </button>
-              <button onClick={() => setEditando({ id: p.id, d: { ...p } })} className="text-sm text-[#6B7079] hover:text-[#1B1D22]">Editar</button>
+              <button onClick={() => setEditando({ id: p.id, d: { ...p } })} className="text-sm text-niebla hover:text-carbon">Editar</button>
               <button
                 onClick={() => confirm('¿Eliminar este banner?') && accion(() => eliminarPromocionAction(p.id), 'Banner eliminado.')}
                 disabled={pendiente}

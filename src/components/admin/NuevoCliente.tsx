@@ -22,12 +22,12 @@ export default function NuevoCliente() {
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const campo = 'mt-1.5 w-full rounded-xl border border-[#E6E6E2] bg-white px-4 py-3 text-[15px] outline-none focus:border-[#17191E]';
+  const campo = 'mt-1.5 w-full rounded-xl border border-linea bg-white px-4 py-3 text-[15px] outline-none focus:border-tinta';
   const correoOk = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(d.email);
   const paso1Ok = d.local.trim().length >= 2 && d.contacto.trim().length >= 2 && correoOk;
 
   if (!abierto) {
-    return <button onClick={() => setAbierto(true)} className="rounded-full bg-[#17191E] px-5 py-2.5 text-sm font-semibold text-white hover:bg-black">Nuevo cliente</button>;
+    return <button onClick={() => setAbierto(true)} className="rounded-full bg-tinta px-5 py-2.5 text-sm font-semibold text-white hover:bg-black">Nuevo cliente</button>;
   }
 
   function crear() {
@@ -39,19 +39,19 @@ export default function NuevoCliente() {
   }
 
   const Paso = ({ n, t }: { n: number; t: string }) => (
-    <li className={`flex items-center gap-2 text-sm ${paso === n ? 'font-semibold text-[#1B1D22]' : paso > n ? 'text-[#2F8F6B]' : 'text-[#9A9EA6]'}`}>
-      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${paso === n ? 'bg-[#17191E] text-white' : paso > n ? 'bg-[#2F8F6B] text-white' : 'bg-[#EDEDEA]'}`}>{paso > n ? '✓' : n}</span>{t}
+    <li className={`flex items-center gap-2 text-sm ${paso === n ? 'font-semibold text-carbon' : paso > n ? 'text-exito' : 'text-ceniza'}`}>
+      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${paso === n ? 'bg-tinta text-white' : paso > n ? 'bg-exito text-white' : 'bg-papel'}`}>{paso > n ? '✓' : n}</span>{t}
     </li>
   );
 
   return (
-    <div className="w-full rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-7">
+    <div className="w-full rounded-[22px] border border-linea bg-white p-5 sm:p-7">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="font-display text-xl font-semibold tracking-tight">Nuevo cliente</h2>
-          <p className="mt-1 text-sm text-[#6B7079]">Para demos, cortesías o ventas cerradas en persona. El cliente recibe un correo para crear su contraseña.</p>
+          <p className="mt-1 text-sm text-niebla">Para demos, cortesías o ventas cerradas en persona. El cliente recibe un correo para crear su contraseña.</p>
         </div>
-        <button onClick={() => { setAbierto(false); setPaso(1); }} className="text-sm text-[#6B7079]">Cancelar</button>
+        <button onClick={() => { setAbierto(false); setPaso(1); }} className="text-sm text-niebla">Cancelar</button>
       </div>
       <ol className="mt-5 flex flex-wrap gap-x-6 gap-y-2"><Paso n={1} t="Datos" /><Paso n={2} t="Qué recibe" /><Paso n={3} t="Revisar" /></ol>
 
@@ -59,14 +59,14 @@ export default function NuevoCliente() {
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-medium sm:col-span-2">Nombre del local
             <input value={d.local} maxLength={80} onChange={(e) => setD({ ...d, local: e.target.value })} placeholder="Ej.: Casa Brasa" className={campo} />
-            <span className="mt-1 block text-xs text-[#9A9EA6]">Con él se genera la dirección de su carta.</span>
+            <span className="mt-1 block text-xs text-ceniza">Con él se genera la dirección de su carta.</span>
           </label>
           <label className="block text-sm font-medium">Persona de contacto
             <input value={d.contacto} maxLength={80} onChange={(e) => setD({ ...d, contacto: e.target.value })} className={campo} />
           </label>
           <label className="block text-sm font-medium">Correo del cliente
             <input type="email" value={d.email} onChange={(e) => setD({ ...d, email: e.target.value })} className={campo} />
-            <span className="mt-1 block text-xs text-[#9A9EA6]">Cada correo es un cliente. Para demos propias: tu+demo1@gmail.com.</span>
+            <span className="mt-1 block text-xs text-ceniza">Cada correo es un cliente. Para demos propias: tu+demo1@gmail.com.</span>
           </label>
           <label className="block text-sm font-medium">Plan
             <select value={d.plan} onChange={(e) => setD({ ...d, plan: e.target.value })} className={campo}>
@@ -79,44 +79,44 @@ export default function NuevoCliente() {
       {paso === 2 && (
         <div className="mt-6 space-y-3">
           {MODOS.map((m) => (
-            <label key={m.id} className={`flex cursor-pointer gap-3 rounded-2xl border p-4 transition ${d.modo === m.id ? 'border-[#17191E] bg-[#F7F5F2]' : 'border-[#E6E6E2]'}`}>
+            <label key={m.id} className={`flex cursor-pointer gap-3 rounded-2xl border p-4 transition ${d.modo === m.id ? 'border-tinta bg-crema' : 'border-linea'}`}>
               <input type="radio" name="modo" checked={d.modo === m.id} onChange={() => setD({ ...d, modo: m.id })} className="mt-1" />
-              <span><span className="block font-semibold">{m.titulo}</span><span className="mt-0.5 block text-sm text-[#6B7079]">{m.texto}</span></span>
+              <span><span className="block font-semibold">{m.titulo}</span><span className="mt-0.5 block text-sm text-niebla">{m.texto}</span></span>
             </label>
           ))}
           {d.modo === 'gratis' && (
-            <label className="block rounded-2xl bg-[#F7F5F2] p-4 text-sm font-medium">Duración de la prueba
+            <label className="block rounded-2xl bg-crema p-4 text-sm font-medium">Duración de la prueba
               <select value={d.dias} onChange={(e) => setD({ ...d, dias: e.target.value })} className={campo}>
                 <option value="15">15 días</option><option value="30">30 días</option><option value="sin">Sin fecha de fin (cortesía)</option>
               </select>
-              <span className="mt-1 block text-xs text-[#9A9EA6]">Si paga antes de que acabe, no paga nada hasta el día 12 siguiente al final de la prueba.</span>
+              <span className="mt-1 block text-xs text-ceniza">Si paga antes de que acabe, no paga nada hasta el día 12 siguiente al final de la prueba.</span>
             </label>
           )}
-          <label className="flex cursor-pointer gap-3 rounded-2xl border border-dashed border-[#D6D6D1] p-4">
+          <label className="flex cursor-pointer gap-3 rounded-2xl border border-dashed border-linea-fuerte p-4">
             <input type="checkbox" checked={d.demo} onChange={(e) => setD({ ...d, demo: e.target.checked })} className="mt-1" />
-            <span><span className="block font-semibold">Cargar una carta de ejemplo</span><span className="mt-0.5 block text-sm text-[#6B7079]">4 secciones y 14 platos con alérgenos, para enseñar el producto desde el primer minuto.</span></span>
+            <span><span className="block font-semibold">Cargar una carta de ejemplo</span><span className="mt-0.5 block text-sm text-niebla">4 secciones y 14 platos con alérgenos, para enseñar el producto desde el primer minuto.</span></span>
           </label>
         </div>
       )}
 
       {paso === 3 && (
-        <dl className="mt-6 divide-y divide-[#ECECE8] rounded-2xl border border-[#E6E6E2] text-sm">
+        <dl className="mt-6 divide-y divide-[#ECECE8] rounded-2xl border border-linea text-sm">
           {([
             ['Local', d.local], ['Contacto', d.contacto], ['Correo', d.email], ['Plan', d.plan === 'ampliado' ? 'Ampliado' : 'Básico'],
             ['Qué recibe', MODOS.find((m) => m.id === d.modo)!.titulo + (d.modo === 'gratis' ? (d.dias === 'sin' ? ' · sin fecha de fin' : ` · ${d.dias} días`) : '')], ['Carta de ejemplo', d.demo ? 'Sí' : 'No'],
           ] as const).map(([k, v]) => (
-            <div key={k} className="flex justify-between gap-4 px-4 py-3"><dt className="text-[#6B7079]">{k}</dt><dd className="text-right font-medium">{v}</dd></div>
+            <div key={k} className="flex justify-between gap-4 px-4 py-3"><dt className="text-niebla">{k}</dt><dd className="text-right font-medium">{v}</dd></div>
           ))}
         </dl>
       )}
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       <div className="mt-6 flex justify-between gap-3">
-        {paso > 1 ? <button onClick={() => setPaso(paso - 1)} className="rounded-full border border-[#E6E6E2] px-5 py-2.5 text-sm font-semibold">Atrás</button> : <span />}
+        {paso > 1 ? <button onClick={() => setPaso(paso - 1)} className="rounded-full border border-linea px-5 py-2.5 text-sm font-semibold">Atrás</button> : <span />}
         {paso < 3 ? (
-          <button disabled={paso === 1 && !paso1Ok} onClick={() => setPaso(paso + 1)} className="rounded-full bg-[#17191E] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-35">Continuar</button>
+          <button disabled={paso === 1 && !paso1Ok} onClick={() => setPaso(paso + 1)} className="rounded-full bg-tinta px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-35">Continuar</button>
         ) : (
-          <button disabled={pendiente} onClick={crear} className="rounded-full bg-[#6E0C2B] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{pendiente ? 'Creando…' : d.modo === 'pago' ? 'Crear y preparar el pago' : 'Crear cliente'}</button>
+          <button disabled={pendiente} onClick={crear} className="rounded-full bg-vino px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{pendiente ? 'Creando…' : d.modo === 'pago' ? 'Crear y preparar el pago' : 'Crear cliente'}</button>
         )}
       </div>
     </div>

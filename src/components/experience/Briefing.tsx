@@ -43,10 +43,10 @@ export default function Briefing() {
     return <div className="mx-auto mt-12 max-w-lg rounded-[22px] border border-white/15 p-6 text-left"><p className="font-semibold">Briefing recibido.</p><p className="mt-1 text-white/60">Te llamamos en menos de 48 horas laborables. Te hemos enviado una copia por correo.</p></div>;
   }
 
-  const campo = 'mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3 text-[15px] text-white outline-none placeholder:text-white/35 focus:border-[#D9B25C]';
+  const campo = 'mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3 text-[15px] text-white outline-none placeholder:text-white/35 focus:border-oro';
   return (
     <form onSubmit={enviar} className="mx-auto mt-12 max-w-lg space-y-4 rounded-[24px] border border-white/15 bg-white/[0.03] p-6 text-left md:p-8">
-      <p className="etiqueta-dk text-[#D9B25C]">Paso 1 · Briefing del evento (2 minutos)</p>
+      <p className="etiqueta-dk text-oro">Paso 1 · Briefing del evento (2 minutos)</p>
       <p className="text-sm text-white/60">Con esto preparamos la videollamada de arranque.</p>
       <label className="block text-sm font-semibold">Formato
         <select name="formato" defaultValue={config.formato} key={`f-${config.formato}`} className={campo}>
@@ -73,7 +73,7 @@ export default function Briefing() {
       <label className="block text-sm font-semibold">Notas<textarea name="notas" rows={2} maxLength={1000} className={campo} /></label>
       <label className="flex gap-3 text-xs text-white/60"><input type="checkbox" name="consentimiento" required className="mt-0.5" />Acepto la <a href="/privacy" className="underline">política de privacidad</a> y que DKitchen use estos datos para preparar mi evento.</label>
       {error && <p className="text-sm text-[#F2B8B5]">{error}</p>}
-      <button type="submit" disabled={estado === 'enviando'} className="w-full rounded-full bg-[#6E0C2B] px-6 py-4 text-sm font-semibold text-white hover:bg-[#570922] disabled:opacity-50">
+      <button type="submit" disabled={estado === 'enviando'} className="w-full rounded-full bg-vino px-6 py-4 text-sm font-semibold text-white hover:bg-vino-hondo disabled:opacity-50">
         {estado === 'enviando' ? 'Enviando…' : 'Enviar briefing'}
       </button>
     </form>

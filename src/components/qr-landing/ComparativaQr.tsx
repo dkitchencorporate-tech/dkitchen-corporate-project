@@ -42,9 +42,9 @@ const GRUPOS: { g: string; filas: Fila[] }[] = [
 const PORTADA = ['App propia instalable en el móvil, con tu marca', 'Pedidos a domicilio y para recoger, con carrito', 'Cero comisiones por pedido (frente a las plataformas)', 'Base de clientes propia, con correo verificado', 'Club de fidelización con puntos canjeables', 'Kiosko de autoservicio y TPV propio'];
 
 function Marca({ v, oscuro }: { v: boolean | string; oscuro?: boolean }) {
-  if (typeof v === 'string') return <span className={`block px-1 text-[10.5px] leading-tight sm:text-[13px] ${oscuro ? 'text-white/85' : 'text-[#6B7079]'}`}>{v}</span>;
+  if (typeof v === 'string') return <span className={`block px-1 text-[10.5px] leading-tight sm:text-[13px] ${oscuro ? 'text-white/85' : 'text-niebla'}`}>{v}</span>;
   return v ? (
-    <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${oscuro ? 'bg-[#D9B25C] text-[#0A080C]' : 'bg-[#17191E] text-white'}`} aria-label="Sí">
+    <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${oscuro ? 'bg-oro text-noche' : 'bg-tinta text-white'}`} aria-label="Sí">
       <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
     </span>
   ) : <span className="text-[#B8B4AE]" aria-label="No">—</span>;
@@ -57,33 +57,33 @@ export default function ComparativaQr({ variante = 'qr' }: { variante?: 'qr' | '
     : compacta ? 'De carta QR a app propia.'
     : 'Tu carta digital, o tu propio negocio digital.';
   return (
-    <section className={`${variante === 'signature' ? 'bg-white' : 'bg-[#F7F5F2]'} py-24 md:py-32`}>
+    <section className={`${variante === 'signature' ? 'bg-white' : 'bg-crema'} py-24 md:py-32`}>
       <div className="mx-auto max-w-5xl px-6 md:px-8">
-        <p className="etiqueta-dk text-[#6E0C2B]">{variante === 'signature' ? 'Signature frente a la carta QR' : 'El siguiente nivel'}</p>
-        <TextoRevelado texto={titulo} className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] text-[#17191E] md:text-6xl" />
-        <p className="mt-5 max-w-2xl text-lg text-[#6B7079]">
-          La carta QR es tu carta digital. <strong className="text-[#17191E]">Signature es tu propio negocio digital:</strong> tu app, tus pedidos, tus clientes y tus datos, sin comisiones.
+        <p className="etiqueta-dk text-vino">{variante === 'signature' ? 'Signature frente a la carta QR' : 'El siguiente nivel'}</p>
+        <TextoRevelado texto={titulo} className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] text-tinta md:text-6xl" />
+        <p className="mt-5 max-w-2xl text-lg text-niebla">
+          La carta QR es tu carta digital. <strong className="text-tinta">Signature es tu propio negocio digital:</strong> tu app, tus pedidos, tus clientes y tus datos, sin comisiones.
           {!compacta && <> Aunque contrates la carta QR con todo (plan Ampliado a {QR_MENU.planes.ampliado.mensual} € + IVA, idiomas y módulos de sala), Signature sigue estando en otra liga.</>}
         </p>
 
-        <div className="mt-12 overflow-hidden rounded-[28px] border border-[#E6E6E2] bg-white">
+        <div className="mt-12 overflow-hidden rounded-[28px] border border-linea bg-white">
           <div className="grid grid-cols-[1fr_56px_68px] items-end text-[13px] font-semibold sm:grid-cols-[1fr_150px_170px]">
-            <p className="p-5 text-[#9A9EA6]">{compacta ? '' : 'Qué incluye'}</p>
-            <p className="px-1 py-5 text-center text-[11px] text-[#6B7079] sm:p-5 sm:text-[13px]">Carta QR<span className="block text-[10px] font-normal sm:text-[11px]">con todo</span></p>
-            <p className="bg-[#0A080C] px-1 py-5 text-center text-[11px] text-white sm:p-5 sm:text-[13px]">Signature<span className="block text-[11px] font-normal text-[#D9B25C]">tu app</span></p>
+            <p className="p-5 text-ceniza">{compacta ? '' : 'Qué incluye'}</p>
+            <p className="px-1 py-5 text-center text-[11px] text-niebla sm:p-5 sm:text-[13px]">Carta QR<span className="block text-[10px] font-normal sm:text-[11px]">con todo</span></p>
+            <p className="bg-noche px-1 py-5 text-center text-[11px] text-white sm:p-5 sm:text-[13px]">Signature<span className="block text-[11px] font-normal text-oro">tu app</span></p>
           </div>
           {grupos.map((grupo) => (
             <div key={grupo.g || 'portada'}>
               {grupo.g && (
                 <div className="grid grid-cols-[1fr_56px_68px] border-t border-[#ECECE8] sm:grid-cols-[1fr_150px_170px]">
-                  <p className="px-5 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9A9EA6]">{grupo.g}</p><span /><span className="bg-[#0A080C]" />
+                  <p className="px-5 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-ceniza">{grupo.g}</p><span /><span className="bg-noche" />
                 </div>
               )}
               {grupo.filas.map((f) => (
                 <div key={f.t} className="grid grid-cols-[1fr_56px_68px] items-center border-t border-[#F1F0EC] sm:grid-cols-[1fr_150px_170px]">
-                  <p className={`px-4 py-3.5 text-[14px] sm:px-5 sm:text-[14.5px] ${f.clave ? 'font-semibold text-[#17191E]' : 'text-[#3F434B]'}`}>{f.t}</p>
+                  <p className={`px-4 py-3.5 text-[14px] sm:px-5 sm:text-[14.5px] ${f.clave ? 'font-semibold text-tinta' : 'text-grafito'}`}>{f.t}</p>
                   <p className="py-3.5 text-center"><Marca v={f.qr} /></p>
-                  <p className="flex self-stretch items-center justify-center bg-[#0A080C] py-3.5"><Marca v={f.sig} oscuro /></p>
+                  <p className="flex self-stretch items-center justify-center bg-noche py-3.5"><Marca v={f.sig} oscuro /></p>
                 </div>
               ))}
             </div>
@@ -92,11 +92,11 @@ export default function ComparativaQr({ variante = 'qr' }: { variante?: 'qr' | '
 
         <div className="mt-8 flex flex-wrap items-center gap-4">
           {variante === 'signature' ? (
-            <a href="#precio" className="inline-flex rounded-full bg-[#6E0C2B] px-7 py-4 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(163,24,74,.35)]">Quiero mi app →</a>
+            <a href="#precio" className="inline-flex rounded-full bg-vino px-7 py-4 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(163,24,74,.35)]">Quiero mi app →</a>
           ) : (
-            <Link href="/signature" className="inline-flex rounded-full bg-[#17191E] px-7 py-4 text-[15px] font-semibold text-white">Conocer DKitchen Signature →</Link>
+            <Link href="/signature" className="inline-flex rounded-full bg-tinta px-7 py-4 text-[15px] font-semibold text-white">Conocer DKitchen Signature →</Link>
           )}
-          {variante !== 'signature' && <p className="text-sm text-[#6B7079]">Empieza con la carta por 1 € y da el salto cuando tu negocio lo pida.</p>}
+          {variante !== 'signature' && <p className="text-sm text-niebla">Empieza con la carta por 1 € y da el salto cuando tu negocio lo pida.</p>}
         </div>
       </div>
     </section>

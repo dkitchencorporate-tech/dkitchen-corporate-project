@@ -52,7 +52,7 @@ function CampoContrasena({
           className={`w-full border-2 rounded-xl px-4 py-3 pr-12 outline-none transition-colors ${
             error
               ? 'border-red-400 focus:border-red-500'
-              : 'border-gray-200 focus:border-[#6E0C2B]'
+              : 'border-gray-200 focus:border-vino'
           }`}
         />
         <button
@@ -136,7 +136,7 @@ export default function FormularioNuevaContrasena() {
         </p>
         <a
           href="/panel/iniciar-sesion"
-          className="inline-block w-full bg-[#6E0C2B] text-white font-black py-3.5 rounded-full hover:bg-orange-600 transition-colors"
+          className="inline-block w-full bg-vino text-white font-black py-3.5 rounded-full hover:bg-orange-600 transition-colors"
         >
           Iniciar sesión ahora
         </a>
@@ -222,7 +222,7 @@ export default function FormularioNuevaContrasena() {
       <button
         type="submit"
         disabled={enviando}
-        className="w-full bg-[#6E0C2B] text-white font-black py-3.5 rounded-full hover:bg-orange-600 transition-colors disabled:opacity-50"
+        className="w-full bg-vino text-white font-black py-3.5 rounded-full hover:bg-orange-600 transition-colors disabled:opacity-50"
       >
         {enviando ? 'Guardando…' : 'Fijar contraseña'}
       </button>

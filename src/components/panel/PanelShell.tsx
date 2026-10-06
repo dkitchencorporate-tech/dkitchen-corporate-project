@@ -129,18 +129,18 @@ export default function PanelShell({
   const puesta = servicios.contratados.some((c) => c.servicio === 'setup_esencial' || c.servicio === 'setup_experto') ? null : servicios.catalogo.find((c) => c.servicio === 'setup_esencial') ?? null;
   const euros = (c: number) => `${(c / 100).toLocaleString('es-ES', { maximumFractionDigits: 2 })} €`;
   return (
-    <div className="min-h-screen bg-[#F7F5F2] text-[#1B1D22] lg:grid lg:grid-cols-[88px_1fr]">
+    <div className="min-h-screen bg-crema text-carbon lg:grid lg:grid-cols-[88px_1fr]">
       {/* Raíl de espacios (escritorio) */}
-      <aside className="hidden bg-[#0A080C] text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:items-center lg:py-5">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.06] font-display text-lg font-semibold text-[#D9B25C]" title={restaurante.nombre}>{restaurante.nombre.slice(0, 1).toUpperCase()}</div>
+      <aside className="hidden bg-noche text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:items-center lg:py-5">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.06] font-display text-lg font-semibold text-oro" title={restaurante.nombre}>{restaurante.nombre.slice(0, 1).toUpperCase()}</div>
         <nav aria-label="Espacios del panel" className="mt-8 flex flex-1 flex-col gap-1.5">
           {espacios.map((e) => {
             const activo = espacio?.id === e.id;
             return (
               <button key={e.id} onClick={() => setPestana(e.items[0].id)} aria-current={activo ? 'page' : undefined}
                 className={`group relative flex w-[68px] flex-col items-center gap-1 rounded-2xl py-2.5 text-[10.5px] font-medium transition-colors ${activo ? 'text-white' : 'text-white/45 hover:text-white'}`}>
-                {activo && <motion.span layoutId="rail-activo" className="absolute inset-0 rounded-2xl bg-white/[0.08] ring-1 ring-[#D9B25C]/30" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-                <span className={`relative ${activo ? 'text-[#D9B25C]' : ''}`}><Icono n={e.icono} /></span>
+                {activo && <motion.span layoutId="rail-activo" className="absolute inset-0 rounded-2xl bg-white/[0.08] ring-1 ring-oro/30" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                <span className={`relative ${activo ? 'text-oro' : ''}`}><Icono n={e.icono} /></span>
                 <span className="relative">{e.nombre}</span>
               </button>
             );
@@ -154,15 +154,15 @@ export default function PanelShell({
 
       <div className="min-w-0">
         {/* Cabecera */}
-        <header className="sticky top-0 z-30 border-b border-[#E6E2DC] bg-[#F7F5F2]/90 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 border-b border-[#E6E2DC] bg-crema/90 backdrop-blur-xl">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
             <div className="min-w-0">
               <p className="truncate text-[15px] font-semibold">{restaurante.nombre}</p>
-              <p className="text-xs text-[#6B7079]">{espacio?.nombre}{espacio && espacio.items.length > 1 ? ` · ${titulo}` : ''} · plan {restaurante.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</p>
+              <p className="text-xs text-niebla">{espacio?.nombre}{espacio && espacio.items.length > 1 ? ` · ${titulo}` : ''} · plan {restaurante.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="hidden rounded-full border border-[#E0DBD4] bg-white px-4 py-2 text-sm font-medium sm:inline-flex lg:hidden">Ver carta</a>
-              <button onClick={() => setMenu(true)} aria-label="Cuenta" className="flex h-9 w-9 items-center justify-center rounded-full bg-[#17191E] text-sm font-semibold text-[#D9B25C] lg:hidden">{identidad.nombre.slice(0, 1).toUpperCase()}</button>
+              <button onClick={() => setMenu(true)} aria-label="Cuenta" className="flex h-9 w-9 items-center justify-center rounded-full bg-tinta text-sm font-semibold text-oro lg:hidden">{identidad.nombre.slice(0, 1).toUpperCase()}</button>
             </div>
           </div>
           {espacio && espacio.items.length > 1 && (
@@ -170,8 +170,8 @@ export default function PanelShell({
               <div className="flex gap-1 overflow-x-auto [scrollbar-width:none]" role="tablist" aria-label={espacio.nombre}>
                 {espacio.items.map((p) => (
                   <button key={p.id} role="tab" aria-selected={pestana === p.id} onClick={() => setPestana(p.id)}
-                    className={`relative shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${pestana === p.id ? 'text-white' : 'text-[#6B7079] hover:text-[#1B1D22]'}`}>
-                    {pestana === p.id && <motion.span layoutId="pildora-activa" className="absolute inset-0 rounded-full bg-[#17191E]" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                    className={`relative shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${pestana === p.id ? 'text-white' : 'text-niebla hover:text-carbon'}`}>
+                    {pestana === p.id && <motion.span layoutId="pildora-activa" className="absolute inset-0 rounded-full bg-tinta" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
                     <span className="relative">{p.nombre}</span>
                   </button>
                 ))}
@@ -185,11 +185,11 @@ export default function PanelShell({
             <button aria-label="Cerrar" onClick={() => setMenu(false)} className="absolute inset-0 bg-black/50" />
             <div className="absolute inset-x-3 bottom-3 rounded-[28px] bg-white p-5 shadow-2xl" style={{ marginBottom: 'env(safe-area-inset-bottom)' }}>
               <p className="font-semibold">{identidad.nombre}</p>
-              <p className="truncate text-sm text-[#6B7079]">{identidad.email}</p>
+              <p className="truncate text-sm text-niebla">{identidad.email}</p>
               <div className="mt-4 grid gap-2">
                 <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="rounded-2xl bg-[#F3F1EE] px-4 py-3.5 text-sm font-medium">Ver mi carta como la ven mis clientes</a>
                 <button onClick={() => setPestana('soporte')} className="rounded-2xl bg-[#F3F1EE] px-4 py-3.5 text-left text-sm font-medium">Soporte</button>
-                <button onClick={salir} className="rounded-2xl px-4 py-3.5 text-left text-sm font-medium text-[#6E0C2B]">Cerrar sesión</button>
+                <button onClick={salir} className="rounded-2xl px-4 py-3.5 text-left text-sm font-medium text-vino">Cerrar sesión</button>
               </div>
             </div>
           </div>
@@ -242,7 +242,7 @@ export default function PanelShell({
 
       {/* Barra de espacios flotante (móvil y tablet) */}
       <nav aria-label="Espacios del panel" className="fixed inset-x-3 bottom-3 z-40 lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <ul className="mx-auto flex max-w-md items-stretch justify-between rounded-[26px] bg-[#0A080C]/95 p-1.5 shadow-[0_16px_40px_rgba(10,8,12,.35)] backdrop-blur-xl">
+        <ul className="mx-auto flex max-w-md items-stretch justify-between rounded-[26px] bg-noche/95 p-1.5 shadow-[0_16px_40px_rgba(10,8,12,.35)] backdrop-blur-xl">
           {espacios.map((e) => {
             const activo = espacio?.id === e.id;
             return (
@@ -250,7 +250,7 @@ export default function PanelShell({
                 <button onClick={() => setPestana(e.items[0].id)} aria-current={activo ? 'page' : undefined}
                   className={`relative flex w-full flex-col items-center gap-0.5 rounded-[20px] py-2 text-[10.5px] font-medium ${activo ? 'text-white' : 'text-white/50'}`}>
                   {activo && <motion.span layoutId="barra-activa" className="absolute inset-0 rounded-[20px] bg-white/[0.1]" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-                  <span className={`relative ${activo ? 'text-[#D9B25C]' : ''}`}><Icono n={e.icono} /></span>
+                  <span className={`relative ${activo ? 'text-oro' : ''}`}><Icono n={e.icono} /></span>
                   <span className="relative">{e.nombre}</span>
                 </button>
               </li>

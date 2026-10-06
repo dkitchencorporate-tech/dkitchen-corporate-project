@@ -25,9 +25,9 @@ const ZONAS: { id: Zona; nombre: string; ayuda: string }[] = [
   { id: 'legal', nombre: 'Páginas legales', ayuda: 'Aviso legal, privacidad y cookies de tu negocio, generados con tus datos.' },
 ];
 const euros = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
-const campo = 'w-full rounded-xl border border-[#E6E6E2] bg-white px-3 py-2.5 text-sm placeholder-[#9A9EA6] focus:border-[#6E0C2B] focus:outline-none';
-const tarjeta = 'rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-6';
-const botonPrincipal = 'rounded-full bg-[#6E0C2B] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#4A0819] disabled:opacity-40';
+const campo = 'w-full rounded-xl border border-linea bg-white px-3 py-2.5 text-sm placeholder-ceniza focus:border-vino focus:outline-none';
+const tarjeta = 'rounded-[22px] border border-linea bg-white p-5 sm:p-6';
+const botonPrincipal = 'rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white hover:bg-vino-hondo disabled:opacity-40';
 
 export default function Estudio({
   secciones, platos, extras, legal, restaurante, demo = false, irAPlatos,
@@ -66,20 +66,20 @@ export default function Estudio({
     <div className="space-y-6">
       <header>
         <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Estudio de carta</h2>
-        <p className="mt-1 max-w-2xl text-sm text-[#6B7079]">Aquí construyes y organizas tu carta. Los cambios rápidos del día (precio, agotado, foto) siguen en <strong className="text-[#3F434B]">Platos</strong>.</p>
+        <p className="mt-1 max-w-2xl text-sm text-niebla">Aquí construyes y organizas tu carta. Los cambios rápidos del día (precio, agotado, foto) siguen en <strong className="text-grafito">Platos</strong>.</p>
       </header>
 
       <nav className="flex gap-2 overflow-x-auto [scrollbar-width:none]" aria-label="Zonas del estudio">
         {ZONAS.map((z) => (
           <button key={z.id} onClick={() => { setZona(z.id); setAviso(null); }} aria-pressed={zona === z.id}
-            className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium ${zona === z.id ? 'border-[#6E0C2B] bg-[#6E0C2B] text-white' : 'border-[#E6E6E2] bg-white text-[#3F434B] hover:border-[#D6D6D1]'}`}>
+            className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium ${zona === z.id ? 'border-vino bg-vino text-white' : 'border-linea bg-white text-grafito hover:border-linea-fuerte'}`}>
             {z.nombre}{z.id === 'combos' && combos.length > 0 ? ` · ${combos.length}` : ''}
           </button>
         ))}
       </nav>
-      <p className="-mt-2 text-sm text-[#6B7079]">{ZONAS.find((z) => z.id === zona)?.ayuda}</p>
+      <p className="-mt-2 text-sm text-niebla">{ZONAS.find((z) => z.id === zona)?.ayuda}</p>
 
-      {aviso && <p role="status" className={`rounded-xl px-4 py-3 text-sm ${aviso.ok ? 'bg-[#2F8F6B]/10 text-[#1F6B4F]' : 'bg-red-50 text-red-700'}`}>{aviso.texto}</p>}
+      {aviso && <p role="status" className={`rounded-xl px-4 py-3 text-sm ${aviso.ok ? 'bg-exito/10 text-[#1F6B4F]' : 'bg-red-50 text-red-700'}`}>{aviso.texto}</p>}
 
       {zona === 'categorias' && <Categorias secciones={secciones} platos={platos} pendiente={pendiente} ejecutar={ejecutar} irAPlatos={irAPlatos} demo={demo} />}
       {zona === 'destacados' && <Destacados platos={normales} extra={extra} pendiente={pendiente} ejecutar={ejecutar} />}
@@ -106,8 +106,8 @@ function Categorias({ secciones, platos, pendiente, ejecutar, irAPlatos, demo }:
     <div className="space-y-4">
       {/* Paso 1: crear categoría */}
       <div className={tarjeta}>
-        <p className="font-semibold"><span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#6E0C2B] text-xs text-white">1</span>Crea una categoría</p>
-        <p className="mt-1 text-sm text-[#6B7079]">Por ejemplo «Entrantes», «Principales», «Postres» o «Bebidas». Después ábrela y añade sus platos ahí mismo.</p>
+        <p className="font-semibold"><span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-vino text-xs text-white">1</span>Crea una categoría</p>
+        <p className="mt-1 text-sm text-niebla">Por ejemplo «Entrantes», «Principales», «Postres» o «Bebidas». Después ábrela y añade sus platos ahí mismo.</p>
         <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); const n = nueva.trim(); if (!n) return; ejecutar(async () => { await crearSeccionAction(n.slice(0, 60)); setNueva(''); }, `Categoría «${n}» creada. Ábrela abajo para añadir platos.`); }}>
           <input value={nueva} onChange={(e) => setNueva(e.target.value)} maxLength={60} spellCheck lang="es" placeholder="Nombre de la categoría" className={campo} />
           <button disabled={pendiente || !nueva.trim()} className={botonPrincipal}>Crear</button>
@@ -117,7 +117,7 @@ function Categorias({ secciones, platos, pendiente, ejecutar, irAPlatos, demo }:
 
       {/* Paso 2: cada categoría, con sus platos dentro */}
       {secciones.length === 0 ? (
-        <p className={`${tarjeta} text-center text-sm text-[#6B7079]`}>Todavía no tienes categorías. Crea la primera arriba.</p>
+        <p className={`${tarjeta} text-center text-sm text-niebla`}>Todavía no tienes categorías. Crea la primera arriba.</p>
       ) : (
         <ul className="space-y-3">
           {secciones.map((s, i) => {
@@ -126,15 +126,15 @@ function Categorias({ secciones, platos, pendiente, ejecutar, irAPlatos, demo }:
             const desc = descs[s.id] ?? s.descripcion ?? '';
             const abiertaEsta = abierta === s.id;
             return (
-              <li key={s.id} className="overflow-hidden rounded-[22px] border border-[#E6E6E2] bg-white">
+              <li key={s.id} className="overflow-hidden rounded-[22px] border border-linea bg-white">
                 <div className="flex items-center gap-2 px-4 py-3">
                   <span className="flex flex-col">
-                    <button disabled={pendiente || i === 0} onClick={() => ejecutar(() => moverSeccionAction(s.id, -1), 'Orden guardado.')} aria-label={`Subir ${s.nombre}`} className="h-5 w-7 rounded-md text-xs text-[#6B7079] hover:bg-[#F3F1EE] disabled:opacity-25">▲</button>
-                    <button disabled={pendiente || i === secciones.length - 1} onClick={() => ejecutar(() => moverSeccionAction(s.id, 1), 'Orden guardado.')} aria-label={`Bajar ${s.nombre}`} className="h-5 w-7 rounded-md text-xs text-[#6B7079] hover:bg-[#F3F1EE] disabled:opacity-25">▼</button>
+                    <button disabled={pendiente || i === 0} onClick={() => ejecutar(() => moverSeccionAction(s.id, -1), 'Orden guardado.')} aria-label={`Subir ${s.nombre}`} className="h-5 w-7 rounded-md text-xs text-niebla hover:bg-[#F3F1EE] disabled:opacity-25">▲</button>
+                    <button disabled={pendiente || i === secciones.length - 1} onClick={() => ejecutar(() => moverSeccionAction(s.id, 1), 'Orden guardado.')} aria-label={`Bajar ${s.nombre}`} className="h-5 w-7 rounded-md text-xs text-niebla hover:bg-[#F3F1EE] disabled:opacity-25">▼</button>
                   </span>
                   <button onClick={() => { setAbierta(abiertaEsta ? null : s.id); setPlato({ nombre: '', precio: '', descripcion: '' }); }} aria-expanded={abiertaEsta} className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left">
-                    <span className="min-w-0"><span className="block truncate font-semibold">{s.nombre}</span><span className="text-xs text-[#6B7079]">{suyos.length} {suyos.length === 1 ? 'plato' : 'platos'}{s.descripcion ? ' · con descripción' : ''}</span></span>
-                    <span className="shrink-0 rounded-full bg-[#F3EDE6] px-3 py-1 text-xs font-semibold text-[#6E0C2B]">{abiertaEsta ? 'Cerrar' : 'Abrir y añadir platos'}</span>
+                    <span className="min-w-0"><span className="block truncate font-semibold">{s.nombre}</span><span className="text-xs text-niebla">{suyos.length} {suyos.length === 1 ? 'plato' : 'platos'}{s.descripcion ? ' · con descripción' : ''}</span></span>
+                    <span className="shrink-0 rounded-full bg-[#F3EDE6] px-3 py-1 text-xs font-semibold text-vino">{abiertaEsta ? 'Cerrar' : 'Abrir y añadir platos'}</span>
                   </button>
                 </div>
 
@@ -142,11 +142,11 @@ function Categorias({ secciones, platos, pendiente, ejecutar, irAPlatos, demo }:
                   <div className="space-y-5 border-t border-[#F1F0EC] bg-[#FCFBF9] px-4 py-4">
                     {/* Nombre y descripción */}
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <label className="block text-xs text-[#6B7079]">Nombre de la categoría
+                      <label className="block text-xs text-niebla">Nombre de la categoría
                         <input value={valor} onChange={(e) => setNombres({ ...nombres, [s.id]: e.target.value })} maxLength={60} spellCheck lang="es" className={`${campo} mt-1`} />
                         <HerramientasTexto valor={valor} onCambio={(v) => setNombres({ ...nombres, [s.id]: v })} tipo="titulo" demo={demo} />
                       </label>
-                      <label className="block text-xs text-[#6B7079]">Descripción (opcional, se ve bajo el título en tu carta)
+                      <label className="block text-xs text-niebla">Descripción (opcional, se ve bajo el título en tu carta)
                         <input value={desc} onChange={(e) => setDescs({ ...descs, [s.id]: e.target.value })} maxLength={200} spellCheck lang="es" placeholder="Ej.: Para picar al centro, ideales para compartir" className={`${campo} mt-1`} />
                         <HerramientasTexto valor={desc} onCambio={(v) => setDescs({ ...descs, [s.id]: v })} tipo="descripcion" contexto={valor} demo={demo} />
                       </label>
@@ -161,11 +161,11 @@ function Categorias({ secciones, platos, pendiente, ejecutar, irAPlatos, demo }:
                     {/* Sus platos */}
                     <div>
                       <p className="text-sm font-semibold">Platos de «{s.nombre}»</p>
-                      {suyos.length === 0 ? <p className="mt-1 text-sm text-[#6B7079]">Aún no tiene platos. Añade el primero aquí abajo.</p> : (
+                      {suyos.length === 0 ? <p className="mt-1 text-sm text-niebla">Aún no tiene platos. Añade el primero aquí abajo.</p> : (
                         <ul className="mt-2 divide-y divide-[#EEECE8] rounded-xl border border-[#EEECE8] bg-white">
                           {suyos.map((p) => (
                             <li key={p.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
-                              <span className="min-w-0 truncate">{p.nombre}{!p.fotoUrl && <span className="ml-2 text-xs text-[#9A9EA6]">sin foto</span>}</span>
+                              <span className="min-w-0 truncate">{p.nombre}{!p.fotoUrl && <span className="ml-2 text-xs text-ceniza">sin foto</span>}</span>
                               <span className="shrink-0 font-semibold">{euros(p.precio)}</span>
                             </li>
                           ))}
@@ -174,8 +174,8 @@ function Categorias({ secciones, platos, pendiente, ejecutar, irAPlatos, demo }:
                     </div>
 
                     {/* Añadir plato aquí */}
-                    <form className="space-y-2 rounded-xl border border-dashed border-[#D9D3CB] bg-white p-3" onSubmit={(e) => { e.preventDefault(); ejecutar(async () => { const r = await crearPlatoRapidoAction({ seccionId: s.id, ...plato }); if (r.ok) setPlato({ nombre: '', precio: '', descripcion: '' }); return r; }, `«${plato.nombre}» añadido a ${s.nombre}. Añádele foto y alérgenos en Platos.`); }}>
-                      <p className="text-sm font-semibold"><span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#6E0C2B] text-xs text-white">2</span>Añadir un plato a «{s.nombre}»</p>
+                    <form className="space-y-2 rounded-xl border border-dashed border-linea-cava bg-white p-3" onSubmit={(e) => { e.preventDefault(); ejecutar(async () => { const r = await crearPlatoRapidoAction({ seccionId: s.id, ...plato }); if (r.ok) setPlato({ nombre: '', precio: '', descripcion: '' }); return r; }, `«${plato.nombre}» añadido a ${s.nombre}. Añádele foto y alérgenos en Platos.`); }}>
+                      <p className="text-sm font-semibold"><span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-vino text-xs text-white">2</span>Añadir un plato a «{s.nombre}»</p>
                       <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
                         <div>
                           <input value={plato.nombre} onChange={(e) => setPlato({ ...plato, nombre: e.target.value })} maxLength={80} spellCheck lang="es" placeholder="Nombre del plato" className={campo} />
@@ -187,7 +187,7 @@ function Categorias({ secciones, platos, pendiente, ejecutar, irAPlatos, demo }:
                       <HerramientasTexto valor={plato.descripcion} onCambio={(v) => setPlato({ ...plato, descripcion: v })} tipo="descripcion" contexto={plato.nombre} demo={demo} />
                       <div className="flex flex-wrap items-center gap-3">
                         <button disabled={pendiente || !plato.nombre.trim() || !plato.precio.trim()} className={botonPrincipal}>+ Añadir plato</button>
-                        {irAPlatos && <button type="button" onClick={irAPlatos} className="text-sm font-semibold text-[#6E0C2B]">Fotos y alérgenos: ir a Platos →</button>}
+                        {irAPlatos && <button type="button" onClick={irAPlatos} className="text-sm font-semibold text-vino">Fotos y alérgenos: ir a Platos →</button>}
                       </div>
                     </form>
 
@@ -195,11 +195,11 @@ function Categorias({ secciones, platos, pendiente, ejecutar, irAPlatos, demo }:
                     <div className="text-right text-xs">
                       {borrar === s.id ? (
                         <span className="inline-flex items-center gap-2">
-                          <span className="text-[#6B7079]">{suyos.length ? 'Sus platos quedarán sin categoría.' : '¿Seguro?'}</span>
+                          <span className="text-niebla">{suyos.length ? 'Sus platos quedarán sin categoría.' : '¿Seguro?'}</span>
                           <button disabled={pendiente} onClick={() => ejecutar(() => eliminarSeccionAction(s.id), 'Categoría eliminada.')} className="rounded-full bg-red-600 px-3 py-1.5 font-semibold text-white">Eliminar</button>
-                          <button onClick={() => setBorrar(null)} className="px-2 py-1.5 text-[#6B7079]">No</button>
+                          <button onClick={() => setBorrar(null)} className="px-2 py-1.5 text-niebla">No</button>
                         </span>
-                      ) : <button onClick={() => setBorrar(s.id)} className="text-[#6B7079] hover:text-red-700">Eliminar esta categoría</button>}
+                      ) : <button onClick={() => setBorrar(s.id)} className="text-niebla hover:text-red-700">Eliminar esta categoría</button>}
                     </div>
                   </div>
                 )}
@@ -217,7 +217,7 @@ const ETIQUETAS: [string, string][] = [['', 'Sin etiqueta'], ['especial', 'Espec
 function Destacados({ platos, extra, pendiente, ejecutar }: { platos: PlatoPropio[]; extra: Map<string, ExtraPlato>; pendiente: boolean; ejecutar: Ejecutar }) {
   const [edit, setEdit] = useState<Record<string, { etiqueta: string; precioPromo: string; promoDesde: string; promoHasta: string }>>({});
   const hoy = new Date().toISOString().slice(0, 10);
-  if (platos.length === 0) return <p className={`${tarjeta} text-center text-sm text-[#6B7079]`}>Añade primero platos en la pestaña Platos.</p>;
+  if (platos.length === 0) return <p className={`${tarjeta} text-center text-sm text-niebla`}>Añade primero platos en la pestaña Platos.</p>;
   return (
     <ul className="space-y-3">
       {platos.map((p) => {
@@ -229,20 +229,20 @@ function Destacados({ platos, extra, pendiente, ejecutar }: { platos: PlatoPropi
         return (
           <li key={p.id} className={tarjeta}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <p className="font-semibold">{p.nombre} <span className="font-normal text-[#6B7079]">· {euros(Number(p.precio))}</span></p>
-              {vigente && <span className="rounded-full bg-[#2F8F6B]/10 px-2.5 py-1 text-xs font-semibold text-[#1F6B4F]">Promoción activa: {euros(Number(x!.precioPromo))}{x!.promoHasta ? ` hasta el ${x!.promoHasta.split('-').reverse().join('/')}` : ''}</span>}
+              <p className="font-semibold">{p.nombre} <span className="font-normal text-niebla">· {euros(Number(p.precio))}</span></p>
+              {vigente && <span className="rounded-full bg-exito/10 px-2.5 py-1 text-xs font-semibold text-[#1F6B4F]">Promoción activa: {euros(Number(x!.precioPromo))}{x!.promoHasta ? ` hasta el ${x!.promoHasta.split('-').reverse().join('/')}` : ''}</span>}
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] sm:items-end">
-              <label className="space-y-1 text-xs text-[#6B7079]">Etiqueta
+              <label className="space-y-1 text-xs text-niebla">Etiqueta
                 <select value={v.etiqueta} onChange={(e) => set('etiqueta', e.target.value)} className={campo}>{ETIQUETAS.map(([k, t]) => <option key={k} value={k}>{t}</option>)}</select>
               </label>
-              <label className="space-y-1 text-xs text-[#6B7079]">Precio de promoción (€)
+              <label className="space-y-1 text-xs text-niebla">Precio de promoción (€)
                 <input inputMode="decimal" value={v.precioPromo} onChange={(e) => set('precioPromo', e.target.value)} placeholder="Vacío = sin promoción" className={campo} />
               </label>
-              <label className="space-y-1 text-xs text-[#6B7079]">Desde
+              <label className="space-y-1 text-xs text-niebla">Desde
                 <input type="date" value={v.promoDesde} onChange={(e) => set('promoDesde', e.target.value)} disabled={!v.precioPromo} className={campo} />
               </label>
-              <label className="space-y-1 text-xs text-[#6B7079]">Hasta
+              <label className="space-y-1 text-xs text-niebla">Hasta
                 <input type="date" value={v.promoHasta} onChange={(e) => set('promoHasta', e.target.value)} disabled={!v.precioPromo} className={campo} />
               </label>
               <button disabled={pendiente || !cambiado} className={botonPrincipal}
@@ -251,7 +251,7 @@ function Destacados({ platos, extra, pendiente, ejecutar }: { platos: PlatoPropi
                   const resto = { ...edit }; delete resto[p.id]; setEdit(resto);
                 }, `«${p.nombre}» actualizado.`)}>Guardar</button>
             </div>
-            {v.precioPromo && <p className="mt-2 text-xs text-[#6B7079]">Tus clientes verán <s>{euros(Number(p.precio))}</s> <strong className="text-[#6E0C2B]">{euros(Number(v.precioPromo.replace(',', '.')) || 0)}</strong>. Al terminar la fecha, vuelve solo al precio normal.</p>}
+            {v.precioPromo && <p className="mt-2 text-xs text-niebla">Tus clientes verán <s>{euros(Number(p.precio))}</s> <strong className="text-vino">{euros(Number(v.precioPromo.replace(',', '.')) || 0)}</strong>. Al terminar la fecha, vuelve solo al precio normal.</p>}
           </li>
         );
       })}
@@ -285,22 +285,22 @@ function Combos({ combos, normales, secciones, extra, pendiente, ejecutar }: {
         </div>
         <div><textarea value={b.descripcion} onChange={(e) => setB({ ...b, descripcion: e.target.value })} maxLength={300} rows={2} spellCheck lang="es" placeholder="Descripción corta (opcional)" className={campo} /><HerramientasTexto valor={b.descripcion} onCambio={(v) => setB({ ...b, descripcion: v })} tipo="descripcion" contexto={b.nombre} /></div>
         <div>
-          <p className="text-sm font-semibold">Platos que incluye <span className="font-normal text-[#6B7079]">({n}, mínimo 2)</span></p>
-          <ul className="mt-2 max-h-72 divide-y divide-[#EEECE8] overflow-y-auto rounded-xl border border-[#E6E6E2]">
+          <p className="text-sm font-semibold">Platos que incluye <span className="font-normal text-niebla">({n}, mínimo 2)</span></p>
+          <ul className="mt-2 max-h-72 divide-y divide-[#EEECE8] overflow-y-auto rounded-xl border border-linea">
             {normales.map((p) => {
               const c = b.componentes[p.id] ?? 0;
               const poner = (v: number) => { const comps = { ...b.componentes }; if (v <= 0) delete comps[p.id]; else comps[p.id] = Math.min(20, v); setB({ ...b, componentes: comps }); };
               return (
                 <li key={p.id} className={`flex items-center justify-between gap-3 px-3 py-2 text-sm ${c ? 'bg-[#FBF6F2]' : ''}`}>
-                  <span className="min-w-0 truncate">{p.nombre} <span className="text-[#6B7079]">· {euros(Number(p.precio))}</span></span>
+                  <span className="min-w-0 truncate">{p.nombre} <span className="text-niebla">· {euros(Number(p.precio))}</span></span>
                   {c ? (
                     <span className="flex shrink-0 items-center gap-1">
-                      <button type="button" onClick={() => poner(c - 1)} aria-label={`Quitar uno de ${p.nombre}`} className="h-7 w-7 rounded-full border border-[#E6E6E2]">−</button>
+                      <button type="button" onClick={() => poner(c - 1)} aria-label={`Quitar uno de ${p.nombre}`} className="h-7 w-7 rounded-full border border-linea">−</button>
                       <span className="w-6 text-center font-semibold tabular-nums">{c}</span>
-                      <button type="button" onClick={() => poner(c + 1)} aria-label={`Añadir otro ${p.nombre}`} className="h-7 w-7 rounded-full border border-[#E6E6E2]">+</button>
+                      <button type="button" onClick={() => poner(c + 1)} aria-label={`Añadir otro ${p.nombre}`} className="h-7 w-7 rounded-full border border-linea">+</button>
                     </span>
                   ) : (
-                    <button type="button" onClick={() => poner(1)} className="shrink-0 rounded-full border border-[#E6E6E2] px-3 py-1 text-xs font-semibold">Añadir</button>
+                    <button type="button" onClick={() => poner(1)} className="shrink-0 rounded-full border border-linea px-3 py-1 text-xs font-semibold">Añadir</button>
                   )}
                 </li>
               );
@@ -308,16 +308,16 @@ function Combos({ combos, normales, secciones, extra, pendiente, ejecutar }: {
           </ul>
         </div>
         <div className="grid gap-3 sm:grid-cols-[200px_1fr] sm:items-center">
-          <label className="space-y-1 text-xs text-[#6B7079]">Precio del combo (€)
+          <label className="space-y-1 text-xs text-niebla">Precio del combo (€)
             <input inputMode="decimal" value={b.precio} onChange={(e) => setB({ ...b, precio: e.target.value })} placeholder="12,90" className={campo} />
           </label>
-          <p className="text-sm text-[#3F434B]">Por separado: <strong>{euros(total)}</strong>
-            {precio > 0 && total > precio && <> · Tus clientes ahorran <strong className="text-[#2F8F6B]">{euros(total - precio)}</strong></>}
+          <p className="text-sm text-grafito">Por separado: <strong>{euros(total)}</strong>
+            {precio > 0 && total > precio && <> · Tus clientes ahorran <strong className="text-exito">{euros(total - precio)}</strong></>}
             {precio > 0 && total > 0 && total <= precio && <span className="block text-xs text-amber-700">El combo no sale más barato que por separado: la carta no mostrará ahorro.</span>}
           </p>
         </div>
         <SubirImagen valor={b.fotoUrl} onCambio={(url) => setB({ ...b, fotoUrl: url })} etiqueta="Foto del combo (opcional)" formato="plato" ia={{ modo: 'plato', plato: { nombre: b.nombre, descripcion: b.descripcion } }} />
-        <p className="text-xs text-[#6B7079]">Los alérgenos del combo se calculan solos a partir de sus platos.</p>
+        <p className="text-xs text-niebla">Los alérgenos del combo se calculan solos a partir de sus platos.</p>
         <div className="flex flex-wrap gap-2">
           <button disabled={pendiente || !b.nombre.trim() || n < 2 || precio <= 0} className={botonPrincipal}
             onClick={() => ejecutar(async () => {
@@ -327,7 +327,7 @@ function Combos({ combos, normales, secciones, extra, pendiente, ejecutar }: {
               });
               setB(null);
             }, 'Combo guardado. Ya aparece en tu carta.')}>{pendiente ? 'Guardando…' : 'Guardar combo'}</button>
-          <button onClick={() => setB(null)} className="rounded-full border border-[#E6E6E2] px-5 py-2.5 text-sm font-semibold">Cancelar</button>
+          <button onClick={() => setB(null)} className="rounded-full border border-linea px-5 py-2.5 text-sm font-semibold">Cancelar</button>
         </div>
       </div>
     );
@@ -336,10 +336,10 @@ function Combos({ combos, normales, secciones, extra, pendiente, ejecutar }: {
   return (
     <div className="space-y-4">
       <button onClick={() => setB(VACIO)} disabled={normales.length < 2} className={botonPrincipal}>+ Nuevo combo</button>
-      {normales.length < 2 && <p className="text-sm text-[#6B7079]">Necesitas al menos 2 platos en tu carta para crear un combo.</p>}
+      {normales.length < 2 && <p className="text-sm text-niebla">Necesitas al menos 2 platos en tu carta para crear un combo.</p>}
       {combos.length === 0 ? (
-        <div className={`${tarjeta} text-sm text-[#6B7079]`}>
-          <p className="font-semibold text-[#1B1D22]">Aún no tienes combos</p>
+        <div className={`${tarjeta} text-sm text-niebla`}>
+          <p className="font-semibold text-carbon">Aún no tienes combos</p>
           <p className="mt-1">Ejemplos que funcionan: «Burger + patatas + bebida», «Menú infantil», «Para 2: 2 entrantes + postre». La carta los muestra con lo que incluyen y cuánto ahorra el cliente.</p>
         </div>
       ) : (
@@ -352,18 +352,18 @@ function Combos({ combos, normales, secciones, extra, pendiente, ejecutar }: {
               <li key={c.id} className={tarjeta}>
                 <div className="flex items-baseline justify-between gap-2">
                   <p className="font-semibold">{c.nombre}</p>
-                  <p className="font-semibold text-[#6E0C2B]">{euros(Number(c.precio))}</p>
+                  <p className="font-semibold text-vino">{euros(Number(c.precio))}</p>
                 </div>
-                <p className="mt-1 text-sm text-[#6B7079]">{Object.entries(comps).map(([id, n]) => `${n > 1 ? `${n} × ` : ''}${nombre(id)?.nombre ?? 'plato borrado'}`).join(' + ')}</p>
-                {total > Number(c.precio) && <p className="mt-1 text-xs font-semibold text-[#2F8F6B]">Ahorro para el cliente: {euros(total - Number(c.precio))}</p>}
+                <p className="mt-1 text-sm text-niebla">{Object.entries(comps).map(([id, n]) => `${n > 1 ? `${n} × ` : ''}${nombre(id)?.nombre ?? 'plato borrado'}`).join(' + ')}</p>
+                {total > Number(c.precio) && <p className="mt-1 text-xs font-semibold text-exito">Ahorro para el cliente: {euros(total - Number(c.precio))}</p>}
                 <div className="mt-3 flex gap-3 text-sm">
                   <button onClick={() => setB({ id: c.id, nombre: c.nombre, descripcion: c.descripcion ?? '', precio: String(c.precio).replace('.', ','), seccionId: c.seccionId ?? '', fotoUrl: c.fotoUrl, componentes: comps })} className="font-semibold">Editar</button>
                   {borrar === c.id ? (
                     <>
                       <button disabled={pendiente} onClick={() => ejecutar(() => eliminarPlatoAction(c.id), 'Combo eliminado.')} className="font-semibold text-red-700">Sí, eliminar</button>
-                      <button onClick={() => setBorrar(null)} className="text-[#6B7079]">No</button>
+                      <button onClick={() => setBorrar(null)} className="text-niebla">No</button>
                     </>
-                  ) : <button onClick={() => setBorrar(c.id)} className="text-[#6B7079] hover:text-red-700">Eliminar</button>}
+                  ) : <button onClick={() => setBorrar(c.id)} className="text-niebla hover:text-red-700">Eliminar</button>}
                 </div>
               </li>
             );
@@ -380,34 +380,34 @@ function Legal({ inicial, restaurante, pendiente, ejecutar }: { inicial: DatosLe
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <div className={`${tarjeta} space-y-4`}>
-        <p className="text-sm text-[#3F434B]">Con estos datos generamos las páginas <strong>Aviso legal</strong>, <strong>Privacidad</strong> y <strong>Cookies</strong> de tu carta, y las enlazamos en su pie. Solo se publican cuando tú lo activas.</p>
-        <label className="block space-y-1 text-xs text-[#6B7079]">Titular del negocio (nombre y apellidos o razón social) *
+        <p className="text-sm text-grafito">Con estos datos generamos las páginas <strong>Aviso legal</strong>, <strong>Privacidad</strong> y <strong>Cookies</strong> de tu carta, y las enlazamos en su pie. Solo se publican cuando tú lo activas.</p>
+        <label className="block space-y-1 text-xs text-niebla">Titular del negocio (nombre y apellidos o razón social) *
           <input value={d.titular ?? ''} onChange={(e) => setD({ ...d, titular: e.target.value })} maxLength={160} className={campo} placeholder="Ej.: Restauración Flores S.L." />
         </label>
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block space-y-1 text-xs text-[#6B7079]">NIF / CIF <span className="text-[#9A9EA6]">(opcional)</span>
+          <label className="block space-y-1 text-xs text-niebla">NIF / CIF <span className="text-ceniza">(opcional)</span>
             <input value={d.nif ?? ''} onChange={(e) => setD({ ...d, nif: e.target.value.toUpperCase() })} maxLength={12} className={campo} placeholder="B12345678" />
           </label>
-          <label className="block space-y-1 text-xs text-[#6B7079]">Correo de contacto legal *
+          <label className="block space-y-1 text-xs text-niebla">Correo de contacto legal *
             <input type="email" value={d.email ?? ''} onChange={(e) => setD({ ...d, email: e.target.value })} maxLength={160} className={campo} placeholder="hola@tulocal.es" />
           </label>
         </div>
-        <label className="block space-y-1 text-xs text-[#6B7079]">Domicilio
+        <label className="block space-y-1 text-xs text-niebla">Domicilio
           <input value={d.domicilio ?? ''} onChange={(e) => setD({ ...d, domicilio: e.target.value })} maxLength={240} className={campo} placeholder="Calle, número, ciudad" />
         </label>
-        <label className="flex items-start gap-3 rounded-xl bg-[#F7F5F2] p-3 text-sm">
-          <input type="checkbox" checked={d.activo} onChange={(e) => setD({ ...d, activo: e.target.checked })} disabled={!listo} className="mt-0.5 h-4 w-4 accent-[#6E0C2B]" />
-          <span><strong>Publicar mis páginas legales en la carta.</strong> Autorizo que se muestren estos datos, incluido el NIF/CIF si lo he escrito.{!listo && <span className="block text-xs text-[#6B7079]">Rellena el titular y el correo para poder publicarlas.</span>}</span>
+        <label className="flex items-start gap-3 rounded-xl bg-crema p-3 text-sm">
+          <input type="checkbox" checked={d.activo} onChange={(e) => setD({ ...d, activo: e.target.checked })} disabled={!listo} className="mt-0.5 h-4 w-4 accent-vino" />
+          <span><strong>Publicar mis páginas legales en la carta.</strong> Autorizo que se muestren estos datos, incluido el NIF/CIF si lo he escrito.{!listo && <span className="block text-xs text-niebla">Rellena el titular y el correo para poder publicarlas.</span>}</span>
         </label>
         <button disabled={pendiente} onClick={() => ejecutar(() => guardarLegalAction(d), d.activo ? 'Páginas legales publicadas en tu carta.' : 'Datos guardados (sin publicar).')} className={botonPrincipal}>{pendiente ? 'Guardando…' : 'Guardar'}</button>
       </div>
       <aside className={`${tarjeta} space-y-3 text-sm`}>
         <p className="font-semibold">Así quedará</p>
-        <p className="text-[#6B7079]">El pie de tu carta mostrará: <span className="text-[#1B1D22]">Aviso legal · Privacidad · Cookies</span>.</p>
+        <p className="text-niebla">El pie de tu carta mostrará: <span className="text-carbon">Aviso legal · Privacidad · Cookies</span>.</p>
         {inicial.activo ? (
-          <a href={`/m/${restaurante.slug}/legal`} target="_blank" rel="noopener" className="inline-block rounded-full border border-[#E6E6E2] px-4 py-2 font-semibold">Ver mis páginas legales</a>
-        ) : <p className="text-xs text-[#6B7079]">Cuando las publiques, aquí tendrás el enlace para revisarlas.</p>}
-        <p className="text-xs text-[#9A9EA6]">Es un texto modelo adaptado a una carta digital sin venta online. Si tu negocio tiene otras actividades (tienda, pedidos a domicilio), revísalo con tu asesor.</p>
+          <a href={`/m/${restaurante.slug}/legal`} target="_blank" rel="noopener" className="inline-block rounded-full border border-linea px-4 py-2 font-semibold">Ver mis páginas legales</a>
+        ) : <p className="text-xs text-niebla">Cuando las publiques, aquí tendrás el enlace para revisarlas.</p>}
+        <p className="text-xs text-ceniza">Es un texto modelo adaptado a una carta digital sin venta online. Si tu negocio tiene otras actividades (tienda, pedidos a domicilio), revísalo con tu asesor.</p>
       </aside>
     </div>
   );

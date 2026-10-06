@@ -39,7 +39,7 @@ function Vista({ e, nombre, fotos, portada = null, portadaConNombre = false, log
   const suave = f.id === 'oscuro' ? 'rgba(243,241,236,.55)' : 'rgba(0,0,0,.5)';
   const platos = [['Croquetas caseras', '9,50'], ['Arroz de la casa', '16'], ['Tarta de queso', '6,50']];
   return (
-    <div className="mx-auto w-[230px] rounded-[34px] border border-[#E6E6E2] bg-[#17191E] p-2 shadow-xl">
+    <div className="mx-auto w-[230px] rounded-[34px] border border-linea bg-tinta p-2 shadow-xl">
       <div className="h-[400px] overflow-hidden rounded-[27px]" style={{ background: f.fondo, color: f.tinta }}>
         {e.plantilla === 'visual' ? (
           <div className="relative flex h-24 items-end overflow-hidden p-3" style={{ background: e.color }}>
@@ -98,21 +98,21 @@ export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [], po
   const [pendiente, iniciar] = useTransition();
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
   const cambiado = JSON.stringify(e) !== JSON.stringify(inicial);
-  const opcion = (activa: boolean) => `rounded-2xl border p-3 text-left transition ${activa ? 'border-[#17191E] bg-[#F7F5F2]' : 'border-[#E6E6E2] hover:border-[#D6D6D1]'}`;
+  const opcion = (activa: boolean) => `rounded-2xl border p-3 text-left transition ${activa ? 'border-tinta bg-crema' : 'border-linea hover:border-linea-fuerte'}`;
 
   if (bloqueado) {
     return (
-      <section className="rounded-[22px] border border-[#E6E6E2] bg-white p-6">
+      <section className="rounded-[22px] border border-linea bg-white p-6">
         <h3 className="text-lg font-semibold">Estilo de tu carta</h3>
-        <p className="mt-1 text-sm text-[#6B7079]">Tu carta tiene un diseño de autor hecho por DKitchen. Si quieres cambiar algo, pídenoslo en Soporte.</p>
+        <p className="mt-1 text-sm text-niebla">Tu carta tiene un diseño de autor hecho por DKitchen. Si quieres cambiar algo, pídenoslo en Soporte.</p>
       </section>
     );
   }
 
   return (
-    <section className="rounded-[22px] border border-[#E6E6E2] bg-white p-5 sm:p-7">
+    <section className="rounded-[22px] border border-linea bg-white p-5 sm:p-7">
       <h3 className="text-lg font-semibold">Estilo de tu carta</h3>
-      <p className="mt-1 text-sm text-[#6B7079]">Elige cómo se ve tu carta. Todas las combinaciones están pensadas para leerse bien en cualquier móvil. Mira la vista previa antes de guardar.</p>
+      <p className="mt-1 text-sm text-niebla">Elige cómo se ve tu carta. Todas las combinaciones están pensadas para leerse bien en cualquier móvil. Mira la vista previa antes de guardar.</p>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_260px]">
         <div className="space-y-6">
@@ -122,8 +122,8 @@ export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [], po
               {ESTILOS.map((x) => (
                 <button key={x.id} type="button" onClick={() => setE({ ...e, plantilla: x.id })} className={opcion(e.plantilla === x.id)} aria-pressed={e.plantilla === x.id}>
                   <span className="block font-semibold">{x.nombre}</span>
-                  <span className="mt-0.5 block text-xs text-[#6B7079]">{x.para}</span>
-                  <span className="mt-2 flex flex-wrap gap-1">{x.muestra.map((m) => <span key={m} className="rounded-full bg-[#F3EDE6] px-2 py-0.5 text-[10.5px] font-medium text-[#6E0C2B]">{m}</span>)}</span>
+                  <span className="mt-0.5 block text-xs text-niebla">{x.para}</span>
+                  <span className="mt-2 flex flex-wrap gap-1">{x.muestra.map((m) => <span key={m} className="rounded-full bg-[#F3EDE6] px-2 py-0.5 text-[10.5px] font-medium text-vino">{m}</span>)}</span>
                 </button>
               ))}
             </div>
@@ -133,7 +133,7 @@ export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [], po
             <div className="mt-2 grid grid-cols-3 gap-2">
               {FONDOS.map((x) => (
                 <button key={x.id} type="button" onClick={() => setE({ ...e, fondo: x.id })} className={opcion(e.fondo === x.id)} aria-pressed={e.fondo === x.id}>
-                  <span className="block h-8 rounded-lg border border-[#E6E6E2]" style={{ background: x.fondo }} />
+                  <span className="block h-8 rounded-lg border border-linea" style={{ background: x.fondo }} />
                   <span className="mt-1.5 block text-sm font-medium">{x.nombre}</span>
                 </button>
               ))}
@@ -156,22 +156,22 @@ export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [], po
               {COLORES.map((c) => (
                 <button key={c.hex} type="button" role="radio" aria-checked={e.color.toUpperCase() === c.hex} title={c.nombre} aria-label={c.nombre}
                   onClick={() => setE({ ...e, color: c.hex })}
-                  className={`h-10 w-10 rounded-full ring-offset-2 ${e.color.toUpperCase() === c.hex ? 'ring-2 ring-[#17191E]' : ''}`} style={{ background: c.hex }} />
+                  className={`h-10 w-10 rounded-full ring-offset-2 ${e.color.toUpperCase() === c.hex ? 'ring-2 ring-tinta' : ''}`} style={{ background: c.hex }} />
               ))}
             </div>
           </div>
         </div>
         <div className="lg:sticky lg:top-6 lg:self-start">
-          <p className="mb-3 text-center text-xs font-medium uppercase tracking-[0.18em] text-[#9A9EA6]">Vista previa</p>
+          <p className="mb-3 text-center text-xs font-medium uppercase tracking-[0.18em] text-ceniza">Vista previa</p>
           <Vista e={e} nombre={nombre} fotos={fotos} portada={portada} portadaConNombre={portadaConNombre} logo={logo} />
         </div>
       </div>
 
-      {aviso && <p className={`mt-5 text-sm ${aviso.ok ? 'text-[#2F8F6B]' : 'text-red-600'}`}>{aviso.texto}</p>}
+      {aviso && <p className={`mt-5 text-sm ${aviso.ok ? 'text-exito' : 'text-red-600'}`}>{aviso.texto}</p>}
       <div className="mt-6 flex flex-wrap gap-3">
         <button disabled={!cambiado || pendiente} onClick={() => { setAviso(null); iniciar(async () => { try { await guardarEstiloAction(e); setAviso({ ok: true, texto: 'Estilo guardado. Tu carta ya se ve así.' }); } catch (err) { setAviso({ ok: false, texto: mensajeError(err, 'No se pudo guardar.') }); } }); }}
-          className="rounded-full bg-[#17191E] px-6 py-3 text-sm font-semibold text-white disabled:opacity-35">{pendiente ? 'Guardando…' : 'Guardar estilo'}</button>
-        {cambiado && <button onClick={() => setE(inicial)} className="rounded-full border border-[#E6E6E2] px-5 py-3 text-sm font-semibold">Deshacer cambios</button>}
+          className="rounded-full bg-tinta px-6 py-3 text-sm font-semibold text-white disabled:opacity-35">{pendiente ? 'Guardando…' : 'Guardar estilo'}</button>
+        {cambiado && <button onClick={() => setE(inicial)} className="rounded-full border border-linea px-5 py-3 text-sm font-semibold">Deshacer cambios</button>}
       </div>
     </section>
   );

@@ -32,14 +32,14 @@ export default function GuiaSeccion({ seccion }: { seccion: string }) {
   return (
     <div className="mb-5">
       <button onClick={() => setAbierta(!abierta)} aria-expanded={abierta}
-        className="inline-flex items-center gap-2 rounded-full border border-[#E6E2DC] bg-white px-3.5 py-1.5 text-[13px] font-medium text-[#3F434B] hover:border-[#6E0C2B]/40">
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#6E0C2B] text-[11px] font-bold text-white">?</span>
+        className="inline-flex items-center gap-2 rounded-full border border-[#E6E2DC] bg-white px-3.5 py-1.5 text-[13px] font-medium text-grafito hover:border-vino/40">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-vino text-[11px] font-bold text-white">?</span>
         {abierta ? 'Ocultar la guía' : `Guía: ${guia.titulo.toLowerCase()}`}
       </button>
       {abierta && (
-        <ol className="mt-2 max-w-2xl space-y-1.5 rounded-2xl border border-[#E6E2DC] bg-white p-4 text-sm text-[#3F434B]">
+        <ol className="mt-2 max-w-2xl space-y-1.5 rounded-2xl border border-[#E6E2DC] bg-white p-4 text-sm text-grafito">
           {guia.pasos.map((p, i) => (
-            <li key={i} className="flex gap-2.5"><span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#F3EDE6] text-[11px] font-bold text-[#6E0C2B]">{i + 1}</span><span>{p}</span></li>
+            <li key={i} className="flex gap-2.5"><span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#F3EDE6] text-[11px] font-bold text-vino">{i + 1}</span><span>{p}</span></li>
           ))}
         </ol>
       )}

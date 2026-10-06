@@ -37,7 +37,7 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const actual = esAmpliado ? PLANES.ampliado : PLANES.basico;
-  const estado = ESTADOS[restaurante.estadoAcceso] ?? { texto: restaurante.estadoAcceso, color: 'text-[#6B7079]' };
+  const estado = ESTADOS[restaurante.estadoAcceso] ?? { texto: restaurante.estadoAcceso, color: 'text-niebla' };
 
   function mejorar() {
     setError(null);
@@ -57,11 +57,11 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
 
       <ResumenCuenta restaurante={restaurante} servicios={servicios} precioPlan={actual.precio} nombrePlan={actual.nombre} />
 
-      <div className="bg-white border border-[#E6E6E2] rounded-2xl p-6 flex flex-wrap items-end justify-between gap-4">
+      <div className="bg-white border border-linea rounded-2xl p-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[#6B7079] text-sm">Plan actual</p>
+          <p className="text-niebla text-sm">Plan actual</p>
           <p className="text-3xl font-black mt-1">{actual.nombre}</p>
-          <p className="text-[#6B7079] text-sm mt-1">{actual.precio} €/mes · sin permanencia</p>
+          <p className="text-niebla text-sm mt-1">{actual.precio} €/mes · sin permanencia</p>
         </div>
         <p className="text-sm">
           Cuenta: <span className={`font-semibold ${estado.color}`}>{estado.texto}</span>
@@ -75,28 +75,28 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
           return (
             <div
               key={id}
-              className={`rounded-2xl p-6 border ${id === 'ampliado' ? 'border-[#6E0C2B]/60 bg-[#6E0C2B]/5' : 'border-[#E6E6E2] bg-white'}`}
+              className={`rounded-2xl p-6 border ${id === 'ampliado' ? 'border-vino/60 bg-vino/5' : 'border-linea bg-white'}`}
             >
               <div className="flex items-baseline justify-between">
                 <h3 className="text-lg font-semibold">{p.nombre}</h3>
                 <p className="font-black text-xl">
-                  {p.precio} €<span className="text-sm font-normal text-[#6B7079]">/mes</span>
+                  {p.precio} €<span className="text-sm font-normal text-niebla">/mes</span>
                 </p>
               </div>
               <ul className="mt-4 space-y-2">
                 {p.funciones.map((f) => (
-                  <li key={f} className="flex gap-2 text-sm text-[#3F434B]">
-                    <span className="text-[#6E0C2B]">✓</span> {f}
+                  <li key={f} className="flex gap-2 text-sm text-grafito">
+                    <span className="text-vino">✓</span> {f}
                   </li>
                 ))}
               </ul>
               {esActual ? (
-                <p className="mt-5 text-center text-sm font-semibold text-[#6B7079]">Tu plan actual</p>
+                <p className="mt-5 text-center text-sm font-semibold text-niebla">Tu plan actual</p>
               ) : id === 'ampliado' ? (
                 <button
                   onClick={mejorar}
                   disabled={pendiente}
-                  className="mt-5 w-full bg-[#6E0C2B] hover:bg-[#4A0819] disabled:opacity-50 text-white font-bold py-2.5 rounded-full"
+                  className="mt-5 w-full bg-vino hover:bg-vino-hondo disabled:opacity-50 text-white font-bold py-2.5 rounded-full"
                 >
                   {pendiente ? 'Abriendo pago seguro…' : 'Pasar a Ampliado'}
                 </button>
@@ -107,7 +107,7 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       {!esAmpliado && (
-        <p className="text-xs text-[#9A9EA6]">
+        <p className="text-xs text-ceniza">
           El cambio se activa en cuanto se confirma el pago. Tu suscripción Básica se cancela para que no pagues las dos.
         </p>
       )}
@@ -146,20 +146,20 @@ function ResumenCuenta({ restaurante, servicios, precioPlan, nombrePlan }: {
   });
   const cuotaMensual = precioPlan * 100 + filas.reduce((t, x) => t + x.cuota, 0);
   return (
-    <section className="rounded-2xl border border-[#E6E6E2] bg-white">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#E6E6E2] p-6">
+    <section className="rounded-2xl border border-linea bg-white">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-linea p-6">
         <div>
-          <p className="text-sm text-[#6B7079]">Pagas cada mes</p>
+          <p className="text-sm text-niebla">Pagas cada mes</p>
           <p className="mt-1 text-4xl font-black">{eur(cuotaMensual)}</p>
-          <p className="mt-1 text-sm text-[#6B7079]">Se renueva el día {alta.getDate()} de cada mes · sin permanencia</p>
+          <p className="mt-1 text-sm text-niebla">Se renueva el día {alta.getDate()} de cada mes · sin permanencia</p>
         </div>
-        <p className="text-sm text-[#6B7079]">Cliente desde el {fechaLarga.format(alta)}</p>
+        <p className="text-sm text-niebla">Cliente desde el {fechaLarga.format(alta)}</p>
       </div>
       <ul className="divide-y divide-[#ECECE8]">
         <li className="flex flex-wrap items-start justify-between gap-2 p-5">
           <div>
             <p className="font-semibold">Plan {nombrePlan}</p>
-            <p className="text-sm text-[#6B7079]">Tu carta QR{restaurante.plan === 'ampliado' ? ' con reservas, llamada al camarero y banners' : ''}</p>
+            <p className="text-sm text-niebla">Tu carta QR{restaurante.plan === 'ampliado' ? ' con reservas, llamada al camarero y banners' : ''}</p>
           </div>
           <p className="text-sm font-semibold">{precioPlan} €/mes</p>
         </li>
@@ -167,14 +167,14 @@ function ResumenCuenta({ restaurante, servicios, precioPlan, nombrePlan }: {
           <li key={x.id} className="flex flex-wrap items-start justify-between gap-2 p-5">
             <div>
               <p className="font-semibold">{x.nombre} <span className="ml-1 text-xs font-normal text-green-700">{x.estado}</span></p>
-              <p className="text-sm text-[#6B7079]">{QUE_ES[x.id] ?? ''}</p>
-              <p className="text-xs text-[#9A9EA6]">Desde el {fechaLarga.format(new Date(x.desde))}</p>
+              <p className="text-sm text-niebla">{QUE_ES[x.id] ?? ''}</p>
+              <p className="text-xs text-ceniza">Desde el {fechaLarga.format(new Date(x.desde))}</p>
             </div>
             <p className="text-sm font-semibold">{x.precio}</p>
           </li>
         ))}
       </ul>
-      {filas.length === 0 && <p className="px-5 pb-5 text-sm text-[#6B7079]">Aún no tienes servicios añadidos. Los encontrarás en las pestañas Diseño y Módulos.</p>}
+      {filas.length === 0 && <p className="px-5 pb-5 text-sm text-niebla">Aún no tienes servicios añadidos. Los encontrarás en las pestañas Diseño y Módulos.</p>}
     </section>
   );
 }
@@ -187,21 +187,21 @@ function DarseDeBaja() {
   const [hecho, setHecho] = useState(false);
   const [error, setError] = useState('');
   const [pendiente, empezar] = useTransition();
-  if (hecho) return <p className="rounded-2xl border border-[#E6E2DC] bg-white p-5 text-sm text-[#3F434B]">Hemos recibido tu baja. No se te volverá a cobrar y tu carta sigue activa hasta el final del periodo pagado. Te hemos enviado la confirmación por correo.</p>;
+  if (hecho) return <p className="rounded-2xl border border-[#E6E2DC] bg-white p-5 text-sm text-grafito">Hemos recibido tu baja. No se te volverá a cobrar y tu carta sigue activa hasta el final del periodo pagado. Te hemos enviado la confirmación por correo.</p>;
   return (
     <div className="pt-4 text-sm">
       {!abierto ? (
-        <button onClick={() => setAbierto(true)} className="text-[#9A9EA6] underline hover:text-[#6B7079]">Darme de baja</button>
+        <button onClick={() => setAbierto(true)} className="text-ceniza underline hover:text-niebla">Darme de baja</button>
       ) : (
         <div className="rounded-2xl border border-[#E6E2DC] bg-white p-5">
           <p className="font-semibold">¿Seguro que quieres darte de baja?</p>
-          <p className="mt-1 text-[#6B7079]">No se te volverá a cobrar. Tu carta sigue activa hasta el final del periodo pagado y la guardamos 60 días por si vuelves. Lo ya pagado no se devuelve.</p>
-          <textarea id="baja-motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} maxLength={1000} rows={3} placeholder="¿Nos cuentas por qué? (opcional)" className="mt-3 w-full rounded-xl border border-[#E6E2DC] px-3 py-2.5 outline-none focus:border-[#6E0C2B]" />
-          {error && <p role="alert" className="mt-2 text-[#6E0C2B]">{error}</p>}
+          <p className="mt-1 text-niebla">No se te volverá a cobrar. Tu carta sigue activa hasta el final del periodo pagado y la guardamos 60 días por si vuelves. Lo ya pagado no se devuelve.</p>
+          <textarea id="baja-motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} maxLength={1000} rows={3} placeholder="¿Nos cuentas por qué? (opcional)" className="mt-3 w-full rounded-xl border border-[#E6E2DC] px-3 py-2.5 outline-none focus:border-vino" />
+          {error && <p role="alert" className="mt-2 text-vino">{error}</p>}
           <div className="mt-3 flex flex-wrap gap-2">
             <button disabled={pendiente} onClick={() => empezar(async () => { try { await solicitarBajaAction(motivo); setHecho(true); } catch { setError('No se pudo registrar. Inténtalo de nuevo o escríbenos desde Soporte.'); } })}
-              className="rounded-full border border-[#6E0C2B] px-5 py-2.5 font-semibold text-[#6E0C2B] disabled:opacity-60">{pendiente ? 'Enviando…' : 'Confirmar la baja'}</button>
-            <button onClick={() => setAbierto(false)} className="rounded-full bg-[#17191E] px-5 py-2.5 font-semibold text-white">Seguir con DKitchen</button>
+              className="rounded-full border border-vino px-5 py-2.5 font-semibold text-vino disabled:opacity-60">{pendiente ? 'Enviando…' : 'Confirmar la baja'}</button>
+            <button onClick={() => setAbierto(false)} className="rounded-full bg-tinta px-5 py-2.5 font-semibold text-white">Seguir con DKitchen</button>
           </div>
         </div>
       )}

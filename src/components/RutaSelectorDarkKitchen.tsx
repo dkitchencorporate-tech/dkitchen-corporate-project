@@ -22,7 +22,7 @@ export default function RutaSelectorDarkKitchen() {
             <button
               onClick={() => setRuta('A')}
               className={`px-6 py-3 rounded-full font-bold text-sm transition-all ${
-                ruta === 'A' ? 'bg-[#6E0C2B] text-white shadow-lg' : 'text-gray-600 hover:text-gray-900'
+                ruta === 'A' ? 'bg-vino text-white shadow-lg' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Empezar desde cero
@@ -30,7 +30,7 @@ export default function RutaSelectorDarkKitchen() {
             <button
               onClick={() => setRuta('B')}
               className={`px-6 py-3 rounded-full font-bold text-sm transition-all ${
-                ruta === 'B' ? 'bg-[#6E0C2B] text-white shadow-lg' : 'text-gray-600 hover:text-gray-900'
+                ruta === 'B' ? 'bg-vino text-white shadow-lg' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Ya tengo cocina, quiero sumar marca

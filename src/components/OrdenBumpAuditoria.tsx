@@ -42,8 +42,8 @@ export default function OrdenBumpAuditoria({
   };
 
   return (
-    <div className="mt-10 bg-white border-2 border-[#6E0C2B] rounded-3xl p-6 md:p-8 text-left shadow-lg">
-      <p className="text-xs font-black uppercase tracking-widest text-[#6E0C2B] mb-2">
+    <div className="mt-10 bg-white border-2 border-vino rounded-3xl p-6 md:p-8 text-left shadow-lg">
+      <p className="text-xs font-black uppercase tracking-widest text-vino mb-2">
         Ya tienes tu carta digital
       </p>
       <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-2">
@@ -59,7 +59,7 @@ export default function OrdenBumpAuditoria({
         <button
           onClick={activar}
           disabled={estado === 'cargando'}
-          className="flex-1 bg-[#6E0C2B] text-white px-6 py-3.5 rounded-full font-black hover:bg-orange-600 transition-colors disabled:opacity-60"
+          className="flex-1 bg-vino text-white px-6 py-3.5 rounded-full font-black hover:bg-orange-600 transition-colors disabled:opacity-60"
         >
           {estado === 'cargando' ? 'Abriendo pago…' : `Añadir por ${formatPrecio(AUDITORIA_CANALES.precioOferta)}`}
         </button>

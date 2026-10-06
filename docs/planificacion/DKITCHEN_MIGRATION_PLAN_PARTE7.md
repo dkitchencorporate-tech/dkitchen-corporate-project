@@ -109,6 +109,30 @@ Antes de dar por cerrada esta fase en una página concreta, debe cumplir las cin
 
 ---
 
+## 5-bis. Paleta VIGENTE: Gran Reserva (sustituye a la §5; decisión de karc0, 29-30/09/2026, documentada el 06/10/2026)
+
+La paleta naranja de la §5 (`brand` #D9531E) **ya no es la identidad de la web pública**. Desde el 29-30/09 la web usa **Gran Reserva**: vino metalizado, oro técnico y negro profundo. El 06/10/2026 se migraron 1.783 colores escritos a mano (121 archivos) a tokens de `tailwind.config.js`, con el mismo color y otro nombre:
+
+| Token | Hex | Uso |
+|---|---|---|
+| `vino` | #6E0C2B | Acento y CTA principal (`globals.css` da el degradado metalizado a `.bg-vino`) |
+| `vino-hondo` | #4A0819 | Hover del CTA |
+| `vino-fondo` | #3E0515 | Fondos vino profundos |
+| `oro` | #D9B25C | Acento sobre fondo oscuro (el vino no se lee sobre negro) |
+| `noche` / `obsidiana` / `carbon` | #0A080C / #0B0C0F / #1B1D22 | Secciones y superficies oscuras |
+| `tinta` / `grafito` / `pizarra` / `niebla` / `ceniza` | #17191E / #3F434B / #5C616A / #6B7079 / #9A9EA6 | Escala de texto, de principal a terciario |
+| `acero` | #8B8F97 | Borde de controles de formulario (3:1, WCAG 1.4.11) |
+| `linea` / `linea-calida` / `linea-cava` / `linea-fuerte` / `papel` | #E6E6E2 / #E4E1DC / #D9D3CB / #D6D6D1 / #EDEDEA | Bordes y separadores |
+| `crema` | #F7F5F2 | Fondo de sección alterno |
+| `exito` | #2F8F6B | Estados correctos |
+
+Reglas:
+- Ningún componente nuevo escribe un hexadecimal de esta paleta a mano: se usa el token (`bg-vino`, `text-niebla`…).
+- Las reglas de `globals.css` dependen de esos nombres de clase (`.bg-vino`, `[class*="bg-noche"]`…): si se renombra un token, se cambia también allí.
+- Los tokens antiguos (`brand`, `brandAccent`, `dash-*`) siguen en uso en algunas pantallas antiguas y no se borran hasta migrarlas.
+- Los colores de las demos y plantillas de clientes (temas de carta, WhatsApp…) no forman parte de esta paleta.
+- Pendiente: unificar los grises de borde casi iguales (`linea`, `linea-calida`, `papel`, `linea-fuerte`) en una escala más corta. Es una decisión de diseño aparte.
+
 ## 6. Referencia cruzada — actualización de la Parte 6, Sección 8
 
 La Parte 6, Sección 8 ("Orden de fases — CONFIRMADO por Alex") queda actualizada así (sustituye el placeholder anterior, que decía que el documento de movimiento "esta sesión no tiene delante"):

@@ -19,7 +19,7 @@ const serifCarta = Cormorant_Garamond({ weight: ['500', '600', '700'], style: ['
 /** Fondos cerrados del selector de estilo (0031). */
 const FONDO: Record<string, string> = {
   papel: 'bg-[#F7F3EA] text-[#221D17]',
-  blanco: 'bg-white text-[#1B1D22]',
+  blanco: 'bg-white text-carbon',
   oscuro: 'carta-oscura bg-[#15161A] text-[#F3F1EC]',
 };
 
@@ -295,7 +295,7 @@ function CabeceraVisual({ carta, foto, accion }: { carta: Carta; foto: string | 
   const conNombre = !!(carta.portadaConNombre && carta.portadaUrl && foto === carta.portadaUrl);
   return (
     <header className="px-0 sm:px-5 sm:pt-5">
-      <div className={`relative mx-auto w-full max-w-5xl overflow-hidden sm:min-h-[400px] sm:rounded-[32px] ${conNombre ? 'bg-[#0A080C]' : 'min-h-[300px]'}`} style={conNombre ? undefined : { background: 'var(--marca)' }}>
+      <div className={`relative mx-auto w-full max-w-5xl overflow-hidden sm:min-h-[400px] sm:rounded-[32px] ${conNombre ? 'bg-noche' : 'min-h-[300px]'}`} style={conNombre ? undefined : { background: 'var(--marca)' }}>
         {foto && (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img src={foto} alt="" className={conNombre ? 'block aspect-[12/5] w-full object-cover sm:absolute sm:inset-0 sm:aspect-auto sm:h-full' : 'absolute inset-0 h-full w-full scale-[1.02] object-cover'} />

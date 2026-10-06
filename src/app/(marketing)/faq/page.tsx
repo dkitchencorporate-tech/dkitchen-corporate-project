@@ -35,12 +35,12 @@ const GRUPOS: { t: string; href: string; p: [string, string][] }[] = [
 export default function PaginaFAQ() {
   const ld = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: GRUPOS.flatMap((g) => g.p).map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) };
   return (
-    <div className="bg-white text-[#17191E]">
+    <div className="bg-white text-tinta">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
-      <section className="relative overflow-hidden bg-[#0A080C] pb-20 pt-36 text-white md:pt-44">
+      <section className="relative overflow-hidden bg-noche pb-20 pt-36 text-white md:pt-44">
         <FondoVivo />
         <div className="relative mx-auto max-w-5xl px-6 md:px-8">
-          <p className="etiqueta-dk text-[#6E0C2B]">Preguntas frecuentes</p>
+          <p className="etiqueta-dk text-vino">Preguntas frecuentes</p>
           <TextoRevelado como="h1" texto="Sin letra pequeña." className="font-display mt-4 text-6xl font-semibold leading-[0.98] md:text-8xl" />
           <p className="mt-6 max-w-xl text-lg text-white/65">Todo lo que suelen preguntarnos antes de empezar. Si falta algo, escríbenos y te respondemos en persona.</p>
         </div>
@@ -49,21 +49,21 @@ export default function PaginaFAQ() {
         {GRUPOS.map((g, i) => (
           <Aparecer key={g.t} retraso={0.05} className={i ? 'mt-16' : ''}>
             <div className="grid gap-8 md:grid-cols-[1fr_2fr]">
-              <div><p className="font-display text-3xl font-semibold">{g.t}</p><Link href={g.href} className="mt-2 inline-block text-sm font-semibold text-[#6E0C2B]">Ver {g.t === 'General' ? 'la portada' : g.t} →</Link></div>
-              <div className="divide-y divide-[#E6E6E2] border-y border-[#E6E6E2]">
+              <div><p className="font-display text-3xl font-semibold">{g.t}</p><Link href={g.href} className="mt-2 inline-block text-sm font-semibold text-vino">Ver {g.t === 'General' ? 'la portada' : g.t} →</Link></div>
+              <div className="divide-y divide-linea border-y border-linea">
                 {g.p.map(([q, a]) => (
                   <details key={q} className="group py-5">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-6 text-[17px] font-semibold">{q}<span aria-hidden="true" className="text-2xl font-light text-[#9A9EA6] transition-transform group-open:rotate-45">+</span></summary>
-                    <p className="mt-3 leading-relaxed text-[#6B7079]">{a}</p>
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-6 text-[17px] font-semibold">{q}<span aria-hidden="true" className="text-2xl font-light text-ceniza transition-transform group-open:rotate-45">+</span></summary>
+                    <p className="mt-3 leading-relaxed text-niebla">{a}</p>
                   </details>
                 ))}
               </div>
             </div>
           </Aparecer>
         ))}
-        <div className="mt-20 rounded-[28px] bg-[#0A080C] p-8 text-white md:flex md:items-center md:justify-between md:p-10">
+        <div className="mt-20 rounded-[28px] bg-noche p-8 text-white md:flex md:items-center md:justify-between md:p-10">
           <p className="font-display text-3xl font-semibold">¿Te queda alguna duda?</p>
-          <a href="#solicitud-dudas" className="mt-6 inline-block rounded-full bg-[#6E0C2B] px-7 py-4 font-semibold md:mt-0">Pregúntanos </a>
+          <a href="#solicitud-dudas" className="mt-6 inline-block rounded-full bg-vino px-7 py-4 font-semibold md:mt-0">Pregúntanos </a>
         </div>
       </div>
     </div>

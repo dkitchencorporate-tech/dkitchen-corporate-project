@@ -27,7 +27,7 @@ export default function ObjectionHandling({
         <h2 className="text-2xl md:text-3xl font-black text-center mb-12 text-balance">{titulo}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {preguntas.map((p) => (
-            <div key={p.pregunta} className={`rounded-2xl p-6 border-l-4 border-l-[#6E0C2B] ${clasesTarjeta}`}>
+            <div key={p.pregunta} className={`rounded-2xl p-6 border-l-4 border-l-vino ${clasesTarjeta}`}>
               <p className="font-bold text-lg mb-2">{p.pregunta}</p>
               <p className={`leading-relaxed ${clasesRespuesta}`}>{p.respuesta}</p>
             </div>

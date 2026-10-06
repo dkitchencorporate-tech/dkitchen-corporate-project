@@ -12,9 +12,9 @@ const PUNTOS = [
 
 export default function SaltoSignature() {
   return (
-    <section className="relative overflow-hidden rounded-[26px] bg-[#0A080C] p-6 text-white sm:p-8">
+    <section className="relative overflow-hidden rounded-[26px] bg-noche p-6 text-white sm:p-8">
       <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.45),transparent)]" />
-      <p className="relative text-[11px] font-bold uppercase tracking-[0.2em] text-[#D9B25C]">El siguiente nivel · DKitchen Signature</p>
+      <p className="relative text-[11px] font-bold uppercase tracking-[0.2em] text-oro">El siguiente nivel · DKitchen Signature</p>
       <h3 className="relative font-display mt-2 text-2xl font-semibold leading-tight sm:text-3xl">Tu carta es el comienzo. Signature es tu propio negocio digital.</h3>
       <p className="relative mt-2 max-w-xl text-sm text-white/65">Aunque tengas la carta con todo incluido, con Signature das otro salto: tu app, tus pedidos, tus clientes y tus datos, sin comisiones.</p>
       <ul className="relative mt-6 grid gap-3 sm:grid-cols-2">
@@ -26,7 +26,7 @@ export default function SaltoSignature() {
         ))}
       </ul>
       <div className="relative mt-6 flex flex-wrap gap-3">
-        <a href="/signature" target="_blank" rel="noopener" className="rounded-full bg-[#6E0C2B] px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-[#D9B25C]/40">Ver Signature y sus apps reales</a>
+        <a href="/signature" target="_blank" rel="noopener" className="rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-oro/40">Ver Signature y sus apps reales</a>
         <a href="/panel?pestana=soporte&asunto=Quiero%20saber%20m%C3%A1s%20de%20Signature" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold text-white">Pedir una propuesta</a>
       </div>
     </section>

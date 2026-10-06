@@ -39,7 +39,7 @@ export default function HerramientasTexto({
     } finally { setPendiente(''); }
   }
 
-  const boton = 'inline-flex items-center gap-1 rounded-full border border-[#E6E2DC] bg-white px-2.5 py-1 text-[12px] font-medium text-[#3F434B] hover:border-[#6E0C2B]/40 disabled:opacity-40';
+  const boton = 'inline-flex items-center gap-1 rounded-full border border-[#E6E2DC] bg-white px-2.5 py-1 text-[12px] font-medium text-grafito hover:border-vino/40 disabled:opacity-40';
   return (
     <div className="mt-1.5">
       <div className="flex flex-wrap items-center gap-1.5">
@@ -50,11 +50,11 @@ export default function HerramientasTexto({
           {pendiente === 'mejorar' ? 'Mejorando…' : tipo === 'instruccion' ? '✨ Mejorar instrucción' : '✨ Mejorar texto'}
         </button>
         {anterior !== null && <button type="button" onClick={() => { onCambio(anterior); setAnterior(null); setAviso('Has vuelto a tu texto.'); }} className={boton}>↺ Deshacer</button>}
-        <button type="button" onClick={() => setAyuda(!ayuda)} aria-expanded={ayuda} aria-label="¿Para qué sirven estos botones?" className="h-6 w-6 rounded-full border border-[#E6E2DC] bg-white text-[12px] text-[#6B7079]">?</button>
-        {aviso && <span className="text-[12px] text-[#6B7079]" role="status">{aviso}</span>}
+        <button type="button" onClick={() => setAyuda(!ayuda)} aria-expanded={ayuda} aria-label="¿Para qué sirven estos botones?" className="h-6 w-6 rounded-full border border-[#E6E2DC] bg-white text-[12px] text-niebla">?</button>
+        {aviso && <span className="text-[12px] text-niebla" role="status">{aviso}</span>}
       </div>
       {ayuda && (
-        <p className="mt-1.5 rounded-lg bg-[#F7F5F2] px-3 py-2 text-[12px] leading-relaxed text-[#3F434B]">
+        <p className="mt-1.5 rounded-lg bg-crema px-3 py-2 text-[12px] leading-relaxed text-grafito">
           <strong>Aa Corregir</strong> arregla faltas, tildes y puntuación sin cambiar lo que has escrito.{' '}
           {tipo === 'instruccion'
             ? <><strong>✨ Mejorar instrucción</strong> convierte lo que pides en una descripción clara para la IA (encuadre, luz, ambiente), así la imagen se parece más a lo que imaginas.</>

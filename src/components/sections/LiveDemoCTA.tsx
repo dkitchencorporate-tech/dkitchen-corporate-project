@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function LiveDemoCTA() {
   return (
-    <section className="bg-[#6E0C2B] py-20 relative overflow-hidden">
+    <section className="bg-vino py-20 relative overflow-hidden">
       {/* Patrón de fondo */}
       <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/carbon-fibre.png")' }}></div>
       
@@ -15,7 +15,7 @@ export default function LiveDemoCTA() {
               Live Demo
             </div>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-6 leading-tight text-balance">
-              La misma experiencia fluida que exigirán <span className="text-[#6E0C2B]">tus mejores clientes.</span>
+              La misma experiencia fluida que exigirán <span className="text-vino">tus mejores clientes.</span>
             </h2>
             <p className="text-gray-400 text-lg md:text-xl font-medium mb-8 text-pretty">
               Escanea el código QR o haz clic en el botón para vivir la experiencia exacta que tendrán tus clientes al sentarse en tu mesa. Una carta interactiva ultra-rápida y persuasiva.

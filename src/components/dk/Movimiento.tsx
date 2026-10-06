@@ -27,11 +27,11 @@ export function FondoVivo({ className = '' }: { className?: string }) {
 export function Marquesina({ items, oscura = false }: { items: string[]; oscura?: boolean }) {
   const fila = [...items, ...items];
   return (
-    <div className={`relative overflow-hidden border-y py-5 ${oscura ? 'border-white/10 bg-[#0A080C] text-white' : 'border-[#E6E6E2] bg-white text-[#17191E]'}`}>
+    <div className={`relative overflow-hidden border-y py-5 ${oscura ? 'border-white/10 bg-noche text-white' : 'border-linea bg-white text-tinta'}`}>
       <div className="flex w-max animate-[marquesina_38s_linear_infinite] gap-10 whitespace-nowrap">
         {fila.map((t, i) => (
           <span key={i} className="font-display flex items-center gap-10 text-2xl font-semibold md:text-3xl">
-            {t}<span className="h-2 w-2 rounded-full bg-[#6E0C2B]" aria-hidden="true" />
+            {t}<span className="h-2 w-2 rounded-full bg-vino" aria-hidden="true" />
           </span>
         ))}
       </div>

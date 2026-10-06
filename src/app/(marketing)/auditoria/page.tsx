@@ -15,7 +15,7 @@ const WA = '/pagar/auditoria';
 
 export default function PaginaAuditoria() {
   return (
-    <div className="bg-white text-[#17191E]">
+    <div className="bg-white text-tinta">
       <HeroPagina etiqueta="Auditoría de canales"
         titulo="Te están buscando. ¿Te están encontrando?"
         sub="En una reunión 1 a 1 revisamos tu ficha de Google, tus redes y la rentabilidad de tu carta. Sales con un informe claro: qué te está costando clientes y cómo arreglarlo."
@@ -25,7 +25,7 @@ export default function PaginaAuditoria() {
 
       <Marquesina oscura items={['Ficha de Google', 'Reseñas', 'Fotos y categorías', 'Posición en tu zona', 'Redes sociales', 'Rentabilidad de la carta']} />
 
-      <section className="bg-[#F7F5F2] py-24 md:py-32">
+      <section className="bg-crema py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Titulo etiqueta="El problema" texto="Lo que no ves en tu ficha, lo ve tu competencia." />
           <Dolores items={[
@@ -42,16 +42,16 @@ export default function PaginaAuditoria() {
           <Titulo etiqueta="Cómo funciona" texto="Tres pasos. Una reunión. Un plan." />
           <ol className="mt-14 grid gap-8 md:grid-cols-3">
             {([['Revisión', 'Tu ficha de Google (reseñas, fotos, categorías, posición en tu zona) y tus redes activas.'], ['Informe con tus datos', 'Cada fallo explicado con datos de tu propio negocio, no un informe genérico.'], ['Análisis de tu carta', 'Rentabilidad y escandallo con los datos que nos das al reservar, en la misma reunión.']] as [string, string][]).map(([t, d], i) => (
-              <Aparecer key={t} retraso={i * 0.08}><li className="border-t-2 border-[#17191E] pt-5"><p className="font-display text-sm font-semibold text-[#6E0C2B]">0{i + 1}</p><p className="mt-1 text-xl font-semibold">{t}</p><p className="mt-2 text-[#6B7079]">{d}</p></li></Aparecer>
+              <Aparecer key={t} retraso={i * 0.08}><li className="border-t-2 border-tinta pt-5"><p className="font-display text-sm font-semibold text-vino">0{i + 1}</p><p className="mt-1 text-xl font-semibold">{t}</p><p className="mt-2 text-niebla">{d}</p></li></Aparecer>
             ))}
           </ol>
-          <Aparecer className="mt-16 grid items-center gap-8 rounded-[32px] bg-[#0A080C] p-8 text-white md:grid-cols-2 md:p-12">
+          <Aparecer className="mt-16 grid items-center gap-8 rounded-[32px] bg-noche p-8 text-white md:grid-cols-2 md:p-12">
             <div>
-              <p className="etiqueta-dk text-[#6E0C2B]">Oferta de lanzamiento</p>
+              <p className="etiqueta-dk text-vino">Oferta de lanzamiento</p>
               <p className="mt-3 flex items-baseline gap-4"><span className="font-display text-3xl text-white/40 line-through">297 €</span><span className="font-display text-7xl font-semibold">47 €</span><span className="self-end pb-3 text-lg text-white/60">+ IVA</span></p>
               <p className="mt-2 text-white/60">Pago único · reunión 1 a 1 incluida</p>
             </div>
-            <div className="md:text-right"><a href={WA} className="inline-block rounded-full bg-[#6E0C2B] px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(163,24,74,.45)]">Reservar mi auditoría</a></div>
+            <div className="md:text-right"><a href={WA} className="inline-block rounded-full bg-vino px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(163,24,74,.45)]">Reservar mi auditoría</a></div>
           </Aparecer>
         </div>
       </section>

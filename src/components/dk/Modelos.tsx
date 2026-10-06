@@ -25,7 +25,7 @@ const wa = (t: string) => `/pagar/signature?modelo=${encodeURIComponent(t)}`;
 function Marco({ children }: { children: React.ReactNode }) {
   return (
     <div className="rounded-[46px] p-[3px] shadow-[0_50px_100px_-20px_rgba(0,0,0,.55)] [background:linear-gradient(145deg,#6b707b,#1b1d22_35%,#0b0c0f_70%,#4a4e57)]">
-      <div className="rounded-[43px] bg-[#0B0C0F] p-[9px]"><div className="relative aspect-[9/19.5] overflow-hidden rounded-[35px] bg-black">{children}<div className="pointer-events-none absolute left-1/2 top-2 z-10 h-[20px] w-[84px] -translate-x-1/2 rounded-full bg-black" /></div></div>
+      <div className="rounded-[43px] bg-obsidiana p-[9px]"><div className="relative aspect-[9/19.5] overflow-hidden rounded-[35px] bg-black">{children}<div className="pointer-events-none absolute left-1/2 top-2 z-10 h-[20px] w-[84px] -translate-x-1/2 rounded-full bg-black" /></div></div>
     </div>
   );
 }
@@ -50,17 +50,17 @@ export function ModelosReales({ oscuro = true }: { oscuro?: boolean }) {
       <div className="mt-14 grid gap-10 md:grid-cols-2 md:[&>*:last-child:nth-child(odd)]:col-span-2 md:[&>*:last-child:nth-child(odd)]:mx-auto md:[&>*:last-child:nth-child(odd)]:max-w-[calc(50%-1.25rem)]">
         {MODELOS.map((x, i) => (
           <motion.div key={x.id} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.7, delay: i * 0.1, ease: CURVA }}
-            className={`grid items-center gap-6 rounded-[32px] p-6 sm:grid-cols-[220px_1fr] md:p-8 ${oscuro ? 'border border-white/10 bg-white/[0.04] text-white' : 'border border-[#E6E6E2] bg-white text-[#17191E]'}`}>
-            <div className="mx-auto w-[220px]"><Marco><PantallaDesplazable id={x.id} alt={`Web de ${x.nombre} en el móvil`} /></Marco><p className={`mt-3 text-center text-xs ${oscuro ? 'text-white/40' : 'text-[#9A9EA6]'}`}>Desliza dentro del móvil</p></div>
+            className={`grid items-center gap-6 rounded-[32px] p-6 sm:grid-cols-[220px_1fr] md:p-8 ${oscuro ? 'border border-white/10 bg-white/[0.04] text-white' : 'border border-linea bg-white text-tinta'}`}>
+            <div className="mx-auto w-[220px]"><Marco><PantallaDesplazable id={x.id} alt={`Web de ${x.nombre} en el móvil`} /></Marco><p className={`mt-3 text-center text-xs ${oscuro ? 'text-white/40' : 'text-ceniza'}`}>Desliza dentro del móvil</p></div>
             <div>
               <p className="text-xs uppercase tracking-[0.22em]" style={{ color: x.color }}>{x.tipo}</p>
               <p className="font-display mt-2 text-3xl font-semibold">{x.nombre}</p>
-              <ul className={`mt-4 space-y-2 text-[15px] ${oscuro ? 'text-white/70' : 'text-[#3F434B]'}`}>{x.puntos.map((p) => <li key={p} className="flex gap-2"><span style={{ color: x.color }}>✓</span>{p}</li>)}</ul>
+              <ul className={`mt-4 space-y-2 text-[15px] ${oscuro ? 'text-white/70' : 'text-grafito'}`}>{x.puntos.map((p) => <li key={p} className="flex gap-2"><span style={{ color: x.color }}>✓</span>{p}</li>)}</ul>
               <div className="mt-6 flex flex-col gap-2">
-                <a href={wa(x.nombre)} className="rounded-full bg-[#6E0C2B] px-5 py-3 text-center text-sm font-semibold text-white">Quiero este modelo</a>
+                <a href={wa(x.nombre)} className="rounded-full bg-vino px-5 py-3 text-center text-sm font-semibold text-white">Quiero este modelo</a>
                 <div className="flex gap-2">
-                  <button onClick={() => setAbierto(x.id)} className={`flex-1 rounded-full border px-4 py-3 text-sm font-semibold ${oscuro ? 'border-white/20 hover:border-white/50' : 'border-[#D6D6D1] hover:border-[#17191E]'}`}>Abrir en grande</button>
-                  <a href={x.url} target="_blank" rel="noopener" className={`flex-1 rounded-full border px-4 py-3 text-center text-sm font-semibold ${oscuro ? 'border-white/20 hover:border-white/50' : 'border-[#D6D6D1] hover:border-[#17191E]'}`}>Ver web real ↗</a>
+                  <button onClick={() => setAbierto(x.id)} className={`flex-1 rounded-full border px-4 py-3 text-sm font-semibold ${oscuro ? 'border-white/20 hover:border-white/50' : 'border-linea-fuerte hover:border-tinta'}`}>Abrir en grande</button>
+                  <a href={x.url} target="_blank" rel="noopener" className={`flex-1 rounded-full border px-4 py-3 text-center text-sm font-semibold ${oscuro ? 'border-white/20 hover:border-white/50' : 'border-linea-fuerte hover:border-tinta'}`}>Ver web real ↗</a>
                 </div>
               </div>
             </div>
@@ -72,11 +72,11 @@ export function ModelosReales({ oscuro = true }: { oscuro?: boolean }) {
           <motion.div className="fixed inset-0 z-[200] flex justify-center bg-black/75 backdrop-blur-sm sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAbierto(null)}>
             <motion.div role="dialog" aria-modal="true" aria-label={m.nombre} onClick={(e) => e.stopPropagation()} initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }} transition={{ duration: 0.45, ease: CURVA }}
               className="relative flex h-full w-full max-w-md flex-col overflow-hidden bg-black sm:rounded-[32px]">
-              <div className="flex items-center justify-between bg-[#17191E] px-5 py-3 text-sm text-white"><span>{m.nombre} · así lo ve tu cliente</span><button onClick={() => setAbierto(null)} className="rounded-full bg-white/10 px-3 py-1.5 font-semibold">Cerrar</button></div>
+              <div className="flex items-center justify-between bg-tinta px-5 py-3 text-sm text-white"><span>{m.nombre} · así lo ve tu cliente</span><button onClick={() => setAbierto(null)} className="rounded-full bg-white/10 px-3 py-1.5 font-semibold">Cerrar</button></div>
               <div className="relative flex-1"><PantallaDesplazable id={m.id} alt={`Web de ${m.nombre}`} activa={false} /></div>
               <div className="absolute inset-x-0 bottom-0 flex gap-2 bg-gradient-to-t from-black/60 to-transparent p-4 pt-10">
-                <a href={wa(m.nombre)} className="flex-1 rounded-full bg-[#6E0C2B] py-4 text-center text-[15px] font-semibold text-white shadow-lg">Quiero este modelo</a>
-                <a href={m.url} target="_blank" rel="noopener" className="rounded-full bg-white px-5 py-4 text-[15px] font-semibold text-[#17191E] shadow-lg">Web real ↗</a>
+                <a href={wa(m.nombre)} className="flex-1 rounded-full bg-vino py-4 text-center text-[15px] font-semibold text-white shadow-lg">Quiero este modelo</a>
+                <a href={m.url} target="_blank" rel="noopener" className="rounded-full bg-white px-5 py-4 text-[15px] font-semibold text-tinta shadow-lg">Web real ↗</a>
               </div>
             </motion.div>
           </motion.div>
@@ -108,16 +108,16 @@ export function CartasAutorDemo() {
           <p className="mt-1 text-sm text-white/55">{c.d}</p>
           <div className="mt-4 flex justify-center gap-2">
             <a href={`/demo/carta?plantilla=${c.id}`} className="rounded-full border border-white/20 px-4 py-2.5 text-sm font-semibold hover:border-white/50">Abrir en grande</a>
-            <a href="#planes" className="rounded-full bg-[#6E0C2B] px-4 py-2.5 text-sm font-semibold">Quiero esta</a>
+            <a href="#planes" className="rounded-full bg-vino px-4 py-2.5 text-sm font-semibold">Quiero esta</a>
           </div>
         </motion.div>
       ))}
       <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.4 }} transition={{ duration: 0.7, ease: CURVA }}
         className="rounded-[32px] border border-white/10 bg-white/[0.04] p-8 text-center md:col-span-3 md:p-10">
-        <p className="etiqueta-dk text-[#6E0C2B]">¿Tienes otra idea?</p>
+        <p className="etiqueta-dk text-vino">¿Tienes otra idea?</p>
         <p className="font-display mx-auto mt-3 max-w-2xl text-3xl font-semibold leading-tight md:text-4xl">Diseñamos tu carta desde cero, con tu marca.</p>
         <p className="mx-auto mt-3 max-w-xl text-[15px] text-white/60">Si ninguno de estos estilos es tu local, cuéntanos cómo lo imaginas: colores, tipografía, fotos, ambiente. La creamos a medida y la ves antes de publicarla.</p>
-        <a href="#solicitud-diseno-autor" className="mt-6 inline-block rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-[#17191E] hover:bg-white/90">Quiero mi propio diseño de autor</a>
+        <a href="#solicitud-diseno-autor" className="mt-6 inline-block rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-tinta hover:bg-white/90">Quiero mi propio diseño de autor</a>
       </motion.div>
     </motion.div>
   );

@@ -121,27 +121,27 @@ export default function FormularioIntakeNivelB({ token }: { token: string }) {
       <section className="space-y-4">
         <h2 className="text-xl font-black text-gray-900">1. Datos del negocio</h2>
         <input
-          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#6E0C2B] outline-none"
+          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-vino outline-none"
           placeholder="Nombre del negocio"
           value={negocio.nombre}
           onChange={(e) => setNegocio({ ...negocio, nombre: e.target.value })}
         />
         <textarea
-          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#6E0C2B] outline-none"
+          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-vino outline-none"
           placeholder="Dirección (una por línea si tienes varios locales)"
           rows={2}
           value={negocio.direcciones}
           onChange={(e) => setNegocio({ ...negocio, direcciones: e.target.value })}
         />
         <textarea
-          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#6E0C2B] outline-none"
+          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-vino outline-none"
           placeholder="Horario (por día de la semana)"
           rows={2}
           value={negocio.horario}
           onChange={(e) => setNegocio({ ...negocio, horario: e.target.value })}
         />
         <input
-          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#6E0C2B] outline-none"
+          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-vino outline-none"
           placeholder="Colores de tu marca, si ya los tienes (si no, usamos la paleta de DKitchen)"
           value={negocio.colores}
           onChange={(e) => setNegocio({ ...negocio, colores: e.target.value })}
@@ -158,7 +158,7 @@ export default function FormularioIntakeNivelB({ token }: { token: string }) {
         {catalogo.map((seccion, si) => (
           <div key={si} className="border-2 border-gray-100 rounded-2xl p-5 space-y-4">
             <input
-              className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 focus:border-[#6E0C2B] outline-none font-bold"
+              className="w-full px-4 py-2.5 rounded-lg border-2 border-gray-200 focus:border-vino outline-none font-bold"
               placeholder="Categoría (ej. Entrantes, Pizzas, Postres)"
               value={seccion.categoria}
               onChange={(e) => {
@@ -170,31 +170,31 @@ export default function FormularioIntakeNivelB({ token }: { token: string }) {
             {seccion.productos.map((p, pi) => (
               <div key={pi} className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-[#FDFCF8] p-3 rounded-xl">
                 <input
-                  className="px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-[#6E0C2B]"
+                  className="px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-vino"
                   placeholder="Nombre del producto"
                   value={p.nombre}
                   onChange={(e) => actualizarProducto(si, pi, 'nombre', e.target.value)}
                 />
                 <input
-                  className="px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-[#6E0C2B]"
+                  className="px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-vino"
                   placeholder="Precio"
                   value={p.precio}
                   onChange={(e) => actualizarProducto(si, pi, 'precio', e.target.value)}
                 />
                 <input
-                  className="sm:col-span-2 px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-[#6E0C2B]"
+                  className="sm:col-span-2 px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-vino"
                   placeholder="Descripción"
                   value={p.descripcion}
                   onChange={(e) => actualizarProducto(si, pi, 'descripcion', e.target.value)}
                 />
                 <input
-                  className={`px-3 py-2 rounded-lg border outline-none focus:border-[#6E0C2B] ${!p.alergenos.trim() && p.nombre.trim() ? 'border-red-400' : 'border-gray-200'}`}
+                  className={`px-3 py-2 rounded-lg border outline-none focus:border-vino ${!p.alergenos.trim() && p.nombre.trim() ? 'border-red-400' : 'border-gray-200'}`}
                   placeholder="Alérgenos (obligatorio)"
                   value={p.alergenos}
                   onChange={(e) => actualizarProducto(si, pi, 'alergenos', e.target.value)}
                 />
                 <input
-                  className="px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-[#6E0C2B]"
+                  className="px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-vino"
                   placeholder="Variantes/extras (opcional)"
                   value={p.variantes}
                   onChange={(e) => actualizarProducto(si, pi, 'variantes', e.target.value)}
@@ -208,7 +208,7 @@ export default function FormularioIntakeNivelB({ token }: { token: string }) {
                 copia[si] = { ...copia[si], productos: [...copia[si].productos, productoVacio()] };
                 setCatalogo(copia);
               }}
-              className="text-sm font-bold text-[#6E0C2B] hover:underline"
+              className="text-sm font-bold text-vino hover:underline"
             >
               + Añadir producto
             </button>
@@ -217,7 +217,7 @@ export default function FormularioIntakeNivelB({ token }: { token: string }) {
         <button
           type="button"
           onClick={() => setCatalogo([...catalogo, seccionVacia()])}
-          className="text-sm font-bold text-gray-700 hover:text-[#6E0C2B]"
+          className="text-sm font-bold text-gray-700 hover:text-vino"
         >
           + Añadir categoría
         </button>
@@ -230,14 +230,14 @@ export default function FormularioIntakeNivelB({ token }: { token: string }) {
           <button
             type="button"
             onClick={() => setRama('propias')}
-            className={`flex-1 px-4 py-3 rounded-xl border-2 font-bold transition-colors ${rama === 'propias' ? 'border-[#6E0C2B] bg-orange-50 text-[#6E0C2B]' : 'border-gray-200 text-gray-600'}`}
+            className={`flex-1 px-4 py-3 rounded-xl border-2 font-bold transition-colors ${rama === 'propias' ? 'border-vino bg-orange-50 text-vino' : 'border-gray-200 text-gray-600'}`}
           >
             Tengo mis propias fotos
           </button>
           <button
             type="button"
             onClick={() => setRama('ia')}
-            className={`flex-1 px-4 py-3 rounded-xl border-2 font-bold transition-colors ${rama === 'ia' ? 'border-[#6E0C2B] bg-orange-50 text-[#6E0C2B]' : 'border-gray-200 text-gray-600'}`}
+            className={`flex-1 px-4 py-3 rounded-xl border-2 font-bold transition-colors ${rama === 'ia' ? 'border-vino bg-orange-50 text-vino' : 'border-gray-200 text-gray-600'}`}
           >
             Que las genere DKitchen con IA
           </button>
@@ -245,7 +245,7 @@ export default function FormularioIntakeNivelB({ token }: { token: string }) {
 
         {rama === 'propias' ? (
           <input
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#6E0C2B] outline-none"
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-vino outline-none"
             placeholder="Enlace a tus fotos y tu logo (Google Drive, WeTransfer...)"
             value={enlaceFotos}
             onChange={(e) => setEnlaceFotos(e.target.value)}
@@ -253,7 +253,7 @@ export default function FormularioIntakeNivelB({ token }: { token: string }) {
         ) : (
           <div className="space-y-3">
             <select
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#6E0C2B] outline-none"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-vino outline-none"
               value={estiloIA}
               onChange={(e) => setEstiloIA(e.target.value)}
             >
@@ -262,7 +262,7 @@ export default function FormularioIntakeNivelB({ token }: { token: string }) {
               <option value="vibrante">Vibrante / colorido</option>
             </select>
             <input
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#6E0C2B] outline-none"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-vino outline-none"
               placeholder="Enlace a 1-3 fotos de referencia/inspiración (opcional)"
               value={referenciaIA}
               onChange={(e) => setReferenciaIA(e.target.value)}
@@ -288,19 +288,19 @@ export default function FormularioIntakeNivelB({ token }: { token: string }) {
       <section className="space-y-4">
         <h2 className="text-xl font-black text-gray-900">4. Integración operativa</h2>
         <input
-          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#6E0C2B] outline-none"
+          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-vino outline-none"
           placeholder="Sistema POS/fiscal que ya usas (para el cierre de día)"
           value={integracion.posFiscal}
           onChange={(e) => setIntegracion({ ...integracion, posFiscal: e.target.value })}
         />
         <input
-          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#6E0C2B] outline-none"
+          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-vino outline-none"
           placeholder="Pasarela de pago propia, si vas a usar el motor de reservas (opcional)"
           value={integracion.pasarelaReservas}
           onChange={(e) => setIntegracion({ ...integracion, pasarelaReservas: e.target.value })}
         />
         <input
-          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#6E0C2B] outline-none"
+          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-vino outline-none"
           placeholder="Idiomas que necesitas en la carta, si contrataste el add-on (opcional)"
           value={integracion.idiomas}
           onChange={(e) => setIntegracion({ ...integracion, idiomas: e.target.value })}
@@ -313,7 +313,7 @@ export default function FormularioIntakeNivelB({ token }: { token: string }) {
         type="button"
         onClick={enviar}
         disabled={estado === 'enviando'}
-        className="w-full bg-[#6E0C2B] text-white px-8 py-4 rounded-full font-black text-lg hover:bg-orange-600 transition-all disabled:opacity-60"
+        className="w-full bg-vino text-white px-8 py-4 rounded-full font-black text-lg hover:bg-orange-600 transition-all disabled:opacity-60"
       >
         {estado === 'enviando' ? 'Enviando…' : 'Enviar'}
       </button>

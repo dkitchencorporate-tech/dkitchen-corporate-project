@@ -96,10 +96,10 @@ export default function ConsultingModal({ isOpen, onClose }: ConsultingModalProp
           <h3 className="text-2xl font-black text-gray-900 mb-6">Pregunta 1 de 3</h3>
           <p className="text-xl text-gray-700 mb-8 font-medium">¿Cómo ven tus clientes la carta actualmente?</p>
           <div className="space-y-4">
-            <button onClick={() => handleAnswer('carta', 'pdf')} className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-[#6E0C2B] hover:bg-orange-50 font-bold text-gray-700 transition-colors shadow-sm">
+            <button onClick={() => handleAnswer('carta', 'pdf')} className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-vino hover:bg-orange-50 font-bold text-gray-700 transition-colors shadow-sm">
               En un PDF estático o carta de papel/cartón.
             </button>
-            <button onClick={() => handleAnswer('carta', 'web')} className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-[#6E0C2B] hover:bg-orange-50 font-bold text-gray-700 transition-colors shadow-sm">
+            <button onClick={() => handleAnswer('carta', 'web')} className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-vino hover:bg-orange-50 font-bold text-gray-700 transition-colors shadow-sm">
               Tengo un QR básico o web.
             </button>
           </div>
@@ -112,10 +112,10 @@ export default function ConsultingModal({ isOpen, onClose }: ConsultingModalProp
           <h3 className="text-2xl font-black text-gray-900 mb-6">Pregunta 2 de 3</h3>
           <p className="text-xl text-gray-700 mb-8 font-medium">¿Tienes un sistema para enviar ofertas (cumpleaños, promociones) y hacer que el cliente vuelva en días flojos?</p>
           <div className="space-y-4">
-            <button onClick={() => handleAnswer('bd', 'no')} className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-[#6E0C2B] hover:bg-orange-50 font-bold text-gray-700 transition-colors shadow-sm">
+            <button onClick={() => handleAnswer('bd', 'no')} className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-vino hover:bg-orange-50 font-bold text-gray-700 transition-colors shadow-sm">
               No, dependemos totalmente del paso de gente o la intuición.
             </button>
-            <button onClick={() => handleAnswer('bd', 'si')} className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-[#6E0C2B] hover:bg-orange-50 font-bold text-gray-700 transition-colors shadow-sm">
+            <button onClick={() => handleAnswer('bd', 'si')} className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-vino hover:bg-orange-50 font-bold text-gray-700 transition-colors shadow-sm">
               Sí, intento guardar datos pero no tengo un proceso automático.
             </button>
           </div>
@@ -128,10 +128,10 @@ export default function ConsultingModal({ isOpen, onClose }: ConsultingModalProp
           <h3 className="text-2xl font-black text-gray-900 mb-6">Pregunta 3 de 3</h3>
           <p className="text-xl text-gray-700 mb-8 font-medium">¿Sientes que tu negocio facturaría más y tu equipo tendría menos estrés si estuviera digitalizado profesionalmente?</p>
           <div className="space-y-4">
-            <button onClick={() => handleAnswer('mindset', 'si')} className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-[#6E0C2B] hover:bg-orange-50 font-bold text-gray-700 transition-colors shadow-sm">
+            <button onClick={() => handleAnswer('mindset', 'si')} className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-vino hover:bg-orange-50 font-bold text-gray-700 transition-colors shadow-sm">
               Sí, necesito actualizar mi local lo antes posible.
             </button>
-            <button onClick={() => handleAnswer('mindset', 'talvez')} className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-[#6E0C2B] hover:bg-orange-50 font-bold text-gray-700 transition-colors shadow-sm">
+            <button onClick={() => handleAnswer('mindset', 'talvez')} className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-vino hover:bg-orange-50 font-bold text-gray-700 transition-colors shadow-sm">
               Quiero modernizarlo, pero necesito ver opciones claras.
             </button>
           </div>
@@ -150,15 +150,15 @@ export default function ConsultingModal({ isOpen, onClose }: ConsultingModalProp
       <form onSubmit={handleFormSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-bold text-gray-700 mb-1">Nombre Completo / Encargado</label>
-          <input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-0 focus:border-[#6E0C2B] outline-none transition-colors" placeholder="Tu nombre" />
+          <input required type="text" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-0 focus:border-vino outline-none transition-colors" placeholder="Tu nombre" />
         </div>
         <div>
           <label className="block text-sm font-bold text-gray-700 mb-1">Teléfono (WhatsApp)</label>
-          <input required type="tel" value={formData.phone} onChange={e=>setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-0 focus:border-[#6E0C2B] outline-none transition-colors" placeholder="+34 600 000 000" />
+          <input required type="tel" value={formData.phone} onChange={e=>setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-0 focus:border-vino outline-none transition-colors" placeholder="+34 600 000 000" />
         </div>
         <div>
           <label className="block text-sm font-bold text-gray-700 mb-1">Email Profesional</label>
-          <input required type="email" value={formData.email} onChange={e=>setFormData({...formData, email: e.target.value})} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-0 focus:border-[#6E0C2B] outline-none transition-colors" placeholder="correo@restaurante.com" />
+          <input required type="email" value={formData.email} onChange={e=>setFormData({...formData, email: e.target.value})} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-0 focus:border-vino outline-none transition-colors" placeholder="correo@restaurante.com" />
         </div>
         <div className="flex items-start gap-2 pt-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
           <input required type="checkbox" id="consent" checked={formData.consent} onChange={e=>setFormData({...formData, consent: e.target.checked})} className="mt-1" />
@@ -167,7 +167,7 @@ export default function ConsultingModal({ isOpen, onClose }: ConsultingModalProp
         <button 
           type="submit" 
           disabled={isSubmitting}
-          className="w-full bg-gray-900 text-white font-black py-4 rounded-xl text-lg hover:bg-[#6E0C2B] transition-colors mt-4 shadow-lg flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          className="w-full bg-gray-900 text-white font-black py-4 rounded-xl text-lg hover:bg-vino transition-colors mt-4 shadow-lg flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
              <span className="flex items-center gap-2">
@@ -245,7 +245,7 @@ export default function ConsultingModal({ isOpen, onClose }: ConsultingModalProp
           {/* Progress Bar */}
           {step < 3 && (
             <div className="w-full bg-gray-100 h-2">
-              <div className="bg-[#6E0C2B] h-2 transition-all duration-500" style={{ width: `${(step === 1 ? (currentQ/3)*100 : 100)}%` }}></div>
+              <div className="bg-vino h-2 transition-all duration-500" style={{ width: `${(step === 1 ? (currentQ/3)*100 : 100)}%` }}></div>
             </div>
           )}
           

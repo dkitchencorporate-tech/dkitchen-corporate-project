@@ -39,7 +39,7 @@ export default function MiCarta({
         <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Mi Carta</h2>
         <button
           onClick={() => setPlatoEnEdicion('nuevo')}
-          className="bg-[#6E0C2B] hover:bg-[#4A0819] text-white text-sm font-bold px-4 py-2 rounded-full transition-colors"
+          className="bg-vino hover:bg-vino-hondo text-white text-sm font-bold px-4 py-2 rounded-full transition-colors"
         >
           + Añadir plato
         </button>
@@ -58,12 +58,12 @@ export default function MiCarta({
           value={nuevaSeccion}
           onChange={(e) => setNuevaSeccion(e.target.value)}
           placeholder="Nombre de la nueva sección (ej. Entrantes)"
-          className="flex-1 rounded-lg bg-white border border-[#E6E6E2] px-4 py-2.5 text-[#1B1D22] placeholder-[#9A9EA6] focus:outline-none focus:border-[#6E0C2B]"
+          className="flex-1 rounded-lg bg-white border border-linea px-4 py-2.5 text-carbon placeholder-ceniza focus:outline-none focus:border-vino"
         />
         <button
           onClick={agregarSeccion}
           disabled={pendiente}
-          className="rounded-lg bg-[#EDEDEA] hover:bg-[#E5E5E1] px-4 py-2.5 text-sm font-semibold transition-colors"
+          className="rounded-lg bg-papel hover:bg-[#E5E5E1] px-4 py-2.5 text-sm font-semibold transition-colors"
         >
           Añadir sección
         </button>
@@ -88,7 +88,7 @@ export default function MiCarta({
       )}
 
       {carta.secciones.length === 0 && sueltos.length === 0 && (
-        <p className="text-[#6B7079] text-center py-12">
+        <p className="text-niebla text-center py-12">
           Todavía no tienes ninguna sección ni plato. Empieza creando una sección arriba.
         </p>
       )}
@@ -120,14 +120,14 @@ function SeccionCard({
   }
 
   return (
-    <div className="bg-white border border-[#E6E6E2] rounded-2xl p-5">
+    <div className="bg-white border border-linea rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
         {editando ? (
           <div className="flex gap-2 flex-1">
             <input
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="flex-1 rounded-lg bg-white border border-[#E6E6E2] px-3 py-1.5 text-[#1B1D22]"
+              className="flex-1 rounded-lg bg-white border border-linea px-3 py-1.5 text-carbon"
             />
             <button onClick={guardarNombre} disabled={pendiente} className="text-sm text-green-700 font-semibold">
               Guardar
@@ -139,7 +139,7 @@ function SeccionCard({
 
         {!sinBorrar && !editando && (
           <div className="flex gap-3 text-sm">
-            <button onClick={() => setEditando(true)} className="text-[#6B7079] hover:text-[#3F434B]">
+            <button onClick={() => setEditando(true)} className="text-niebla hover:text-grafito">
               Renombrar
             </button>
             <button
@@ -153,7 +153,7 @@ function SeccionCard({
       </div>
 
       {platos.length === 0 ? (
-        <p className="text-[#9A9EA6] text-sm">Sin platos todavía.</p>
+        <p className="text-ceniza text-sm">Sin platos todavía.</p>
       ) : (
         <ul className="divide-y divide-[#ECECE8]">
           {platos.map((plato) => (
@@ -162,29 +162,29 @@ function SeccionCard({
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={plato.fotoUrl} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
               ) : (
-                <button onClick={() => onEditarPlato(plato)} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-dashed border-[#D6D6D1] text-[10px] text-[#9A9EA6]" title="Añadir foto">
+                <button onClick={() => onEditarPlato(plato)} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-dashed border-linea-fuerte text-[10px] text-ceniza" title="Añadir foto">
                   + foto
                 </button>
               )}
               <div className="min-w-0 flex-1">
-                <p className={`font-medium truncate ${!plato.disponible ? 'text-[#9A9EA6] line-through' : ''}`}>
-                  {plato.esCombo && <span className="mr-1.5 rounded-full bg-[#6E0C2B] px-2 py-0.5 align-[2px] text-[10px] font-bold uppercase tracking-wider text-white no-underline">Combo</span>}
+                <p className={`font-medium truncate ${!plato.disponible ? 'text-ceniza line-through' : ''}`}>
+                  {plato.esCombo && <span className="mr-1.5 rounded-full bg-vino px-2 py-0.5 align-[2px] text-[10px] font-bold uppercase tracking-wider text-white no-underline">Combo</span>}
                   {plato.nombre}
                 </p>
                 {plato.descripcion ? (
-                  <p className="text-xs text-[#6B7079] mt-0.5 line-clamp-1">{plato.descripcion}</p>
+                  <p className="text-xs text-niebla mt-0.5 line-clamp-1">{plato.descripcion}</p>
                 ) : (
-                  <button onClick={() => onEditarPlato(plato)} className="text-xs text-[#6E0C2B]/80 hover:text-[#6E0C2B] mt-0.5">+ Añadir descripción</button>
+                  <button onClick={() => onEditarPlato(plato)} className="text-xs text-vino/80 hover:text-vino mt-0.5">+ Añadir descripción</button>
                 )}
                 {plato.alergenos.length > 0 && (
-                  <p className="text-xs text-[#9A9EA6] mt-0.5">
+                  <p className="text-xs text-ceniza mt-0.5">
                     {plato.alergenos.map((c) => ALERGENOS[c] ?? c).join(', ')}
                   </p>
                 )}
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <span className="font-semibold tabular-nums text-sm">{Number(plato.precio).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
-                <button onClick={() => onEditarPlato(plato)} className="text-[#6B7079] hover:text-[#3F434B] text-sm">
+                <button onClick={() => onEditarPlato(plato)} className="text-niebla hover:text-grafito text-sm">
                   Editar
                 </button>
               </div>
@@ -246,10 +246,10 @@ function FormularioPlato({
   }
 
   return (
-    <div className="bg-white border border-[#6E0C2B]/40 rounded-2xl p-5 space-y-4">
+    <div className="bg-white border border-vino/40 rounded-2xl p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">{plato ? 'Editar plato' : 'Nuevo plato'}</h3>
-        <button onClick={onCerrar} className="text-[#6B7079] hover:text-[#3F434B] text-sm">
+        <button onClick={onCerrar} className="text-niebla hover:text-grafito text-sm">
           Cancelar
         </button>
       </div>
@@ -262,7 +262,7 @@ function FormularioPlato({
             placeholder="Nombre del plato"
             spellCheck
             lang="es"
-            className="w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]"
+            className="w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza"
           />
           <HerramientasTexto valor={nombre} onCambio={setNombre} tipo="titulo" />
         </div>
@@ -273,12 +273,12 @@ function FormularioPlato({
           step="0.01"
           min="0"
           placeholder="Precio (€)"
-          className="rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]"
+          className="rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza"
         />
       </div>
 
       <label className="block space-y-1">
-        <span className="text-xs text-[#6B7079]">Descripción del plato ({descripcion.length}/300)</span>
+        <span className="text-xs text-niebla">Descripción del plato ({descripcion.length}/300)</span>
         <textarea
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value.slice(0, 300))}
@@ -286,10 +286,10 @@ function FormularioPlato({
           rows={3}
           spellCheck
           lang="es"
-          className="w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22] placeholder-[#9A9EA6]"
+          className="w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza"
         />
         <HerramientasTexto valor={descripcion} onCambio={(v) => setDescripcion(v.slice(0, 300))} tipo="descripcion" contexto={nombre} />
-        <span className="block text-[11px] text-[#9A9EA6]">Se ve en la carta y completa al abrir el plato. Una buena descripción vende más.</span>
+        <span className="block text-[11px] text-ceniza">Se ve en la carta y completa al abrir el plato. Una buena descripción vende más.</span>
       </label>
 
       <SubirImagen valor={fotoUrl || null} onCambio={(url) => setFotoUrl(url ?? '')} etiqueta="Foto" formato="plato" ia={{ modo: 'plato', plato: { nombre, descripcion } }} />
@@ -298,7 +298,7 @@ function FormularioPlato({
         <select
           value={seccionId}
           onChange={(e) => setSeccionId(e.target.value)}
-          className="w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-[#1B1D22]"
+          className="w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon"
         >
           <option value="">Sin sección</option>
           {secciones.map((s) => (
@@ -310,9 +310,9 @@ function FormularioPlato({
       )}
 
       <div>
-        <p className="text-sm text-[#6B7079] mb-2">Alérgenos (obligatorio marcar si aplica — Reglamento UE 1169/2011)</p>
+        <p className="text-sm text-niebla mb-2">Alérgenos (obligatorio marcar si aplica — Reglamento UE 1169/2011)</p>
         {plato?.esCombo ? (
-          <p className="rounded-lg bg-[#F7F5F2] px-3 py-2.5 text-sm text-[#3F434B]">Es un combo: sus alérgenos se calculan solos a partir de sus platos. Para cambiar lo que incluye, ve a <strong>Carta → Estudio → Combos</strong>.</p>
+          <p className="rounded-lg bg-crema px-3 py-2.5 text-sm text-grafito">Es un combo: sus alérgenos se calculan solos a partir de sus platos. Para cambiar lo que incluye, ve a <strong>Carta → Estudio → Combos</strong>.</p>
         ) : (
         <div className="flex flex-wrap gap-2">
           {CODIGOS_ALERGENOS.map((codigo) => (
@@ -322,8 +322,8 @@ function FormularioPlato({
               onClick={() => alternarAlergeno(codigo)}
               className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                 alergenos.includes(codigo)
-                  ? 'bg-[#6E0C2B] border-[#6E0C2B] text-white'
-                  : 'border-[#D6D6D1] text-[#6B7079] hover:border-[#D6D6D1]'
+                  ? 'bg-vino border-vino text-white'
+                  : 'border-linea-fuerte text-niebla hover:border-linea-fuerte'
               }`}
             >
               {ALERGENOS[codigo]}
@@ -334,12 +334,12 @@ function FormularioPlato({
       </div>
 
       {plato && (
-        <label className="flex items-center gap-2 text-sm text-[#6B7079] cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-niebla cursor-pointer">
           <input
             type="checkbox"
             checked={disponible}
             onChange={(e) => setDisponible(e.target.checked)}
-            className="w-4 h-4 accent-[#6E0C2B]"
+            className="w-4 h-4 accent-vino"
           />
           Disponible (desmarca para "agotado" sin borrar el plato)
         </label>
@@ -357,7 +357,7 @@ function FormularioPlato({
         <button
           onClick={guardar}
           disabled={pendiente}
-          className="ml-auto bg-[#6E0C2B] hover:bg-[#4A0819] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
+          className="ml-auto bg-vino hover:bg-vino-hondo text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors disabled:opacity-50"
         >
           {pendiente ? 'Guardando…' : 'Guardar'}
         </button>

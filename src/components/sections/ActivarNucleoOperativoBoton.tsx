@@ -66,7 +66,7 @@ export default function ActivarNucleoOperativoBoton({ className }: { className?:
               maxLength={80}
               value={restauranteNombre}
               onChange={(e) => setRestauranteNombre(e.target.value)}
-              className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#6E0C2B] outline-none"
+              className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:border-vino outline-none"
             />
           </div>
           <div>
@@ -77,7 +77,7 @@ export default function ActivarNucleoOperativoBoton({ className }: { className?:
               maxLength={80}
               value={nombreContacto}
               onChange={(e) => setNombreContacto(e.target.value)}
-              className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#6E0C2B] outline-none"
+              className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:border-vino outline-none"
             />
           </div>
           <div>
@@ -87,7 +87,7 @@ export default function ActivarNucleoOperativoBoton({ className }: { className?:
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:border-[#6E0C2B] outline-none"
+              className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:border-vino outline-none"
             />
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function ActivarNucleoOperativoBoton({ className }: { className?:
         <button
           type="submit"
           disabled={cargando}
-          className="mt-6 w-full bg-[#6E0C2B] text-white font-black py-3.5 rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50"
+          className="mt-6 w-full bg-vino text-white font-black py-3.5 rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50"
         >
           {cargando ? 'Abriendo pago…' : 'Continuar al pago'}
         </button>

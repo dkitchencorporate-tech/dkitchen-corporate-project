@@ -24,7 +24,7 @@ export default async function LegalNegocio({ params }: { params: Promise<{ slug:
   const p = 'mt-3 leading-relaxed text-black/70';
 
   return (
-    <main className="min-h-screen bg-[#F7F5F2] text-[#1B1D22]">
+    <main className="min-h-screen bg-crema text-carbon">
       <div className="mx-auto max-w-2xl px-5 py-12">
         <a href={`/m/${slug}`} className="text-sm text-black/50 hover:text-black">← Volver a la carta</a>
         <h1 className="mt-6 text-3xl font-semibold tracking-tight">Información legal de {d.nombre}</h1>

@@ -8,10 +8,10 @@ export const metadata = {
 
 export default function DataDeletion() {
   return (
-    <div className="min-h-screen bg-[#FDFCF8] text-zinc-900 font-sans p-8 md:p-24 selection:bg-[#6E0C2B] selection:text-white">
+    <div className="min-h-screen bg-[#FDFCF8] text-zinc-900 font-sans p-8 md:p-24 selection:bg-vino selection:text-white">
       <div className="max-w-3xl mx-auto">
         <header className="mb-16 border-b border-zinc-100 pb-8 text-center md:text-left">
-          <h1 className="text-sm font-black uppercase tracking-[0.3em] text-[#6E0C2B] mb-4">Soberanía de Datos</h1>
+          <h1 className="text-sm font-black uppercase tracking-[0.3em] text-vino mb-4">Soberanía de Datos</h1>
           <p className="text-4xl md:text-5xl font-black tracking-tighter">Eliminación de Datos</p>
           <p className="text-zinc-400 mt-4 font-medium">Protocolo de Purga Segura</p>
         </header>
@@ -29,11 +29,11 @@ export default function DataDeletion() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-white p-8 rounded-3xl border border-zinc-100">
               <h3 className="font-bold text-zinc-900 mb-2">Vía WhatsApp</h3>
-              <p className="text-sm">Escriba <span className="font-bold text-[#6E0C2B]">"ELIMINAR MIS DATOS"</span> al número oficial del establecimiento, o al WhatsApp de DKitchen. Revisamos la solicitud de forma manual y procedemos al borrado permanente de sus datos.</p>
+              <p className="text-sm">Escriba <span className="font-bold text-vino">"ELIMINAR MIS DATOS"</span> al número oficial del establecimiento, o al WhatsApp de DKitchen. Revisamos la solicitud de forma manual y procedemos al borrado permanente de sus datos.</p>
             </div>
             <div className="bg-white p-8 rounded-3xl border border-zinc-100">
               <h3 className="font-bold text-zinc-900 mb-2">Vía Email</h3>
-              <p className="text-sm">Envíe un correo a <span className="font-bold text-[#6E0C2B]">hola@dkitchencorporate.es</span> indicando su número de teléfono. La purga se completará en un plazo máximo de 48 horas.</p>
+              <p className="text-sm">Envíe un correo a <span className="font-bold text-vino">hola@dkitchencorporate.es</span> indicando su número de teléfono. La purga se completará en un plazo máximo de 48 horas.</p>
             </div>
           </div>
 

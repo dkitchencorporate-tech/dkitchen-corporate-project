@@ -57,14 +57,14 @@ export default function FAQ() {
           {faqs.map((faq, index) => (
             <div 
               key={index} 
-              className={`border-2 rounded-2xl overflow-hidden transition-all duration-300 ${openIndices.includes(index) ? 'border-[#6E0C2B] shadow-md bg-white' : 'border-gray-100 bg-white hover:border-gray-200'}`}
+              className={`border-2 rounded-2xl overflow-hidden transition-all duration-300 ${openIndices.includes(index) ? 'border-vino shadow-md bg-white' : 'border-gray-100 bg-white hover:border-gray-200'}`}
             >
               <button
                 className="w-full text-left px-6 py-5 sm:px-8 sm:py-6 flex justify-between items-center focus:outline-none"
                 onClick={() => toggleFAQ(index)}
               >
                 <span className="text-lg sm:text-xl font-bold text-gray-900 pr-8">{faq.question}</span>
-                <span className={`text-2xl text-[#6E0C2B] transform transition-transform duration-300 flex-shrink-0 ${openIndices.includes(index) ? 'rotate-45' : ''}`}>
+                <span className={`text-2xl text-vino transform transition-transform duration-300 flex-shrink-0 ${openIndices.includes(index) ? 'rotate-45' : ''}`}>
                   +
                 </span>
               </button>

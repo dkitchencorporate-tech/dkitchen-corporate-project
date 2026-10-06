@@ -28,8 +28,8 @@ export default function BarraReserva({ precio }: { precio: number }) {
   }, []);
 
   return (
-    <div aria-hidden={!visible} className={`fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#0A080C]/95 pl-4 pr-20 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 backdrop-blur transition-transform duration-300 md:hidden ${visible ? 'translate-y-0' : 'pointer-events-none translate-y-full'}`}>
-      <a href="#configurar" tabIndex={visible ? 0 : -1} className="flex min-h-12 items-center justify-center rounded-full bg-[#6E0C2B] px-6 text-sm font-semibold text-white">
+    <div aria-hidden={!visible} className={`fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-noche/95 pl-4 pr-20 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 backdrop-blur transition-transform duration-300 md:hidden ${visible ? 'translate-y-0' : 'pointer-events-none translate-y-full'}`}>
+      <a href="#configurar" tabIndex={visible ? 0 : -1} className="flex min-h-12 items-center justify-center rounded-full bg-vino px-6 text-sm font-semibold text-white">
         Configurar mi evento · desde {precio} € + IVA
       </a>
     </div>

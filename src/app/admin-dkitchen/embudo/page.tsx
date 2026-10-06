@@ -30,30 +30,30 @@ export default async function Embudo({ searchParams }: { searchParams: Promise<{
   const maxDia = Math.max(1, ...diario.map((d) => Number(d.visitas)));
 
   return (
-    <div className="space-y-8 px-4 py-6 text-[#1B1D22] sm:p-6 lg:p-10">
+    <div className="space-y-8 px-4 py-6 text-carbon sm:p-6 lg:p-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Embudo de pago</h1>
-          <p className="text-sm text-[#6B7079]">Páginas /pagar: quién entra, quién se va y quién paga. Anónimo, datos reales.</p>
+          <p className="text-sm text-niebla">Páginas /pagar: quién entra, quién se va y quién paga. Anónimo, datos reales.</p>
         </div>
-        <div className="flex gap-1 rounded-full bg-white p-1 ring-1 ring-[#E4E1DC]">
-          {RANGOS.map((r) => <Link key={r} href={`?dias=${r}`} className={`rounded-full px-4 py-1.5 text-sm font-semibold ${r === dias ? 'bg-[#17191E] text-white' : 'text-[#6B7079]'}`}>{r} días</Link>)}
+        <div className="flex gap-1 rounded-full bg-white p-1 ring-1 ring-linea-calida">
+          {RANGOS.map((r) => <Link key={r} href={`?dias=${r}`} className={`rounded-full px-4 py-1.5 text-sm font-semibold ${r === dias ? 'bg-tinta text-white' : 'text-niebla'}`}>{r} días</Link>)}
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[['Visitas a páginas de pago', tot.visitas], ['Fueron a pagar', tot.checkout], ['Pagos confirmados', tot.pagados], ['Ingresos por pago directo', `${tot.ingresos.toLocaleString('es-ES')} €`]].map(([t, v]) => (
-          <div key={t as string} className="rounded-2xl border border-[#E4E1DC] bg-white p-5"><p className="text-sm text-[#6B7079]">{t}</p><p className="font-display mt-2 text-4xl font-semibold tabular-nums">{v}</p></div>
+          <div key={t as string} className="rounded-2xl border border-linea-calida bg-white p-5"><p className="text-sm text-niebla">{t}</p><p className="font-display mt-2 text-4xl font-semibold tabular-nums">{v}</p></div>
         ))}
       </div>
 
-      <div className="rounded-2xl border border-[#E4E1DC] bg-white p-5">
-        <p className="text-sm text-[#6B7079]">Visitas por día · los puntos oro son pagos</p>
+      <div className="rounded-2xl border border-linea-calida bg-white p-5">
+        <p className="text-sm text-niebla">Visitas por día · los puntos oro son pagos</p>
         <div className="mt-4 flex h-36 items-end gap-[3px]">
           {diario.map((d) => (
             <div key={d.dia} title={`${d.dia}: ${d.visitas} visitas, ${d.pagados} pagos`} className="relative flex-1">
-              <div className="rounded-t bg-[#6E0C2B]/80" style={{ height: `${Math.max(2, (Number(d.visitas) / maxDia) * 130)}px` }} />
-              {Number(d.pagados) > 0 && <span className="absolute -top-3 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-[#D9B25C]" />}
+              <div className="rounded-t bg-vino/80" style={{ height: `${Math.max(2, (Number(d.visitas) / maxDia) * 130)}px` }} />
+              {Number(d.pagados) > 0 && <span className="absolute -top-3 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-oro" />}
             </div>
           ))}
         </div>
@@ -63,21 +63,21 @@ export default async function Embudo({ searchParams }: { searchParams: Promise<{
         {datos.map((d) => {
           const pasos: [string, number][] = [['Entran', d.visitas], ['Rellenan', d.interes], ['Van a pagar', d.checkout], ['Pagan', d.pagados]];
           return (
-            <div key={d.p.id} className="rounded-2xl border border-[#E4E1DC] bg-white p-5">
+            <div key={d.p.id} className="rounded-2xl border border-linea-calida bg-white p-5">
               <div className="flex items-baseline justify-between gap-2">
                 <p className="font-display text-xl font-semibold">{d.p.nombre}</p>
-                <a href={`/pagar/${d.p.id}`} target="_blank" className="text-xs text-[#6B7079] underline">ver página</a>
+                <a href={`/pagar/${d.p.id}`} target="_blank" className="text-xs text-niebla underline">ver página</a>
               </div>
-              <p className="text-sm text-[#6B7079]">{d.p.precio} € · conversión {pct(d.pagados, d.visitas)} %</p>
+              <p className="text-sm text-niebla">{d.p.precio} € · conversión {pct(d.pagados, d.visitas)} %</p>
               <div className="mt-5 space-y-3">
                 {pasos.map(([t, v]) => (
                   <div key={t}>
-                    <div className="flex justify-between text-sm"><span>{t}</span><span className="tabular-nums font-semibold">{v} <span className="font-normal text-[#9A9EA6]">· {pct(v, d.visitas)} %</span></span></div>
-                    <div className="mt-1 h-2 rounded-full bg-[#F1EEEA]"><div className="h-2 rounded-full bg-[#6E0C2B]" style={{ width: `${pct(v, d.visitas)}%` }} /></div>
+                    <div className="flex justify-between text-sm"><span>{t}</span><span className="tabular-nums font-semibold">{v} <span className="font-normal text-ceniza">· {pct(v, d.visitas)} %</span></span></div>
+                    <div className="mt-1 h-2 rounded-full bg-[#F1EEEA]"><div className="h-2 rounded-full bg-vino" style={{ width: `${pct(v, d.visitas)}%` }} /></div>
                   </div>
                 ))}
               </div>
-              <p className="mt-5 border-t border-[#E4E1DC] pt-4 text-sm text-[#6B7079]">Se fueron sin pagar: <strong className="text-[#1B1D22]">{d.salidas}</strong>{d.seg ? ` · tras ${d.seg} s de media` : ''}</p>
+              <p className="mt-5 border-t border-linea-calida pt-4 text-sm text-niebla">Se fueron sin pagar: <strong className="text-carbon">{d.salidas}</strong>{d.seg ? ` · tras ${d.seg} s de media` : ''}</p>
             </div>
           );
         })}

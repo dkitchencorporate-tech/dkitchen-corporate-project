@@ -65,40 +65,40 @@ export default function FiltroEscaneos({ demo = false }: { demo?: boolean }) {
   const mejor = (filas ?? []).reduce<Fila | null>((m, f) => (!m || f.total > m.total ? f : m), null);
 
   return (
-    <section className="rounded-2xl border border-[#E6E6E2] bg-white p-6">
+    <section className="rounded-2xl border border-linea bg-white p-6">
       <h3 className="text-lg font-semibold">Consultar otro periodo</h3>
       <div className="mt-3 flex flex-wrap gap-2">
         {PRESETS.map(([v, t]) => (
-          <button key={v} onClick={() => elegir(v)} aria-pressed={preset === v} className={`rounded-full border px-3.5 py-1.5 text-sm font-medium ${preset === v ? 'border-[#6E0C2B] bg-[#6E0C2B] text-white' : 'border-[#E6E6E2] bg-white'}`}>{t}</button>
+          <button key={v} onClick={() => elegir(v)} aria-pressed={preset === v} className={`rounded-full border px-3.5 py-1.5 text-sm font-medium ${preset === v ? 'border-vino bg-vino text-white' : 'border-linea bg-white'}`}>{t}</button>
         ))}
       </div>
       {preset === 'libre' && (
         <form className="mt-3 flex flex-wrap items-end gap-3" onSubmit={(e) => { e.preventDefault(); consultar(); }}>
-          <label className="text-xs text-[#6B7079]">Desde<input type="date" value={desde} max={hasta} onChange={(e) => setDesde(e.target.value)} className="mt-1 block rounded-xl border border-[#E6E6E2] px-3 py-2 text-sm" /></label>
-          <label className="text-xs text-[#6B7079]">Hasta<input type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} className="mt-1 block rounded-xl border border-[#E6E6E2] px-3 py-2 text-sm" /></label>
-          <label className="text-xs text-[#6B7079]">Ver por
-            <select value={agrupar} onChange={(e) => setAgrupar(e.target.value as 'day' | 'week' | 'month')} className="mt-1 block rounded-xl border border-[#E6E6E2] px-3 py-2 text-sm">
+          <label className="text-xs text-niebla">Desde<input type="date" value={desde} max={hasta} onChange={(e) => setDesde(e.target.value)} className="mt-1 block rounded-xl border border-linea px-3 py-2 text-sm" /></label>
+          <label className="text-xs text-niebla">Hasta<input type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} className="mt-1 block rounded-xl border border-linea px-3 py-2 text-sm" /></label>
+          <label className="text-xs text-niebla">Ver por
+            <select value={agrupar} onChange={(e) => setAgrupar(e.target.value as 'day' | 'week' | 'month')} className="mt-1 block rounded-xl border border-linea px-3 py-2 text-sm">
               <option value="day">Días</option><option value="week">Semanas</option><option value="month">Meses</option>
             </select>
           </label>
-          <button className="rounded-full bg-[#6E0C2B] px-5 py-2.5 text-sm font-semibold text-white">Ver</button>
+          <button className="rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white">Ver</button>
         </form>
       )}
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {pendiente && <p className="mt-4 text-sm text-[#6B7079]">Consultando…</p>}
+      {pendiente && <p className="mt-4 text-sm text-niebla">Consultando…</p>}
       {!pendiente && filas && (
         <div className="mt-5">
           <div className="flex flex-wrap gap-6">
-            <div><p className="text-xs text-[#6B7079]">Escaneos en el periodo</p><p className="font-display text-4xl font-semibold text-[#6E0C2B]">{total}</p></div>
-            {mejor && mejor.total > 0 && <div><p className="text-xs text-[#6B7079]">Mejor {agrupar === 'month' ? 'mes' : agrupar === 'week' ? 'semana' : 'día'}</p><p className="mt-2 text-sm font-semibold capitalize">{etiqueta(mejor.fecha, agrupar)} · {mejor.total}</p></div>}
+            <div><p className="text-xs text-niebla">Escaneos en el periodo</p><p className="font-display text-4xl font-semibold text-vino">{total}</p></div>
+            {mejor && mejor.total > 0 && <div><p className="text-xs text-niebla">Mejor {agrupar === 'month' ? 'mes' : agrupar === 'week' ? 'semana' : 'día'}</p><p className="mt-2 text-sm font-semibold capitalize">{etiqueta(mejor.fecha, agrupar)} · {mejor.total}</p></div>}
           </div>
-          {filas.length === 0 ? <p className="mt-4 text-sm text-[#6B7079]">No hubo escaneos en este periodo.</p> : (
+          {filas.length === 0 ? <p className="mt-4 text-sm text-niebla">No hubo escaneos en este periodo.</p> : (
             <ul className="mt-4 space-y-1.5">
               {filas.map((f) => (
                 <li key={f.fecha} className="grid grid-cols-[140px_1fr_40px] items-center gap-3 text-sm">
-                  <span className="capitalize text-[#3F434B]">{etiqueta(f.fecha, agrupar)}</span>
-                  <span className="h-2.5 rounded-full bg-[#F3EDE6]"><span className="block h-2.5 rounded-full bg-[#6E0C2B]" style={{ width: `${(f.total / maximo) * 100}%` }} /></span>
+                  <span className="capitalize text-grafito">{etiqueta(f.fecha, agrupar)}</span>
+                  <span className="h-2.5 rounded-full bg-[#F3EDE6]"><span className="block h-2.5 rounded-full bg-vino" style={{ width: `${(f.total / maximo) * 100}%` }} /></span>
                   <span className="text-right font-semibold tabular-nums">{f.total}</span>
                 </li>
               ))}

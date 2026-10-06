@@ -45,7 +45,7 @@ export default function DispositivoVivo({ ancho = 300 }: { ancho?: number }) {
         <motion.div animate={quieto ? undefined : { y: [0, -12, 0] }}
           transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }} style={{ transformStyle: 'preserve-3d' }}>
           <div className="relative rounded-[50px] p-[3px] shadow-[0_60px_120px_-20px_rgba(0,0,0,.7)] [background:linear-gradient(145deg,#6b707b,#1b1d22_35%,#0b0c0f_70%,#4a4e57)]">
-            <div className="rounded-[47px] bg-[#0B0C0F] p-[10px]">
+            <div className="rounded-[47px] bg-obsidiana p-[10px]">
               <div className="relative aspect-[9/19.5] overflow-hidden rounded-[38px] bg-black">
                 <AnimatePresence mode="popLayout">
                   <motion.div key={i} className="absolute inset-0 overflow-hidden" initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8, ease: CURVA }}>
@@ -65,7 +65,7 @@ export default function DispositivoVivo({ ancho = 300 }: { ancho?: number }) {
           animate={{ opacity: aviso === k ? 1 : 0.35, scale: aviso === k ? 1 : 0.94, y: [0, -8, 0] }}
           transition={{ opacity: { duration: 0.4 }, scale: { duration: 0.4 }, y: { duration: 5 + k, repeat: Infinity, ease: 'easeInOut' } }}
           style={{ rotate: a.r }}>
-          <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-[#1B1D22]/80 px-4 py-3 text-white shadow-2xl backdrop-blur-xl">
+          <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-carbon/80 px-4 py-3 text-white shadow-2xl backdrop-blur-xl">
             <span className="relative flex h-2.5 w-2.5"><span className="absolute inset-0 animate-ping rounded-full opacity-60" style={{ background: a.c }} /><span className="relative h-2.5 w-2.5 rounded-full" style={{ background: a.c }} /></span>
             <span><span className="block whitespace-nowrap text-sm font-semibold">{a.t}</span><span className="block whitespace-nowrap text-xs text-white/60">{a.d}</span></span>
           </div>
@@ -74,7 +74,7 @@ export default function DispositivoVivo({ ancho = 300 }: { ancho?: number }) {
       <div className="mt-10 flex justify-center sm:hidden">
         <AnimatePresence mode="wait">
           <motion.div key={aviso} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.35 }}
-            className="flex items-center gap-3 rounded-2xl border border-white/15 bg-[#1B1D22]/80 px-4 py-3 text-white backdrop-blur-xl">
+            className="flex items-center gap-3 rounded-2xl border border-white/15 bg-carbon/80 px-4 py-3 text-white backdrop-blur-xl">
             <span className="h-2.5 w-2.5 rounded-full" style={{ background: AVISOS[aviso].c }} />
             <span><span className="block text-sm font-semibold">{AVISOS[aviso].t}</span><span className="block text-xs text-white/60">{AVISOS[aviso].d}</span></span>
           </motion.div>

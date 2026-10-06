@@ -46,7 +46,7 @@ export function MovilCss() {
   }, []);
   return (
     <div className="mx-auto w-[270px] sm:w-[300px]" style={{ perspective: 1400 }}>
-      <div className="rounded-[48px] bg-[#17191E] p-3 shadow-[0_50px_120px_rgba(23,25,30,.45)] transition-transform duration-300 ease-out"
+      <div className="rounded-[48px] bg-tinta p-3 shadow-[0_50px_120px_rgba(23,25,30,.45)] transition-transform duration-300 ease-out"
         style={{ transform: `rotateX(${giro.x}deg) rotateY(${giro.y}deg)`, transformStyle: 'preserve-3d' }}>
         <div className="aspect-[9/19] overflow-hidden rounded-[38px]"><CartaMini e={ESTILO} desplazar /></div>
       </div>

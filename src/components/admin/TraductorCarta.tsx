@@ -38,33 +38,33 @@ export default function TraductorCarta({ restauranteId, activos, secciones, plat
     });
   }
 
-  const campo = 'w-full rounded-lg bg-white border border-[#E6E6E2] px-3 py-2 text-sm text-[#1B1D22] placeholder-[#9A9EA6]';
+  const campo = 'w-full rounded-lg bg-white border border-linea px-3 py-2 text-sm text-carbon placeholder-ceniza';
 
   return (
     <div className="space-y-6">
       <header>
         <h2 className="text-lg font-bold">Traducciones de la carta</h2>
-        <p className="text-sm text-[#6B7079]">Idiomas elegidos por el cliente: {activos.map((c) => DISPONIBLES[c]).join(', ') || 'ninguno todavía'}.</p>
+        <p className="text-sm text-niebla">Idiomas elegidos por el cliente: {activos.map((c) => DISPONIBLES[c]).join(', ') || 'ninguno todavía'}.</p>
         {aviso && <p className={`mt-2 text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</p>}
       </header>
 
       {activos.length > 0 && (
-        <section className="space-y-4 rounded-2xl border border-[#E6E6E2] bg-white p-5">
+        <section className="space-y-4 rounded-2xl border border-linea bg-white p-5">
           <div className="flex flex-wrap items-center gap-2">
             {activos.map((c) => (
-              <button key={c} onClick={() => setIdioma(c)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${idioma === c ? 'bg-[#6E0C2B]' : 'bg-[#EDEDEA]'}`}>{DISPONIBLES[c]}</button>
+              <button key={c} onClick={() => setIdioma(c)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${idioma === c ? 'bg-vino' : 'bg-papel'}`}>{DISPONIBLES[c]}</button>
             ))}
-            <span className="ml-auto text-xs text-[#6B7079]">{pendientes > 0 ? `${pendientes} platos sin traducir` : '✓ Todo traducido'}</span>
+            <span className="ml-auto text-xs text-niebla">{pendientes > 0 ? `${pendientes} platos sin traducir` : '✓ Todo traducido'}</span>
           </div>
           {secciones.map((s) => (
             <div key={s.id} className="space-y-3">
               <div className="grid gap-2 sm:grid-cols-2">
-                <p className="self-center text-sm font-bold text-[#3F434B]">{s.nombre}</p>
+                <p className="self-center text-sm font-bold text-grafito">{s.nombre}</p>
                 <input value={val(s.id, 'nombre')} onChange={(e) => poner(s.id, 'nombre', e.target.value)} placeholder={`«${s.nombre}» en ${DISPONIBLES[idioma]}`} className={campo} />
               </div>
               {platos.filter((p) => p.seccionId === s.id).map((p) => (
                 <div key={p.id} className="grid gap-2 rounded-xl bg-white p-3 sm:grid-cols-2">
-                  <div className="text-sm"><p className="font-medium">{p.nombre}</p>{p.descripcion && <p className="text-xs text-[#6B7079]">{p.descripcion}</p>}</div>
+                  <div className="text-sm"><p className="font-medium">{p.nombre}</p>{p.descripcion && <p className="text-xs text-niebla">{p.descripcion}</p>}</div>
                   <div className="space-y-2">
                     <input value={val(p.id, 'nombre')} onChange={(e) => poner(p.id, 'nombre', e.target.value)} placeholder="Nombre traducido" className={campo} />
                     {p.descripcion && <textarea value={val(p.id, 'descripcion')} onChange={(e) => poner(p.id, 'descripcion', e.target.value)} rows={2} placeholder="Descripción traducida" className={campo} />}
@@ -73,7 +73,7 @@ export default function TraductorCarta({ restauranteId, activos, secciones, plat
               ))}
             </div>
           ))}
-          <button disabled={pendiente} onClick={guardarTraducciones} className="rounded-full bg-[#6E0C2B] px-5 py-2.5 text-sm font-bold disabled:opacity-50">
+          <button disabled={pendiente} onClick={guardarTraducciones} className="rounded-full bg-vino px-5 py-2.5 text-sm font-bold disabled:opacity-50">
             {pendiente ? 'Guardando…' : 'Guardar traducciones'}
           </button>
         </section>

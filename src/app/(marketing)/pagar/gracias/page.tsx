@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: 'Pago recibido · DKitchen', robots: 
 export default async function Gracias({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
   const p = PRODUCTOS_PAGO[String((await searchParams).p ?? '')];
   return (
-    <section className="relative min-h-[100svh] overflow-hidden bg-[#0A080C] px-6 pb-20 pt-36 text-white md:pt-44">
+    <section className="relative min-h-[100svh] overflow-hidden bg-noche px-6 pb-20 pt-36 text-white md:pt-44">
       <FondoVivo />
       <div className="relative mx-auto max-w-2xl text-center">
         <p className="acento-serif text-6xl md:text-7xl">Gracias.</p>

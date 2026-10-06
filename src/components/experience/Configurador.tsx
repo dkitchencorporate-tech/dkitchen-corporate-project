@@ -51,12 +51,12 @@ export default function Configurador({ codigo, nombre, aforo, entrada, precio, p
     window.location.href = `/pagar/experience?modelo=${encodeURIComponent(`${codigo} ${fecha} ${plazas}p`)}`;
   };
 
-  const campo = 'mt-1.5 w-full rounded-xl border border-[#8B8F97] bg-white px-4 py-3 text-[15px] text-[#17191E] outline-none focus-visible:border-[#6E0C2B] focus-visible:ring-2 focus-visible:ring-[#6E0C2B]/60';
-  const deslizador = 'mt-2 h-11 w-full cursor-pointer accent-[#6E0C2B]';
-  const ayuda = 'mt-1 block text-xs font-normal text-[#5C616A]';
+  const campo = 'mt-1.5 w-full rounded-xl border border-acero bg-white px-4 py-3 text-[15px] text-tinta outline-none focus-visible:border-vino focus-visible:ring-2 focus-visible:ring-vino/60';
+  const deslizador = 'mt-2 h-11 w-full cursor-pointer accent-vino';
+  const ayuda = 'mt-1 block text-xs font-normal text-pizarra';
 
   return (
-    <div className="grid gap-8 rounded-[28px] border border-[#E4E1DC] bg-white p-5 shadow-[0_30px_80px_-40px_rgba(62,5,21,.45)] md:grid-cols-2 md:p-10">
+    <div className="grid gap-8 rounded-[28px] border border-linea-calida bg-white p-5 shadow-[0_30px_80px_-40px_rgba(62,5,21,.45)] md:grid-cols-2 md:p-10">
       <div className="space-y-5">
         <label className="block text-sm font-semibold">Tu tipo de cocina
           <select value={cocina} onChange={(e) => setCocina(e.target.value)} className={campo}>
@@ -84,9 +84,9 @@ export default function Configurador({ codigo, nombre, aforo, entrada, precio, p
         </div>
       </div>
 
-      <div className="flex flex-col justify-between rounded-[22px] bg-[#0A080C] p-5 text-white md:p-8">
+      <div className="flex flex-col justify-between rounded-[22px] bg-noche p-5 text-white md:p-8">
         <div role="status" aria-live="polite">
-          <p className="etiqueta-dk text-[#D9B25C]">Tu evento</p>
+          <p className="etiqueta-dk text-oro">Tu evento</p>
           <p className="font-display mt-2 text-3xl font-semibold">{nombre}</p>
           <p className="mt-1 text-white/70">{cocina} · {fechaValida ? new Date(`${fecha}T12:00:00`).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) : 'elige una fecha válida'}</p>
           <dl className="mt-6 space-y-3 border-t border-white/10 pt-5 text-sm">
@@ -96,7 +96,7 @@ export default function Configurador({ codigo, nombre, aforo, entrada, precio, p
           </dl>
           <p className="mt-3 text-xs leading-relaxed text-white/60">Con la carta QR de DKitchen, tu primer evento cuesta {precioClienteQr} € + IVA. La taquilla es una estimación: depende de las entradas que vendas y la cobras con tu propia pasarela. Los anuncios los pagas tú directamente a Meta o Google.</p>
         </div>
-        <button type="button" onClick={continuar} disabled={!fechaValida} className="mt-8 min-h-12 rounded-full bg-[#6E0C2B] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#4A0819] disabled:opacity-40">
+        <button type="button" onClick={continuar} disabled={!fechaValida} className="mt-8 min-h-12 rounded-full bg-vino px-6 py-4 text-sm font-semibold text-white transition hover:bg-vino-hondo disabled:opacity-40">
           Reservar este evento →
         </button>
       </div>

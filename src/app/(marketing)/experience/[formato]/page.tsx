@@ -81,7 +81,7 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
   const pieTarjeta = <p className="text-sm text-white/70">0 % de comisión de DKitchen · la taquilla va directa a tu cuenta</p>;
 
   return (
-    <div className="bg-white text-[#17191E]">
+    <div className="bg-white text-tinta">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <HeroPagina etiqueta={`DKitchen Experience · ${f.etiqueta}`}
         titulo={f.titular}
@@ -89,7 +89,7 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
         ctas={[{ href: '#configurar', t: 'Configurar mi evento' }, { href: '#como-funciona', t: 'Cómo funciona', secundario: true }]}
         nota={`${f.dias} · ${f.aforo[0]}–${f.aforo[1]} personas · listo en unas 3 semanas`}
         visual={
-          <TarjetaTilt className="relative mx-auto min-h-[320px] w-full max-w-[380px] overflow-hidden rounded-[28px] bg-[#3E0515] text-white shadow-[0_40px_90px_-30px_rgba(62,5,21,.7)] md:aspect-[4/5] md:min-h-0">
+          <TarjetaTilt className="relative mx-auto min-h-[320px] w-full max-w-[380px] overflow-hidden rounded-[28px] bg-vino-fondo text-white shadow-[0_40px_90px_-30px_rgba(62,5,21,.7)] md:aspect-[4/5] md:min-h-0">
             {f.imagen ? (
               <figure className="absolute inset-0 m-0">
                 <Image src={rutaImagen(f.slug, '4x5')} alt={f.imagen.alt} fill priority sizes="(min-width: 768px) 380px, 100vw" className="object-cover object-[50%_40%]" />
@@ -105,7 +105,7 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
                 <div aria-hidden="true" className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.7),transparent)]" />
                 <div aria-hidden="true" className="absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(217,178,92,.35),transparent)]" />
                 <div className="relative flex h-full min-h-[320px] flex-col justify-between gap-8 p-6 md:min-h-0 md:p-8">
-                  <p className="etiqueta-dk text-[#D9B25C]">Formato listo</p>
+                  <p className="etiqueta-dk text-oro">Formato listo</p>
                   <div>
                     <p className="font-display text-3xl font-semibold leading-tight md:text-4xl">{f.nombre}</p>
                     <p className="acento-serif mt-3 text-xl text-white/85 md:text-2xl">{f.frase}</p>
@@ -117,7 +117,7 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
           </TarjetaTilt>
         } />
 
-      <section className="bg-[#F7F5F2] py-16 md:py-32">
+      <section className="bg-crema py-16 md:py-32">
         <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-2 md:px-8">
           <div>
             <Titulo etiqueta="Para quién" texto="Encaja si tu local es así." />
@@ -130,9 +130,9 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               {f.ejemplos.map(([cocina, idea], i) => (
                 <Aparecer key={cocina} retraso={i * 0.06} className="h-full">
-                  <TarjetaTilt className="h-full rounded-[20px] border border-[#E4E1DC] bg-white p-5">
-                    <p className="etiqueta-dk text-[#6E0C2B]">{cocina}</p>
-                    <p className="mt-2 text-base text-[#3F434B]">{idea}</p>
+                  <TarjetaTilt className="h-full rounded-[20px] border border-linea-calida bg-white p-5">
+                    <p className="etiqueta-dk text-vino">{cocina}</p>
+                    <p className="mt-2 text-base text-grafito">{idea}</p>
                   </TarjetaTilt>
                 </Aparecer>
               ))}
@@ -147,25 +147,25 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
           <div className="mt-12">
             <Configurador codigo={f.codigo} nombre={f.nombre} aforo={f.aforo} entrada={f.entrada} precio={primeraVez.precio} precioClienteQr={primeraParaClienteQr.precio} />
           </div>
-          <p className="mt-6 text-sm text-[#5C616A]">Siguientes eventos: {nuevoEvento.precio} € con un formato nuevo, {reuso.precio} € repitiendo el mismo y {reusoFidelizado.precio} € a partir del tercero. Todo + IVA. <Link href="/experience#precios" className="underline">Ver todas las tarifas</Link></p>
+          <p className="mt-6 text-sm text-pizarra">Siguientes eventos: {nuevoEvento.precio} € con un formato nuevo, {reuso.precio} € repitiendo el mismo y {reusoFidelizado.precio} € a partir del tercero. Todo + IVA. <Link href="/experience#precios" className="underline">Ver todas las tarifas</Link></p>
         </div>
       </section>
 
-      <section id="como-funciona" className="scroll-mt-20 bg-[#0A080C] py-16 text-white md:py-32">
+      <section id="como-funciona" className="scroll-mt-20 bg-noche py-16 text-white md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Titulo oscuro etiqueta="Qué incluye y cuándo" texto="Del pago al evento, en unas 3 semanas." />
           <div className="mt-14 grid gap-12 md:grid-cols-[1fr_1.2fr]">
             <div className="space-y-10">
               <div>
-                <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-[#D9B25C]">Lo propio de este formato</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-oro">Lo propio de este formato</h3>
                 <ul className="mt-4 space-y-3">
-                  {f.claves.map((x) => <li key={x} className="flex gap-3 text-lg"><span aria-hidden="true" className="text-[#D9B25C]">✓</span><span>{x}</span></li>)}
+                  {f.claves.map((x) => <li key={x} className="flex gap-3 text-lg"><span aria-hidden="true" className="text-oro">✓</span><span>{x}</span></li>)}
                 </ul>
               </div>
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/60">Siempre incluido</h3>
                 <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {SIEMPRE_INCLUIDO.map((x) => <li key={x} className="flex gap-3 text-[15px] text-white/75"><span aria-hidden="true" className="text-[#D9B25C]">✓</span><span>{x}</span></li>)}
+                  {SIEMPRE_INCLUIDO.map((x) => <li key={x} className="flex gap-3 text-[15px] text-white/75"><span aria-hidden="true" className="text-oro">✓</span><span>{x}</span></li>)}
                 </ul>
               </div>
             </div>
@@ -173,7 +173,7 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
               {CALENDARIO.map(([cuando, que], i) => (
                 <li key={cuando} className="relative grid grid-cols-[40px_1fr] gap-4 pb-7 last:pb-0">
                   {i < CALENDARIO.length - 1 && <span aria-hidden="true" className="absolute left-[15px] top-8 h-[calc(100%-2rem)] w-px bg-white/15" />}
-                  <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-[#6E0C2B] text-sm font-semibold">{i + 1}</span>
+                  <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-vino text-sm font-semibold">{i + 1}</span>
                   <div><p className="font-semibold">{cuando}</p><p className="mt-1 text-white/70">{que}</p></div>
                 </li>
               ))}
@@ -187,30 +187,30 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
           <Titulo etiqueta="Condiciones claras" texto="Las reglas, antes de pagar." />
           <ol className="mt-10 grid md:grid-cols-2 md:gap-x-14">
             {REGLAS.map((r, i) => (
-              <li key={r} className="grid grid-cols-[56px_1fr] gap-4 border-t border-[#D9D3CB] py-6">
+              <li key={r} className="grid grid-cols-[56px_1fr] gap-4 border-t border-linea-cava py-6">
                 <span aria-hidden="true" className="acento-serif text-4xl leading-none">{i + 1}</span>
-                <p className="text-base leading-relaxed text-[#3F434B]">{r}</p>
+                <p className="text-base leading-relaxed text-grafito">{r}</p>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      <Faq fondo="bg-[#F7F5F2]" preguntas={[
+      <Faq fondo="bg-crema" preguntas={[
         ...f.faq,
         ['¿Cómo se cobran las entradas?', 'Con tu propia pasarela de cobro, la que ya uses o la que elijas. La conectamos a la web de entradas y el dinero va directo a tu cuenta.'],
         ['¿Qué pasa después de pagar?', 'Rellenas un cuestionario corto sobre el evento y te contactamos en menos de 48 horas laborables para la videollamada de arranque.'],
       ]} />
 
-      <section className="border-t border-[#E4E1DC] bg-white py-16 md:py-20">
+      <section className="border-t border-linea-calida bg-white py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <p className="etiqueta-dk text-[#6E0C2B]">Otros formatos</p>
+          <p className="etiqueta-dk text-vino">Otros formatos</p>
           <ul className="mt-6 flex flex-wrap gap-2">
             {otros.map((o) => (
               <li key={o.slug}>
-                <Link href={`/experience/${o.slug}`} className="inline-flex min-h-11 flex-col justify-center rounded-2xl border border-[#E4E1DC] bg-white px-5 py-2.5 transition hover:border-[#6E0C2B]">
+                <Link href={`/experience/${o.slug}`} className="inline-flex min-h-11 flex-col justify-center rounded-2xl border border-linea-calida bg-white px-5 py-2.5 transition hover:border-vino">
                   <span className="text-sm font-semibold">{o.nombre}</span>
-                  <span className="text-xs text-[#5C616A]">{o.etiqueta}</span>
+                  <span className="text-xs text-pizarra">{o.etiqueta}</span>
                 </Link>
               </li>
             ))}

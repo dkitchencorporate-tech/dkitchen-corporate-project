@@ -27,25 +27,25 @@ function Papel() {
           </div>
         ))}
       </div>
-      <p className="absolute bottom-6 left-7 right-7 text-center text-[11px] text-[#9A9EA6]">Versión 7 · reimpresa el martes · 45 €</p>
+      <p className="absolute bottom-6 left-7 right-7 text-center text-[11px] text-ceniza">Versión 7 · reimpresa el martes · 45 €</p>
     </div>
   );
 }
 
 function Digital() {
   return (
-    <div className="h-[400px] w-[290px] rounded-[40px] bg-[#17191E] p-2.5 shadow-[0_40px_90px_rgba(23,25,30,.3)]">
+    <div className="h-[400px] w-[290px] rounded-[40px] bg-tinta p-2.5 shadow-[0_40px_90px_rgba(23,25,30,.3)]">
       <div className="flex h-full flex-col rounded-[32px] bg-white p-5">
-        <div className="flex items-center justify-between text-xs text-[#6B7079]"><span>Mi carta</span><span className="rounded-full bg-[#2F8F6B]/10 px-2 py-0.5 text-[#2F8F6B]">Publicada</span></div>
+        <div className="flex items-center justify-between text-xs text-niebla"><span>Mi carta</span><span className="rounded-full bg-exito/10 px-2 py-0.5 text-exito">Publicada</span></div>
         <div className="mt-4 space-y-2.5">
           {PLATOS.map(([n, , nuevo]) => (
-            <div key={n} className="flex items-center justify-between rounded-xl border border-[#E6E6E2] px-3 py-2.5 text-sm">
-              <span className="text-[#1B1D22]">{n}</span>
-              <span className="rounded-lg bg-[#F7F5F2] px-2 py-1 font-semibold tabular-nums text-[#17191E]">{nuevo} €</span>
+            <div key={n} className="flex items-center justify-between rounded-xl border border-linea px-3 py-2.5 text-sm">
+              <span className="text-carbon">{n}</span>
+              <span className="rounded-lg bg-crema px-2 py-1 font-semibold tabular-nums text-tinta">{nuevo} €</span>
             </div>
           ))}
         </div>
-        <div className="mt-auto rounded-xl bg-[#6E0C2B] py-3 text-center text-sm font-semibold text-white">Guardado · ya está en las mesas</div>
+        <div className="mt-auto rounded-xl bg-vino py-3 text-center text-sm font-semibold text-white">Guardado · ya está en las mesas</div>
       </div>
     </div>
   );
@@ -65,17 +65,17 @@ export default function ProblemaQr() {
   return (
     <>
       {/* Escritorio: fijado, dos estados claros */}
-      <section ref={ref} className="relative hidden h-[190vh] bg-[#F7F5F2] md:block">
+      <section ref={ref} className="relative hidden h-[190vh] bg-crema md:block">
         <div className="sticky top-0 flex h-screen items-center">
           <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-8 md:grid-cols-2">
             <AnimatePresence mode="wait">
               <motion.div key={fase} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.45, ease: CURVA }}>
                 <p className="text-xs font-semibold uppercase tracking-[0.28em]" style={{ color: TEXTOS[fase].color }}>{TEXTOS[fase].eti}</p>
-                <h2 className="font-display mt-4 text-6xl font-semibold leading-[1.02] text-[#17191E]">{TEXTOS[fase].t}</h2>
-                <p className="mt-5 max-w-md text-lg text-[#6B7079]">{TEXTOS[fase].d}</p>
-                <div className="mt-8 flex items-center gap-3 text-sm text-[#9A9EA6]">
-                  <span className={`h-1.5 w-8 rounded-full ${fase === 0 ? 'bg-[#6E0C2B]' : 'bg-[#D6D6D1]'}`} />
-                  <span className={`h-1.5 w-8 rounded-full ${fase === 1 ? 'bg-[#2F8F6B]' : 'bg-[#D6D6D1]'}`} />
+                <h2 className="font-display mt-4 text-6xl font-semibold leading-[1.02] text-tinta">{TEXTOS[fase].t}</h2>
+                <p className="mt-5 max-w-md text-lg text-niebla">{TEXTOS[fase].d}</p>
+                <div className="mt-8 flex items-center gap-3 text-sm text-ceniza">
+                  <span className={`h-1.5 w-8 rounded-full ${fase === 0 ? 'bg-vino' : 'bg-linea-fuerte'}`} />
+                  <span className={`h-1.5 w-8 rounded-full ${fase === 1 ? 'bg-exito' : 'bg-linea-fuerte'}`} />
                   <span>{fase === 0 ? 'Sigue bajando' : ''}</span>
                 </div>
               </motion.div>
@@ -92,12 +92,12 @@ export default function ProblemaQr() {
       </section>
 
       {/* Móvil: antes y después, sin fijar el scroll */}
-      <section className="bg-[#F7F5F2] px-6 py-20 md:hidden">
+      <section className="bg-crema px-6 py-20 md:hidden">
         {TEXTOS.map((x, i) => (
           <div key={x.eti} className={i ? 'mt-20' : ''}>
             <p className="text-xs font-semibold uppercase tracking-[0.28em]" style={{ color: x.color }}>{x.eti}</p>
-            <h2 className="font-display mt-3 text-4xl font-semibold leading-[1.05] text-[#17191E]">{x.t}</h2>
-            <p className="mt-4 text-[#6B7079]">{x.d}</p>
+            <h2 className="font-display mt-3 text-4xl font-semibold leading-[1.05] text-tinta">{x.t}</h2>
+            <p className="mt-4 text-niebla">{x.d}</p>
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.6, ease: CURVA }} className="mt-10 flex justify-center">
               {i === 0 ? <Papel /> : <Digital />}
             </motion.div>

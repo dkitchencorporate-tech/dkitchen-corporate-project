@@ -80,13 +80,13 @@ function Tabla({ titulo, sub, filas }: { titulo: string; sub: string; filas: Lin
   return (
     <Aparecer>
       <h3 className="font-display text-2xl font-semibold">{titulo}</h3>
-      <p className="mt-1 text-sm text-[#6B7079]">{sub}</p>
+      <p className="mt-1 text-sm text-niebla">{sub}</p>
       <ul className="mt-6 divide-y divide-[#E4DFD8] border-y border-[#E4DFD8]">
         {filas.map((f) => (
           <li key={f.nombre} className="grid grid-cols-[1fr_auto] items-baseline gap-4 py-4">
-            <div><p className="font-semibold">{f.nombre}</p><p className="mt-0.5 text-sm text-[#6B7079]">{f.detalle}</p></div>
+            <div><p className="font-semibold">{f.nombre}</p><p className="mt-0.5 text-sm text-niebla">{f.detalle}</p></div>
             <p className="text-right font-semibold whitespace-nowrap">
-              {f.ancla && <span className="mr-2 text-sm font-normal text-[#9A9EA6] line-through">{f.ancla}</span>}
+              {f.ancla && <span className="mr-2 text-sm font-normal text-ceniza line-through">{f.ancla}</span>}
               {f.precio}
             </p>
           </li>
@@ -118,17 +118,17 @@ export default function PaginaPrecios() {
   ];
 
   return (
-    <div className="bg-white text-[#17191E]">
+    <div className="bg-white text-tinta">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
 
-      <section className="relative overflow-hidden bg-[#0A080C] pb-20 pt-36 text-white md:pb-28 md:pt-44">
+      <section className="relative overflow-hidden bg-noche pb-20 pt-36 text-white md:pb-28 md:pt-44">
         <FondoVivo />
         <div className="relative mx-auto max-w-6xl px-6 md:px-8">
-          <Aparecer><p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/80"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#6E0C2B]" /> Precios · todo + IVA</p></Aparecer>
+          <Aparecer><p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/80"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-vino" /> Precios · todo + IVA</p></Aparecer>
           <TextoRevelado como="h1" texto="Precios claros. Cero comisiones." className="font-display mt-6 max-w-4xl text-[46px] font-semibold leading-[0.98] sm:text-7xl lg:text-[84px]" />
           <Aparecer retraso={0.3}><p className="mt-7 max-w-2xl text-lg leading-relaxed text-white/70">Lo que cuesta cada cosa, sin letra pequeña. Empieza con la carta QR por {eur(QR_MENU.primerMes)} el primer mes y suma solo lo que tu sala necesite.</p></Aparecer>
           <Aparecer retraso={0.4} className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <BotonMagnetico href="/qr#planes" className="inline-flex items-center justify-center rounded-full bg-[#6E0C2B] px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(163,24,74,.45)]">Empezar por {eur(QR_MENU.primerMes)} →</BotonMagnetico>
+            <BotonMagnetico href="/qr#planes" className="inline-flex items-center justify-center rounded-full bg-vino px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(163,24,74,.45)]">Empezar por {eur(QR_MENU.primerMes)} →</BotonMagnetico>
             <BotonMagnetico href="#signature" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-8 py-4 text-[15px] font-semibold">Ver tu app propia</BotonMagnetico>
           </Aparecer>
         </div>
@@ -137,7 +137,7 @@ export default function PaginaPrecios() {
       <div className="border-b border-[#E4DFD8] bg-white">
         <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-6 py-4 md:px-8">
           {[['carta-qr', '01 Carta QR'], ['modulos', '02 Módulos y extras'], ['signature', '03 Signature'], ['experience', '04 Experience'], ['auditoria', '05 Auditoría'], ['dark-kitchen', '06 Dark Kitchen']].map(([id, t]) => (
-            <a key={id} href={`#${id}`} className="shrink-0 rounded-full border border-[#E4DFD8] px-4 py-2 text-sm font-semibold hover:border-[#6E0C2B]">{t}</a>
+            <a key={id} href={`#${id}`} className="shrink-0 rounded-full border border-[#E4DFD8] px-4 py-2 text-sm font-semibold hover:border-vino">{t}</a>
           ))}
         </div>
       </div>
@@ -148,21 +148,21 @@ export default function PaginaPrecios() {
           <div className="mt-14 grid gap-5 md:grid-cols-2">
             {QR_PLANES.map((p, i) => (
               <Aparecer key={p.id} retraso={i * 0.08}>
-                <div className={`relative h-full overflow-hidden rounded-[28px] border p-8 md:p-10 ${p.destacado ? 'border-[#17191E] bg-[#0A080C] text-white' : 'border-[#E4DFD8] bg-white'}`}>
+                <div className={`relative h-full overflow-hidden rounded-[28px] border p-8 md:p-10 ${p.destacado ? 'border-tinta bg-noche text-white' : 'border-[#E4DFD8] bg-white'}`}>
                   {p.destacado && <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.45),transparent)]" />}
-                  <p className="relative etiqueta-dk text-[#6E0C2B]">Plan {p.nombre}</p>
-                  <p className="relative font-display mt-4 text-6xl font-semibold">{eur(p.mensual)}<span className={`ml-1 font-sans text-base font-normal ${p.destacado ? 'text-white/60' : 'text-[#6B7079]'}`}>/mes + IVA</span></p>
-                  <ul className={`relative mt-7 space-y-3 ${p.destacado ? 'text-white/75' : 'text-[#3F434B]'}`}>
-                    {p.puntos.map((x) => <li key={x} className="flex gap-3"><span aria-hidden="true" className="text-[#6E0C2B]">✓</span>{x}</li>)}
+                  <p className="relative etiqueta-dk text-vino">Plan {p.nombre}</p>
+                  <p className="relative font-display mt-4 text-6xl font-semibold">{eur(p.mensual)}<span className={`ml-1 font-sans text-base font-normal ${p.destacado ? 'text-white/60' : 'text-niebla'}`}>/mes + IVA</span></p>
+                  <ul className={`relative mt-7 space-y-3 ${p.destacado ? 'text-white/75' : 'text-grafito'}`}>
+                    {p.puntos.map((x) => <li key={x} className="flex gap-3"><span aria-hidden="true" className="text-vino">✓</span>{x}</li>)}
                   </ul>
-                  <Link href="/qr#planes" className={`relative mt-9 inline-flex rounded-full px-7 py-3.5 text-[15px] font-semibold ${p.destacado ? 'bg-[#6E0C2B] text-white' : 'bg-[#17191E] text-white'}`}>Empezar con {p.nombre} por {eur(QR_MENU.primerMes)} →</Link>
+                  <Link href="/qr#planes" className={`relative mt-9 inline-flex rounded-full px-7 py-3.5 text-[15px] font-semibold ${p.destacado ? 'bg-vino text-white' : 'bg-tinta text-white'}`}>Empezar con {p.nombre} por {eur(QR_MENU.primerMes)} →</Link>
                 </div>
               </Aparecer>
             ))}
           </div>
 
           <div id="modulos" className="scroll-mt-20 mt-24 border-t border-[#E4DFD8] pt-16">
-            <p className="etiqueta-dk text-[#6E0C2B]">02 · Módulos y extras de la carta QR</p>
+            <p className="etiqueta-dk text-vino">02 · Módulos y extras de la carta QR</p>
             <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl">Suma solo lo que tu sala necesita.</h2>
           </div>
           <div className="mt-12 grid gap-14 md:grid-cols-2">
@@ -173,24 +173,24 @@ export default function PaginaPrecios() {
       </section>
 
       {OTROS.map((o) => (
-        <section key={o.id} id={o.id} className={`scroll-mt-20 py-24 md:py-32 ${o.oscuro ? 'bg-[#0A080C] text-white' : 'border-t border-[#E4DFD8] bg-white'}`}>
+        <section key={o.id} id={o.id} className={`scroll-mt-20 py-24 md:py-32 ${o.oscuro ? 'bg-noche text-white' : 'border-t border-[#E4DFD8] bg-white'}`}>
           <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-[1.1fr_1fr] md:px-8">
             <Aparecer>
-              <p className="etiqueta-dk text-[#6E0C2B]">{o.n} · {o.t}</p>
+              <p className="etiqueta-dk text-vino">{o.n} · {o.t}</p>
               <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl">{o.lema}</h2>
-              <p className={`mt-5 text-lg ${o.oscuro ? 'text-white/65' : 'text-[#6B7079]'}`}>{o.d}</p>
-              <ul className={`mt-7 space-y-3 ${o.oscuro ? 'text-white/80' : 'text-[#3F434B]'}`}>
-                {o.incluye.map((x) => <li key={x} className="flex gap-3"><span aria-hidden="true" className="text-[#6E0C2B]">✓</span>{x}</li>)}
+              <p className={`mt-5 text-lg ${o.oscuro ? 'text-white/65' : 'text-niebla'}`}>{o.d}</p>
+              <ul className={`mt-7 space-y-3 ${o.oscuro ? 'text-white/80' : 'text-grafito'}`}>
+                {o.incluye.map((x) => <li key={x} className="flex gap-3"><span aria-hidden="true" className="text-vino">✓</span>{x}</li>)}
               </ul>
-              <Link href={o.ver} className="mt-7 inline-block text-sm font-semibold underline decoration-[#6E0C2B] decoration-2 underline-offset-4">Ver {o.t} en detalle</Link>
+              <Link href={o.ver} className="mt-7 inline-block text-sm font-semibold underline decoration-vino decoration-2 underline-offset-4">Ver {o.t} en detalle</Link>
             </Aparecer>
             <Aparecer retraso={0.1}>
               <div className={`rounded-[28px] p-8 md:p-10 ${o.oscuro ? 'border border-white/10 bg-white/5' : 'bg-[#F6F3EE]'}`}>
                 <p className="font-display text-5xl font-semibold">
-                  {o.ancla && <span className={`mr-3 font-sans text-xl font-normal line-through ${o.oscuro ? 'text-white/40' : 'text-[#9A9EA6]'}`}>{o.ancla}</span>}
+                  {o.ancla && <span className={`mr-3 font-sans text-xl font-normal line-through ${o.oscuro ? 'text-white/40' : 'text-ceniza'}`}>{o.ancla}</span>}
                   {o.p}
                 </p>
-                <p className={`mt-2 text-sm ${o.oscuro ? 'text-white/60' : 'text-[#6B7079]'}`}>{o.unidad} · {o.nota} · + IVA</p>
+                <p className={`mt-2 text-sm ${o.oscuro ? 'text-white/60' : 'text-niebla'}`}>{o.unidad} · {o.nota} · + IVA</p>
                 {o.tabla && (
                   <div className="mt-7">
                     <p className="text-sm font-semibold">Cuota mensual según tus ventas por la app</p>
@@ -205,7 +205,7 @@ export default function PaginaPrecios() {
                     <p className="mt-3 text-xs text-white/50">Solo sube tras 2 meses seguidos por encima de tu tramo y con 30 días de aviso; baja sola si tus ventas bajan.</p>
                   </div>
                 )}
-                <Link href={o.cta.href} className="mt-8 inline-flex rounded-full bg-[#6E0C2B] px-7 py-3.5 text-[15px] font-semibold text-white">{o.cta.t} →</Link>
+                <Link href={o.cta.href} className="mt-8 inline-flex rounded-full bg-vino px-7 py-3.5 text-[15px] font-semibold text-white">{o.cta.t} →</Link>
               </div>
             </Aparecer>
           </div>
@@ -218,12 +218,12 @@ export default function PaginaPrecios() {
           <div className="mt-12 divide-y divide-[#E4DFD8] border-y border-[#E4DFD8]">
             {PREGUNTAS.map(([q, a]) => (
               <details key={q} className="group py-5">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold">{q}<span aria-hidden="true" className="text-[#6E0C2B] transition-transform group-open:rotate-45">+</span></summary>
-                <p className="mt-3 text-[#6B7079]">{a}</p>
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold">{q}<span aria-hidden="true" className="text-vino transition-transform group-open:rotate-45">+</span></summary>
+                <p className="mt-3 text-niebla">{a}</p>
               </details>
             ))}
           </div>
-          <p className="mt-10 text-center text-sm text-[#6B7079]">¿Dudas con tu caso? <Link href="/faq" className="font-semibold underline decoration-[#6E0C2B] decoration-2 underline-offset-4">Más preguntas frecuentes</Link></p>
+          <p className="mt-10 text-center text-sm text-niebla">¿Dudas con tu caso? <Link href="/faq" className="font-semibold underline decoration-vino decoration-2 underline-offset-4">Más preguntas frecuentes</Link></p>
         </div>
       </section>
     </div>

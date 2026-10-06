@@ -36,7 +36,7 @@ export default function MetricsCards({ chats }: { chats: any[] }) {
         <div className="text-gray-500 font-bold tracking-wider text-sm uppercase mb-2">Ventas / Cierres</div>
         <div className="text-4xl font-black text-green-500">{totalSales}</div>
       </div>
-      <div className="bg-[#6E0C2B] text-white p-6 rounded-2xl shadow-lg flex flex-col justify-center items-center text-center">
+      <div className="bg-vino text-white p-6 rounded-2xl shadow-lg flex flex-col justify-center items-center text-center">
         <div className="font-bold tracking-wider text-sm uppercase mb-2">Tasa de Conversión</div>
         <div className="text-4xl font-black">{conversionRate}%</div>
       </div>

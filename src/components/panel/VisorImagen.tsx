@@ -36,7 +36,7 @@ export default function VisorImagen({ url, titulo = 'Imagen', onCerrar, onElimin
       <div className="flex items-center justify-between gap-3 text-white" onClick={(e) => e.stopPropagation()}>
         <p className="truncate text-sm font-semibold">{titulo}</p>
         <div className="flex flex-wrap items-center gap-2">
-          <button onClick={descargar} disabled={descargando} className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#1B1D22] disabled:opacity-60">{descargando ? 'Descargando…' : '↓ Descargar'}</button>
+          <button onClick={descargar} disabled={descargando} className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-carbon disabled:opacity-60">{descargando ? 'Descargando…' : '↓ Descargar'}</button>
           {onEliminar && (confirmar
             ? <><button onClick={() => { onEliminar(); onCerrar(); }} className="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white">Sí, eliminar</button><button onClick={() => setConfirmar(false)} className="px-2 py-2 text-sm text-white/70">No</button></>
             : <button onClick={() => setConfirmar(true)} className="rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white">Eliminar</button>)}

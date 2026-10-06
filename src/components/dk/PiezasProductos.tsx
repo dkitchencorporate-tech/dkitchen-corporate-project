@@ -21,19 +21,19 @@ export function TaquillaViva() {
     <div className="relative mx-auto w-full max-w-[400px]">
       <div aria-hidden="true" className="absolute inset-[-15%] rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.28),transparent)] blur-2xl" />
       <motion.div initial={{ opacity: 0, y: 60, rotateX: 20 }} animate={{ opacity: 1, y: 0, rotateX: 0 }} transition={{ duration: 1.1, ease: CURVA }} style={{ transformPerspective: 1400 }}
-        className="relative overflow-hidden rounded-[32px] border border-white/15 bg-[#1B1D22]/90 p-6 text-white shadow-2xl backdrop-blur-xl">
-        <p className="etiqueta-dk text-[#6E0C2B]">Noche de Asado · sábado 21:00</p>
+        className="relative overflow-hidden rounded-[32px] border border-white/15 bg-carbon/90 p-6 text-white shadow-2xl backdrop-blur-xl">
+        <p className="etiqueta-dk text-vino">Noche de Asado · sábado 21:00</p>
         <p className="font-display mt-2 text-3xl font-semibold">Taquilla en directo</p>
         <div className="mt-6 flex items-end justify-between">
           <div><p className="text-xs text-white/50">Entradas vendidas</p><p className="font-display text-5xl font-semibold tabular-nums">{v}<span className="text-xl text-white/40">/{aforo}</span></p></div>
           <div className="text-right"><p className="text-xs text-white/50">En tu cuenta</p><p className="font-display whitespace-nowrap text-3xl font-semibold text-[#7FD1AE] tabular-nums">{(v * precio).toLocaleString('es-ES')} €</p></div>
         </div>
-        <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/10"><motion.div className="h-full rounded-full bg-gradient-to-r from-[#6E0C2B] to-[#D99A1E]" animate={{ width: `${(v / aforo) * 100}%` }} transition={{ duration: 0.8, ease: CURVA }} /></div>
+        <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/10"><motion.div className="h-full rounded-full bg-gradient-to-r from-vino to-[#D99A1E]" animate={{ width: `${(v / aforo) * 100}%` }} transition={{ duration: 0.8, ease: CURVA }} /></div>
         <div className="mt-6 h-12">
           <AnimatePresence mode="wait">
             <motion.div key={ultima} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.35 }}
               className="flex items-center gap-3 rounded-2xl bg-white/[0.06] px-4 py-3 text-sm">
-              <span className="relative flex h-2.5 w-2.5"><span className="absolute inset-0 animate-ping rounded-full bg-[#2F8F6B] opacity-60" /><span className="relative h-2.5 w-2.5 rounded-full bg-[#2F8F6B]" /></span>
+              <span className="relative flex h-2.5 w-2.5"><span className="absolute inset-0 animate-ping rounded-full bg-exito opacity-60" /><span className="relative h-2.5 w-2.5 rounded-full bg-exito" /></span>
               {ENTRADAS[ultima]} <span className="ml-auto text-white/40">ahora</span>
             </motion.div>
           </AnimatePresence>
@@ -52,11 +52,11 @@ export function EscaleraPrecios({ tramos }: { tramos: [number, string, string][]
     <div ref={ref} className="mt-14 grid items-end gap-3 sm:grid-cols-4">
       {tramos.map(([p, t, d], i) => (
         <motion.div key={t} initial={{ height: 0, opacity: 0 }} animate={visto ? { height: 'auto', opacity: 1 } : undefined} transition={{ duration: 0.7, delay: i * 0.12, ease: CURVA }}
-          className="overflow-hidden rounded-[24px] border border-[#E6E6E2] bg-white" style={{ marginTop: `${i * 26}px` }}>
+          className="overflow-hidden rounded-[24px] border border-linea bg-white" style={{ marginTop: `${i * 26}px` }}>
           <div className="p-6">
-            <p className="font-display text-5xl font-semibold text-[#17191E]">{p} €</p>
-            <p className="mt-2 etiqueta-dk text-[#6E0C2B]">{t}</p>
-            <p className="mt-2 text-sm text-[#6B7079]">{d}</p>
+            <p className="font-display text-5xl font-semibold text-tinta">{p} €</p>
+            <p className="mt-2 etiqueta-dk text-vino">{t}</p>
+            <p className="mt-2 text-sm text-niebla">{d}</p>
           </div>
         </motion.div>
       ))}
@@ -85,8 +85,8 @@ export function CocinaMultimarca() {
   return (
     <div className="relative mx-auto w-full max-w-[420px]">
       <div aria-hidden="true" className="absolute inset-[-15%] rounded-full bg-[radial-gradient(closest-side,rgba(110,12,43,.35),transparent)] blur-2xl" />
-      <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: CURVA }} className="relative rounded-[28px] border border-white/15 bg-[#0B0C0F] p-5 text-white shadow-2xl">
-        <div className="flex items-center justify-between"><p className="font-display text-xl font-semibold">Pantalla de cocina</p><span className="flex items-center gap-2 text-xs text-white/50"><span className="h-2 w-2 animate-pulse rounded-full bg-[#2F8F6B]" />6 marcas · 1 cocina</span></div>
+      <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: CURVA }} className="relative rounded-[28px] border border-white/15 bg-obsidiana p-5 text-white shadow-2xl">
+        <div className="flex items-center justify-between"><p className="font-display text-xl font-semibold">Pantalla de cocina</p><span className="flex items-center gap-2 text-xs text-white/50"><span className="h-2 w-2 animate-pulse rounded-full bg-exito" />6 marcas · 1 cocina</span></div>
         <ul className="mt-4 space-y-2.5">
           <AnimatePresence initial={false}>
             {lista.map((p, i) => (
@@ -94,7 +94,7 @@ export function CocinaMultimarca() {
                 className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
                 <span className="h-10 w-1.5 rounded-full" style={{ background: p.c }} />
                 <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">#{p.id} · {p.p}</p><p className="text-xs text-white/50">{p.m} · {p.canal}</p></div>
-                <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${i === 0 ? 'bg-[#6E0C2B] text-white' : i === 3 ? 'bg-[#2F8F6B]/20 text-[#7FD1AE]' : 'bg-white/10 text-white/70'}`}>{i === 0 ? 'Nuevo' : i === 3 ? 'Listo' : 'En marcha'}</span>
+                <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${i === 0 ? 'bg-vino text-white' : i === 3 ? 'bg-exito/20 text-[#7FD1AE]' : 'bg-white/10 text-white/70'}`}>{i === 0 ? 'Nuevo' : i === 3 ? 'Listo' : 'En marcha'}</span>
               </motion.li>
             ))}
           </AnimatePresence>
@@ -113,8 +113,8 @@ export function InformeVivo() {
   return (
     <div ref={ref} className="relative mx-auto w-full max-w-[420px]">
       <div aria-hidden="true" className="absolute inset-[-15%] rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.25),transparent)] blur-2xl" />
-      <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: CURVA }} className="relative rounded-[28px] bg-white p-6 text-[#17191E] shadow-2xl">
-        <p className="etiqueta-dk text-[#6E0C2B]">Informe de ejemplo</p>
+      <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: CURVA }} className="relative rounded-[28px] bg-white p-6 text-tinta shadow-2xl">
+        <p className="etiqueta-dk text-vino">Informe de ejemplo</p>
         <p className="font-display mt-1 text-2xl font-semibold">Dónde se te escapan clientes</p>
         <ul className="mt-5 space-y-3.5">
           {PUNTOS.map(([t, n], i) => (
@@ -124,8 +124,8 @@ export function InformeVivo() {
             </li>
           ))}
         </ul>
-        <p className="mt-5 rounded-xl bg-[#17191E] px-4 py-3 text-sm text-white">Con cada punto: qué falla, cuánto te cuesta y cómo arreglarlo.</p>
-        <p className="mt-3 text-[11px] text-[#9A9EA6]">Valores ilustrativos. El tuyo se hace con los datos reales de tu negocio.</p>
+        <p className="mt-5 rounded-xl bg-tinta px-4 py-3 text-sm text-white">Con cada punto: qué falla, cuánto te cuesta y cómo arreglarlo.</p>
+        <p className="mt-3 text-[11px] text-ceniza">Valores ilustrativos. El tuyo se hace con los datos reales de tu negocio.</p>
       </motion.div>
     </div>
   );

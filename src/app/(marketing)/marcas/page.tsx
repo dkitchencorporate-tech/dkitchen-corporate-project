@@ -17,7 +17,7 @@ const wa = (n: string) => `#solicitud-marcas~${encodeURIComponent(n)}`;
 
 export default function PaginaMarcas() {
   return (
-    <div className="bg-white text-[#17191E]">
+    <div className="bg-white text-tinta">
       <HeroPagina etiqueta="Marcas virtuales"
         titulo="Seis marcas probadas. Listas para tu cocina."
         sub="No son ideas por desarrollar: operaron entre 2020 y 2022 en una dark kitchen real en Madrid, con carta, precios y procesos ya probados. Elige cuál sumas a tu cocina."
@@ -32,7 +32,7 @@ export default function PaginaMarcas() {
           <div className="mt-14 grid gap-5 md:grid-cols-2">
             {MARCAS.map((m, i) => (
               <Aparecer key={m.slug} retraso={(i % 2) * 0.08}>
-                <TarjetaTilt className="group relative h-full overflow-hidden rounded-[32px] bg-[#0A080C] p-8 text-white">
+                <TarjetaTilt className="group relative h-full overflow-hidden rounded-[32px] bg-noche p-8 text-white">
                   <div aria-hidden="true" className="absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-60 blur-2xl transition-transform duration-700 group-hover:scale-125" style={{ background: `radial-gradient(closest-side, ${COLORES[i % COLORES.length]}, transparent)` }} />
                   <p className="relative text-xs uppercase tracking-[0.22em]" style={{ color: COLORES[i % COLORES.length] }}>{m.concepto}</p>
                   <p className="font-display relative mt-2 text-4xl font-semibold">{m.nombre}</p>
@@ -43,7 +43,7 @@ export default function PaginaMarcas() {
                     ))}
                   </ul>
                   <p className="relative mt-5 text-sm text-white/50">Evento ideal: {m.formatoEvento}</p>
-                  <a href={wa(m.nombre)} className="relative mt-6 inline-block rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#17191E]">Sumar {m.nombre} a mi cocina</a>
+                  <a href={wa(m.nombre)} className="relative mt-6 inline-block rounded-full bg-white px-6 py-3 text-sm font-semibold text-tinta">Sumar {m.nombre} a mi cocina</a>
                 </TarjetaTilt>
               </Aparecer>
             ))}

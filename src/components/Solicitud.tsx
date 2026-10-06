@@ -59,7 +59,7 @@ export default function Solicitud() {
     } catch { setError('Sin conexión. Inténtalo de nuevo.'); setEstado('form'); }
   }
 
-  const campo = 'w-full rounded-xl border border-[#E4E1DC] bg-white px-4 py-3 text-[15px] text-[#17191E] outline-none transition focus:border-[#6E0C2B] focus:ring-2 focus:ring-[#6E0C2B]/15';
+  const campo = 'w-full rounded-xl border border-linea-calida bg-white px-4 py-3 text-[15px] text-tinta outline-none transition focus:border-vino focus:ring-2 focus:ring-vino/15';
 
   return (
     <AnimatePresence>
@@ -67,20 +67,20 @@ export default function Solicitud() {
         <motion.div className="fixed inset-0 z-[300] flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAbierto(null)}>
           <motion.div role="dialog" aria-modal="true" aria-labelledby="solicitud-titulo" onClick={(e) => e.stopPropagation()}
             initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }} transition={{ duration: 0.45, ease: CURVA }}
-            className="relative max-h-[92svh] w-full max-w-lg overflow-y-auto rounded-t-[28px] bg-[#F7F5F2] p-6 text-[#17191E] shadow-2xl sm:rounded-[28px] sm:p-8">
-            <button onClick={() => setAbierto(null)} aria-label="Cerrar" className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl text-[#6B7079] hover:text-[#17191E]">×</button>
+            className="relative max-h-[92svh] w-full max-w-lg overflow-y-auto rounded-t-[28px] bg-crema p-6 text-tinta shadow-2xl sm:rounded-[28px] sm:p-8">
+            <button onClick={() => setAbierto(null)} aria-label="Cerrar" className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl text-niebla hover:text-tinta">×</button>
             {estado === 'ok' ? (
               <div className="py-6 text-center">
                 <p className="acento-serif text-5xl">Gracias.</p>
                 <p className="font-display mt-4 text-2xl font-semibold">Hemos recibido tu solicitud.</p>
-                <p className="mx-auto mt-3 max-w-sm text-[#6B7079]">Te hemos enviado un correo de confirmación. {info.siguiente} Te contactaremos muy pronto.</p>
-                <button onClick={() => setAbierto(null)} className="mt-7 rounded-full bg-[#17191E] px-7 py-3.5 text-sm font-semibold text-white">Seguir viendo la web</button>
+                <p className="mx-auto mt-3 max-w-sm text-niebla">Te hemos enviado un correo de confirmación. {info.siguiente} Te contactaremos muy pronto.</p>
+                <button onClick={() => setAbierto(null)} className="mt-7 rounded-full bg-tinta px-7 py-3.5 text-sm font-semibold text-white">Seguir viendo la web</button>
               </div>
             ) : (
               <form onSubmit={enviar} className="grid gap-3">
-                <p className="etiqueta-dk text-[#6E0C2B]">{info.nombre}{abierto.detalle ? ` · ${abierto.detalle}` : ''}</p>
+                <p className="etiqueta-dk text-vino">{info.nombre}{abierto.detalle ? ` · ${abierto.detalle}` : ''}</p>
                 <h2 id="solicitud-titulo" className="font-display pr-10 text-3xl font-semibold leading-tight">{info.titulo}</h2>
-                <p className="mb-2 text-[15px] text-[#6B7079]">{info.sub}</p>
+                <p className="mb-2 text-[15px] text-niebla">{info.sub}</p>
                 <input id="sol-nombre" name="nombre" required maxLength={80} placeholder="Tu nombre" autoComplete="name" className={campo} />
                 <input id="sol-negocio" name="negocio" maxLength={100} placeholder="Nombre de tu negocio" autoComplete="organization" className={campo} />
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -88,15 +88,15 @@ export default function Solicitud() {
                   <input id="sol-telefono" name="telefono" type="tel" required maxLength={20} inputMode="tel" placeholder="Teléfono" autoComplete="tel" className={campo} />
                 </div>
                 <textarea id="sol-mensaje" name="mensaje" rows={3} maxLength={1000} placeholder="Cuéntanos lo que necesitas (opcional)" className={campo} />
-                <label className="flex items-start gap-2.5 text-xs leading-relaxed text-[#6B7079]">
-                  <input id="sol-consentimiento" name="consentimiento" type="checkbox" required className="mt-0.5 h-4 w-4 accent-[#6E0C2B]" />
+                <label className="flex items-start gap-2.5 text-xs leading-relaxed text-niebla">
+                  <input id="sol-consentimiento" name="consentimiento" type="checkbox" required className="mt-0.5 h-4 w-4 accent-vino" />
                   <span>Acepto que DKitchen use estos datos para responder a mi solicitud, según la <a href="/privacy" className="underline">política de privacidad</a>.</span>
                 </label>
-                {error && <p role="alert" className="rounded-xl bg-[#6E0C2B]/10 px-4 py-3 text-sm text-[#6E0C2B]">{error}</p>}
-                <button type="submit" disabled={estado === 'enviando'} className="mt-2 rounded-full bg-[#6E0C2B] px-7 py-4 text-[15px] font-semibold text-white disabled:opacity-60">
+                {error && <p role="alert" className="rounded-xl bg-vino/10 px-4 py-3 text-sm text-vino">{error}</p>}
+                <button type="submit" disabled={estado === 'enviando'} className="mt-2 rounded-full bg-vino px-7 py-4 text-[15px] font-semibold text-white disabled:opacity-60">
                   {estado === 'enviando' ? 'Enviando…' : info.boton}
                 </button>
-                <p className="text-center text-xs text-[#9A9EA6]">Te respondemos en menos de 24 horas laborables.</p>
+                <p className="text-center text-xs text-ceniza">Te respondemos en menos de 24 horas laborables.</p>
               </form>
             )}
           </motion.div>

@@ -10,7 +10,7 @@ export default function CatalogoMarcas() {
     <section className="py-16 md:py-24 bg-white">
       <div className="max-w-6xl mx-auto px-6 md:px-8">
         <div className="text-center max-w-3xl mx-auto mb-6 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 text-[#6E0C2B] text-sm font-bold tracking-widest uppercase">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 text-vino text-sm font-bold tracking-widest uppercase">
             Marcas virtuales
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight text-balance">
@@ -31,12 +31,12 @@ export default function CatalogoMarcas() {
           {MARCAS.map((marca) => (
             <TiltCard
               key={marca.slug}
-              className="bg-[#FDFCF8] rounded-3xl border border-gray-100 p-7 flex flex-col hover:shadow-xl hover:border-[#6E0C2B]/30 transition-all scroll-mt-28"
+              className="bg-[#FDFCF8] rounded-3xl border border-gray-100 p-7 flex flex-col hover:shadow-xl hover:border-vino/30 transition-all scroll-mt-28"
             >
               <span id={marca.slug} className="block h-0" aria-hidden />
               <div className="text-4xl mb-3">{marca.emoji}</div>
               <h3 className="text-xl font-black mb-1">{marca.nombre}</h3>
-              <p className="text-xs font-bold uppercase tracking-widest text-[#6E0C2B] mb-3">{marca.concepto}</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-vino mb-3">{marca.concepto}</p>
               <p className="text-gray-600 text-sm mb-5">{marca.descripcion}</p>
 
               <ul className="space-y-1.5 text-sm text-gray-700 mb-5 flex-1">

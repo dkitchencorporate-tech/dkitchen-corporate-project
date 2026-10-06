@@ -21,7 +21,7 @@ function BotonQuedarme({ texto = 'Quedarme con todo' }: { texto?: string }) {
       <button
         disabled={pendiente}
         onClick={() => { setError(null); iniciar(async () => { const r = await quedarmeConTodoAction(); if (r.url) window.location.href = r.url; else setError(r.error ?? 'No se pudo preparar el pago.'); }); }}
-        className="rounded-full bg-[#6E0C2B] px-5 py-2.5 text-sm font-bold disabled:opacity-60">
+        className="rounded-full bg-vino px-5 py-2.5 text-sm font-bold disabled:opacity-60">
         {pendiente ? 'Preparando el pago…' : texto}
       </button>
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
@@ -35,10 +35,10 @@ export function AvisoPrueba({ cobro }: { cobro: ResumenCobro | null }) {
   const vencida = cobro.estado_acceso === 'solo_lectura' || quedan < 0;
   const urgente = !vencida && quedan <= 3;
   return (
-    <section aria-live="polite" className={`mb-6 rounded-[22px] p-5 sm:p-6 ${vencida || urgente ? 'bg-[#0A080C] text-white' : 'border border-[#E6E2DC] bg-white'}`}>
+    <section aria-live="polite" className={`mb-6 rounded-[22px] p-5 sm:p-6 ${vencida || urgente ? 'bg-noche text-white' : 'border border-[#E6E2DC] bg-white'}`}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="min-w-0 max-w-2xl">
-          <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${vencida || urgente ? 'text-[#D9B25C]' : 'text-[#6E0C2B]'}`}>
+          <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${vencida || urgente ? 'text-oro' : 'text-vino'}`}>
             {vencida ? 'Tu prueba ha terminado' : quedan === 0 ? 'Tu prueba termina hoy' : `Quedan ${quedan} ${quedan === 1 ? 'día' : 'días'} de prueba`}
           </p>
           <p className="mt-1.5 text-[15px] leading-relaxed">
@@ -58,21 +58,21 @@ export function DesgloseCobro({ cobro }: { cobro: ResumenCobro | null }) {
   return (
     <section className="rounded-[22px] border border-[#E6E2DC] bg-white p-5 sm:p-6">
       <h2 className="font-display text-xl font-semibold tracking-tight">Tu cobro</h2>
-      <p className="mt-1 text-sm text-[#6B7079]">Cobramos a todos los clientes el día {cobro.dia_cobro} de cada mes, lejos de los pagos de final de mes. Precios + IVA.</p>
+      <p className="mt-1 text-sm text-niebla">Cobramos a todos los clientes el día {cobro.dia_cobro} de cada mes, lejos de los pagos de final de mes. Precios + IVA.</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl bg-[#F3F1EE] p-4"><p className="text-xs text-[#6B7079]">Valor de lo que tienes</p><p className="mt-1 text-lg font-black">{euros(cobro.valor_mensual)}/mes</p></div>
-        <div className="rounded-2xl bg-[#F3F1EE] p-4"><p className="text-xs text-[#6B7079]">Pagas ahora</p><p className="mt-1 text-lg font-black">{cobro.paga_mensual ? `${euros(cobro.paga_mensual)}/mes` : '0 €'}</p></div>
+        <div className="rounded-2xl bg-[#F3F1EE] p-4"><p className="text-xs text-niebla">Valor de lo que tienes</p><p className="mt-1 text-lg font-black">{euros(cobro.valor_mensual)}/mes</p></div>
+        <div className="rounded-2xl bg-[#F3F1EE] p-4"><p className="text-xs text-niebla">Pagas ahora</p><p className="mt-1 text-lg font-black">{cobro.paga_mensual ? `${euros(cobro.paga_mensual)}/mes` : '0 €'}</p></div>
         <div className="rounded-2xl bg-[#F3F1EE] p-4">
-          <p className="text-xs text-[#6B7079]">{cobro.proximo_cobro ? 'Próximo cobro' : cobro.prueba_hasta ? 'Si te quedas hoy, primer cobro' : 'Próximo cobro'}</p>
+          <p className="text-xs text-niebla">{cobro.proximo_cobro ? 'Próximo cobro' : cobro.prueba_hasta ? 'Si te quedas hoy, primer cobro' : 'Próximo cobro'}</p>
           <p className="mt-1 text-lg font-black">{cobro.proximo_cobro ? fecha(cobro.proximo_cobro) : cobro.prueba_hasta ? fecha(cobro.cobro_si_paga_hoy) : '—'}</p>
         </div>
       </div>
       <ul className="mt-4 divide-y divide-[#EFEDE9] text-sm">
-        <li className="flex justify-between gap-3 py-2"><span>Plan {cobro.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</span><span className="text-[#6B7079]">{euros(cobro.precio_plan)}/mes</span></li>
+        <li className="flex justify-between gap-3 py-2"><span>Plan {cobro.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</span><span className="text-niebla">{euros(cobro.precio_plan)}/mes</span></li>
         {cobro.items.map((i) => (
           <li key={i.servicio} className="flex justify-between gap-3 py-2">
-            <span>{i.nombre}{i.origen !== 'pago' && <span className="ml-1.5 rounded-full bg-[#2F8F6B]/10 px-2 py-0.5 text-[11px] font-semibold text-[#2F8F6B]">{i.origen === 'regalo' ? 'incluido gratis' : 'demo'}</span>}</span>
-            <span className="shrink-0 text-[#6B7079]">{euros(i.precio)}{i.tipo === 'mensual' ? '/mes' : ' una vez'}</span>
+            <span>{i.nombre}{i.origen !== 'pago' && <span className="ml-1.5 rounded-full bg-exito/10 px-2 py-0.5 text-[11px] font-semibold text-exito">{i.origen === 'regalo' ? 'incluido gratis' : 'demo'}</span>}</span>
+            <span className="shrink-0 text-niebla">{euros(i.precio)}{i.tipo === 'mensual' ? '/mes' : ' una vez'}</span>
           </li>
         ))}
       </ul>

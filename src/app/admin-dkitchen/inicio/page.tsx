@@ -41,21 +41,21 @@ function Lista({ titulo, vacio, filas, accion }: { titulo: string; vacio: string
     <section className={tarjeta}>
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-sm font-semibold">{titulo}</p>
-        <span className="rounded-full bg-[#F3F1EE] px-2.5 py-0.5 text-xs tabular-nums text-[#6B7079]">{filas.length}</span>
+        <span className="rounded-full bg-[#F3F1EE] px-2.5 py-0.5 text-xs tabular-nums text-niebla">{filas.length}</span>
       </div>
-      {filas.length === 0 ? <p className="mt-4 text-sm text-[#9A9EA6]">{vacio}</p> : (
+      {filas.length === 0 ? <p className="mt-4 text-sm text-ceniza">{vacio}</p> : (
         <ul className="mt-3 divide-y divide-[#F0ECE7]">
           {filas.slice(0, 6).map(({ c, d }) => (
             <li key={c.restauranteId}>
-              <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="flex items-center justify-between gap-3 py-2.5 text-sm hover:text-[#6E0C2B]">
+              <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="flex items-center justify-between gap-3 py-2.5 text-sm hover:text-vino">
                 <span className="truncate font-medium">{c.nombre}</span>
-                <span className="shrink-0 text-xs text-[#6B7079]">{d}</span>
+                <span className="shrink-0 text-xs text-niebla">{d}</span>
               </Link>
             </li>
           ))}
         </ul>
       )}
-      {accion && filas.length > 0 && <p className="mt-3 text-xs text-[#9A9EA6]">{accion}</p>}
+      {accion && filas.length > 0 && <p className="mt-3 text-xs text-ceniza">{accion}</p>}
     </section>
   );
 }
@@ -93,18 +93,18 @@ export default async function CentralInicio() {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 text-[#1B1D22] sm:p-6 lg:p-10">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 text-carbon sm:p-6 lg:p-10">
       <header>
-        <p className="text-sm text-[#6B7079]">{saludo}</p>
+        <p className="text-sm text-niebla">{saludo}</p>
         <h1 className="font-display mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">Central</h1>
       </header>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {kpis.map(([t, v, d], i) => (
-          <div key={t} className={`${i === 0 ? 'col-span-2 bg-[#0A080C] text-white lg:col-span-1' : 'bg-white'} rounded-[22px] border border-[#E6E2DC] p-5`}>
-            <p className={`text-xs ${i === 0 ? 'text-white/55' : 'text-[#6B7079]'}`}>{t}</p>
-            <p className={`font-display mt-2 text-4xl font-semibold tabular-nums ${i === 0 ? 'text-[#D9B25C]' : i === 2 && riesgo.length ? 'text-[#6E0C2B]' : ''}`}>{v}</p>
-            <p className={`mt-1 text-xs ${i === 0 ? 'text-white/45' : 'text-[#9A9EA6]'}`}>{d}</p>
+          <div key={t} className={`${i === 0 ? 'col-span-2 bg-noche text-white lg:col-span-1' : 'bg-white'} rounded-[22px] border border-[#E6E2DC] p-5`}>
+            <p className={`text-xs ${i === 0 ? 'text-white/55' : 'text-niebla'}`}>{t}</p>
+            <p className={`font-display mt-2 text-4xl font-semibold tabular-nums ${i === 0 ? 'text-oro' : i === 2 && riesgo.length ? 'text-vino' : ''}`}>{v}</p>
+            <p className={`mt-1 text-xs ${i === 0 ? 'text-white/45' : 'text-ceniza'}`}>{d}</p>
           </div>
         ))}
       </div>
@@ -114,8 +114,8 @@ export default async function CentralInicio() {
         <Link href="/admin-dkitchen/embudo" className={`${tarjeta} block transition-colors hover:border-[#D6D1CA]`}>
           <p className="text-sm font-semibold">Pagos directos · 30 días</p>
           <p className="font-display mt-3 text-4xl font-semibold tabular-nums">{pagos}</p>
-          <p className="mt-1 text-xs text-[#6B7079]">pagos de {visitas} visitas · {ingresos.toLocaleString('es-ES')} € + IVA</p>
-          <p className="mt-5 text-xs text-[#6E0C2B] underline">Ver embudo</p>
+          <p className="mt-1 text-xs text-niebla">pagos de {visitas} visitas · {ingresos.toLocaleString('es-ES')} € + IVA</p>
+          <p className="mt-5 text-xs text-vino underline">Ver embudo</p>
         </Link>
       </div>
 
@@ -129,15 +129,15 @@ export default async function CentralInicio() {
         <Lista titulo="En riesgo de baja" vacio="Ningún cliente en impago ni suspendido." filas={riesgo.map((c) => ({ c, d: c.estadoAcceso.replace('_', ' ') }))} />
         <Lista titulo="Altas recientes" vacio="Sin altas en los últimos 30 días." filas={altas.map((c) => ({ c, d: new Date(c.creadoEn).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) }))} />
       </div>
-      <section className={`${tarjeta} ${avisos.nivel === 'urgente' ? 'border-[#6E0C2B]' : ''}`}>
+      <section className={`${tarjeta} ${avisos.nivel === 'urgente' ? 'border-vino' : ''}`}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-sm font-semibold">Capacidad del sistema · Neon {PLAN_NEON.nombre}</p>
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${avisos.nivel === 'ok' ? 'bg-[#2F8F6B]/15 text-[#2F8F6B]' : avisos.nivel === 'aviso' ? 'bg-amber-500/15 text-amber-700' : 'bg-[#6E0C2B]/10 text-[#6E0C2B]'}`}>{avisos.nivel === 'ok' ? 'Holgado' : avisos.nivel === 'aviso' ? 'Preparar subida' : 'Subir ya'}</span>
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${avisos.nivel === 'ok' ? 'bg-exito/15 text-exito' : avisos.nivel === 'aviso' ? 'bg-amber-500/15 text-amber-700' : 'bg-vino/10 text-vino'}`}>{avisos.nivel === 'ok' ? 'Holgado' : avisos.nivel === 'aviso' ? 'Preparar subida' : 'Subir ya'}</span>
         </div>
-        <p className="mt-2 text-sm text-[#6B7079]">{avisos.texto}</p>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#F1EEEA]"><div className="h-full rounded-full bg-[#6E0C2B]" style={{ width: `${Math.min(100, Math.max(1, avisos.uso * 100))}%` }} /></div>
+        <p className="mt-2 text-sm text-niebla">{avisos.texto}</p>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#F1EEEA]"><div className="h-full rounded-full bg-vino" style={{ width: `${Math.min(100, Math.max(1, avisos.uso * 100))}%` }} /></div>
         <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          {avisos.filas.map(([k, v]) => <div key={k}><dt className="text-xs text-[#9A9EA6]">{k}</dt><dd className="font-medium tabular-nums">{v}</dd></div>)}
+          {avisos.filas.map(([k, v]) => <div key={k}><dt className="text-xs text-ceniza">{k}</dt><dd className="font-medium tabular-nums">{v}</dd></div>)}
         </dl>
       </section>
     </div>

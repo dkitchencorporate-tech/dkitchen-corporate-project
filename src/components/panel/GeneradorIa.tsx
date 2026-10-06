@@ -109,19 +109,19 @@ export default function GeneradorIa({
   const proporcion = modo === 'banner' ? 'aspect-[16/9]' : modo === 'portada' ? 'aspect-[12/5]' : modo === 'logo' ? 'mx-auto aspect-square max-w-sm' : 'aspect-[4/3]';
   const info = INFO[modo];
   const [ampliada, setAmpliada] = useState(false);
-  const boton = 'rounded-full bg-[#6E0C2B] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4A0819] disabled:opacity-40';
+  const boton = 'rounded-full bg-vino px-4 py-2.5 text-sm font-semibold text-white hover:bg-vino-hondo disabled:opacity-40';
   const secundario = 'rounded-full border border-[#E6E2DC] bg-white px-4 py-2.5 text-sm font-semibold disabled:opacity-40';
 
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/50 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="Crear imagen con IA" onClick={onCerrar}>
-      <div onClick={(e) => e.stopPropagation()} className="max-h-[94dvh] w-full max-w-2xl overflow-y-auto rounded-t-[28px] bg-[#F7F5F2] p-5 text-[#1B1D22] sm:rounded-[28px] sm:p-7">
+      <div onClick={(e) => e.stopPropagation()} className="max-h-[94dvh] w-full max-w-2xl overflow-y-auto rounded-t-[28px] bg-crema p-5 text-carbon sm:rounded-[28px] sm:p-7">
         <div ref={arriba} className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#6E0C2B]">Crear con IA</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-vino">Crear con IA</p>
             <h3 className="font-display mt-1 text-2xl font-semibold">{modo === 'plato' ? `Foto de ${plato?.nombre?.trim() || 'tu plato'}` : info.titulo}</h3>
-            <p className="mt-1 text-sm text-[#6B7079]">{info.explica}</p>
+            <p className="mt-1 text-sm text-niebla">{info.explica}</p>
           </div>
-          <button onClick={onCerrar} aria-label="Cerrar" className="rounded-full px-3 py-1 text-xl text-[#6B7079] hover:bg-white">×</button>
+          <button onClick={onCerrar} aria-label="Cerrar" className="rounded-full px-3 py-1 text-xl text-niebla hover:bg-white">×</button>
         </div>
 
         {/* 1. La imagen (o la carga) siempre arriba */}
@@ -130,9 +130,9 @@ export default function GeneradorIa({
             <div className={`relative flex w-full flex-col items-center justify-center overflow-hidden rounded-2xl bg-[#EDE7E0] ${proporcion}`} role="status" aria-live="polite">
               <div className="absolute inset-0 animate-[dk-brillo_1.6s_linear_infinite] bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,.55)_50%,transparent_75%)] bg-[length:200%_100%]" />
               <div className="relative flex flex-col items-center gap-3 text-center">
-                <span className="h-10 w-10 animate-spin rounded-full border-[3px] border-[#6E0C2B]/20 border-t-[#6E0C2B]" />
-                <p className="text-sm font-semibold text-[#3F434B]">{PASOS[Math.min(PASOS.length - 1, Math.floor(segundos / 6))]}</p>
-                <p className="text-xs text-[#6B7079]">{segundos} s · suele tardar entre 10 y 40 segundos</p>
+                <span className="h-10 w-10 animate-spin rounded-full border-[3px] border-vino/20 border-t-vino" />
+                <p className="text-sm font-semibold text-grafito">{PASOS[Math.min(PASOS.length - 1, Math.floor(segundos / 6))]}</p>
+                <p className="text-xs text-niebla">{segundos} s · suele tardar entre 10 y 40 segundos</p>
               </div>
               <style>{`@keyframes dk-brillo{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
             </div>
@@ -147,38 +147,38 @@ export default function GeneradorIa({
               </div>
               {versiones.length > 1 && (
                 <div>
-                  <p className="mb-1 text-xs text-[#6B7079]">Tus versiones (toca para elegir):</p>
+                  <p className="mb-1 text-xs text-niebla">Tus versiones (toca para elegir):</p>
                   <div className="flex gap-2 overflow-x-auto">
                     {versiones.map((v) => (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <button key={v} onClick={() => setActual(v)} className={`shrink-0 overflow-hidden rounded-lg ring-2 ${v === actual ? 'ring-[#6E0C2B]' : 'ring-transparent'}`}><img src={v} alt="" className="h-14 w-20 object-cover" /></button>
+                      <button key={v} onClick={() => setActual(v)} className={`shrink-0 overflow-hidden rounded-lg ring-2 ${v === actual ? 'ring-vino' : 'ring-transparent'}`}><img src={v} alt="" className="h-14 w-20 object-cover" /></button>
                     ))}
                   </div>
                 </div>
               )}
-              <p className="text-xs text-[#6B7079]">{modo === 'portada' ? 'Al pulsar «Usar esta imagen» se guarda y se ve en tu carta al momento.' : <>Al pulsar «Usar esta imagen» se coloca en el formulario: <strong>después pulsa «Guardar»</strong> para que quede en tu carta.{modo !== 'logo' && ' Se mostrará con la nota «Imagen orientativa».'}</>}</p>
+              <p className="text-xs text-niebla">{modo === 'portada' ? 'Al pulsar «Usar esta imagen» se guarda y se ve en tu carta al momento.' : <>Al pulsar «Usar esta imagen» se coloca en el formulario: <strong>después pulsa «Guardar»</strong> para que quede en tu carta.{modo !== 'logo' && ' Se mostrará con la nota «Imagen orientativa».'}</>}</p>
             </div>
           ) : (
             <div className="space-y-3">
               {modo === 'plato' && imagenActual && (
-                <button disabled={sinSaldo} onClick={() => crear('mejorar', 'mejora la presentación')} className="w-full rounded-2xl border border-[#E6E2DC] bg-white p-4 text-left hover:border-[#6E0C2B]/40 disabled:opacity-50">
+                <button disabled={sinSaldo} onClick={() => crear('mejorar', 'mejora la presentación')} className="w-full rounded-2xl border border-[#E6E2DC] bg-white p-4 text-left hover:border-vino/40 disabled:opacity-50">
                   <span className="font-semibold">Mejorar mi foto</span>
-                  <span className="block text-sm text-[#6B7079]">Mejora luz, color y presentación de tu foto sin cambiar el plato.</span>
+                  <span className="block text-sm text-niebla">Mejora luz, color y presentación de tu foto sin cambiar el plato.</span>
                 </button>
               )}
               {modo === 'plato' && (
-                <button disabled={sinSaldo || !plato?.nombre?.trim()} onClick={() => crear('nuevo')} className="w-full rounded-2xl border border-[#E6E2DC] bg-white p-4 text-left hover:border-[#6E0C2B]/40 disabled:opacity-50">
+                <button disabled={sinSaldo || !plato?.nombre?.trim()} onClick={() => crear('nuevo')} className="w-full rounded-2xl border border-[#E6E2DC] bg-white p-4 text-left hover:border-vino/40 disabled:opacity-50">
                   <span className="font-semibold">Crear la foto desde el nombre del plato</span>
-                  <span className="block text-sm text-[#6B7079]">{plato?.nombre?.trim() ? 'Usamos el nombre y la descripción. Si quieres algo concreto, escríbelo abajo antes.' : 'Primero escribe el nombre del plato (cierra esta ventana, ponlo y vuelve).'}</span>
+                  <span className="block text-sm text-niebla">{plato?.nombre?.trim() ? 'Usamos el nombre y la descripción. Si quieres algo concreto, escríbelo abajo antes.' : 'Primero escribe el nombre del plato (cierra esta ventana, ponlo y vuelve).'}</span>
                 </button>
               )}
               {modo === 'logo' && (
                 <div>
                   <p className="text-sm font-semibold">Elige un estilo para tu logo</p>
-                  <p className="mt-1 text-xs text-[#6B7079]">Usamos el nombre y el color de tu local. Luego puedes pedir cambios hasta dar con él.</p>
+                  <p className="mt-1 text-xs text-niebla">Usamos el nombre y el color de tu local. Luego puedes pedir cambios hasta dar con él.</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {IDEAS_LOGO.map((i) => (
-                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-[#E6E2DC] bg-white px-3.5 py-2 text-[13px] hover:border-[#6E0C2B]/40 disabled:opacity-50">{i}</button>
+                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-[#E6E2DC] bg-white px-3.5 py-2 text-[13px] hover:border-vino/40 disabled:opacity-50">{i}</button>
                     ))}
                   </div>
                 </div>
@@ -188,7 +188,7 @@ export default function GeneradorIa({
                   <p className="text-sm font-semibold">Ideas para tu portada</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {IDEAS_PORTADA.map((i) => (
-                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-[#E6E2DC] bg-white px-3.5 py-2 text-[13px] hover:border-[#6E0C2B]/40 disabled:opacity-50">{i}</button>
+                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-[#E6E2DC] bg-white px-3.5 py-2 text-[13px] hover:border-vino/40 disabled:opacity-50">{i}</button>
                     ))}
                   </div>
                 </div>
@@ -198,7 +198,7 @@ export default function GeneradorIa({
                   <p className="text-sm font-semibold">Diseños recomendados para tu carta</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {IDEAS_BANNER.map((i) => (
-                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-[#E6E2DC] bg-white px-3.5 py-2 text-[13px] hover:border-[#6E0C2B]/40 disabled:opacity-50">{i}</button>
+                      <button key={i} disabled={sinSaldo} onClick={() => crear('nuevo', i)} className="rounded-full border border-[#E6E2DC] bg-white px-3.5 py-2 text-[13px] hover:border-vino/40 disabled:opacity-50">{i}</button>
                     ))}
                   </div>
                 </div>
@@ -211,16 +211,16 @@ export default function GeneradorIa({
 
         {/* 2. El «chat»: pedir o corregir */}
         {historial.length > 0 && (
-          <ul className="mt-4 space-y-1 text-xs text-[#6B7079]">{historial.map((h, i) => <li key={i}>• {h}</li>)}</ul>
+          <ul className="mt-4 space-y-1 text-xs text-niebla">{historial.map((h, i) => <li key={i}>• {h}</li>)}</ul>
         )}
         <form className="mt-4 rounded-2xl border border-[#E6E2DC] bg-white p-3" onSubmit={(e) => { e.preventDefault(); if (texto.trim()) crear(actual ? 'retocar' : 'nuevo'); }}>
           <label className="block text-sm font-semibold">
             {actual ? '¿Qué quieres cambiar de esta imagen?' : modo === 'plato' ? 'Describe cómo la quieres (opcional)' : 'O describe exactamente lo que quieres'}
             <textarea value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={400} rows={2} spellCheck lang="es" disabled={pendiente}
               placeholder={actual ? 'Ej.: más luz, fondo de madera, letras más grandes' : info.ejemplo}
-              className="mt-1.5 w-full rounded-xl border border-[#E6E2DC] bg-[#FBFAF8] px-3 py-2.5 text-sm font-normal placeholder-[#9A9EA6] focus:border-[#6E0C2B] focus:outline-none" />
+              className="mt-1.5 w-full rounded-xl border border-[#E6E2DC] bg-[#FBFAF8] px-3 py-2.5 text-sm font-normal placeholder-ceniza focus:border-vino focus:outline-none" />
           </label>
-          {modo !== 'plato' && <p className="mt-1.5 text-[12px] text-[#6B7079]">💡 ¿Quieres un texto escrito en la imagen (tu nombre, un precio…)? Escríbelo <strong>entre comillas</strong>: «letrero con "El Rincón del Flores"». Lo escribiremos tal cual.</p>}
+          {modo !== 'plato' && <p className="mt-1.5 text-[12px] text-niebla">💡 ¿Quieres un texto escrito en la imagen (tu nombre, un precio…)? Escríbelo <strong>entre comillas</strong>: «letrero con "El Rincón del Flores"». Lo escribiremos tal cual.</p>}
           <HerramientasTexto valor={texto} onCambio={setTexto} tipo="instruccion" contexto={plato?.nombre ?? undefined} demo={demo} />
           <div className="mt-3 flex justify-end">
             <button type="submit" disabled={pendiente || sinSaldo || !texto.trim()} className={boton}>
@@ -233,11 +233,11 @@ export default function GeneradorIa({
         <div className="mt-4 rounded-2xl bg-white/60 p-4 text-sm">
           {saldo ? (
             <p><strong>{saldo.restantes}</strong> {saldo.restantes === 1 ? 'imagen disponible' : 'imágenes disponibles'}
-              <span className="text-[#6B7079]"> · cada creación o cambio usa 1{saldo.gratisRestantes > 0 ? ` · te quedan ${saldo.gratisRestantes} de tus 3 gratis` : ''}</span></p>
-          ) : <p className="text-[#6B7079]">Consultando tu saldo…</p>}
-          <p className="mt-1 text-[12.5px] text-[#6B7079]">3 imágenes gratis siempre. ¿Necesitas más? <strong>Bono de 50 por 9 € + IVA</strong>: pago único, <strong>nunca caducan</strong> y las imágenes son tuyas. Máximo 20 al día.</p>
+              <span className="text-niebla"> · cada creación o cambio usa 1{saldo.gratisRestantes > 0 ? ` · te quedan ${saldo.gratisRestantes} de tus 3 gratis` : ''}</span></p>
+          ) : <p className="text-niebla">Consultando tu saldo…</p>}
+          <p className="mt-1 text-[12.5px] text-niebla">3 imágenes gratis siempre. ¿Necesitas más? <strong>Bono de 50 por 9 € + IVA</strong>: pago único, <strong>nunca caducan</strong> y las imágenes son tuyas. Máximo 20 al día.</p>
           {(sinSaldo || (saldo && saldo.restantes <= 1)) && (
-            <button onClick={comprar} disabled={comprando} className="mt-3 rounded-full bg-[#17191E] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{comprando ? 'Abriendo pago seguro…' : 'Comprar bono de 50 · 9 € + IVA'}</button>
+            <button onClick={comprar} disabled={comprando} className="mt-3 rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{comprando ? 'Abriendo pago seguro…' : 'Comprar bono de 50 · 9 € + IVA'}</button>
           )}
         </div>
       </div>
