@@ -8,7 +8,9 @@ import { FORMATOS_EXPERIENCE } from '@/lib/experience-formatos';
  * Se rellena solo con lo que el cliente eligió en el configurador (si su
  * navegador lo guardó) y se envía a /api/experience/briefing.
  */
-type Config = { formato?: string; cocina?: string; fecha?: string; plazas?: number; precioEntrada?: number };
+type Config = { v?: number; ts?: number; formato?: string; cocina?: string; fecha?: string; plazas?: number; precioEntrada?: number };
+/** Lo guardado en el configurador caduca a las 48 h: si el pago se abandonó, otro día no se precarga una configuración vieja. */
+const CADUCIDAD_MS = 48 * 3_600_000;
 
 export default function Briefing() {
   const [config, setConfig] = useState<Config>({});
@@ -16,7 +18,11 @@ export default function Briefing() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    try { setConfig(JSON.parse(localStorage.getItem('dk_experience_config') ?? '{}')); } catch { /* sin datos previos */ }
+    try {
+      const c: Config = JSON.parse(localStorage.getItem('dk_experience_config') ?? '{}');
+      if (c.v === 1 && typeof c.ts === 'number' && Date.now() - c.ts < CADUCIDAD_MS) setConfig(c);
+      else localStorage.removeItem('dk_experience_config');
+    } catch { /* sin datos previos */ }
   }, []);
 
   async function enviar(e: React.FormEvent<HTMLFormElement>) {

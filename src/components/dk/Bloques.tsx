@@ -11,7 +11,7 @@ type Cta = { href: string; t: string; secundario?: boolean };
 export function Boton({ c }: { c: Cta }) {
   return (
     <BotonMagnetico href={c.href} className={c.secundario
-      ? 'inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-8 py-4 text-[15px] font-semibold backdrop-blur hover:border-white/50'
+      ? 'inline-flex items-center justify-center rounded-full border border-white/40 bg-white/5 px-8 py-4 text-[15px] font-semibold backdrop-blur hover:border-white/50'
       : 'inline-flex items-center justify-center rounded-full bg-[#6E0C2B] px-8 py-4 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(163,24,74,.45)] hover:bg-[#4A0819]'}>{c.t}</BotonMagnetico>
   );
 }
@@ -26,7 +26,7 @@ export function HeroPagina({ etiqueta, titulo, sub, ctas, visual, nota }: { etiq
           <TextoRevelado como="h1" texto={titulo} className="font-display mt-6 text-[46px] font-semibold leading-[0.98] sm:text-7xl lg:text-[80px]" />
           <Aparecer retraso={0.3}><p className="mt-7 max-w-lg text-lg leading-relaxed text-white/70">{sub}</p></Aparecer>
           <Aparecer retraso={0.4} className="mt-9 flex flex-col gap-3 sm:flex-row">{ctas.map((c) => <Boton key={c.t} c={c} />)}</Aparecer>
-          {nota && <Aparecer retraso={0.5}><p className="mt-5 text-sm text-white/45">{nota}</p></Aparecer>}
+          {nota && <Aparecer retraso={0.5}><p className="mt-5 text-sm text-white/70">{nota}</p></Aparecer>}
         </div>
         <div>{visual}</div>
       </div>
@@ -74,17 +74,17 @@ export function Dolores({ items, cta }: { items: [string, string][]; cta?: Cta }
   );
 }
 
-export function Faq({ preguntas }: { preguntas: [string, string][] }) {
+export function Faq({ preguntas, fondo = 'bg-white' }: { preguntas: [string, string][]; fondo?: string }) {
   const ld = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: preguntas.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) };
   return (
-    <section className="bg-white py-24 md:py-28">
+    <section className={`${fondo} py-16 md:py-28`}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
       <div className="mx-auto grid max-w-5xl gap-12 px-6 md:grid-cols-[1fr_1.4fr] md:px-8">
         <TextoRevelado texto="Antes de que lo preguntes." className="font-display text-4xl font-semibold text-[#17191E] md:text-5xl" />
         <div className="divide-y divide-[#E6E6E2] border-y border-[#E6E6E2]">
           {preguntas.map(([p, r]) => (
             <details key={p} className="group py-5">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 text-[17px] font-semibold text-[#17191E]">{p}<span aria-hidden="true" className="text-2xl font-light text-[#9A9EA6] transition-transform group-open:rotate-45">+</span></summary>
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 text-[17px] font-semibold text-[#17191E]">{p}<span aria-hidden="true" className="text-2xl font-light text-[#6B7079] transition-transform group-open:rotate-45">+</span></summary>
               <p className="mt-3 leading-relaxed text-[#6B7079]">{r}</p>
             </details>
           ))}
