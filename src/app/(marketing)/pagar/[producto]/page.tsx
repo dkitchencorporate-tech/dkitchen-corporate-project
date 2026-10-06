@@ -81,7 +81,7 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
           <div className="md:sticky md:top-28 md:self-start">
             <div className="rounded-[28px] bg-noche p-6 text-white shadow-[0_30px_80px_-40px_rgba(62,5,21,.45)] md:p-8">
               <p className="text-sm text-white/60">{p.nombre} · plazas de lanzamiento</p>
-              <p className="font-display mt-1 text-5xl font-semibold tracking-tight">Desde {p.precio} €<span className="ml-2 align-middle font-sans text-base font-medium text-white/60">+ IVA</span></p>
+              <p className="font-display mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">Desde {p.precio} €<span className="ml-2 whitespace-nowrap align-middle font-sans text-base font-medium text-white/60">+ IVA</span></p>
               <p className="mt-2 text-sm text-white/60">Hoy no pagas nada: primero cerramos contigo formato y fecha.</p>
               <Briefing registro />
             </div>
