@@ -18,8 +18,8 @@ function modeloLegible(producto: string, modelo: string) {
   if (producto !== 'experience') return modelo ? `modelo ${modelo}` : '';
   const [codigo, fecha, plazas] = modelo.split(' ');
   const formato = FORMATOS_EXPERIENCE.find((x) => x.codigo === codigo);
-  const dia = /^d{4}-d{2}-d{2}$/.test(fecha ?? '') ? new Date(`${fecha}T12:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
-  const aforo = /^d+p$/.test(plazas ?? '') ? `${parseInt(plazas, 10)} plazas` : '';
+  const dia = /^\d{4}-\d{2}-\d{2}$/.test(fecha ?? '') ? new Date(`${fecha}T12:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  const aforo = /^\d+p$/.test(plazas ?? '') ? `${parseInt(plazas, 10)} plazas` : '';
   return [formato?.nombre, dia, aforo].filter(Boolean).join(' · ');
 }
 
