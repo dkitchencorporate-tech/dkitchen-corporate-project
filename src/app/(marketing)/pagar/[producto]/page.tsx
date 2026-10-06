@@ -7,6 +7,7 @@ import PagoDirecto from '@/components/pago/PagoDirecto';
 import { FondoVivo, TextoRevelado } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
 import { FORMATOS_EXPERIENCE } from '@/lib/experience-formatos';
+import Briefing from '@/components/experience/Briefing';
 
 /**
  * Página de pago directo (29/09/2026): qué compras, qué pagas y qué pasa
@@ -43,7 +44,7 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
         <FondoVivo />
         <div className="relative mx-auto max-w-6xl px-6 md:px-8">
           <Link href={p.volver.href} className="text-sm text-white/55 hover:text-white">← {p.volver.t}</Link>
-          <p className="etiqueta-dk mt-8 text-oro">Contratar {p.nombre}{modelo && modeloLegible(p.id, modelo) ? ` · ${modeloLegible(p.id, modelo)}` : ''}</p>
+          <p className="etiqueta-dk mt-8 text-oro">{p.registro ? 'Solicitar' : 'Contratar'} {p.nombre}{modelo && modeloLegible(p.id, modelo) ? ` · ${modeloLegible(p.id, modelo)}` : ''}</p>
           <TextoRevelado como="h1" texto={p.titular} className="font-display mt-4 max-w-3xl text-[42px] font-semibold leading-[1.02] sm:text-6xl" />
           <Aparecer retraso={0.2}><p className="mt-6 max-w-2xl text-lg text-white/70">{p.resumen}</p></Aparecer>
         </div>
@@ -52,7 +53,7 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
       <section className="mx-auto grid max-w-6xl gap-12 px-6 py-16 md:grid-cols-[1.15fr_1fr] md:px-8 md:py-24">
         <div className="space-y-14">
           <div>
-            <p className="etiqueta-dk text-vino">Qué compras</p>
+            <p className="etiqueta-dk text-vino">{p.registro ? 'Qué incluye' : 'Qué compras'}</p>
             <ul className="mt-6 divide-y divide-linea border-y border-linea">
               {p.incluye.map((x) => (
                 <li key={x} className="flex gap-4 py-4 text-[17px]"><span className="acento-serif text-xl leading-6">✓</span>{x}</li>
@@ -60,11 +61,11 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
             </ul>
           </div>
           <div>
-            <p className="etiqueta-dk text-vino">Qué pasa después de pagar</p>
+            <p className="etiqueta-dk text-vino">{p.registro ? 'Cómo funciona' : 'Qué pasa después de pagar'}</p>
             <ol className="mt-6 space-y-0">
-              {p.despues.map(([cuando, que], i) => (
+              {(p.registro?.despues ?? p.despues).map(([cuando, que], i, lista) => (
                 <li key={cuando} className="relative grid grid-cols-[40px_1fr] gap-4 pb-8 last:pb-0">
-                  {i < p.despues.length - 1 && <span aria-hidden="true" className="absolute left-[15px] top-8 h-[calc(100%-2rem)] w-px bg-linea-fuerte" />}
+                  {i < lista.length - 1 && <span aria-hidden="true" className="absolute left-[15px] top-8 h-[calc(100%-2rem)] w-px bg-linea-fuerte" />}
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-vino text-sm font-semibold text-white">{i + 1}</span>
                   <div><p className="font-semibold">{cuando}</p><p className="mt-1 text-niebla">{que}</p></div>
                 </li>
@@ -76,6 +77,16 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
           </div>
         </div>
 
+        {p.registro ? (
+          <div className="md:sticky md:top-28 md:self-start">
+            <div className="rounded-[28px] bg-noche p-6 text-white shadow-[0_30px_80px_-40px_rgba(62,5,21,.45)] md:p-8">
+              <p className="text-sm text-white/60">{p.nombre} · plazas de lanzamiento</p>
+              <p className="font-display mt-1 text-5xl font-semibold tracking-tight">Desde {p.precio} €<span className="ml-2 align-middle font-sans text-base font-medium text-white/60">+ IVA</span></p>
+              <p className="mt-2 text-sm text-white/60">Hoy no pagas nada: primero cerramos contigo formato y fecha.</p>
+              <Briefing registro />
+            </div>
+          </div>
+        ) : (
         <div className="md:sticky md:top-28 md:self-start">
           <div className="rounded-[28px] border border-linea bg-white p-6 shadow-[0_30px_80px_-40px_rgba(62,5,21,.45)] md:p-8">
             <p className="text-sm text-niebla">{p.nombre}</p>
@@ -88,6 +99,7 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
           </div>
           <p className="mt-5 text-center text-sm text-ceniza">¿Dudas antes de pagar? <a href={`#solicitud-${p.id === 'signature' ? 'signature' : p.id}`} className="underline hover:text-tinta">Escríbenos</a> y te respondemos.</p>
         </div>
+        )}
       </section>
     </div>
   );

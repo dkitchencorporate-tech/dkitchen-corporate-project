@@ -18,6 +18,12 @@ export interface ProductoPago {
   despues: [string, string][];
   garantias: string[];
   volver: { href: string; t: string };
+  /**
+   * Mientras el producto se termina de construir (07/10/2026, decisión de
+   * karc0): en lugar de cobrar, la página muestra un registro sin pago y
+   * explica qué pasa después. Si existe, no se pinta el botón de pago.
+   */
+  registro?: { despues: [string, string][] };
 }
 
 export const PRODUCTOS_PAGO: Record<string, ProductoPago> = {
@@ -46,10 +52,17 @@ export const PRODUCTOS_PAGO: Record<string, ProductoPago> = {
     titular: 'Tu primer evento, llave en mano.',
     resumen: 'Diseñamos el formato, la web de reservas y la comunicación del evento para llenar ese día que te cuesta.',
     precio: EXPERIENCE.tarifas.primeraVez.precio, nota: 'Pago único por evento · 0 % de comisión sobre la taquilla',
-    incluye: ['Uno de nuestros 7 formatos, elegido contigo', 'Página del evento y gestión de reservas, montadas por nosotros', 'Anuncios gestionados (el presupuesto de anuncios lo pones tú)', 'El 100 % de la taquilla es tuyo'],
-    despues: [['Al momento', 'Rellenas el briefing del evento (2 minutos) y recibes la confirmación en tu correo.'], ['En menos de 48 horas laborables', 'Videollamada de arranque; en el día 3, el concepto para que lo apruebes.'], ['En unas 3 semanas', 'Tu evento queda listo: página, reservas y anuncios en marcha.']],
+    incluye: ['Uno de nuestros 7 formatos, elegido contigo', 'Web del evento con venta de entradas', 'QR de entrada único por asistente', 'Anuncios gestionados (el presupuesto de anuncios lo pones tú)', 'El 100 % de la taquilla es tuyo'],
+    despues: [['Al momento', 'Rellenas el briefing del evento (2 minutos) y recibes la confirmación en tu correo.'], ['En menos de 48 horas laborables', 'Videollamada de arranque; en el día 3, el concepto para que lo apruebes.'], ['En unas 3 semanas', 'Tu evento queda listo: web, entradas y anuncios en marcha.']],
     garantias: ['Pago seguro con Whop', 'Factura a nombre de tu negocio', 'Sin comisión sobre tus entradas'],
     volver: { href: '/experience', t: 'Volver a Experience' },
+    registro: {
+      despues: [
+        ['Ahora', 'Nos dejas tu idea y tus datos. No pagas nada.'],
+        ['En menos de 48 horas laborables', 'Te llamamos para cerrar contigo formato, fecha y aforo.'],
+        ['Cuando esté todo confirmado', 'Te enviamos el enlace de pago y arrancamos: concepto en 3 días y evento listo en unas 3 semanas.'],
+      ],
+    },
   },
 };
 
