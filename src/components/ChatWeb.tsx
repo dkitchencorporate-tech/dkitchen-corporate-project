@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import ChatAyuda from '@/components/ayuda/ChatAyuda';
 import { abrirSolicitud } from '@/components/Solicitud';
 import { TEMAS_WEB, normalizar } from '@/lib/ayuda';
@@ -10,6 +11,9 @@ import { TEMAS_WEB, normalizar } from '@/lib/ayuda';
  * (`#solicitud-<motivo>`), con WhatsApp como alternativa.
  */
 export default function ChatWeb() {
+  // En el checkout (/pago) no se muestra: tapaba el resumen del cobro en móvil (08/10/2026).
+  const ruta = usePathname();
+  if (ruta?.startsWith('/pago') && !ruta.startsWith('/pagar')) return null;
   return (
     <ChatAyuda
       modo="web"

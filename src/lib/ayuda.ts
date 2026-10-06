@@ -286,6 +286,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
       'En Negocio → Mi plan tienes «Tu cobro»: lo que pagas, el próximo cobro y el desglose por módulo.',
       'Los cobros son el día 12 de cada mes. Si estás en la prueba, no se cobra nada hasta el primer día 12 después de que termine.',
       'Los precios se muestran sin IVA; al pagar se suma el 21 %.',
+      'Para cambiar la tarjeta o descargar tus facturas (con el IVA desglosado), pulsa «Tarjeta y facturas» en Mi plan.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'plan', texto: 'Ir a Mi plan' }],
     siguientes: ['prueba', 'baja'],

@@ -18,6 +18,8 @@ export default function ExitIntent() {
     let inactivo: ReturnType<typeof setTimeout>;
     const mostrar = () => {
       if (!listo || mostrado || document.body.style.overflow === 'hidden') return;
+      // Nunca en mitad de un pago: mientras se teclea la tarjeta (iframe de Stripe) la página parece inactiva.
+      if (location.pathname.startsWith('/pago')) return;
       mostrado = true;
       try { sessionStorage.setItem('dk-salida', '1'); } catch {}
       abrirSolicitud('propuesta');
