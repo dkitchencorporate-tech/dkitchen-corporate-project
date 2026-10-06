@@ -163,7 +163,16 @@ export function leerRefPago(ref: string | null | undefined): string | null {
   return a.length === b.length && timingSafeEqual(a, b) ? id : null;
 }
 
-export const urlPago = (origen: string, id: string) => `${origen}/pago?r=${encodeURIComponent(refPago(id))}`;
+/**
+ * En una preview de Vercel el pago se abre en la propia preview (allí están
+ * las claves de prueba), aunque quien llama pase el dominio de producción.
+ */
+function origenPago(origen: string): string {
+  const rama = process.env.VERCEL_ENV === 'preview' ? process.env.VERCEL_BRANCH_URL : undefined;
+  return rama ? `https://${rama}` : origen;
+}
+
+export const urlPago = (origen: string, id: string) => `${origenPago(origen)}/pago?r=${encodeURIComponent(refPago(id))}`;
 
 // ─────────────────────────────────────────────────────────────
 // Cobros
