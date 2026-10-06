@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import {
   aprovisionarClienteQr,
   avisarAltaQr,
+  esClienteExistente,
   registrarPagoRecuperado,
   registrarPagoFallido,
 } from '@/lib/payments/aprovisionar';
@@ -230,6 +231,8 @@ async function alta(ctx: Contexto) {
     case 'qr-upgrade': {
       try {
         const aplicado = await comoAprovisionamiento(async (c) => (await c.query<{ ok: boolean }>('SELECT dk.aplicar_upgrade_ampliado($1, $2) AS ok', [meta.restauranteId, ctx.suscripcion ?? ctx.idPago])).rows[0]?.ok === true);
+        // Reenvío de Stripe de un upgrade ya aplicado: nada que hacer.
+        if (!aplicado) return ok({ duplicado: true });
         // La Básica se cancela al momento: el día de cobro ya lo conserva la nueva.
         let anterior = 'sin suscripción anterior';
         if (meta.suscripcionAnterior?.startsWith('sub_')) {
@@ -239,7 +242,7 @@ async function alta(ctx: Contexto) {
         }
         await enviarCorreoInterno(`UPGRADE A AMPLIADO: ${meta.restauranteNombre}`,
           `<p><strong>${escaparHtml(meta.restauranteNombre)}</strong> (${escaparHtml(meta.email)}) ha pasado al plan Ampliado.</p>${filasCorreo([
-            ['Plan cambiado en la base', aplicado ? 'sí' : 'no (ya era Ampliado o no existe)'], ['Suscripción Básica', anterior], ['Suscripción nueva', ctx.suscripcion]])}`).catch(() => {});
+            ['Suscripción Básica', anterior], ['Suscripción nueva', ctx.suscripcion]])}`).catch(() => {});
       } catch (e) {
         console.error(`No se pudo aplicar el upgrade (${ctx.idPago}):`, e);
         return fallo('Fallo aplicando upgrade');
@@ -268,11 +271,24 @@ async function altaQr(ctx: Contexto) {
     await avisarAltaQr('fallo', { ...base, plan }, 'Pago con la metadata incompleta: falta local, slug, contacto, correo o suscripción');
     return ok();
   }
+  // Stripe puede repetir un evento ya atendido: si este cliente ya tiene
+  // restaurante, no se intenta crear la cuenta otra vez (daría un falso
+  // «ALTA QR FALLIDA»). Si es un segundo local con el mismo correo, se avisa.
+  if (await esClienteExistente(ctx.cliente).catch(() => false)) {
+    const s = ctx.suscripcion ? await stripe('GET', `/subscriptions/${ctx.suscripcion}`).catch(() => null) : null;
+    if (s?.metadata?.alta_hecha !== 'si') {
+      await enviarCorreoInterno(`QR: cliente que ya tenía carta ha pagado otra alta (${restauranteNombre})`,
+        `<p>El cliente de Stripe ya tiene un restaurante, así que no se ha creado otro automáticamente. Si es un segundo local, créalo en Central; si es un duplicado, reembolsa el cobro en Stripe.</p>${filasCorreo([['Restaurante pedido', restauranteNombre], ['Correo', email], ['Cliente de Stripe', ctx.cliente], ['Suscripción', ctx.suscripcion], ['Factura', ctx.idPago]])}`).catch(() => {});
+    }
+    return ok({ duplicado: true });
+  }
   const resultado = await aprovisionarClienteQr({
     idEvento: ctx.idEvento, email, nombreContacto, plan, restauranteNombre, slugBase,
     referenciaCliente: ctx.cliente,
     referenciaSuscripcion: ctx.suscripcion,
   });
   if (!resultado.ok) return resultado.motivo === 'db_fallo' ? fallo('Fallo aprovisionando') : ok({ aprovisionado: false });
+  // Marca para distinguir un reenvío de Stripe de un segundo local con el mismo correo.
+  await stripe('POST', `/subscriptions/${ctx.suscripcion}`, { metadata: { alta_hecha: 'si' } }).catch(() => {});
   return ok({ aprovisionado: true });
 }
