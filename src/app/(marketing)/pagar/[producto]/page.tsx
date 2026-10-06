@@ -6,12 +6,23 @@ import { BASE_OPERATIVA } from '@/lib/pricing-config';
 import PagoDirecto from '@/components/pago/PagoDirecto';
 import { FondoVivo, TextoRevelado } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
+import { FORMATOS_EXPERIENCE } from '@/lib/experience-formatos';
 
 /**
  * Página de pago directo (29/09/2026): qué compras, qué pagas y qué pasa
  * después, con el cobro en la misma pantalla. El formulario de contacto
  * queda discreto abajo para quien tenga dudas.
  */
+/** «chef 2026-11-10 15p» (lo que manda el configurador) → «Mesa del chef · 10 nov 2026 · 15 plazas». */
+function modeloLegible(producto: string, modelo: string) {
+  if (producto !== 'experience') return modelo ? `modelo ${modelo}` : '';
+  const [codigo, fecha, plazas] = modelo.split(' ');
+  const formato = FORMATOS_EXPERIENCE.find((x) => x.codigo === codigo);
+  const dia = /^d{4}-d{2}-d{2}$/.test(fecha ?? '') ? new Date(`${fecha}T12:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  const aforo = /^d+p$/.test(plazas ?? '') ? `${parseInt(plazas, 10)} plazas` : '';
+  return [formato?.nombre, dia, aforo].filter(Boolean).join(' · ');
+}
+
 export function generateStaticParams() {
   return Object.keys(PRODUCTOS_PAGO).map((producto) => ({ producto }));
 }
@@ -32,7 +43,7 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
         <FondoVivo />
         <div className="relative mx-auto max-w-6xl px-6 md:px-8">
           <Link href={p.volver.href} className="text-sm text-white/55 hover:text-white">← {p.volver.t}</Link>
-          <p className="etiqueta-dk mt-8 text-oro">Contratar {p.nombre}{modelo ? ` · modelo ${modelo}` : ''}</p>
+          <p className="etiqueta-dk mt-8 text-oro">Contratar {p.nombre}{modelo && modeloLegible(p.id, modelo) ? ` · ${modeloLegible(p.id, modelo)}` : ''}</p>
           <TextoRevelado como="h1" texto={p.titular} className="font-display mt-4 max-w-3xl text-[42px] font-semibold leading-[1.02] sm:text-6xl" />
           <Aparecer retraso={0.2}><p className="mt-6 max-w-2xl text-lg text-white/70">{p.resumen}</p></Aparecer>
         </div>
