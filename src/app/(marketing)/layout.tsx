@@ -12,7 +12,7 @@ import PageTransition from '@/components/motion/PageTransition';
  * que no debe llevar nuestra navegación encima — es la pantalla del cliente,
  * no la nuestra), ni `/demo/carta` (la simulación de la experiencia del
  * comensal, que rompería su inmersión con una barra de ventas), ni
- * `/dashboard`, `/admin-dkitchen`, `/manuals` (superficie interna con su
+ * `/panel`, `/admin-dkitchen`, `/manuals` (superficie interna con su
  * propio layout), ni `/onboarding` (un flujo, no una página de captación).
  * El grupo de rutas `(marketing)` no aparece en la URL: es solo una forma de
  * compartir este layout entre las páginas que sí lo necesitan.

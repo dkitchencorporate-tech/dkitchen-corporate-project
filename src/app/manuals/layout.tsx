@@ -38,8 +38,8 @@ export default async function ManualsLayout({
             <Link href="/admin-dkitchen/overview" className="text-xs font-bold text-zinc-400 hover:text-white transition-colors flex items-center gap-2 bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-white/5 hover:border-white/20">
               <span className="text-orange-500">←</span> Volver a Master Console
             </Link>
-            <Link href="/dashboard" className="text-xs font-bold text-zinc-500 hover:text-white transition-colors">
-              Ir al Dashboard Cliente
+            <Link href="/panel" className="text-xs font-bold text-zinc-500 hover:text-white transition-colors">
+              Ir al panel del cliente
             </Link>
           </nav>
         </div>

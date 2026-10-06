@@ -38,7 +38,7 @@ export default function CentroControlManual() {
         <h2>El Panel de Clientes</h2>
         <p>
           Ruta: <code>/admin-dkitchen/clients</code> — junto con el resto de <code>/admin-dkitchen/*</code> y
-          <code> /dashboard</code>.
+          <code> /panel</code>.
         </p>
         <p>
           Estado real hoy: rutas públicas, sin protección — porque están vacías (V-09, todavía abierto).

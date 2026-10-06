@@ -47,7 +47,7 @@ export default function MapaNavegacionManual() {
           en la migración (Fase 2c). BetterAuth (Neon Auth) está aprovisionado
           en el proyecto de Neon pero sin cablear: es una decisión aplazada a
           propósito (tarea #15) hasta que haya a quién autenticar de verdad.
-          Ahora mismo, <code>/dashboard</code> y <code>/admin-dkitchen</code>
+          Ahora mismo, <code>/panel</code> y <code>/admin-dkitchen</code>
           son rutas públicas de facto — están en la lista de cierre antes del
           primer cliente real (Sección 7 de <code>SEGURIDAD_Y_PERSISTENCIA_NEON.md</code>).
         </p>
@@ -55,7 +55,7 @@ export default function MapaNavegacionManual() {
         <h2>Área privada (hueca, sin backend detrás)</h2>
         <p>Renderizan interfaz, pero <code>data-source.ts</code> devuelve listas vacías: no hay datos reales que mostrar todavía.</p>
         <ul>
-          <li><strong>Dashboard de cliente:</strong> <code>/dashboard</code></li>
+          <li><strong>Panel del cliente:</strong> <code>/panel</code></li>
           <li><strong>Panel de administración:</strong> <code>/admin-dkitchen</code>, <code>/admin-dkitchen/clients</code>, <code>/admin-dkitchen/overview</code>, <code>/admin-dkitchen/pipeline</code>, <code>/admin-dkitchen/events-master</code></li>
         </ul>
         <p><strong>Ya no existe:</strong> <code>/creative-factory</code> y todas sus rutas de API — se eliminó junto con Gemini (Fase 2c).</p>

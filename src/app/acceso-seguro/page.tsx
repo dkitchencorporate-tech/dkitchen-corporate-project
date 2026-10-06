@@ -101,7 +101,7 @@ export default async function AccesoSeguro({ searchParams }: { searchParams: Pro
             placeholder="000000"
             className="w-full rounded-lg border border-[#E7E3DE] px-4 py-3 text-center font-mono text-2xl tracking-[0.5em] text-[#1A1714] focus:border-vino focus:outline-none"
           />
-          <button className="w-full rounded-lg bg-vino py-3 font-bold text-white hover:bg-[#B8451A]">Verificar</button>
+          <button className="w-full rounded-lg bg-vino py-3 font-bold text-white hover:bg-vino-hondo">Verificar</button>
         </form>
       </div>
     </div>

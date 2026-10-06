@@ -27,7 +27,7 @@ export default function OnboardingManual() {
 
         <h2>El Flujo Inicial (First Time Login)</h2>
         <p>
-          Cuando un cliente de hostelería paga el plan y recibe su enlace privado para registrarse (ya sea mediante Email o Google OAuth), la plataforma lo redirige inmediatamente a la ruta <code>/dashboard</code>.
+          Cuando un cliente de hostelería paga el plan y recibe su enlace privado para registrarse (ya sea mediante Email o Google OAuth), la plataforma lo redirige inmediatamente a la ruta <code>/panel</code>.
         </p>
         <p>
           En este punto, el sistema realiza una consulta a la base de datos (tabla <code>projects</code>). Si el cliente <strong>no tiene ningún proyecto asociado a su ID</strong>, el Dashboard oculta las métricas normales y activa el <strong>Asistente de Configuración Inicial (Onboarding Wizard)</strong>.

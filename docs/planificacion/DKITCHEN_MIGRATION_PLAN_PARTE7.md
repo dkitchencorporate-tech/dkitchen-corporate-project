@@ -90,7 +90,9 @@ Antes de dar por cerrada esta fase en una página concreta, debe cumplir las cin
 
 ---
 
-## 5. Paleta de color — actualizada por decisión explícita de Alex (2026-09-21), sustituye la regla anterior
+## 5. [OBSOLETA desde el 29-30/09/2026: la vigente es la §5-bis] Paleta de color — actualizada por decisión explícita de Alex (2026-09-21), sustituye la regla anterior
+
+> **OBSOLETA.** Se conserva solo como historial. Los tokens naranjas (`brand`, `brandHover`, `brandAccent`), `trust` y `dash-*` se borraron de `tailwind.config.js` el 07/10/2026 junto con la ruta `/dashboard` y los componentes que los usaban. No usar nada de esta sección.
 
 **Esta sección revierte, con autorización directa de Alex, la regla "no tocar la paleta de color base" que traía tanto la Parte 6 como la Sección 15 de `DKITCHEN_MIGRACION_COMPLETA.md` ("Reglas no negociables").** Esa regla ya no aplica desde este documento en adelante. Motivo: revisión deliberada, no un desliz de diseño — el naranja original (`#FF4500`, "OrangeRed puro") y el negro puro del dashboard (`#050505`) leían más a acento de SaaS/dashboard tech genérico que a hostelería, pese a que el naranja como familia de color sí es la elección correcta para el sector (confirmado por investigación: es el segundo color más asociado a apetito/calidez tras el rojo, y es el mismo que usa Toast, el líder de POS para restaurantes, como acento de marca sobre fondo claro). El ajuste es deliberadamente sutil — mismo esqueleto de marca, ningún tono se mueve hacia azul/morado/negro-azulado (los que más suprimen apetito según la misma investigación).
 
@@ -129,7 +131,7 @@ La paleta naranja de la §5 (`brand` #D9531E) **ya no es la identidad de la web 
 Reglas:
 - Ningún componente nuevo escribe un hexadecimal de esta paleta a mano: se usa el token (`bg-vino`, `text-niebla`…).
 - Las reglas de `globals.css` dependen de esos nombres de clase (`.bg-vino`, `[class*="bg-noche"]`…): si se renombra un token, se cambia también allí.
-- Los tokens antiguos (`brand`, `brandAccent`, `dash-*`) siguen en uso en algunas pantallas antiguas y no se borran hasta migrarlas.
+- Los tokens antiguos (`brand`, `brandHover`, `brandAccent`, `trust`, `dash-*`) se BORRARON el 07/10/2026 (con la ruta `/dashboard` y 21 componentes sin uso). Si una clase con esos nombres reaparece, no tiene color: usar el token Gran Reserva.
 - Los colores de las demos y plantillas de clientes (temas de carta, WhatsApp…) no forman parte de esta paleta.
 - Pendiente: unificar los grises de borde casi iguales (`linea`, `linea-calida`, `papel`, `linea-fuerte`) en una escala más corta. Es una decisión de diseño aparte.
 
