@@ -19,8 +19,8 @@ const CSP = [
   // pase a nonces por petición, que exige mover las páginas a renderizado
   // dinámico. Queda anotado como deuda consciente, no como olvido.
   process.env.NODE_ENV === 'development'
-    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-    : "script-src 'self' 'unsafe-inline'",
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.js.stripe.com"
+    : "script-src 'self' 'unsafe-inline' https://js.stripe.com https://*.js.stripe.com",
 
   // Tailwind y los estilos en línea de los componentes.
   "style-src 'self' 'unsafe-inline'",
@@ -28,17 +28,20 @@ const CSP = [
 
   // Las fotos de los platos y las imágenes de Unsplash que usa la portada.
   // Fotos y logos que suben los clientes desde su panel (Vercel Blob, 0019).
-  "img-src 'self' data: blob: https://images.unsplash.com https://*.public.blob.vercel-storage.com",
+  // Stripe y Link: iconos de tarjetas y monederos del checkout (/pago, 08/10/2026).
+  "img-src 'self' data: blob: https://images.unsplash.com https://*.public.blob.vercel-storage.com https://*.stripe.com https://*.link.com",
 
-  // La aplicación no llama a ningún tercero. La base de datos se consulta
-  // desde el servidor, nunca desde el navegador: si algún día aparece aquí un
-  // dominio de Neon, es que algo se ha cableado por el lado equivocado.
-  "connect-src 'self'",
+  // La aplicación no llama a ningún tercero salvo Stripe (el Payment Element
+  // de /pago habla con su API y con Link; docs.stripe.com/security/guide, CSP).
+  // La base de datos se consulta desde el servidor, nunca desde el navegador:
+  // si algún día aparece aquí un dominio de Neon, algo se ha cableado mal.
+  "connect-src 'self' https://api.stripe.com https://link.com https://*.link.com",
 
   // Nadie nos incrusta. Nosotros solo incrustamos páginas propias (las cartas
   // demo de /demo/carta dentro de /qr, 29/09/2026); nunca a terceros.
   "frame-ancestors 'none'",
-  "frame-src 'self'",
+  // Excepción: los iframes del Payment Element de Stripe, 3D Secure (hooks) y Link.
+  "frame-src 'self' https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://link.com https://*.link.com",
   "object-src 'none'",
 
   // Un formulario de esta web no puede enviar sus datos a otro sitio.
@@ -77,7 +80,8 @@ const cabecerasDeSeguridad = [
   // y negarlos de antemano cierra la puerta a que un script inyectado los pida.
   {
     key: 'Permissions-Policy',
-    value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
+    // payment: solo nosotros y el iframe de Stripe (Apple Pay / Google Pay en /pago).
+    value: 'camera=(), microphone=(), geolocation=(), payment=(self "https://js.stripe.com" "https://*.js.stripe.com"), usb=(), interest-cohort=()',
   },
 
   // No se comparte memoria entre orígenes ni se deja que otro documento
