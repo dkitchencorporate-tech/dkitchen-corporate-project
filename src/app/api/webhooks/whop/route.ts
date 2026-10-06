@@ -51,10 +51,18 @@ interface EventoWhop {
   data: {
     id: string;
     status?: string;
-    member?: { id: string };
+    member?: { id: string } | null;
+    /** API v1 (comprobado el 07/10/2026 con el primer pago real): el pago trae `member_id` y `membership_id` planos, no `member.id`. */
+    member_id?: string | null;
+    membership_id?: string | null;
     metadata?: Record<string, string>;
   };
 }
+
+/** Id del miembro (mber_…): estable entre renovaciones, es la referencia del cliente. */
+const miembroDe = (d: EventoWhop['data']): string | null => d.member?.id ?? d.member_id ?? null;
+/** Id de la membresía (mem_…): el que acepta POST /memberships/{id}/cancel. */
+const membresiaDe = (d: EventoWhop['data']): string | null => d.membership_id ?? (d.id?.startsWith('mem_') ? d.id : null);
 
 /**
  * Cierra el círculo del checkout de QR Menú cuando el proveedor activo es
@@ -294,11 +302,11 @@ export async function POST(request: Request) {
     try {
       const r = await comoAprovisionamiento(async (c) => {
         const { rows } = await c.query<{ r: string }>('SELECT dk.aplicar_enlace_pago($1, $2, $3) AS r', [
-          meta.enlaceId, evento.data.id, evento.data.member?.id ?? null,
+          meta.enlaceId, evento.data.id, miembroDe(evento.data),
         ]);
         return rows[0]?.r;
       });
-      if (r === 'renovacion' && !activacion && evento.data.member?.id) await registrarPagoRecuperado(evento.data.member.id);
+      { const m = miembroDe(evento.data); if (r === 'renovacion' && !activacion && m) await registrarPagoRecuperado(m); }
       if (r === 'ok') {
         await enviarCorreoInterno(
           `PAGO DE ENLACE: ${meta.restauranteNombre}`,
@@ -322,7 +330,7 @@ export async function POST(request: Request) {
         const aplicado = await comoAprovisionamiento(async (c) => {
           const { rows } = await c.query<{ ok: boolean }>('SELECT dk.aplicar_upgrade_ampliado($1, $2) AS ok', [
             meta.restauranteId,
-            evento.data.member?.id ?? evento.data.id,
+            miembroDe(evento.data) ?? evento.data.id,
           ]);
           return rows[0]?.ok === true;
         });
@@ -355,7 +363,7 @@ export async function POST(request: Request) {
   // fallido solo abre el ciclo de gracia en nuestra propia base de datos,
   // nunca cancela nada por sí mismo.
   if (evento.type === 'payment.failed') {
-    const miembroIdFallido = evento.data.member?.id;
+    const miembroIdFallido = miembroDe(evento.data);
     if (miembroIdFallido) {
       await registrarPagoFallido(miembroIdFallido);
     }
@@ -366,10 +374,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ recibido: true });
   }
 
-  const miembroId = evento.data.member?.id;
+  const miembroId = miembroDe(evento.data) ?? membresiaDe(evento.data);
+  const membresiaId = membresiaDe(evento.data) ?? miembroId;
   if (!miembroId) {
-    console.error(`Webhook de Whop: pago ${evento.data.id} sin member.id, no se procesa.`);
-    await avisarAltaQr('fallo', { idPago: evento.data.id, idEvento: evento.id, email: evento.data.metadata?.email, restauranteNombre: evento.data.metadata?.restauranteNombre, nombreContacto: evento.data.metadata?.nombreContacto }, 'El pago llegó sin member.id de Whop');
+    console.error(`Webhook de Whop: pago ${evento.data.id} sin member_id ni membership_id, no se procesa.`);
+    await avisarAltaQr('fallo', { idPago: evento.data.id, idEvento: evento.id, email: evento.data.metadata?.email, restauranteNombre: evento.data.metadata?.restauranteNombre, nombreContacto: evento.data.metadata?.nombreContacto }, 'El pago llegó sin member_id ni membership_id de Whop');
     return NextResponse.json({ recibido: true });
   }
 
@@ -413,9 +422,9 @@ export async function POST(request: Request) {
     restauranteNombre,
     slugBase,
     referenciaCliente: miembroId,
-    // Whop no distingue cliente de suscripción como Stripe: el id de
-    // membresía cumple ambos roles en este esquema.
-    referenciaSuscripcion: miembroId,
+    // 07/10/2026: la suscripción guarda el id de membresía (mem_…), que es el
+    // que acepta la cancelación por API desde la baja del panel (H2).
+    referenciaSuscripcion: membresiaId ?? miembroId,
   });
 
   if (!resultado.ok) {
