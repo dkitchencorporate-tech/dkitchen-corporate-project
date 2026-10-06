@@ -83,6 +83,11 @@ export async function crearCheckoutQr(datos: DatosCheckoutQr): Promise<{ url: st
       initial_price: QR_MENU.primerMes,
       renewal_price: planConfig.mensual,
       billing_period: 30,
+      // 07/10/2026 (prueba de karc0): sin esto Whop cobra el initial_price
+      // ADEMÁS de la primera renovación (docs: «charged on top of the first
+      // renewal_price») → 1 + 25 € + IVA hoy. Con 30 días de prueba hoy solo
+      // se paga el 1 € y la cuota mensual empieza el día 31.
+      trial_period_days: 30,
       product: {
         title: `QR Menú — Plan ${planConfig.nombre}`,
         // Determinista por plan: reutiliza el mismo producto en vez de crear
