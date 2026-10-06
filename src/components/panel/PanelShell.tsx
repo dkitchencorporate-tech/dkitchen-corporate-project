@@ -31,7 +31,7 @@ import type { MesaPlano, ElementoPlano, FilaInforme, Camarero as CamareroSala } 
 import type { Promocion } from '@/lib/promociones';
 import type { Reserva } from '@/lib/reservas';
 import { authClient } from '@/lib/auth-client';
-import ChatAyuda from '@/components/ayuda/ChatAyuda';
+import ChatAyuda, { abrirAyuda } from '@/components/ayuda/ChatAyuda';
 import { TEMAS_PANEL } from '@/lib/ayuda';
 import { crearTicketAyudaAction, comprarServicioAction } from '@/app/panel/actions';
 
@@ -228,6 +228,7 @@ export default function PanelShell({
         seccion={pestana}
         saludo={`Hola, ${identidad.nombre.split(' ')[0]}. ¿En qué te ayudo? Estas son las dudas más habituales en ${titulo || 'el panel'}; también puedes escribir la tuya abajo.`}
         posicion="bottom-[5.75rem] right-4 lg:bottom-6 lg:right-6"
+        sinBurbujaMovil
         onIr={(p) => { if (PESTANAS.some((x) => x.id === p) && visible(p as Pestana)) setPestana(p as Pestana); else setPestana(p === 'idiomas' || p === 'sala' ? 'modulos' : 'plan'); }}
         puesta={puesta ? { precio: euros(puesta.precioCentimos), comprar: async () => {
           if (demo) { window.location.href = '/qr#planes'; return; }
@@ -247,7 +248,7 @@ export default function PanelShell({
             const activo = espacio?.id === e.id;
             return (
               <li key={e.id} className="flex-1">
-                <button onClick={() => setPestana(e.items[0].id)} aria-current={activo ? 'page' : undefined}
+                <button onClick={() => (e.id === 'ayuda' ? abrirAyuda() : setPestana(e.items[0].id))} aria-current={activo ? 'page' : undefined}
                   className={`relative flex w-full flex-col items-center gap-0.5 rounded-[20px] py-2 text-[10.5px] font-medium ${activo ? 'text-white' : 'text-white/50'}`}>
                   {activo && <motion.span layoutId="barra-activa" className="absolute inset-0 rounded-[20px] bg-white/[0.1]" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
                   <span className={`relative ${activo ? 'text-oro' : ''}`}><Icono n={e.icono} /></span>

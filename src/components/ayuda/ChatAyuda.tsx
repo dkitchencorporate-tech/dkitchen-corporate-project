@@ -31,6 +31,8 @@ export interface PropsChat {
   saludo: string;
   /** Clases de posición de la burbuja (cambian entre panel y web). */
   posicion: string;
+  /** Panel en móvil: sin burbuja; la pestaña «Ayuda» de la barra inferior abre el chat (07/10/2026: la burbuja tapaba «Editar»). */
+  sinBurbujaMovil?: boolean;
   onIr?: (pestana: string) => void;
   /** Puesta a punto: solo panel y solo si no la tiene ya. */
   puesta?: { precio: string; comprar: () => Promise<void> } | null;
@@ -41,7 +43,7 @@ export interface PropsChat {
 
 const CURVA = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
-export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, onIr, puesta, onPersona, onSolicitud }: PropsChat) {
+export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinBurbujaMovil, onIr, puesta, onPersona, onSolicitud }: PropsChat) {
   const [abierto, setAbierto] = useState(false);
   const [entradas, setEntradas] = useState<Entrada[]>([]);
   const [texto, setTexto] = useState('');
@@ -138,7 +140,7 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, onIr
         {!abierto && (
           <motion.button key="burbuja" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }} transition={{ duration: 0.25, ease: CURVA }}
             onClick={() => setAbierto(true)} aria-label="Abrir la ayuda"
-            className={`fixed z-[90] flex h-14 w-14 items-center justify-center rounded-full bg-vino text-white shadow-[0_14px_34px_rgba(62,5,21,.4)] ring-1 ring-oro/40 transition-transform hover:scale-105 active:scale-95 ${posicion}`}>
+            className={`fixed z-[90] ${sinBurbujaMovil ? 'hidden lg:flex' : 'flex'} h-14 w-14 items-center justify-center rounded-full bg-vino text-white shadow-[0_14px_34px_rgba(62,5,21,.4)] ring-1 ring-oro/40 transition-transform hover:scale-105 active:scale-95 ${posicion}`}>
             {/* Pulso suave: dos anillos que respiran detrás de la burbuja */}
             <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-vino motion-safe:animate-[dk-pulso_2.8s_ease-out_infinite]" />
             <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-vino motion-safe:animate-[dk-pulso_2.8s_ease-out_1.4s_infinite]" />
@@ -163,6 +165,7 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, onIr
                 <div>
                   <p className="font-display text-[17px] font-semibold">Ayuda <span className="text-oro">DKitchen</span></p>
                   <p className="text-xs text-white/55">{modo === 'panel' ? 'Respuestas al momento · una persona si hace falta' : 'Resolvemos tus dudas antes de empezar'}</p>
+                  {modo === 'panel' && onIr && seccion !== 'soporte' && <button onClick={() => { setAbierto(false); onIr?.('soporte'); }} className="mt-1 text-xs font-semibold text-oro underline-offset-2 hover:underline">Ver mis consultas →</button>}
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={reiniciar} className="rounded-full px-3 py-1.5 text-xs text-white/60 hover:bg-white/10 hover:text-white">Empezar de nuevo</button>
