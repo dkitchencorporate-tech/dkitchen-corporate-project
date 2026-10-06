@@ -38,6 +38,31 @@ function requerirEnv(nombre: string): string {
   return valor;
 }
 
+/**
+ * Baja desde el panel (07/10/2026, H2 del mapa del cliente): cancela la
+ * membresía al final del periodo pagado (docs.whop.com, «Cancel membership»:
+ * POST /memberships/{id}/cancel, cancellation_mode `at_period_end`). Nunca
+ * lanza: si la clave no tiene `membership:cancel` o Whop falla, devuelve
+ * ok=false y quien llama avisa para cancelarla a mano.
+ */
+export async function cancelarMembresiaAlFinalDelPeriodo(
+  membresiaId: string
+): Promise<{ ok: true; finPeriodo: number | null } | { ok: false; error: string }> {
+  try {
+    const respuesta = await fetch(`${BASE}/memberships/${encodeURIComponent(membresiaId)}/cancel`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${requerirEnv('WHOP_API_KEY')}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cancellation_mode: 'at_period_end' }),
+      signal: AbortSignal.timeout(10000),
+    });
+    const datos = await respuesta.json().catch(() => null);
+    if (!respuesta.ok) return { ok: false, error: `Whop respondió ${respuesta.status}: ${datos?.message ?? datos?.error?.message ?? ''}`.trim() };
+    return { ok: true, finPeriodo: typeof datos?.renewal_period_end === 'number' ? datos.renewal_period_end : null };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 interface RespuestaCheckoutConfiguration {
   id: string;
   purchase_url: string;

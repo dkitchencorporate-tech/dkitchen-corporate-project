@@ -32,7 +32,7 @@ import {
 } from '@/lib/promociones';
 import { cambiarEstadoReserva as dbCambiarEstadoReserva, marcarAvisada as dbMarcarAvisada } from '@/lib/reservas';
 import { avisarEstadoAlCliente, whatsappParaCliente } from '@/lib/correos-reserva';
-import { crearCheckoutServicio, crearCheckoutUpgradeAmpliado, crearCheckoutEnlaceAdmin } from '@/lib/payments/whop';
+import { crearCheckoutServicio, crearCheckoutUpgradeAmpliado, crearCheckoutEnlaceAdmin, cancelarMembresiaAlFinalDelPeriodo } from '@/lib/payments/whop';
 import { quedarmeConTodo, fijarUrlPrueba } from '@/lib/prueba';
 import { estadoServicios, tiene, registrarOferta as dbRegistrarOferta, type Servicio } from '@/lib/servicios';
 import { guardarMesa, eliminarMesa, crearCamarero, desactivarCamarero, guardarPlano, cargarPlano, type MesaPlano, type ElementoPlano } from '@/lib/sala';
@@ -542,13 +542,26 @@ export async function solicitarBajaAction(motivo: string) {
     email: identidad.email,
   });
   const { enviarCorreoInterno, enviarCorreoCliente, escaparHtml } = await import('@/lib/email');
-  await enviarCorreoInterno(`BAJA: ${restaurante.nombre}`,
+  // H2 (07/10/2026): la baja cancela la renovación en Whop al momento (al final
+  // del periodo pagado). Si no hay membresía o Whop falla, aviso para hacerlo a mano.
+  let cancelada: { ok: true; finPeriodo: number | null } | { ok: false; error: string } = { ok: false, error: 'Sin membresía de Whop asociada' };
+  try {
+    const { comoCliente } = await import('@/lib/db');
+    const membresia = await comoCliente(jwt, async (c) => (await c.query<{ m: string | null }>('SELECT stripe_subscription_id AS m FROM restaurantes WHERE id = $1', [restaurante.id])).rows[0]?.m ?? null);
+    if (membresia) cancelada = await cancelarMembresiaAlFinalDelPeriodo(membresia);
+  } catch (e) {
+    cancelada = { ok: false, error: `No se pudo leer la membresía: ${e instanceof Error ? e.message : String(e)}` };
+  }
+  const fin = cancelada.ok && cancelada.finPeriodo ? new Date(cancelada.finPeriodo * 1000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Madrid' }) : null;
+  await enviarCorreoInterno(`BAJA: ${restaurante.nombre}${cancelada.ok ? ' (Whop cancelado)' : ' (CANCELAR EN WHOP A MANO)'}`,
     `<p><strong>${escaparHtml(restaurante.nombre)}</strong> (${escaparHtml(identidad.email)}) ha pedido la baja desde su panel.</p>
-     <p><strong>Cancela su suscripción en Whop antes del próximo cobro.</strong> El servicio sigue activo hasta el final del periodo pagado.</p>
+     ${cancelada.ok
+       ? `<p>La renovación ya está cancelada en Whop${fin ? `; el acceso termina el ${escaparHtml(fin)}` : ''}. No hace falta hacer nada en Whop.</p>`
+       : `<p><strong>Cancela su suscripción en Whop antes del próximo cobro.</strong> La cancelación automática falló: ${escaparHtml(cancelada.error)}</p>`}
      <p>Motivo: ${escaparHtml(texto)}</p>`).catch((e) => console.error('Baja: aviso interno no enviado', e));
   await enviarCorreoCliente(identidad.email, `Hemos recibido tu baja · ${restaurante.nombre}`,
     `<p>Hola,</p>
-     <p>Hemos recibido tu solicitud de baja de la carta digital de <strong>${escaparHtml(restaurante.nombre)}</strong>. No se te volverá a cobrar.</p>
+     <p>Hemos recibido tu solicitud de baja de la carta digital de <strong>${escaparHtml(restaurante.nombre)}</strong>. ${cancelada.ok ? 'Ya hemos cancelado la renovación: no se te volverá a cobrar.' : 'Cancelamos la renovación antes de tu próximo cobro y te lo confirmamos por correo.'}</p>
      <p>Tu carta sigue activa hasta el final del periodo que ya pagaste. Después, tu QR mostrará una página informativa (nunca un error) y guardaremos tu carta 60 días por si quieres volver o pedirnos una copia.</p>
      <p>Si ha sido un error o quieres contarnos algo, responde a este correo.</p>`,
     { titulo: 'Baja recibida' }).catch((e) => console.error('Baja: confirmación no enviada', e));
