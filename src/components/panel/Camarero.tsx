@@ -116,7 +116,7 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
             max={80}
             value={mesas}
             onChange={(e) => setMesas(Math.min(80, Math.max(1, Number(e.target.value) || 1)))}
-            className="w-20 rounded-lg bg-white border border-linea px-2 py-1 text-carbon"
+            className="w-20 rounded-lg bg-white border border-acero px-2 py-1 text-carbon"
           />
         </label>
         <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">

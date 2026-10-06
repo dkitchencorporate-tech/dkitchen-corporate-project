@@ -99,7 +99,7 @@ export default async function AccesoSeguro({ searchParams }: { searchParams: Pro
             required
             autoFocus
             placeholder="000000"
-            className="w-full rounded-lg border border-linea px-4 py-3 text-center font-mono text-2xl tracking-[0.5em] text-[#1A1714] focus:border-vino focus:outline-none"
+            className="w-full rounded-lg border border-acero px-4 py-3 text-center font-mono text-2xl tracking-[0.5em] text-tinta focus:border-vino focus:outline-none"
           />
           <button className="w-full rounded-lg bg-vino py-3 font-bold text-white hover:bg-vino-hondo">Verificar</button>
         </form>

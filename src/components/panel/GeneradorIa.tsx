@@ -218,7 +218,7 @@ export default function GeneradorIa({
             {actual ? '¿Qué quieres cambiar de esta imagen?' : modo === 'plato' ? 'Describe cómo la quieres (opcional)' : 'O describe exactamente lo que quieres'}
             <textarea value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={400} rows={2} spellCheck lang="es" disabled={pendiente}
               placeholder={actual ? 'Ej.: más luz, fondo de madera, letras más grandes' : info.ejemplo}
-              className="mt-1.5 w-full rounded-xl border border-linea bg-crema px-3 py-2.5 text-sm font-normal placeholder-ceniza focus:border-vino focus:outline-none" />
+              className="mt-1.5 w-full rounded-xl border border-acero bg-crema px-3 py-2.5 text-sm font-normal placeholder-ceniza focus:border-vino focus:outline-none" />
           </label>
           {modo !== 'plato' && <p className="mt-1.5 text-[12px] text-niebla">💡 ¿Quieres un texto escrito en la imagen (tu nombre, un precio…)? Escríbelo <strong>entre comillas</strong>: «letrero con "El Rincón del Flores"». Lo escribiremos tal cual.</p>}
           <HerramientasTexto valor={texto} onCambio={setTexto} tipo="instruccion" contexto={plato?.nombre ?? undefined} demo={demo} />

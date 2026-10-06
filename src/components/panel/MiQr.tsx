@@ -163,20 +163,20 @@ function FormularioQrFisico() {
         value={cantidad}
         onChange={(e) => setCantidad(e.target.value)}
         placeholder="Cantidad"
-        className="w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza"
+        className="w-full rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza"
       />
       <input
         value={direccion}
         onChange={(e) => setDireccion(e.target.value)}
         placeholder="Dirección de envío"
-        className="w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza"
+        className="w-full rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza"
       />
       <textarea
         value={notas}
         onChange={(e) => setNotas(e.target.value)}
         placeholder="Notas (opcional)"
         rows={2}
-        className="w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza"
+        className="w-full rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza"
       />
 
       <div className="flex justify-end gap-3">

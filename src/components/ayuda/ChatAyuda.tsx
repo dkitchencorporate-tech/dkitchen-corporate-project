@@ -225,7 +225,7 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinB
                       <p className="mt-1 text-[13px] text-niebla">{modo === 'panel' ? 'Le pasamos lo que has visto aquí, así no tienes que repetirlo.' : 'Déjanos tus datos y te escribimos. Si lo prefieres, también por WhatsApp.'}</p>
                       {modo === 'panel' ? (<>
                         <textarea value={mensaje} onChange={(ev) => setMensaje(ev.target.value)} rows={3} maxLength={2000} placeholder="Cuéntanos qué necesitas"
-                          className="mt-3 w-full rounded-xl border border-linea bg-white px-3 py-2 text-[14px] placeholder-ceniza focus:border-vino focus:outline-none" />
+                          className="mt-3 w-full rounded-xl border border-acero bg-white px-3 py-2 text-[14px] placeholder-ceniza focus:border-vino focus:outline-none" />
                         {error && <p className="mt-1 text-xs text-red-700">{error}</p>}
                         <button onClick={enviarPersona} disabled={enviando} className="mt-2 w-full rounded-full bg-vino py-2.5 text-[14px] font-semibold text-white hover:bg-vino-hondo disabled:opacity-60">{enviando ? 'Enviando…' : 'Enviar a una persona'}</button>
                       </>) : (

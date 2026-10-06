@@ -182,7 +182,7 @@ function Motivo({ motivo, setMotivo, pendiente, onCancelar, onConfirmar }: {
   return (
     <div className="mt-2 flex flex-col gap-2 rounded-lg bg-crema p-2 sm:flex-row">
       <input autoFocus value={motivo} onChange={(e) => setMotivo(e.target.value.slice(0, 200))} placeholder="Motivo (plato devuelto, error al pedir…)"
-        className="min-w-0 flex-1 rounded-lg border border-linea bg-white px-3 py-2 text-sm" />
+        className="min-w-0 flex-1 rounded-lg border border-acero bg-white px-3 py-2 text-sm" />
       <div className="flex gap-2">
         <button onClick={onCancelar} className="rounded-lg px-3 py-2 text-sm">Cancelar</button>
         <button disabled={!valido || pendiente} onClick={onConfirmar} className="rounded-lg bg-red-600 px-3 py-2 text-sm font-bold text-white disabled:opacity-40">Anular</button>

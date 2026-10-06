@@ -55,14 +55,14 @@ export default function Soporte({ tickets }: { tickets: Ticket[] }) {
           value={asunto}
           onChange={(e) => setAsunto(e.target.value)}
           placeholder="Asunto"
-          className="w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza"
+          className="w-full rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza"
         />
         <textarea
           value={mensaje}
           onChange={(e) => setMensaje(e.target.value)}
           placeholder="Cuéntanos qué pasa"
           rows={4}
-          className="w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza"
+          className="w-full rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza"
         />
         <div className="flex items-center justify-between">
           {enviado && <p className="text-sm text-green-700">Enviado.</p>}

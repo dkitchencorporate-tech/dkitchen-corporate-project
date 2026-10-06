@@ -58,7 +58,7 @@ export default function MiCarta({
           value={nuevaSeccion}
           onChange={(e) => setNuevaSeccion(e.target.value)}
           placeholder="Nombre de la nueva sección (ej. Entrantes)"
-          className="flex-1 rounded-lg bg-white border border-linea px-4 py-2.5 text-carbon placeholder-ceniza focus:outline-none focus:border-vino"
+          className="flex-1 rounded-lg bg-white border border-acero px-4 py-2.5 text-carbon placeholder-ceniza focus:outline-none focus:border-vino"
         />
         <button
           onClick={agregarSeccion}
@@ -127,7 +127,7 @@ function SeccionCard({
             <input
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="flex-1 rounded-lg bg-white border border-linea px-3 py-1.5 text-carbon"
+              className="flex-1 rounded-lg bg-white border border-acero px-3 py-1.5 text-carbon"
             />
             <button onClick={guardarNombre} disabled={pendiente} className="text-sm text-green-700 font-semibold">
               Guardar
@@ -262,7 +262,7 @@ function FormularioPlato({
             placeholder="Nombre del plato"
             spellCheck
             lang="es"
-            className="w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza"
+            className="w-full rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza"
           />
           <HerramientasTexto valor={nombre} onCambio={setNombre} tipo="titulo" />
         </div>
@@ -273,7 +273,7 @@ function FormularioPlato({
           step="0.01"
           min="0"
           placeholder="Precio (€)"
-          className="rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza"
+          className="rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza"
         />
       </div>
 
@@ -286,7 +286,7 @@ function FormularioPlato({
           rows={3}
           spellCheck
           lang="es"
-          className="w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon placeholder-ceniza"
+          className="w-full rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza"
         />
         <HerramientasTexto valor={descripcion} onCambio={(v) => setDescripcion(v.slice(0, 300))} tipo="descripcion" contexto={nombre} />
         <span className="block text-[11px] text-ceniza">Se ve en la carta y completa al abrir el plato. Una buena descripción vende más.</span>
@@ -298,7 +298,7 @@ function FormularioPlato({
         <select
           value={seccionId}
           onChange={(e) => setSeccionId(e.target.value)}
-          className="w-full rounded-lg bg-white border border-linea px-3 py-2 text-carbon"
+          className="w-full rounded-lg bg-white border border-acero px-3 py-2 text-carbon"
         >
           <option value="">Sin sección</option>
           {secciones.map((s) => (

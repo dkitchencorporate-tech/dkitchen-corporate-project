@@ -71,7 +71,7 @@ export default async function SoporteQr() {
                   maxLength={4000}
                   rows={3}
                   placeholder={t.respuesta ? 'Añadir otra respuesta (sustituye a la anterior)…' : 'Escribe la respuesta. El cliente la recibirá por correo y en su panel.'}
-                  className="w-full rounded-lg border border-linea bg-white px-3 py-2 text-sm focus:border-vino focus:outline-none"
+                  className="w-full rounded-lg border border-acero bg-white px-3 py-2 text-sm focus:border-vino focus:outline-none"
                 />
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-2 text-xs text-niebla">

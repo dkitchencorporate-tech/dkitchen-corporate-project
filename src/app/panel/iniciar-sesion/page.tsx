@@ -60,7 +60,7 @@ export default function IniciarSesion() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg bg-white border border-linea px-4 py-2.5 text-carbon placeholder-ceniza focus:outline-none focus:border-vino"
+              className="w-full rounded-lg bg-white border border-acero px-4 py-2.5 text-carbon placeholder-ceniza focus:outline-none focus:border-vino"
               placeholder="tu@correo.com"
             />
           </div>
@@ -76,7 +76,7 @@ export default function IniciarSesion() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg bg-white border border-linea px-4 py-2.5 pr-11 text-carbon placeholder-ceniza focus:outline-none focus:border-vino"
+                className="w-full rounded-lg bg-white border border-acero px-4 py-2.5 pr-11 text-carbon placeholder-ceniza focus:outline-none focus:border-vino"
                 placeholder="••••••••"
               />
               <button
