@@ -20,15 +20,15 @@ export async function avisarAltaQr(
     : `ALTA QR FALLIDA, cliente cobrado sin carta: ${datos.restauranteNombre ?? datos.email ?? datos.idPago ?? '¿?'}`;
   const intro = estado === 'ok'
     ? '<p>Se acaba de dar de alta un cliente de la carta QR. Ya tiene panel y le llegó la bienvenida.</p>'
-    : '<p><strong>Ha pagado y NO tiene restaurante.</strong> Revísalo hoy en Whop y en Central. Si la cuenta ya existía, hay que vincularla a mano; si fue la base, Whop reintenta solo, pero confirma que entró.</p>';
+    : '<p><strong>Ha pagado y NO tiene restaurante.</strong> Revísalo hoy en Stripe y en Central. Si la cuenta ya existía, hay que vincularla a mano; si fue la base, Stripe reintenta solo, pero confirma que entró.</p>';
   await enviarCorreoInterno(asunto, intro + filasCorreo([
     ['Motivo', motivo],
     ['Restaurante', datos.restauranteNombre],
     ['Contacto', datos.nombreContacto],
     ['Correo', datos.email],
     ['Plan', datos.plan],
-    ['Miembro de Whop', datos.referenciaCliente],
-    ['Pago de Whop', datos.idPago],
+    ['Cliente de Stripe', datos.referenciaCliente],
+    ['Cobro de Stripe', datos.idPago],
     ['Evento', datos.idEvento],
   ])).catch((e) => console.error('Aviso interno de alta QR no enviado:', e));
 }

@@ -24,7 +24,7 @@ La documentación completa de la migración de Architect.Sys a DKitchen vive en 
 
 ## Pagos
 
-Único proveedor: **Whop** (no hay Stripe, no hay selector de proveedor — decisión explícita de Alex, ver Parte 12). Todo precio se lee de `src/lib/pricing-config.ts` — ningún componente, copy o metadata escribe un precio a mano.
+Único proveedor: **Stripe** (decisión de karc0 del 07/10/2026; sustituye a Whop, que se retira por completo). Checkout NATIVO en `/pago` con el Payment Element embebido (nunca páginas alojadas de Stripe), IVA del 21 % siempre aparte y desglosado, y factura de Stripe en todos los cobros. Código: `src/lib/payments/stripe.ts` (API REST, versión fijada) y `src/lib/payments/cobros.ts` (un creador por producto); webhook en `/api/webhooks/stripe`. Todo precio se lee de `src/lib/pricing-config.ts`: ningún componente, copy o metadata escribe un precio a mano.
 
 ## Ramas y despliegue
 

@@ -33,7 +33,7 @@ export interface Marca {
   precioDesarrolloCentimos: number;
 }
 
-/** Solo la llama el webhook de Whop, tras `payment.succeeded` — nunca la app. */
+/** Solo la llama el webhook de pago, tras `payment.succeeded` — nunca la app. */
 export async function crearMarcaRutaB(
   restauranteId: string,
   nombre: string,

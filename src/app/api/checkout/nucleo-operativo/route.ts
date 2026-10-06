@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { crearCheckoutNucleoOperativo } from '@/lib/payments/whop';
+import { crearCheckoutNucleoOperativo } from '@/lib/payments/cobros';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
 
 export const runtime = 'nodejs';
@@ -12,7 +12,7 @@ const CORREO_VALIDO = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 /**
  * Checkout de Núcleo Operativo — Nivel B (Parte 8, Sección 1): pago único al
  * precio fijo publicado, sin negociar nada antes. Esta ruta no toca la base
- * de datos; es /api/webhooks/whop quien reacciona al pago real y dispara la
+ * de datos; es /api/webhooks/stripe quien reacciona al pago real y dispara la
  * tubería de post-pago (pedidos-nivel-b.ts, tuberia-nivel-b.ts).
  */
 export async function POST(request: Request) {

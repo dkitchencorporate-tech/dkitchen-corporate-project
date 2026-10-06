@@ -1,14 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { BASE_OPERATIVA } from '@/lib/pricing-config';
 import { NextResponse } from 'next/server';
-import { crearCheckoutProductoDirecto } from '@/lib/payments/whop';
+import { crearCheckoutProductoDirecto } from '@/lib/payments/cobros';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
 
 /**
  * Checkout de las páginas /pagar/<producto> (29/09/2026). El precio lo pone el
  * servidor desde el catálogo; del navegador solo llegan los datos de contacto.
- * No toca la base: es el webhook de Whop quien reacciona al pago real.
+ * No toca la base: es el webhook de Stripe quien reacciona al pago real.
  */
 export const runtime = 'nodejs';
 
@@ -28,12 +28,12 @@ export async function POST(request: Request) {
   const email = txt(b.email, 254), nombre = txt(b.nombre, 80), negocio = txt(b.negocio, 100);
   const telefono = txt(b.telefono, 20).replace(/[^0-9+ ]/g, '');
   if (!p) return NextResponse.json({ error: 'Producto no válido.' }, { status: 400 });
-  if (!nombre || !CORREO.test(email) || !negocio || telefono.replace(/\D/g, '').length < 9 || !b.condiciones) {
+  if (!nombre || !CORREO.test(email) || !negocio || telefono.replace(/\D/g, '').length < 9) {
     return NextResponse.json({ error: 'Revisa tu nombre, negocio, correo y teléfono.' }, { status: 400 });
   }
   try {
     const { url } = await crearCheckoutProductoDirecto({
-      id: p.id, metadataWhop: p.metadataWhop, titulo: p.nombre, precio: p.precio, email, nombreContacto: nombre,
+      id: p.id, metadataPago: p.metadataPago, titulo: p.nombre, precio: p.precio, email, nombreContacto: nombre,
       restauranteNombre: negocio, telefono, detalle: txt(b.detalle, 60).replace(/[^a-z0-9 áéíóúñ-]/gi, ''),
       origen: new URL(request.url).origin,
       fraccionado: p.id === 'signature' && b.fraccionado === true && BASE_OPERATIVA.fraccionable

@@ -23,7 +23,7 @@ const SECCIONES: [string, React.ReactNode][] = [
   ['Qué pasa tras la baja', <>Tu QR no muestra nunca un error: lleva a una página informativa. Conservamos tu carta y tus datos <strong>60 días</strong> por si quieres volver o pedirnos una copia; pasado ese plazo, los eliminamos.</>],
   ['Contenido de la carta y alérgenos', <>El contenido de la carta (platos, precios, alérgenos y disponibilidad) lo decide y lo mantiene el establecimiento, que es responsable de que sea correcto. Te damos las herramientas para informar de los 14 alérgenos que exige la normativa europea.</>],
   ['Soporte', <>Respondemos en menos de <strong>24 horas laborables</strong> desde la sección Soporte de tu panel o por correo.</>],
-  ['Pagos', <>Los pagos se procesan a través de Whop, nuestra pasarela de pago. No guardamos los datos de tu tarjeta.</>],
+  ['Pagos', <>Los pagos se procesan a través de Stripe Payments Europe, Ltd., nuestra pasarela de pago, en nuestra propia página de pago. No vemos ni guardamos los datos de tu tarjeta. Cada cobro lleva su factura con el IVA desglosado.</>],
   ['Cambios en estas condiciones', <>Si cambiamos estas condiciones, te avisaremos por correo al menos 30 días antes de que se apliquen a tu servicio.</>],
   ['Ley aplicable', <>Estas condiciones se rigen por la legislación española.</>],
 ];

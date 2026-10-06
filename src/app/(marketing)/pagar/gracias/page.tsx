@@ -6,7 +6,7 @@ import Briefing from '@/components/experience/Briefing';
 
 export const metadata: Metadata = { title: 'Pago recibido · DKitchen', robots: { index: false, follow: false } };
 
-/** Vuelta de Whop tras pagar (29/09/2026): confirma y recuerda qué pasa ahora. */
+/** Vuelta del checkout tras pagar (29/09/2026): confirma y recuerda qué pasa ahora. */
 export default async function Gracias({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
   const p = PRODUCTOS_PAGO[String((await searchParams).p ?? '')];
   return (

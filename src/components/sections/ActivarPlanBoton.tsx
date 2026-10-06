@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 
 /**
- * Alta de QR Menú: pide local, nombre y correo y abre el checkout de Whop.
+ * Alta de QR Menú: pide local, nombre y correo y abre el checkout nativo (/pago).
  * Rediseño 29/09/2026: se monta en un portal sobre <body> (antes quedaba
  * atrapado dentro de la tarjeta inclinada de precios y se veía roto), como
  * hoja inferior en móvil y ventana centrada en escritorio.
@@ -108,7 +108,7 @@ export default function ActivarPlanBoton({
                     className="w-full rounded-full bg-[#1A1714] py-4 text-[15px] font-semibold text-white transition hover:bg-black disabled:opacity-50">
                     {cargando ? 'Abriendo el pago seguro…' : 'Continuar al pago seguro'}
                   </button>
-                  <p className="mt-3 text-center text-xs text-black/45">Pago con Whop. Cancelas cuando quieras desde tu panel.</p>
+                  <p className="mt-3 text-center text-xs text-black/45">Pago seguro gestionado por Stripe. Cancelas cuando quieras desde tu panel.</p>
                 </div>
               </motion.form>
             </motion.div>

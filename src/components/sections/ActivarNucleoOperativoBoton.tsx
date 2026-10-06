@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 /**
- * Dispara el checkout real de Whop para Núcleo Operativo — Nivel B (Parte 8,
+ * Dispara el checkout nativo (Stripe) para Núcleo Operativo — Nivel B (Parte 8,
  * Sección 1): pago único al precio fijo publicado, sin negociar nada antes.
  * Convive con "Agendar Consultoría y Activar" (ConsultingModal) a propósito
  * — no lo sustituye: algunos clientes de 700€ prefieren hablar antes, y

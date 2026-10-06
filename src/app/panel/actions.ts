@@ -32,7 +32,8 @@ import {
 } from '@/lib/promociones';
 import { cambiarEstadoReserva as dbCambiarEstadoReserva, marcarAvisada as dbMarcarAvisada } from '@/lib/reservas';
 import { avisarEstadoAlCliente, whatsappParaCliente } from '@/lib/correos-reserva';
-import { crearCheckoutServicio, crearCheckoutUpgradeAmpliado, crearCheckoutEnlaceAdmin, cancelarMembresiaAlFinalDelPeriodo } from '@/lib/payments/whop';
+import { crearCheckoutServicio, crearCheckoutUpgradeAmpliado, crearCheckoutEnlaceAdmin } from '@/lib/payments/cobros';
+import { cancelarTodoAlFinalDelPeriodo, suscripcionesVivas, urlPortalCliente } from '@/lib/payments/stripe';
 import { quedarmeConTodo, fijarUrlPrueba } from '@/lib/prueba';
 import { estadoServicios, tiene, registrarOferta as dbRegistrarOferta, type Servicio } from '@/lib/servicios';
 import { guardarMesa, eliminarMesa, crearCamarero, desactivarCamarero, guardarPlano, cargarPlano, type MesaPlano, type ElementoPlano } from '@/lib/sala';
@@ -228,21 +229,45 @@ export async function actualizarLocalAction(d: DatosLocal) {
 }
 
 export async function iniciarUpgradeAmpliadoAction(): Promise<{ url: string }> {
-  const { identidad, restaurante } = await requerirSesionYRestaurante();
+  const { jwt, identidad, restaurante } = await requerirSesionYRestaurante();
   if (restaurante.plan === 'ampliado') throw new Error('Ya tienes el plan Ampliado.');
+  // La suscripción Básica viva en Stripe: la nueva conserva su día de cobro y el webhook la cancela.
+  const cliente = await clienteStripe(jwt, restaurante.id);
+  const basica = cliente ? (await suscripcionesVivas(cliente).catch(() => [])).find((x) => ['qr-menu', 'enlace-admin'].includes(String(x.metadata?.producto))) : undefined;
   return crearCheckoutUpgradeAmpliado({
     restauranteId: restaurante.id,
     restauranteNombre: restaurante.nombre,
     email: identidad.email,
     nombreContacto: identidad.nombre,
     origen: 'https://dkitchencorporate.es',
+    suscripcionActual: basica?.id ?? null,
   });
+}
+
+/** Id del cliente en Stripe (cus_…) del restaurante, o null si no paga por Stripe. */
+async function clienteStripe(jwt: string, restauranteId: string): Promise<string | null> {
+  const { comoCliente } = await import('@/lib/db');
+  const c = await comoCliente(jwt, async (q) => (await q.query<{ c: string | null }>('SELECT stripe_customer_id AS c FROM restaurantes WHERE id = $1', [restauranteId])).rows[0]?.c ?? null);
+  return c?.startsWith('cus_') ? c : null;
+}
+
+/** Portal de Stripe (H2): cambiar la tarjeta y descargar las facturas, sin pasar por DKitchen. */
+export async function portalFacturasAction(): Promise<{ url?: string; error?: string }> {
+  try {
+    const { jwt, restaurante } = await requerirSesionYRestaurante();
+    const cliente = await clienteStripe(jwt, restaurante.id);
+    if (!cliente) return { error: 'Tu plan no tiene pagos con tarjeta todavía. Si necesitas una factura, escríbenos desde Soporte.' };
+    return { url: await urlPortalCliente(cliente, `${process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es'}/panel?pestana=plan`) };
+  } catch (e) {
+    console.error('Portal de Stripe falló', e);
+    return { error: 'No se pudo abrir la gestión de pagos. Inténtalo en unos minutos.' };
+  }
 }
 
 /**
  * «Quedarme con todo» (0034). El importe, los días gratis hasta el día de
  * cobro y los módulos los calcula dk.prueba_quedarme en la base; aquí solo
- * se crea el pago en Whop con esos datos.
+ * se crea el pago en Stripe con esos datos.
  */
 export async function quedarmeConTodoAction(): Promise<{ url?: string; error?: string }> {
   try {
@@ -531,7 +556,7 @@ export async function guardarEstiloAction(e: { plantilla: string; fondo: string;
 /**
  * Baja del servicio desde el panel (29/09/2026, condiciones §4): queda como
  * ticket en Central (Soporte), aviso interno para cancelar la suscripción en
- * Whop antes del próximo cobro, y confirmación al cliente. El servicio sigue
+ * Stripe al final del periodo, y confirmación al cliente. El servicio sigue
  * activo hasta el final del periodo pagado.
  */
 export async function solicitarBajaAction(motivo: string) {
@@ -542,22 +567,21 @@ export async function solicitarBajaAction(motivo: string) {
     email: identidad.email,
   });
   const { enviarCorreoInterno, enviarCorreoCliente, escaparHtml } = await import('@/lib/email');
-  // H2 (07/10/2026): la baja cancela la renovación en Whop al momento (al final
-  // del periodo pagado). Si no hay membresía o Whop falla, aviso para hacerlo a mano.
-  let cancelada: { ok: true; finPeriodo: number | null } | { ok: false; error: string } = { ok: false, error: 'Sin membresía de Whop asociada' };
+  // H2: la baja cancela al momento, al final del periodo pagado, todas las
+  // suscripciones del cliente en Stripe. Si falla, aviso para hacerlo a mano.
+  let cancelada: { ok: true; finPeriodo: number | null } | { ok: false; error: string } = { ok: false, error: 'Sin cliente de Stripe asociado' };
   try {
-    const { comoCliente } = await import('@/lib/db');
-    const membresia = await comoCliente(jwt, async (c) => (await c.query<{ m: string | null }>('SELECT stripe_subscription_id AS m FROM restaurantes WHERE id = $1', [restaurante.id])).rows[0]?.m ?? null);
-    if (membresia) cancelada = await cancelarMembresiaAlFinalDelPeriodo(membresia);
+    const cliente = await clienteStripe(jwt, restaurante.id);
+    if (cliente) cancelada = await cancelarTodoAlFinalDelPeriodo(cliente);
   } catch (e) {
-    cancelada = { ok: false, error: `No se pudo leer la membresía: ${e instanceof Error ? e.message : String(e)}` };
+    cancelada = { ok: false, error: `No se pudo leer el cliente de Stripe: ${e instanceof Error ? e.message : String(e)}` };
   }
   const fin = cancelada.ok && cancelada.finPeriodo ? new Date(cancelada.finPeriodo * 1000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Madrid' }) : null;
-  await enviarCorreoInterno(`BAJA: ${restaurante.nombre}${cancelada.ok ? ' (Whop cancelado)' : ' (CANCELAR EN WHOP A MANO)'}`,
+  await enviarCorreoInterno(`BAJA: ${restaurante.nombre}${cancelada.ok ? ' (Stripe cancelado)' : ' (CANCELAR EN STRIPE A MANO)'}`,
     `<p><strong>${escaparHtml(restaurante.nombre)}</strong> (${escaparHtml(identidad.email)}) ha pedido la baja desde su panel.</p>
      ${cancelada.ok
-       ? `<p>La renovación ya está cancelada en Whop${fin ? `; el acceso termina el ${escaparHtml(fin)}` : ''}. No hace falta hacer nada en Whop.</p>`
-       : `<p><strong>Cancela su suscripción en Whop antes del próximo cobro.</strong> La cancelación automática falló: ${escaparHtml(cancelada.error)}</p>`}
+       ? `<p>La renovación ya está cancelada en Stripe${fin ? `; el acceso termina el ${escaparHtml(fin)}` : ''}. No hace falta hacer nada más.</p>`
+       : `<p><strong>Cancela sus suscripciones en Stripe antes del próximo cobro.</strong> La cancelación automática falló: ${escaparHtml(cancelada.error)}</p>`}
      <p>Motivo: ${escaparHtml(texto)}</p>`).catch((e) => console.error('Baja: aviso interno no enviado', e));
   await enviarCorreoCliente(identidad.email, `Hemos recibido tu baja · ${restaurante.nombre}`,
     `<p>Hola,</p>

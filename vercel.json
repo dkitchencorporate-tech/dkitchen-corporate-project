@@ -1,13 +1,11 @@
 {
-  "regions": ["fra1"],
+  "regions": [
+    "fra1"
+  ],
   "crons": [
     {
       "path": "/api/cron/gracia-impago",
       "schedule": "0 4 * * *"
-    },
-    {
-      "path": "/api/cron/mantenimiento-nucleo-operativo",
-      "schedule": "15 4 * * *"
     }
   ]
 }

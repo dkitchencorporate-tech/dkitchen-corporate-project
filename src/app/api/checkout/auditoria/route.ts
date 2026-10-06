@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { crearCheckoutAuditoria } from '@/lib/payments/whop';
+import { crearCheckoutAuditoria } from '@/lib/payments/cobros';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
 
 export const runtime = 'nodejs';
@@ -11,9 +11,9 @@ const CORREO_VALIDO = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
 /**
  * Order-bump de Auditoría+Escandallo (Parte 8, Sección 3.1-b): un segundo
- * checkout de Whop, opcional, ofrecido justo después de confirmar el pago
+ * checkout de Stripe, opcional, ofrecido justo después de confirmar el pago
  * de QR Menú — nunca bloquea ese pago, y esta ruta no toca la base de datos
- * (igual que /api/checkout/qr, es /api/webhooks/whop quien reacciona al
+ * (igual que /api/checkout/qr, es /api/webhooks/stripe quien reacciona al
  * pago real).
  */
 export async function POST(request: Request) {

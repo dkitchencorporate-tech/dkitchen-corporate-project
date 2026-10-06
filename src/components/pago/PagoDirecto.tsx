@@ -49,7 +49,7 @@ export default function PagoDirecto({ producto, precio, boton, detalle = '', fra
     setEstado('enviando'); setError('');
     try {
       const r = await fetch('/api/pagar', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...Object.fromEntries(f), condiciones: f.get('condiciones') === 'on', producto, detalle, fraccionado: Boolean(fraccionable && enCuotas) }) });
+        body: JSON.stringify({ ...Object.fromEntries(f), producto, detalle, fraccionado: Boolean(fraccionable && enCuotas) }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.url) { setError(j.error || 'No se pudo abrir el pago. Inténtalo de nuevo.'); setEstado('form'); return; }
       pagando.current = true;
@@ -66,10 +66,6 @@ export default function PagoDirecto({ producto, precio, boton, detalle = '', fra
       <input id="pago-negocio" name="negocio" required maxLength={100} placeholder="Nombre de tu negocio" autoComplete="organization" className={campo} />
       <input id="pago-email" name="email" type="email" required maxLength={254} placeholder="Correo (aquí te llega todo)" autoComplete="email" className={campo} />
       <input id="pago-telefono" name="telefono" type="tel" required maxLength={20} inputMode="tel" placeholder="Teléfono" autoComplete="tel" className={campo} />
-      <label className="flex items-start gap-2.5 text-xs leading-relaxed text-niebla">
-        <input id="pago-condiciones" name="condiciones" type="checkbox" required className="mt-0.5 h-4 w-4 accent-vino" />
-        <span>Acepto los <a href="/terms" className="underline">términos</a> y la <a href="/privacy" className="underline">política de privacidad</a>.</span>
-      </label>
       {fraccionable && (
         <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Forma de pago">
           {([[false, 'Pago único', `${precio} €`], [true, `${fraccionable.cuotas} cuotas`, `${fraccionable.cuotas} × ${fraccionable.importeCuota} €`]] as [boolean, string, string][]).map(([v, t, d]) => (
@@ -80,12 +76,12 @@ export default function PagoDirecto({ producto, precio, boton, detalle = '', fra
           ))}
         </div>
       )}
-      {fraccionable && enCuotas && <p className="text-xs text-niebla">Hoy pagas {fraccionable.importeCuota} € + IVA y la segunda cuota se cobra sola a los 30 días ({fraccionable.cuotas * fraccionable.importeCuota} € en total).</p>}
+      {fraccionable && enCuotas && <p className="text-xs text-niebla">Hoy pagas {fraccionable.importeCuota} € + IVA y la segunda cuota se cobra sola al mes siguiente ({fraccionable.cuotas * fraccionable.importeCuota} € en total).</p>}
       {error && <p role="alert" className="rounded-xl bg-vino/10 px-4 py-3 text-sm text-vino">{error}</p>}
       <button type="submit" disabled={estado === 'enviando'} className="mt-1 rounded-full bg-vino px-7 py-4 text-[16px] font-semibold text-white disabled:opacity-60">
         {estado === 'enviando' ? 'Abriendo el pago seguro…' : `${boton} · ${fraccionable && enCuotas ? fraccionable.importeCuota : precio} € + IVA${fraccionable && enCuotas ? ' hoy' : ''}`}
       </button>
-      <p className="text-center text-xs text-ceniza">Te llevamos a la pasarela segura de Whop para pagar con tarjeta.</p>
+      <p className="text-center text-xs text-ceniza">En el siguiente paso pagas con tarjeta en nuestra página segura, gestionada por Stripe.</p>
     </form>
   );
 }

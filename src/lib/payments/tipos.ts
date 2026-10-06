@@ -1,5 +1,5 @@
 /**
- * Datos para crear un checkout de QR Menú. Whop es el único proveedor de
+ * Datos para crear un checkout de QR Menú. Stripe es el único proveedor de
  * pago de este proyecto — decisión explícita de Alex (2026-09-21), Stripe
  * queda fuera por completo, no como opción de repuesto.
  */

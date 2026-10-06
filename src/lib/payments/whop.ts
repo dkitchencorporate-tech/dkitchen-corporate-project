@@ -539,7 +539,7 @@ export async function crearCheckoutEnlaceAdmin(datos: {
  */
 export async function crearCheckoutProductoDirecto(datos: {
   id: string;
-  metadataWhop: string;
+  metadataPago: string;
   titulo: string;
   precio: number;
   email: string;
@@ -575,7 +575,7 @@ export async function crearCheckoutProductoDirecto(datos: {
         },
     metadata: {
       ...(datos.fraccionado ? { fraccionado: String(datos.fraccionado.cuotas), ref: datos.fraccionado.ref } : {}),
-      producto: datos.metadataWhop,
+      producto: datos.metadataPago,
       embudo: datos.id,
       email: datos.email,
       nombreContacto: datos.nombreContacto,

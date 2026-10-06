@@ -11,7 +11,7 @@ const numero = (s: string) => Number(s.replace(',', '.'));
 /**
  * Enlace de pago a medida en 3 pasos (rediseño 29/09/2026):
  * 1. Qué cobras · 2. Cuánto · 3. Enviar. El importe se guarda en la base
- * antes de ir a Whop; al pagarlo se activa solo.
+ * antes de ir al pago; al pagarlo se activa solo.
  */
 export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId: string; catalogo: Cat[] }) {
   const [paso, setPaso] = useState(1);

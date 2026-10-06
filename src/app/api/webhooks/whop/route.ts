@@ -115,7 +115,7 @@ export async function POST(request: Request) {
   if (evento.type === 'payment.succeeded' && productoDirecto && !metaEmbudo.fraccionado) {
     await comoAprovisionamiento((c) => c.query('SELECT dk.embudo_pagado($1)', [productoDirecto.id])).catch((e) =>
       console.error('Embudo: no se pudo anotar el pago', e));
-    if (productoDirecto.metadataWhop !== 'nucleo-operativo' && metaEmbudo.email) {
+    if (productoDirecto.metadataPago !== 'nucleo-operativo' && metaEmbudo.email) {
       await enviarCorreoCliente(String(metaEmbudo.email), `Pago confirmado · ${productoDirecto.nombre}`,
         `<p>Hola ${escaparHtml(metaEmbudo.nombreContacto)},</p>
          <p>Hemos recibido tu pago de <strong>${productoDirecto.precio} € + IVA</strong> por <strong>${escaparHtml(productoDirecto.nombre)}</strong>. Gracias por confiar en DKitchen.</p>

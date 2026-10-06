@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { crearCheckoutQr } from '@/lib/payments/whop';
+import { crearCheckoutQr } from '@/lib/payments/cobros';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
 
 export const runtime = 'nodejs';
@@ -22,9 +22,9 @@ function normalizarSlug(nombre: string): string {
 }
 
 /**
- * Crea el checkout de Whop para activar QR Menú (Parte 6, Sección 3 —
- * CONFIRMADO por Alex). Whop es el único proveedor de pago del proyecto —
- * decisión explícita, no hay selector ni alternativa. `/api/webhooks/whop`
+ * Crea el cobro de Stripe para activar QR Menú (Parte 6, Sección 3) y
+ * devuelve la URL de nuestro checkout nativo /pago. Stripe es el único
+ * proveedor de pago (08/10/2026, sustituye a Whop). `/api/webhooks/stripe`
  * es quien aprovisiona de verdad tras el pago — esta ruta nunca toca la
  * base de datos.
  */

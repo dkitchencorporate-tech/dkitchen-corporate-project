@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import type { ResumenCobro } from '@/lib/prueba';
-import { quedarmeConTodoAction } from '@/app/panel/actions';
+import { quedarmeConTodoAction, portalFacturasAction } from '@/app/panel/actions';
 
 /**
  * Prueba «todo incluido» y cobro (0034). AvisoPrueba va encima de todas las
@@ -23,6 +23,23 @@ function BotonQuedarme({ texto = 'Quedarme con todo' }: { texto?: string }) {
         onClick={() => { setError(null); iniciar(async () => { const r = await quedarmeConTodoAction(); if (r.url) window.location.href = r.url; else setError(r.error ?? 'No se pudo preparar el pago.'); }); }}
         className="rounded-full bg-vino px-5 py-2.5 text-sm font-bold disabled:opacity-60">
         {pendiente ? 'Preparando el pago…' : texto}
+      </button>
+      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+    </div>
+  );
+}
+
+/** Tarjeta y facturas en el portal de Stripe (cambiar la tarjeta, descargar facturas). */
+function BotonFacturas() {
+  const [pendiente, iniciar] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <div>
+      <button
+        disabled={pendiente}
+        onClick={() => { setError(null); iniciar(async () => { const r = await portalFacturasAction(); if (r.url) window.location.href = r.url; else setError(r.error ?? 'No se pudo abrir.'); }); }}
+        className="rounded-full border border-acero px-5 py-2.5 text-sm font-semibold text-tinta hover:border-vino disabled:opacity-60">
+        {pendiente ? 'Abriendo…' : 'Tarjeta y facturas'}
       </button>
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
     </div>
@@ -76,7 +93,10 @@ export function DesgloseCobro({ cobro }: { cobro: ResumenCobro | null }) {
           </li>
         ))}
       </ul>
-      {cobro.prueba_hasta && <div className="mt-5"><BotonQuedarme /></div>}
+      <div className="mt-5 flex flex-wrap items-start gap-3">
+        {cobro.prueba_hasta && <BotonQuedarme />}
+        <BotonFacturas />
+      </div>
     </section>
   );
 }

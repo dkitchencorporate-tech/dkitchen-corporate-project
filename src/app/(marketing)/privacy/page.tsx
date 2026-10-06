@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 /**
  * Política de privacidad (29/09/2026): refleja los tratamientos reales del
- * proyecto (Neon, Vercel, Whop, correo de Arsys, formularios, medición
+ * proyecto (Neon, Vercel, Stripe, correo de Arsys, formularios, medición
  * anónima del embudo, reservas de comensales como encargado del tratamiento).
  */
 const SECCIONES: [string, React.ReactNode][] = [
@@ -18,10 +18,10 @@ const SECCIONES: [string, React.ReactNode][] = [
     <strong>Si nos escribes desde la web:</strong> los datos del formulario (nombre, negocio, correo, teléfono y mensaje).<br />
     <strong>Si visitas la web o escaneas una carta:</strong> datos técnicos anónimos, como el tipo de navegador, el país aproximado y las páginas vistas. No guardamos tu IP en claro.
   </>],
-  ['Para qué los usamos', <>Para prestarte el servicio que contratas, cobrarlo y facturarlo, darte soporte, responder a tus solicitudes y mejorar la web. La base legal es la ejecución del contrato, el cumplimiento de obligaciones legales (facturación) y tu consentimiento cuando nos escribes o aceptas cookies opcionales.</>],
+  ['Para qué los usamos', <>Para prestarte el servicio que contratas, cobrarlo y facturarlo, darte soporte, responder a tus solicitudes y mejorar la web. La base legal es la ejecución del contrato, el cumplimiento de obligaciones legales (facturación) y tu consentimiento cuando nos escribes o aceptas cookies opcionales. Al pagar guardamos la fecha, la IP y la versión de los términos que aceptas, como prueba de la contratación.</>],
   ['Reservas y datos de tus comensales', <>Cuando un comensal reserva en la carta de un restaurante, <strong>el responsable de esos datos es el restaurante</strong>. DKitchen actúa solo como encargado del tratamiento: los guardamos y se los mostramos al restaurante para gestionar la reserva, sin usarlos para nada más.</>],
   ['Proveedores que nos ayudan', <>
-    Vercel (alojamiento de la web y de las imágenes), Neon (base de datos, servidores en Fráncfort, Alemania), Whop (pagos) y Arsys (correo electrónico, España). Algunos de estos proveedores tienen sede en Estados Unidos; en ese caso la transferencia se ampara en las garantías del RGPD (Marco de Privacidad de Datos UE-EE. UU. o cláusulas contractuales tipo).
+    Vercel (alojamiento de la web y de las imágenes), Neon (base de datos, servidores en Fráncfort, Alemania), Stripe (pagos) y Arsys (correo electrónico, España). Algunos de estos proveedores tienen sede en Estados Unidos; en ese caso la transferencia se ampara en las garantías del RGPD (Marco de Privacidad de Datos UE-EE. UU. o cláusulas contractuales tipo).
   </>],
   ['Cuánto tiempo los guardamos', <>Mientras seas cliente. Tras la baja, conservamos tu carta y tus datos 60 días por si vuelves o nos pides una copia, y después los eliminamos. Los datos de facturación se guardan el tiempo que exige la ley. Los datos de los formularios se guardan el tiempo necesario para responderte.</>],
   ['Medición anónima', <>En nuestras páginas de contratación medimos de forma anónima cuántas personas entran, empiezan a rellenar, van a pagar o se van. Solo usamos un identificador aleatorio de la sesión del navegador; nunca tu nombre, correo ni IP.</>],

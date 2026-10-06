@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { crearCuentaCliente, enviarEnlaceDeContrasena } from '@/lib/neon-auth';
 import { enviarBienvenidaQr } from '@/lib/bienvenida';
 import { comoAprovisionamiento } from '@/lib/db';
-import { crearCheckoutEnlaceAdmin } from '@/lib/payments/whop';
+import { crearCheckoutEnlaceAdmin } from '@/lib/payments/cobros';
 import { exigirAdmin } from '@/lib/guard-admin';
 import {
   cambiarEstadoCliente, cambiarPlanCliente, regalarTodo, cargarCartaDemo, crearEnlace, fijarUrlEnlace, anularEnlace, fichaCliente, responderTicket, cambiarEstadoSolicitudQr, asignarDiseno, adminServicio, adminConexionTpv,
@@ -250,7 +250,7 @@ export async function crearEnlaceAction(d: { restauranteId: string; plan: string
     }));
   } catch (e) {
     await anularEnlace(jwt, id).catch(() => {});
-    return { error: e instanceof Error ? e.message : 'Whop no respondió.' };
+    return { error: e instanceof Error ? e.message : 'Stripe no respondió.' };
   }
   await fijarUrlEnlace(jwt, id, url);
   if (d.enviar) {
