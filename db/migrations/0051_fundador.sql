@@ -103,7 +103,7 @@ CREATE TRIGGER fundador_vigilar_plan BEFORE UPDATE OF plan ON public.restaurante
 
 -- Resumen de cobro del panel: precio Fundador si está vigente y sin sumar dos veces lo que ya incluye el plan (0050).
 CREATE OR REPLACE FUNCTION dk.resumen_cobro(p_restaurante uuid)
-RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'pg_catalog' AS $
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'pg_catalog' AS $$
 DECLARE x public.restaurantes; v_items jsonb; v_valor int; v_paga int; v_prox date; v_precio int; v_nivel int;
 BEGIN
   SELECT * INTO x FROM public.restaurantes WHERE id = p_restaurante;
@@ -139,7 +139,7 @@ BEGIN
     'dia_cobro', dk.dia_cobro(), 'estado_acceso', x.estado_acceso,
     'cobro_si_paga_hoy', dk.fecha_cobro(greatest(current_date, coalesce(x.prueba_hasta, current_date))));
 END;
-$;
+$$;
 
 REVOKE ALL ON FUNCTION dk.fundador_estado(), dk.admin_fundador_abrir(), dk.admin_fundadores(), dk.fundador_marcar(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION dk.fundador_estado() TO dk_anon, dk_auth, dk_aprovisionamiento;
