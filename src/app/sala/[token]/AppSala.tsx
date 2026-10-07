@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { esIOS, probarSonido, useAlarmaLlamadas } from '@/lib/alarma-camarero';
+import { esIOS, probarSonido, useAlarmaLlamadas, useCampanillaReservas } from '@/lib/alarma-camarero';
+import { textoReserva, useReservasNuevas } from '@/lib/aviso-reservas';
 import EquipoGestion, { type OpsEquipo, type RespEquipo } from '@/components/sala/EquipoGestion';
 import type { Equipo } from '@/lib/equipo-tipos';
 
@@ -18,6 +19,7 @@ interface Contexto {
   secciones?: { id: string; nombre: string }[];
   cuentas?: { id: string; mesa: string; comensales: number | null; minutos: number; importe: number }[];
 }
+interface ReservaSala { id: string; nombre: string; fecha: string; hora: string; personas: number; notas: string | null; estado: string; creadaEn: string }
 interface LineaCuenta { id: string; nombre: string; cantidad: number; precio: number; nota: string; camarero: string | null; anulada: boolean; motivo_anulacion: string | null }
 interface Cuenta {
   id: string; mesa: string; comensales: number | null; minutos: number; importe: number; abierta_por: string | null;
@@ -41,7 +43,8 @@ export default function AppSala({ token }: { token: string }) {
   const [soloMias, setSoloMias] = useState(true);
   const [vista, setVista] = useState<'lista' | 'plano'>('lista');
   const [mesaAbierta, setMesaAbierta] = useState<string | null>(null);
-  const [seccionApp, setSeccionApp] = useState<'sala' | 'equipo'>('sala');
+  const [seccionApp, setSeccionApp] = useState<'sala' | 'equipo' | 'reservas'>('sala');
+  const [reservas, setReservas] = useState<ReservaSala[]>([]);
 
   const pedir = useCallback(async (cuerpo: object) => {
     const r = await fetch('/api/sala', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, ...cuerpo }) });
@@ -61,6 +64,15 @@ export default function AppSala({ token }: { token: string }) {
   useEffect(() => { if (encargado) setSoloMias(false); }, [encargado]);
   const pendientes = ctx?.llamadas ?? [];
   const { listo, activar } = useAlarmaLlamadas(pendientes.length > 0, pendientes.length === 1 ? `Mesa ${pendientes[0].mesa} llama` : `${pendientes.length} mesas llaman`);
+  // B4: el encargado recibe las reservas en vivo (cada 10 s) con campanilla hasta «Visto». Solo lectura.
+  const cargarReservas = useCallback(async () => {
+    const { status, json } = await pedir({ accion: 'reservas' });
+    if (status !== 200) return;
+    setReservas(((json as { reservas?: (Omit<ReservaSala, 'creadaEn'> & { creada_en: string })[] }).reservas ?? []).map(({ creada_en, ...r }) => ({ ...r, creadaEn: creada_en })));
+  }, [pedir]);
+  useEffect(() => { if (!encargado) return; cargarReservas(); const t = setInterval(cargarReservas, 10000); return () => clearInterval(t); }, [encargado, cargarReservas]);
+  const { nuevas: reservasNuevas, marcar: marcarReservas } = useReservasNuevas(reservas);
+  useCampanillaReservas(encargado && reservasNuevas.length > 0, reservasNuevas.length === 1 ? 'Nueva reserva' : `${reservasNuevas.length} reservas nuevas`);
 
   const color = ctx?.restaurante.color || '#6E0C2B';
   const mesas = useMemo(() => (ctx?.mesas ?? []).filter((m) => !soloMias || m.mia || !m.camarero), [ctx, soloMias]);
@@ -89,10 +101,10 @@ export default function AppSala({ token }: { token: string }) {
 
       {encargado && (
         <nav className="mx-auto flex max-w-3xl gap-2 px-4 pt-3" aria-label="Secciones">
-          {([['sala', 'Sala'], ['equipo', 'Equipo']] as const).map(([id, nombre]) => (
+          {([['sala', 'Sala'], ['reservas', 'Reservas'], ['equipo', 'Equipo']] as const).map(([id, nombre]) => (
             <button key={id} onClick={() => setSeccionApp(id)} aria-current={seccionApp === id ? 'page' : undefined}
               className={`flex-1 rounded-full py-2.5 text-sm font-bold ${seccionApp === id ? 'text-white' : 'bg-white text-black/60'}`} style={seccionApp === id ? { background: color } : undefined}>
-              {nombre}
+              {nombre}{id === 'reservas' && reservasNuevas.length > 0 && <span className="ml-1.5 rounded-full bg-emerald-600 px-1.5 text-xs text-white">{reservasNuevas.length}</span>}
             </button>
           ))}
         </nav>
@@ -117,7 +129,20 @@ export default function AppSala({ token }: { token: string }) {
           </section>
         )}
 
-        {encargado && seccionApp === 'equipo' ? (
+        {encargado && reservasNuevas.length > 0 && (
+          <section role="status" className="space-y-2 rounded-2xl bg-emerald-600 p-3 text-white">
+            <p className="font-black">📅 {reservasNuevas.length === 1 ? 'Nueva reserva' : `${reservasNuevas.length} reservas nuevas`}</p>
+            {reservasNuevas.slice(0, 4).map((r) => <p key={r.id} className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-emerald-800">{textoReserva(r)}</p>)}
+            <div className="flex gap-2">
+              <button onClick={() => marcarReservas(reservasNuevas.map((r) => r.id))} className="flex-1 rounded-xl border-2 border-white py-2 text-sm font-bold">Visto</button>
+              <button onClick={() => { marcarReservas(reservasNuevas.map((r) => r.id)); setSeccionApp('reservas'); }} className="flex-1 rounded-xl bg-white py-2 text-sm font-bold text-emerald-800">Ver reservas</button>
+            </div>
+          </section>
+        )}
+
+        {encargado && seccionApp === 'reservas' ? (
+          <ReservasApp reservas={reservas} color={color} />
+        ) : encargado && seccionApp === 'equipo' ? (
           <EquipoApp pedir={pedir} yoId={ctx.camarero.id} />
         ) : (
         <section className="space-y-2">
@@ -490,5 +515,33 @@ function GestionMesa({ tipo, mesa, color, ocupado, onCancelar, onConfirmar }: {
         </button>
       </div>
     </form>
+  );
+}
+
+/** Reservas para el encargado (B4): hoy y próximos días, solo lectura. Confirmar o cancelar es del panel del dueño. */
+function ReservasApp({ reservas, color }: { reservas: ReservaSala[]; color: string }) {
+  const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+  const dia = (iso: string) => new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`));
+  const grupos = reservas.reduce<Record<string, ReservaSala[]>>((g, r) => ((g[r.fecha] ??= []).push(r), g), {});
+  if (!reservas.length) return <p className="rounded-2xl bg-white p-8 text-center text-sm text-black/50">No hay reservas de hoy en adelante.</p>;
+  return (
+    <section className="space-y-4">
+      <p className="text-xs text-black/50">Se actualizan solas. Confirmar o cancelar se hace desde el panel del local.</p>
+      {Object.entries(grupos).map(([fecha, lista]) => (
+        <div key={fecha} className="space-y-2">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-black/50">{fecha === hoy ? 'Hoy' : dia(fecha)} · {lista.reduce((n, r) => n + r.personas, 0)} pax</h2>
+          {lista.map((r) => (
+            <div key={r.id} className="rounded-2xl bg-white p-4 shadow-sm" style={{ borderLeft: `5px solid ${color}` }}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-lg font-bold">{r.hora} · {r.personas} pax</p>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${r.estado === 'confirmada' ? 'bg-green-600/15 text-green-700' : 'bg-amber-500/20 text-amber-800'}`}>{r.estado}</span>
+              </div>
+              <p className="text-sm text-black/60">{r.nombre}</p>
+              {r.notas && <p className="mt-1 whitespace-pre-line text-sm text-black/70">📝 {r.notas}</p>}
+            </div>
+          ))}
+        </div>
+      ))}
+    </section>
   );
 }

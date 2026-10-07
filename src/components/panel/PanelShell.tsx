@@ -24,6 +24,7 @@ import Camarero from './Camarero';
 import Pedidos from './Pedidos';
 import Equipo from './Equipo';
 import AlarmaLlamadas from './AlarmaLlamadas';
+import AvisoReservas from './AvisoReservas';
 import Promociones from './Promociones';
 import Reservas from './Reservas';
 import Mejoras from './Mejoras';
@@ -103,6 +104,9 @@ export default function PanelShell({
     : (id !== 'camarero' && id !== 'reservas') || restaurante.plan === 'ampliado';
   const [pestana, setPestanaBase] = useState<Pestana>('inicio');
   const [menu, setMenu] = useState(false);
+  // B4: la lista de reservas se refresca en vivo (AvisoReservas) y «→» abre una en concreto
+  const [reservasVivas, setReservasVivas] = useState(reservas);
+  const [reservaAbrir, setReservaAbrir] = useState<string | null>(null);
   // Cada sección entra en el historial del navegador: el botón «atrás» del móvil vuelve a la sección anterior en vez de sacar al usuario del panel.
   const setPestana = (p: Pestana, historial: 'push' | 'replace' | 'no' = 'push') => {
     setPestanaBase(p); setMenu(false); window.scrollTo({ top: 0 });
@@ -159,6 +163,7 @@ export default function PanelShell({
       <div className="min-w-0">
         {/* Alarma de llamadas de mesa en todo el panel (B1, 07/10): suena en bucle hasta que se atienden */}
         {restaurante.plan === 'ampliado' && !demo && <AlarmaLlamadas enLlamadas={pestana === 'camarero'} irALlamadas={() => setPestana('camarero')} />}
+        {restaurante.plan === 'ampliado' && !demo && <AvisoReservas reservas={reservasVivas} whatsapp={restaurante.whatsapp} onReservas={setReservasVivas} abrir={(id) => { setReservaAbrir(id); setPestana('reservas'); }} />}
         {/* Cabecera */}
         <header className="sticky top-0 z-30 border-b border-linea bg-crema/90 backdrop-blur-xl">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
@@ -206,7 +211,7 @@ export default function PanelShell({
         <GuiaSeccion seccion={pestana} />
         <AnimatePresence mode="wait">
         <motion.div key={pestana} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
-        {pestana === 'inicio' && <Inicio restaurante={restaurante} qrPedido={solicitudesQr.length > 0} escaneosMes={escaneosMes} escaneos30d={escaneos30d} reservas={reservas} platos={carta.platos} servicios={servicios} ir={(p) => setPestana(p)} />}
+        {pestana === 'inicio' && <Inicio restaurante={restaurante} qrPedido={solicitudesQr.length > 0} escaneosMes={escaneosMes} escaneos30d={escaneos30d} reservas={reservasVivas} platos={carta.platos} servicios={servicios} ir={(p) => setPestana(p)} />}
         {pestana === 'carta' && <MiCarta carta={carta} />}
         {pestana === 'estudio' && <Estudio secciones={carta.secciones} platos={carta.platos} extras={estudio.extras} legal={estudio.legal} restaurante={{ slug: restaurante.slug, nombre: restaurante.nombre, direccion: restaurante.direccion }} demo={identidad.id === 'demo'} irAPlatos={() => setPestana('carta')} />}
         {pestana === 'local' && <MiLocal restaurante={restaurante} />}
@@ -214,7 +219,7 @@ export default function PanelShell({
         {(pestana === 'diseno' || pestana === 'modulos') && <Mejoras key={pestana} restaurante={restaurante} servicios={servicios} vista={pestana} fotos={carta.platos.map((p) => p.fotoUrl).filter((u): u is string => !!u).slice(0, 3)} />}
         {pestana === 'sala' && <Sala mesas={sala.mesas} elementos={sala.elementos} camareros={sala.camareros} tpv={sala.tpv} modulos={modulos} />}
         {pestana === 'idiomas' && <Idiomas activos={restaurante.idiomas ?? []} secciones={carta.secciones} platos={carta.platos} traducciones={traducciones} />}
-        {pestana === 'reservas' && <Reservas reservas={reservas} whatsapp={restaurante.whatsapp} />}
+        {pestana === 'reservas' && <Reservas reservas={reservasVivas} whatsapp={restaurante.whatsapp} abrirId={reservaAbrir} onAbierta={() => setReservaAbrir(null)} />}
         {pestana === 'pedidos' && <Pedidos demo={demo} />}
         {pestana === 'equipo' && <Equipo informe={sala.informe} demo={demo} />}
         {pestana === 'camarero' && <Camarero slug={restaurante.slug} codigoQr={codigoQr} />}

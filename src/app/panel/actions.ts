@@ -30,7 +30,7 @@ import {
   eliminarPromocion as dbEliminarPromocion,
   type DatosPromocion,
 } from '@/lib/promociones';
-import { cambiarEstadoReserva as dbCambiarEstadoReserva, marcarAvisada as dbMarcarAvisada } from '@/lib/reservas';
+import { cambiarEstadoReserva as dbCambiarEstadoReserva, marcarAvisada as dbMarcarAvisada, listarMisReservas } from '@/lib/reservas';
 import { avisarEstadoAlCliente, whatsappParaCliente } from '@/lib/correos-reserva';
 import { crearCheckoutServicio, crearCheckoutUpgradeAmpliado, crearCheckoutEnlaceAdmin } from '@/lib/payments/cobros';
 import { cancelarTodoAlFinalDelPeriodo, suscripcionesVivas, urlPortalCliente } from '@/lib/payments/stripe';
@@ -297,6 +297,13 @@ export async function llamadasPendientesAction() {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   if (restaurante.plan !== 'ampliado') return [];
   return llamadasPendientes(jwt, restaurante.id);
+}
+
+/** Reservas en tiempo real (B4): el panel las vuelve a pedir cada 10 s. */
+export async function misReservasAction() {
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  if (restaurante.plan !== 'ampliado') return [];
+  return listarMisReservas(jwt, restaurante.id);
 }
 
 export async function atenderLlamadaAction(llamadaId: string) {

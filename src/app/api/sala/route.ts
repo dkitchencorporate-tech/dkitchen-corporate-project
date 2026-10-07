@@ -4,7 +4,7 @@ import { enviarRegistroAlTpv } from '@/lib/envio-tpv';
 import { abrirCuenta, cuentaDeMesa, cerrarCuentaCamarero } from '@/lib/comandero';
 import { claveDeLimite, ipDeLaPeticion, algunLimiteSuperado } from '@/lib/limite-frecuencia';
 import {
-  equipoEncargado, crearCamareroEncargado, editarCamareroEncargado, regenerarEnlaceEncargado, asignarZonaEncargado,
+  equipoEncargado, reservasEncargado, crearCamareroEncargado, editarCamareroEncargado, regenerarEnlaceEncargado, asignarZonaEncargado,
   anularLineaEncargado, cambiarCantidadEncargado, anularCuentaEncargado, moverCuentaEncargado,
 } from '@/lib/equipo';
 
@@ -83,6 +83,11 @@ export async function POST(peticion: Request) {
         return NextResponse.json({ ok: await cerrarCuentaCamarero(token, id) });
       }
       // ------------------------------------------------------- encargado (0047)
+      case 'reservas': {
+        const r = await reservasEncargado(token);
+        if (r === null) return NextResponse.json({ error: 'acceso' }, { status: 403 });
+        return NextResponse.json({ reservas: r });
+      }
       case 'equipo': {
         const x = await equipoEncargado(token);
         return x ? NextResponse.json(x) : NextResponse.json({ error: 'rol' }, { status: 403 });

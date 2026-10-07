@@ -152,5 +152,58 @@ export function useAlarmaLlamadas(sonando: boolean, texto = 'Mesa llamando') {
   return { listo, activar };
 }
 
+/**
+ * Campanilla de reserva nueva (B4, 07/10/2026): «ding-dong» claro y distinto de la
+ * alarma de mesas. El búfer dura 20 s (sonido al principio y silencio después):
+ * en bucle se repite cada 20 s, también con la pestaña en segundo plano.
+ */
+function bufferCampanilla(c: Ctx) {
+  const sr = c.sampleRate;
+  const b = c.createBuffer(1, Math.floor(sr * 20), sr);
+  const d = b.getChannelData(0);
+  const notas: [number, number][] = [[0, 1046.5], [0.42, 784]];
+  for (const [ini, f] of notas) {
+    const a = Math.floor(ini * sr);
+    const n = Math.floor(1.3 * sr);
+    for (let i = 0; i < n && a + i < d.length; i++) {
+      const t = i / sr;
+      const env = Math.min(1, t / 0.005) * Math.exp(-3.2 * t);
+      d[a + i] += (0.8 * env * (Math.sin(2 * Math.PI * f * t) + 0.3 * Math.sin(4 * Math.PI * f * t))) / 1.3;
+    }
+  }
+  return b;
+}
+
+/**
+ * Suena la campanilla cada 20 s mientras `sonando` sea true (reservas sin ver).
+ * Usa el mismo AudioContext que la alarma: lo desbloquea el primer toque en la página.
+ */
+export function useCampanillaReservas(sonando: boolean, texto = 'Nueva reserva') {
+  useEffect(() => {
+    if (!sonando) return;
+    const c = crearContexto();
+    let s: AudioBufferSourceNode | null = null;
+    const empezar = () => {
+      if (!c || s) return;
+      if (c.state !== 'running') void c.resume().catch(() => {});
+      s = c.createBufferSource();
+      s.buffer = bufferCampanilla(c);
+      s.loop = true;
+      s.connect(c.destination);
+      s.start();
+    };
+    empezar();
+    navigator.vibrate?.([200, 100, 200]);
+    const original = document.title;
+    let alterna = false;
+    const id = setInterval(() => {
+      if (fuente) return; // la alarma de mesas manda sobre el título
+      alterna = !alterna;
+      document.title = alterna ? `📅 ${texto}` : original;
+    }, 2000);
+    return () => { clearInterval(id); if (!fuente) document.title = original; try { s?.stop(); } catch { /* ya parado */ } s = null; };
+  }, [sonando, texto]);
+}
+
 /** true en iPhone/iPad, donde el interruptor de silencio apaga el sonido de la web. */
 export const esIOS = () => typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);

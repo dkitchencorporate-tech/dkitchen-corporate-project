@@ -1,7 +1,8 @@
 'use client';
 
 import { mensajeError } from '@/lib/mensaje-error';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
+import { marcarReservasVistas } from '@/lib/aviso-reservas';
 import type { Reserva } from '@/lib/reservas';
 import { cambiarEstadoReservaAction } from '@/app/panel/actions';
 
@@ -16,9 +17,16 @@ const ESTILO: Record<Reserva['estado'], string> = {
   cancelada: 'bg-papel text-niebla',
 };
 
-/** Reservas recibidas desde la carta (plan Ampliado). */
-export default function Reservas({ reservas, whatsapp }: { reservas: Reserva[]; whatsapp: string | null }) {
-  const [abierta, setAbierta] = useState<Reserva | null>(null);
+/** Reservas recibidas desde la carta (plan Ampliado). En vivo desde B4: la lista llega refrescada del panel. */
+export default function Reservas({ reservas, whatsapp, abrirId = null, onAbierta }: { reservas: Reserva[]; whatsapp: string | null; abrirId?: string | null; onAbierta?: () => void }) {
+  const [abierta, setAbiertaBase] = useState<Reserva | null>(null);
+  const setAbierta = (r: Reserva | null) => { if (r) marcarReservasVistas([r.id]); setAbiertaBase(r); };
+  useEffect(() => {
+    if (!abrirId) return;
+    const r = reservas.find((x) => x.id === abrirId);
+    if (r) setAbierta(r);
+    onAbierta?.();
+  }, [abrirId]); // eslint-disable-line react-hooks/exhaustive-deps
   const hoy = new Date().toISOString().slice(0, 10);
   const proximas = reservas.filter((r) => r.fecha >= hoy);
   const pasadas = reservas.filter((r) => r.fecha < hoy);
@@ -27,7 +35,7 @@ export default function Reservas({ reservas, whatsapp }: { reservas: Reserva[]; 
     <li key={r.id}>
       <button onClick={() => setAbierta(r)} className="w-full rounded-2xl border border-linea bg-white p-4 text-left hover:border-linea-fuerte">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="font-semibold">{fechaCorta(r.fecha)} · {r.hora} · {r.personas} {r.personas === 1 ? 'persona' : 'personas'}</p>
+          <p className="font-semibold">{fechaCorta(r.fecha)} · {r.hora} · {r.personas} {r.personas === 1 ? 'persona' : 'personas'}{r.estado === 'pendiente' && Date.now() - new Date(r.creadaEn).getTime() < 3600000 && <span className="ml-2 rounded-full bg-emerald-600 px-2 py-0.5 align-middle text-[10px] font-black uppercase text-white">Nueva</span>}</p>
           <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTILO[r.estado]}`}>{r.estado}</span>
         </div>
         <p className="mt-1 text-sm text-grafito">{r.nombre}</p>
@@ -41,7 +49,7 @@ export default function Reservas({ reservas, whatsapp }: { reservas: Reserva[]; 
       <div>
         <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Reservas</h2>
         <p className="text-sm text-niebla">
-          Llegan desde el botón «Reservar mesa» de tu carta. Ábrelas para confirmar o cancelar: si el cliente dejó su correo, recibe el
+          Llegan desde el botón «Reservar mesa» de tu carta y aparecen aquí solas, con una campanilla, en cuanto entran. Ábrelas para confirmar o cancelar: si el cliente dejó su correo, recibe el
           aviso automáticamente con tu logo y tu nombre.
           {whatsapp ? '' : ' Añade tu WhatsApp en Mi Local para recibirlas también por ahí.'}
         </p>

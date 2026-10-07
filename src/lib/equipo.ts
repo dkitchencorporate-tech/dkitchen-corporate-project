@@ -46,6 +46,11 @@ export async function equipoEncargado(token: string): Promise<Equipo | null> {
   return comoVisitante(async (c) => (await c.query('SELECT dk.sala_equipo($1) AS j', [huellaToken(token)])).rows[0]?.j ?? null);
 }
 
+/** Reservas de hoy en adelante para el encargado (0048, B4). null si el token no es de un encargado. */
+export async function reservasEncargado(token: string): Promise<unknown[] | null> {
+  return comoVisitante(async (c) => (await c.query('SELECT dk.sala_reservas($1) AS j', [huellaToken(token)])).rows[0]?.j ?? null);
+}
+
 export async function crearCamareroEncargado(token: string, nombre: string): Promise<string | null> {
   const nuevo = nuevoToken();
   const id = await comoVisitante(async (c) => (await c.query('SELECT dk.sala_equipo_crear($1, $2, $3) AS id', [huellaToken(token), nombre, huellaToken(nuevo)])).rows[0]?.id ?? null);
