@@ -22,6 +22,9 @@ export default function robots(): MetadataRoute.Robots {
         // Paneles privados de clientes y camareros.
         '/panel/',
         '/sala/',
+        // CRM: propuestas privadas por enlace y la zona del socio.
+        '/propuesta/',
+        '/socio',
       ],
     },
     sitemap: 'https://dkitchencorporate.es/sitemap.xml',

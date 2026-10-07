@@ -14,6 +14,7 @@ import { Icono } from '@/components/panel/Iconos';
 const ESPACIOS = [
   { nombre: 'Inicio', href: '/admin-dkitchen/inicio', icono: 'inicio' },
   { nombre: 'Clientes', href: '/admin-dkitchen/qr', icono: 'carta' },
+  { nombre: 'Prospección', href: '/admin-dkitchen/prospeccion', icono: 'local' },
   { nombre: 'Soporte', href: '/admin-dkitchen/soporte', icono: 'ayuda' },
   { nombre: 'Embudo', href: '/admin-dkitchen/embudo', icono: 'negocio' },
 ];
@@ -25,7 +26,6 @@ const MAS = [
   { nombre: 'Resumen general', href: '/admin-dkitchen/overview' },
   { nombre: 'Directorio de clientes', href: '/admin-dkitchen/clients' },
   { nombre: 'Eventos', href: '/admin-dkitchen/events-master' },
-  { nombre: 'Proyectos', href: '/admin-dkitchen/pipeline' },
   { nombre: 'Manuales', href: '/manuals' },
 ];
 
