@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { crearCheckoutFundador } from '@/lib/payments/cobros';
 import { estadoFundador } from '@/lib/fundador';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
+import { vendedorDeLaPeticion } from '@/lib/socio';
 
 export const runtime = 'nodejs';
 
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
       restauranteNombre, nombreContacto, email,
       slugBase: normalizarSlug(restauranteNombre),
       origen: new URL(request.url).origin,
+      vendedor: await vendedorDeLaPeticion(body?.vendedor, body?.vendedorDelEnlace),
     });
     return NextResponse.json({ url });
   } catch (error) {

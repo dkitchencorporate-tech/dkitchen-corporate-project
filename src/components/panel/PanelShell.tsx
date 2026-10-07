@@ -16,6 +16,7 @@ import MiPlan from './MiPlan';
 import { AvisoPrueba, DesgloseCobro } from './Cobro';
 import type { ResumenCobro } from '@/lib/prueba';
 import Soporte from './Soporte';
+import AsesorSocio from './AsesorSocio';
 import Estudio from './Estudio';
 import GuiaSeccion from './GuiaSeccion';
 import type { ExtraPlato, DatosLegal } from '@/lib/estudio';
@@ -102,6 +103,7 @@ export default function PanelShell({
   cobro,
   estudio = { extras: [], legal: { titular: null, nif: null, email: null, domicilio: null, activo: false } },
   tutorial = null,
+  socio = null,
 }: {
   identidad: { id: string; nombre: string; email: string };
   restaurante: MiRestaurante;
@@ -119,11 +121,16 @@ export default function PanelShell({
   cobro: ResumenCobro | null;
   estudio?: { extras: ExtraPlato[]; legal: DatosLegal };
   tutorial?: TutorialEstado | null;
+  /** Asesor del local (0052): el dueño lo ve en Soporte y puede retirarle el permiso. */
+  socio?: { nombre: string; puede_editar: boolean } | null;
 }) {
   const tieneServ = (id: string) => servicios.contratados.some((c) => c.servicio === id || (c.servicio === 'pack_sala' && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(id)));
   const modulos = { plano: tieneServ('plano_mesas'), app: tieneServ('app_sala'), tpv: tieneServ('conexion_tpv') };
+  // Puesta a punto del socio (0052): solo la carta y el local; nada de dinero ni operativa del dueño.
+  const delegado = restaurante.puestaAPunto === true;
   const visible = (id: Pestana) =>
-    id === 'sala' ? modulos.plano || modulos.app || modulos.tpv
+    delegado && ['pedidos', 'reservas', 'camarero', 'equipo', 'escaneos', 'plan', 'modulos'].includes(id) ? false
+    : id === 'sala' ? modulos.plano || modulos.app || modulos.tpv
     : id === 'pedidos' || id === 'equipo' ? modulos.app
     : id === 'idiomas' ? tieneServ('idiomas')
     : true;
@@ -164,7 +171,10 @@ export default function PanelShell({
     else window.history.replaceState({ ...window.history.state, pestana: 'inicio' }, '');
   }, []);
 
-  const salir = async () => { await authClient.signOut(); window.location.href = '/panel/iniciar-sesion'; };
+  const salir = async () => {
+    if (restaurante.puestaAPunto) { window.location.href = '/socio/salir'; return; }
+    await authClient.signOut(); window.location.href = '/panel/iniciar-sesion';
+  };
   const demo = identidad.id === 'demo';
   const montaje = Boolean(tut && !tut.completado && (demo || restaurante.estadoAcceso === 'activo'));
   const espacios = (montaje ? ESPACIOS_MONTAJE : ESPACIOS_DIA).map((e) => ({ ...e, items: e.items.filter((p) => visible(p.id)) })).filter((e) => e.items.length > 0);
@@ -202,9 +212,15 @@ export default function PanelShell({
 
       <div className="min-w-0">
         {/* Alarma de llamadas de mesa en todo el panel (B1, 07/10): suena en bucle hasta que se atienden */}
-        {!demo && <AlarmaLlamadas enLlamadas={pestana === 'camarero'} irALlamadas={() => setPestana('camarero')} />}
+        {!demo && !delegado && <AlarmaLlamadas enLlamadas={pestana === 'camarero'} irALlamadas={() => setPestana('camarero')} />}
         {montaje && tut && <TutorialMontaje demo={demo} inicial={tut} pestana={pestana} irA={irATutorial} onBloqueo={alBloquear} avisoBloqueo={avisoBloqueo} onCompletado={(t) => { bloqueo.current = null; setTut(t); setPestana('inicio'); }} />}
-        <AvisoReservas demo={demo} arriba={montaje} reservas={reservasVivas} whatsapp={restaurante.whatsapp} onReservas={setReservasVivas} abrir={(id) => { setReservaAbrir(id); setPestana('reservas'); }} />
+        {delegado && (
+          <div className="bg-tinta px-4 py-2.5 text-center text-[13px] text-white sm:px-6">
+            <span className="font-semibold text-oro">Puesta a punto</span> · estás editando la carta de {restaurante.nombre} como su asesor. Cada cambio queda registrado a tu nombre.{' '}
+            <a href="/socio/salir" className="font-semibold underline underline-offset-2">Volver a mis clientes</a>
+          </div>
+        )}
+        {!delegado && <AvisoReservas demo={demo} arriba={montaje} reservas={reservasVivas} whatsapp={restaurante.whatsapp} onReservas={setReservasVivas} abrir={(id) => { setReservaAbrir(id); setPestana('reservas'); }} />}
         {/* Cabecera */}
         <header className="sticky top-0 z-30 border-b border-linea bg-crema/90 backdrop-blur-xl">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
@@ -269,7 +285,7 @@ export default function PanelShell({
         )}
         {pestana === 'escaneos' && <MisEscaneos escaneosMes={escaneosMes} escaneos30d={escaneos30d} />}
         {pestana === 'plan' && <div className="space-y-6"><DesgloseCobro cobro={cobro} /><MiPlan restaurante={restaurante} servicios={servicios} /></div>}
-        {pestana === 'soporte' && <Soporte tickets={tickets} />}
+        {pestana === 'soporte' && <div className="space-y-6">{socio && !delegado && <AsesorSocio socio={socio} />}<Soporte tickets={tickets} /></div>}
         </motion.div>
         </AnimatePresence>
       </main>

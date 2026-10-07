@@ -3,6 +3,7 @@ import React from "react";
 import "./globals.css";
 import AnalyticsPixel from "@/components/AnalyticsPixel";
 import CookieConsent from "@/components/CookieConsent";
+import CapturaVendedor from "@/components/CapturaVendedor";
 
 export const metadata = {
   metadataBase: new URL("https://dkitchencorporate.es"),
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <Solicitud />
         <CookieConsent />
+        <CapturaVendedor />
       </body>
     </html>
   );

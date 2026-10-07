@@ -16,7 +16,8 @@ import PanelShell from '@/components/panel/PanelShell';
 import { tutorialEstado } from '@/lib/tutorial';
 import { resumenCobro } from '@/lib/prueba';
 import { SesionNoValida } from '@/lib/db';
-import { estadoAdmin } from '@/lib/guard-admin';
+import { estadoInterno } from '@/lib/guard-admin';
+import { miSocio } from '@/lib/socio';
 
 export const dynamic = 'force-dynamic';
 // La creación de imágenes con IA puede tardar hasta un minuto.
@@ -41,8 +42,10 @@ export default async function Panel() {
     const restaurante = await obtenerMiRestaurante(jwt);
 
     if (!restaurante) {
-      // El super admin no tiene restaurante: su sitio es la central (con 2FA).
-      if ((await estadoAdmin(jwt)) !== 'no_admin') redirect('/acceso-seguro');
+      // El super admin y el socio no tienen restaurante: su sitio es Central o /socio (con 2FA).
+      const interno = await estadoInterno(jwt);
+      if (interno.tipo === 'socio' && interno.estado === 'ok') redirect('/socio');
+      if (interno.tipo) redirect('/acceso-seguro');
       return (
         <div className="min-h-screen bg-crema flex items-center justify-center px-6 text-center">
           <div className="max-w-md">
@@ -56,27 +59,32 @@ export default async function Panel() {
       );
     }
 
-    const [codigoQr, carta, escaneosMes, escaneos30d, solicitudesQr, tickets, promociones, reservas] = await Promise.all([
+    // Puesta a punto del socio (0052): lo que es solo del dueño (cobro, reservas, operativa)
+    // la base se lo niega; el panel se carga igual con esos bloques vacíos.
+    const puesta = restaurante.puestaAPunto === true;
+    const suave = <T,>(p: Promise<T>, vacio: T): Promise<T> => (puesta ? p.catch(() => vacio) : p);
+    const [codigoQr, carta, escaneosMes, escaneos30d, solicitudesQr, tickets, promociones, reservas, socio] = await Promise.all([
       obtenerCodigoQr(jwt, restaurante.id),
       listarMiCarta(jwt, restaurante.id),
-      escaneosDelMes(jwt, restaurante.id),
-      escaneosUltimos30Dias(jwt, restaurante.id),
-      listarMisSolicitudesQrFisico(jwt, restaurante.id),
-      listarMisTickets(jwt, restaurante.id),
-      listarPromociones(jwt, restaurante.id),
-      listarMisReservas(jwt, restaurante.id),
+      suave(escaneosDelMes(jwt, restaurante.id), 0),
+      suave(escaneosUltimos30Dias(jwt, restaurante.id), []),
+      suave(listarMisSolicitudesQrFisico(jwt, restaurante.id), []),
+      suave(listarMisTickets(jwt, restaurante.id), []),
+      suave(listarPromociones(jwt, restaurante.id), []),
+      puesta ? Promise.resolve([]) : listarMisReservas(jwt, restaurante.id),
+      puesta ? Promise.resolve(null) : miSocio(jwt).catch(() => null),
     ]);
-    const [servicios, cobro, extras, legal, tutorial] = await Promise.all([estadoServicios(jwt, restaurante.id), resumenCobro(jwt, restaurante.id).catch(() => null),
-      listarExtras(jwt, restaurante.id), obtenerLegal(jwt, restaurante.id), tutorialEstado(jwt, restaurante.id).catch(() => null)]);
+    const [servicios, cobro, extras, legal, tutorial] = await Promise.all([estadoServicios(jwt, restaurante.id), puesta ? Promise.resolve(null) : resumenCobro(jwt, restaurante.id).catch(() => null),
+      suave(listarExtras(jwt, restaurante.id), []), obtenerLegal(jwt, restaurante.id), puesta ? Promise.resolve(null) : tutorialEstado(jwt, restaurante.id).catch(() => null)]);
     const c = servicios.contratados;
     const hayPlano = tiene(c, 'plano_mesas'), hayApp = tiene(c, 'app_sala'), hayTpv = tiene(c, 'conexion_tpv');
     const [plano, camareros, tpv, llamadas, traducciones, informe] = await Promise.all([
       hayPlano || hayApp ? cargarPlano(jwt, restaurante.id) : Promise.resolve({ mesas: [], elementos: [] }),
-      hayApp || hayPlano ? listarCamareros(jwt, restaurante.id) : Promise.resolve([]),
-      hayTpv ? estadoConexionTpv(jwt) : Promise.resolve(null),
-      hayPlano ? llamadasPendientes(jwt, restaurante.id).then((l) => l.map((x) => x.mesa)) : Promise.resolve([] as string[]),
+      (hayApp || hayPlano) && !puesta ? listarCamareros(jwt, restaurante.id) : Promise.resolve([]),
+      hayTpv && !puesta ? estadoConexionTpv(jwt) : Promise.resolve(null),
+      hayPlano && !puesta ? llamadasPendientes(jwt, restaurante.id).then((l) => l.map((x) => x.mesa)) : Promise.resolve([] as string[]),
       tiene(c, 'idiomas') ? listarTraducciones(jwt, restaurante.id) : Promise.resolve([]),
-      hayApp ? informeCamareros(jwt, 30) : Promise.resolve([]),
+      hayApp && !puesta ? informeCamareros(jwt, 30) : Promise.resolve([]),
     ]);
 
     return (
@@ -97,6 +105,7 @@ export default async function Panel() {
         cobro={cobro}
         estudio={{ extras, legal }}
         tutorial={tutorial}
+        socio={socio}
       />
     );
   } catch (error) {

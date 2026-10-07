@@ -38,6 +38,10 @@ function dentroDeDias(dias: number, desde = new Date()): number {
 
 const productoQr = (plan: PlanQr) => `dk_qr_${plan}`;
 
+/** Socio que vende (0052): el webhook atribuye el alta con dk.socio_atribuir. */
+const metaVendedor = (v: DatosCheckoutQr['vendedor']): Record<string, string> =>
+  v ? { vendedor: v.codigo, vendedor_origen: v.origen } : {};
+
 // ─────────────────────────────────────────────────────────────
 // QR Menú. Local: 1 € + IVA hoy y gratis hasta el primer día 12 pasados 30 días.
 // Carta y Sala (decisión A, 07/10): la cuota se paga desde el primer día.
@@ -58,6 +62,7 @@ export async function crearCheckoutQr(datos: DatosCheckoutQr): Promise<{ url: st
       slugBase: datos.slugBase,
       email: datos.email,
       nombreContacto: datos.nombreContacto,
+      ...metaVendedor(datos.vendedor),
       concepto: `QR Menú · Plan ${plan.nombre}`,
       destino: `/qr/bienvenida?email=${encodeURIComponent(datos.email)}&nombre=${encodeURIComponent(datos.nombreContacto)}&restaurante=${encodeURIComponent(datos.restauranteNombre)}`,
     },
@@ -302,6 +307,7 @@ export async function crearCheckoutFundador(datos: Omit<DatosCheckoutQr, 'plan'>
       slugBase: datos.slugBase,
       email: datos.email,
       nombreContacto: datos.nombreContacto,
+      ...metaVendedor(datos.vendedor),
       concepto: 'Plan Sala · Fundador',
       destino: `/qr/bienvenida?email=${encodeURIComponent(datos.email)}&nombre=${encodeURIComponent(datos.nombreContacto)}&restaurante=${encodeURIComponent(datos.restauranteNombre)}`,
     },

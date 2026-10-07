@@ -1,5 +1,7 @@
 import 'server-only';
+import { cookies } from 'next/headers';
 import { comoCliente } from '@/lib/db';
+import { COOKIE_PUESTA } from '@/lib/socio-codigo';
 
 export interface MiRestaurante {
   id: string;
@@ -28,10 +30,18 @@ export interface MiRestaurante {
   creadoEn: string;
   estiloFondo: string;
   estiloLetra: string;
+  /** Lo abre su socio en modo puesta a punto (0052): sin plan, pagos ni operativa del dueño. */
+  puestaAPunto?: boolean;
 }
 
-/** El restaurante del cliente que ha iniciado sesión — nunca de otro. */
+/**
+ * El restaurante del cliente que ha iniciado sesión — nunca de otro. Si la
+ * sesión es de un socio con la puesta a punto abierta (cookie de /socio), el
+ * de ese cliente: la base solo lo devuelve si dk.gestiona() lo permite (0052).
+ */
 export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante | null> {
+  const puesta = (await cookies()).get(COOKIE_PUESTA)?.value ?? null;
+  const idPuesta = puesta && /^[0-9a-f-]{36}$/i.test(puesta) ? puesta : null;
   return comoCliente(jwt, async (c) => {
     const { rows } = await c.query<{
       id: string;
@@ -58,11 +68,17 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       creado_en: Date;
       estilo_fondo: string;
       estilo_letra: string;
+      puesta: boolean;
     }>(
       `SELECT id, slug, nombre, logo_url, plan, (fundador_desde IS NOT NULL AND fundador_perdido_en IS NULL) AS fundador, activo, color_marca, estado_acceso,
-              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en, estilo_fondo, estilo_letra, portada_url, portada_con_nombre
+              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en, estilo_fondo, estilo_letra, portada_url, portada_con_nombre,
+              propietario IS DISTINCT FROM dk.identidad_actual() AS puesta
          FROM restaurantes
-        WHERE propietario = dk.identidad_actual()`
+        WHERE propietario = dk.identidad_actual()
+           OR (id = $1 AND socio_id = dk.identidad_actual() AND dk.gestiona(id))
+        ORDER BY (propietario = dk.identidad_actual()) DESC NULLS LAST
+        LIMIT 1`,
+      [idPuesta]
     );
     const fila = rows[0];
     if (!fila) return null;
@@ -91,6 +107,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       creadoEn: new Date(fila.creado_en).toISOString(),
       estiloFondo: fila.estilo_fondo,
       estiloLetra: fila.estilo_letra,
+      puestaAPunto: fila.puesta === true,
     };
   });
 }

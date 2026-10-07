@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { QR_MENU, FUNDADOR, type PlanQr } from '@/lib/pricing-config';
+import { codigoDeLaUrl, codigoGuardado } from '@/components/CapturaVendedor';
 
 /**
  * Alta de QR Menú: pide local, nombre y correo y abre el checkout nativo (/pago).
@@ -37,11 +38,18 @@ export default function ActivarPlanBoton({
   const [nombre, setNombre] = useState('');
   const [nombreContacto, setNombreContacto] = useState('');
   const [email, setEmail] = useState('');
+  // Código del socio (0052): del enlace o QR, de una visita anterior o escrito a mano.
+  const [vendedor, setVendedor] = useState('');
+  const [vendedorEnlace, setVendedorEnlace] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const p = PLANES[plan];
 
-  useEffect(() => setMontado(true), []);
+  useEffect(() => {
+    setMontado(true);
+    const v = codigoDeLaUrl() ?? codigoGuardado();
+    if (v) { setVendedor(v); setVendedorEnlace(v); }
+  }, []);
   useEffect(() => {
     if (!abierto) return;
     const previo = document.body.style.overflow;
@@ -59,7 +67,7 @@ export default function ActivarPlanBoton({
       const respuesta = await fetch(plan === 'fundador' ? '/api/checkout/fundador' : '/api/checkout/qr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, restauranteNombre: nombre, nombreContacto, email }),
+        body: JSON.stringify({ plan, restauranteNombre: nombre, nombreContacto, email, vendedor, vendedorDelEnlace: !!vendedorEnlace && vendedor === vendedorEnlace }),
       });
       const datos = await respuesta.json();
       if (!respuesta.ok || !datos.url) throw new Error(datos?.error ?? 'No se pudo iniciar el pago.');
@@ -112,6 +120,11 @@ export default function ActivarPlanBoton({
                   </label>
                   <label className="block text-sm font-medium">Tu correo
                     <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={campo} />
+                  </label>
+                  <label className="block text-sm font-medium">Código de tu asesor <span className="font-normal text-black/45">(opcional)</span>
+                    <input type="text" maxLength={12} autoComplete="off" autoCapitalize="characters" spellCheck={false} value={vendedor}
+                      onChange={(e) => setVendedor(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} placeholder="Si te ha visitado alguien de DKitchen"
+                      className={`${campo} uppercase tracking-[0.12em] placeholder:normal-case placeholder:tracking-normal`} />
                   </label>
                 </div>
 

@@ -11,6 +11,8 @@ export interface DatosCheckoutQr {
   nombreContacto: string;
   /** Origen de la petición (para construir redirect_url). */
   origen: string;
+  /** Código del socio que vende (0052), ya validado en la base. */
+  vendedor?: { codigo: string; origen: 'manual' | 'enlace' } | null;
 }
 
 /**

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { crearCheckoutQr } from '@/lib/payments/cobros';
 import { esPlanQr } from '@/lib/pricing-config';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
+import { vendedorDeLaPeticion } from '@/lib/socio';
 
 export const runtime = 'nodejs';
 
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
       email,
       slugBase,
       origen,
+      vendedor: await vendedorDeLaPeticion((body as { vendedor?: unknown })?.vendedor, (body as { vendedorDelEnlace?: unknown })?.vendedorDelEnlace),
     });
     return NextResponse.json({ url });
   } catch (error) {

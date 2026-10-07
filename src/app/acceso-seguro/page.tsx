@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import QRCode from 'qrcode';
 import { comoCliente } from '@/lib/db';
 import { obtenerJwtDeSesion, identidadActual } from '@/lib/sesion';
-import { estadoAdmin } from '@/lib/guard-admin';
+import { estadoInterno } from '@/lib/guard-admin';
 import { verificarSegundoFactorAction } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -34,9 +34,11 @@ export default async function AccesoSeguro({ searchParams }: { searchParams: Pro
   const jwt = await obtenerJwtDeSesion().catch(() => null);
   if (!jwt) redirect('/panel/iniciar-sesion');
 
-  const estado = await estadoAdmin(jwt);
-  if (estado === 'ok') redirect('/admin-dkitchen/qr');
-  if (estado === 'no_admin') redirect('/panel');
+  // Super admin y socio (0052) comparten el segundo factor; cada uno vuelve a su sitio.
+  const { tipo, estado } = await estadoInterno(jwt);
+  const destino = tipo === 'socio' ? '/socio' : '/admin-dkitchen/qr';
+  if (estado === 'ok') redirect(destino);
+  if (estado === 'no_admin' || !tipo) redirect('/panel');
 
   const { e } = await searchParams;
   const error = e ? MENSAJES[e] : null;
@@ -49,7 +51,7 @@ export default async function AccesoSeguro({ searchParams }: { searchParams: Pro
       return rows[0].s;
     });
     const clave = base32(Buffer.from(hex, 'hex'));
-    const etiqueta = encodeURIComponent(`DKitchen:${identidad?.email ?? 'super-admin'}`);
+    const etiqueta = encodeURIComponent(`DKitchen:${identidad?.email ?? tipo}`);
     const uri = `otpauth://totp/${etiqueta}?secret=${clave}&issuer=DKitchen&algorithm=SHA1&digits=6&period=30`;
     alta = { qr: await QRCode.toDataURL(uri, { width: 240, margin: 1 }), clave: clave.replace(/(.{4})/g, '$1 ').trim() };
   }
@@ -59,7 +61,7 @@ export default async function AccesoSeguro({ searchParams }: { searchParams: Pro
       <div className="max-w-md w-full rounded-2xl bg-white p-8 shadow-sm border border-linea space-y-6">
         <div className="text-center">
           <p className="text-xl font-bold text-[#1A1714]">
-            D<span className="text-vino">Kitchen</span> · Super admin
+            D<span className="text-vino">Kitchen</span> · {tipo === 'socio' ? 'Socio' : 'Super admin'}
           </p>
           <p className="mt-1 text-sm text-[#6B6560]">Verificación en dos pasos</p>
         </div>

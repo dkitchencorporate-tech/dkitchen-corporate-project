@@ -286,6 +286,21 @@ async function altaFundador(ctx: Contexto) {
   return res;
 }
 
+/**
+ * Socio en el sistema (0052): si el pago llegó con código de vendedor, el alta
+ * queda atribuida a ese socio. La base decide (código activo, la primera
+ * atribución manda) y es idempotente; un fallo aquí nunca tumba el alta.
+ */
+async function atribuirVendedor(ctx: Contexto) {
+  const codigo = String(ctx.meta.vendedor ?? '').trim();
+  if (!codigo || !ctx.cliente) return;
+  try {
+    await comoAprovisionamiento((c) => c.query('SELECT dk.socio_atribuir($1, $2, $3)', [ctx.cliente, codigo, String(ctx.meta.vendedor_origen ?? 'enlace')]));
+  } catch (e) {
+    console.error(`No se pudo atribuir el alta al socio ${codigo} (${ctx.idPago}):`, e);
+  }
+}
+
 async function altaQr(ctx: Contexto) {
   const { meta } = ctx;
   const { plan, restauranteNombre, slugBase, nombreContacto, email } = meta;
@@ -307,6 +322,7 @@ async function altaQr(ctx: Contexto) {
       await enviarCorreoInterno(`QR: cliente que ya tenía carta ha pagado otra alta (${restauranteNombre})`,
         `<p>El cliente de Stripe ya tiene un restaurante, así que no se ha creado otro automáticamente. Si es un segundo local, créalo en Central; si es un duplicado, reembolsa el cobro en Stripe.</p>${filasCorreo([['Restaurante pedido', restauranteNombre], ['Correo', email], ['Cliente de Stripe', ctx.cliente], ['Suscripción', ctx.suscripcion], ['Factura', ctx.idPago]])}`).catch(() => {});
     }
+    await atribuirVendedor(ctx);
     return ok({ duplicado: true });
   }
   const resultado = await aprovisionarClienteQr({
@@ -315,6 +331,7 @@ async function altaQr(ctx: Contexto) {
     referenciaSuscripcion: ctx.suscripcion,
   });
   if (!resultado.ok) return resultado.motivo === 'db_fallo' ? fallo('Fallo aprovisionando') : ok({ aprovisionado: false });
+  await atribuirVendedor(ctx);
   // Marca para distinguir un reenvío de Stripe de un segundo local con el mismo correo.
   await stripe('POST', `/subscriptions/${ctx.suscripcion}`, { metadata: { alta_hecha: 'si' } }).catch(() => {});
   return ok({ aprovisionado: true });

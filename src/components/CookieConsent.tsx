@@ -20,6 +20,8 @@ export default function CookieConsent() {
 
   const acceptAll = () => {
     localStorage.setItem('dkitchen_cookie_consent', 'all');
+    // Avisa a quien espere el consentimiento (p. ej. el código de vendedor del socio, 0052).
+    window.dispatchEvent(new Event('dk-consentimiento'));
     setIsVisible(false);
   };
 

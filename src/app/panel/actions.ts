@@ -85,6 +85,16 @@ async function requerirSesionYRestaurante() {
   return { jwt, identidad, restaurante };
 }
 
+/**
+ * Pagos, cambios de plan y baja: solo el dueño. El socio en puesta a punto (0052)
+ * edita la carta de su cliente, pero nunca toca su dinero ni su suscripción.
+ */
+async function requerirDueno() {
+  const r = await requerirSesionYRestaurante();
+  if (r.restaurante.puestaAPunto) throw new Error('Esto solo lo puede hacer el dueño del local desde su cuenta.');
+  return r;
+}
+
 export async function crearSeccionAction(nombre: string) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   await dbCrearSeccion(jwt, restaurante.id, nombre);
@@ -242,7 +252,7 @@ export async function iniciarUpgradeAmpliadoAction(): Promise<{ url: string }> {
 /** Subida de plan (Carta → Local → Sala, 0050). Bajar de plan se pide por Soporte. */
 export async function iniciarCambioPlanAction(destino: 'ampliado' | 'sala'): Promise<{ url: string }> {
   if (destino !== 'ampliado' && destino !== 'sala') throw new Error('Plan no válido.');
-  const { jwt, identidad, restaurante } = await requerirSesionYRestaurante();
+  const { jwt, identidad, restaurante } = await requerirDueno();
   const actual = esPlanQr(restaurante.plan) ? restaurante.plan : 'basico';
   if (PLANES_QR.indexOf(destino) <= PLANES_QR.indexOf(actual)) throw new Error('Ya tienes ese plan o uno superior.');
   // La suscripción viva en Stripe: la nueva conserva su día de cobro y el webhook la cancela.
@@ -270,7 +280,7 @@ async function clienteStripe(jwt: string, restauranteId: string): Promise<string
 /** Portal de Stripe (H2): cambiar la tarjeta y descargar las facturas, sin pasar por DKitchen. */
 export async function portalFacturasAction(): Promise<{ url?: string; error?: string }> {
   try {
-    const { jwt, restaurante } = await requerirSesionYRestaurante();
+    const { jwt, restaurante } = await requerirDueno();
     const cliente = await clienteStripe(jwt, restaurante.id);
     if (!cliente) return { error: 'Tu plan no tiene pagos con tarjeta todavía. Si necesitas una factura, escríbenos desde Soporte.' };
     return { url: await urlPortalCliente(cliente, `${process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es'}/panel?pestana=plan`) };
@@ -287,7 +297,7 @@ export async function portalFacturasAction(): Promise<{ url?: string; error?: st
  */
 export async function quedarmeConTodoAction(): Promise<{ url?: string; error?: string }> {
   try {
-    const { jwt, identidad, restaurante } = await requerirSesionYRestaurante();
+    const { jwt, identidad, restaurante } = await requerirDueno();
     const p = await quedarmeConTodo(jwt, restaurante.id);
     const nombres: Record<string, string> = { pack_sala: 'Pack Sala', plano_mesas: 'Plano de mesas', app_sala: 'App de sala', conexion_tpv: 'Conexión TPV' };
     const { url } = await crearCheckoutEnlaceAdmin({
@@ -457,7 +467,7 @@ const SERVICIOS_VALIDOS: Servicio[] = ['setup_esencial', 'setup_experto', 'idiom
 /** Pago de un servicio: el precio lo decide la base; aquí solo se valida la elección. */
 export async function comprarServicioAction(servicio: Servicio): Promise<{ url: string }> {
   if (!SERVICIOS_VALIDOS.includes(servicio)) throw new Error('Servicio no válido.');
-  const { jwt, identidad, restaurante } = await requerirSesionYRestaurante();
+  const { jwt, identidad, restaurante } = await requerirDueno();
   const estado = await estadoServicios(jwt, restaurante.id);
   const item = estado.catalogo.find((c) => c.servicio === servicio);
   if (!item) throw new Error('Servicio no disponible.');
@@ -586,7 +596,7 @@ export async function guardarEstiloAction(e: { plantilla: string; fondo: string;
  * activo hasta el final del periodo pagado.
  */
 export async function solicitarBajaAction(motivo: string) {
-  const { jwt, identidad, restaurante } = await requerirSesionYRestaurante();
+  const { jwt, identidad, restaurante } = await requerirDueno();
   const texto = String(motivo ?? '').trim().slice(0, 1000) || 'Sin motivo indicado.';
   await dbCrearTicket(jwt, restaurante.id, { asunto: 'Solicitud de baja', mensaje: `El cliente pide la baja del servicio. Motivo: ${texto}` }, {
     restauranteNombre: restaurante.nombre,
@@ -980,4 +990,18 @@ export async function asignarZonaAction(zona: string, camareroId: string | null)
     refrescarCartas();
     return n;
   });
+}
+
+/** El dueño retira o devuelve a su asesor el permiso de editar la carta (0052, auditado en la base). */
+export async function socioPermisoAction(permitir: boolean): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const { jwt } = await requerirDueno();
+    const { comoCliente } = await import('@/lib/db');
+    await comoCliente(jwt, (c) => c.query('SELECT dk.socio_permiso_mio($1)', [permitir === true]));
+    revalidatePath('/panel');
+    return { ok: true };
+  } catch (e) {
+    console.error('Permiso del socio:', e);
+    return { ok: false, error: 'No se pudo guardar el permiso. Inténtalo en unos segundos.' };
+  }
 }

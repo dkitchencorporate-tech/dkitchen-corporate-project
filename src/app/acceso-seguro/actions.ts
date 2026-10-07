@@ -3,9 +3,10 @@
 import { redirect } from 'next/navigation';
 import { comoCliente } from '@/lib/db';
 import { obtenerJwtDeSesion } from '@/lib/sesion';
+import { estadoInterno } from '@/lib/guard-admin';
 
 /**
- * Verifica el código TOTP del super admin. La comprobación (secreto, ventana
+ * Verifica el código TOTP del super admin o del socio (0052). La comprobación (secreto, ventana
  * de ±30 s, anti-reutilización y bloqueo tras 5 fallos en 15 min) ocurre en la
  * base: dk.admin_2fa_verificar() (0022). Aquí solo se valida el formato.
  */
@@ -21,6 +22,6 @@ export async function verificarSegundoFactorAction(formulario: FormData) {
     return rows[0]?.r;
   }).catch(() => 'error');
 
-  if (resultado === 'ok') redirect('/admin-dkitchen/qr');
+  if (resultado === 'ok') redirect((await estadoInterno(jwt)).tipo === 'socio' ? '/socio' : '/admin-dkitchen/qr');
   redirect(`/acceso-seguro?e=${resultado === 'bloqueado' ? 'bloqueado' : 'codigo'}`);
 }
