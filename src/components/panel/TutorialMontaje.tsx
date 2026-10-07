@@ -28,7 +28,8 @@ const PASOS: Paso[] = [
 const PAUSA = 'dk-tutorial-pausa';
 const leerPausa = () => { try { return sessionStorage.getItem(PAUSA) === '1'; } catch { return false; } };
 
-export default function TutorialMontaje({ inicial, pestana, irA, onBloqueo, avisoBloqueo, onCompletado }: {
+export default function TutorialMontaje({ inicial, pestana, irA, onBloqueo, avisoBloqueo, onCompletado, demo = false }: {
+  demo?: boolean;
   inicial: TutorialEstado;
   pestana: string;
   irA: (p: string) => void;
@@ -50,7 +51,7 @@ export default function TutorialMontaje({ inicial, pestana, irA, onBloqueo, avis
   const fase: 'bienvenida' | 'paso' | 'final' = t.paso === 0 ? 'bienvenida' : actual ? 'paso' : 'final';
 
   // Refresco del estado mientras está activo (cada tarea la guarda su propia sección)
-  const refrescar = useCallback(async () => { try { const e = await tutorialEstadoAction(); if (e) setT(e); } catch { /* siguiente ciclo */ } }, []);
+  const refrescar = useCallback(async () => { if (demo) return; try { const e = await tutorialEstadoAction(); if (e) setT(e); } catch { /* siguiente ciclo */ } }, [demo]);
   useEffect(() => {
     if (pausa || premio) return;
     const id = setInterval(refrescar, 4000);
@@ -70,9 +71,10 @@ export default function TutorialMontaje({ inicial, pestana, irA, onBloqueo, avis
     if (pausa || premio) return;
     if (fase === 'paso' && actual) {
       if (pestana !== actual.pestana) irA(actual.pestana);
+      else if (actual.id === 'qr' && !t.qr && demo) setT((x) => ({ ...x, qr: true }));
       else if (actual.id === 'qr' && !t.qr) void tutorialAvanzarAction(1, true).then((e) => e && setT(e)).catch(() => {});
     } else if (pestana !== 'inicio') irA('inicio');
-  }, [pausa, premio, fase, actual, pestana, irA, t.qr]);
+  }, [pausa, premio, fase, actual, pestana, irA, t.qr, demo]);
 
   // Aviso visual cuando intenta salir de la sección del paso
   useEffect(() => {
@@ -99,11 +101,13 @@ export default function TutorialMontaje({ inicial, pestana, irA, onBloqueo, avis
   }, [pausa, fase, actual]);
 
   async function empezar() {
+    if (demo) { setT((x) => ({ ...x, paso: 1 })); return; }
     setOcupado(true); setError(null);
     try { const e = await tutorialAvanzarAction(1, false); if (e) setT(e); } catch (e) { setError(mensajeError(e, 'No se pudo empezar.')); }
     setOcupado(false);
   }
   async function completar() {
+    if (demo) { setT((x) => ({ ...x, completado: true, abonado: true })); setPremio(true); return; }
     setOcupado(true); setError(null);
     try { const e = await tutorialCompletarAction(); if (e) { setT(e); setPremio(true); } } catch (e) { setError(mensajeError(e, 'No se pudo completar.')); void refrescar(); }
     setOcupado(false);
@@ -169,6 +173,7 @@ export default function TutorialMontaje({ inicial, pestana, irA, onBloqueo, avis
             <h2 id="tutorial-titulo" className="mt-1 text-lg font-bold">{actual.titulo}</h2>
             <p className="mt-1 text-sm text-white/80">{actual.texto}</p>
             {progreso}
+            {demo && <button onClick={() => setT((x) => ({ ...x, [actual.id]: true }))} className="mt-3 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold">Demo: simular paso hecho →</button>}
             <p className="mt-2 text-[11px] text-white/50">{sacudir ? 'Primero termina este paso (o pulsa «Seguir luego»).' : 'Cuando lo hagas, este aviso pasa solo al siguiente paso.'}</p>
           </>
         )}

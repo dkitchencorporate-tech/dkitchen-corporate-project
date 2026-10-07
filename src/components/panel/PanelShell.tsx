@@ -133,6 +133,11 @@ export default function PanelShell({
   const [reservaAbrir, setReservaAbrir] = useState<string | null>(null);
   // B5: montaje guiado. Mientras está activo, solo se abre la sección del paso (y llamadas/reservas, que siguen sonando).
   const [tut, setTut] = useState<TutorialEstado | null>(tutorial);
+  // Demo: /demo/panel?montaje=1 enseña el montaje guiado con un estado simulado
+  useEffect(() => {
+    if (identidad.id === 'demo' && new URLSearchParams(window.location.search).get('montaje') === '1')
+      setTut({ logo: false, local: false, platos: true, foto_ia: false, qr: false, pide_mesa: true, mesa: false, pide_camarero: true, camarero: false, paso: 0, completado: false });
+  }, [identidad.id]);
   const bloqueo = useRef<string[] | null>(null);
   const [avisoBloqueo, setAvisoBloqueo] = useState(0);
   // Cada sección entra en el historial del navegador: el botón «atrás» del móvil vuelve a la sección anterior en vez de sacar al usuario del panel.
@@ -160,7 +165,7 @@ export default function PanelShell({
 
   const salir = async () => { await authClient.signOut(); window.location.href = '/panel/iniciar-sesion'; };
   const demo = identidad.id === 'demo';
-  const montaje = Boolean(tut && !tut.completado && restaurante.estadoAcceso === 'activo' && !demo);
+  const montaje = Boolean(tut && !tut.completado && (demo || restaurante.estadoAcceso === 'activo'));
   const espacios = (montaje ? ESPACIOS_MONTAJE : ESPACIOS_DIA).map((e) => ({ ...e, items: e.items.filter((p) => visible(p.id)) })).filter((e) => e.items.length > 0);
   const setPestanaRef = useRef(setPestana);
   setPestanaRef.current = setPestana;
@@ -197,7 +202,7 @@ export default function PanelShell({
       <div className="min-w-0">
         {/* Alarma de llamadas de mesa en todo el panel (B1, 07/10): suena en bucle hasta que se atienden */}
         {restaurante.plan === 'ampliado' && !demo && <AlarmaLlamadas enLlamadas={pestana === 'camarero'} irALlamadas={() => setPestana('camarero')} />}
-        {montaje && tut && <TutorialMontaje inicial={tut} pestana={pestana} irA={irATutorial} onBloqueo={alBloquear} avisoBloqueo={avisoBloqueo} onCompletado={(t) => { bloqueo.current = null; setTut(t); setPestana('inicio'); }} />}
+        {montaje && tut && <TutorialMontaje demo={demo} inicial={tut} pestana={pestana} irA={irATutorial} onBloqueo={alBloquear} avisoBloqueo={avisoBloqueo} onCompletado={(t) => { bloqueo.current = null; setTut(t); setPestana('inicio'); }} />}
         {restaurante.plan === 'ampliado' && <AvisoReservas demo={demo} reservas={reservasVivas} whatsapp={restaurante.whatsapp} onReservas={setReservasVivas} abrir={(id) => { setReservaAbrir(id); setPestana('reservas'); }} />}
         {/* Cabecera */}
         <header className="sticky top-0 z-30 border-b border-linea bg-crema/90 backdrop-blur-xl">
