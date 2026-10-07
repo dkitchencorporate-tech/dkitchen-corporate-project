@@ -36,7 +36,9 @@ import { crearCheckoutServicio, crearCheckoutUpgradeAmpliado, crearCheckoutEnlac
 import { cancelarTodoAlFinalDelPeriodo, suscripcionesVivas, urlPortalCliente } from '@/lib/payments/stripe';
 import { quedarmeConTodo, fijarUrlPrueba } from '@/lib/prueba';
 import { estadoServicios, tiene, registrarOferta as dbRegistrarOferta, type Servicio } from '@/lib/servicios';
-import { guardarMesa, eliminarMesa, crearCamarero, desactivarCamarero, guardarPlano, cargarPlano, type MesaPlano, type ElementoPlano } from '@/lib/sala';
+import { guardarMesa, eliminarMesa, guardarPlano, cargarPlano, type MesaPlano, type ElementoPlano } from '@/lib/sala';
+import { equipoDueno, crearMiembro, editarMiembro, regenerarEnlace, asignarZona } from '@/lib/equipo';
+import type { RolSala } from '@/lib/equipo-tipos';
 import { fijarIdiomas } from '@/lib/idiomas';
 import {
   mesasEnVivo as dbMesasEnVivo, cuentaDetalle as dbCuentaDetalle, rondaRevisada as dbRondaRevisada, cerrarCuenta as dbCerrarCuenta,
@@ -467,26 +469,6 @@ export async function eliminarMesaAction(id: string) {
   refrescarCartas();
 }
 
-/** Devuelve el enlace de acceso del camarero UNA vez (solo se guarda su huella). */
-export async function crearCamareroAction(nombre: string): Promise<{ enlace: string }> {
-  const n = (nombre ?? '').trim().slice(0, 40);
-  if (!n) throw new Error('Pon el nombre del camarero.');
-  const { jwt } = await requerirSesionYRestaurante();
-  const token = await crearCamarero(jwt, n).catch(mensajeSala);
-  revalidatePath('/panel');
-  refrescarCartas();
-  const origen = process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es';
-  return { enlace: `${origen}/sala/${token}` };
-}
-
-export async function desactivarCamareroAction(id: string) {
-  if (!UUID.test(id)) throw new Error('Camarero no válido.');
-  const { jwt } = await requerirSesionYRestaurante();
-  await desactivarCamarero(jwt, id);
-  revalidatePath('/panel');
-  refrescarCartas();
-}
-
 export async function fijarIdiomasAction(idiomas: string[]) {
   const validos = ['en', 'fr', 'de', 'it', 'pt', 'ca'];
   const lista = [...new Set((idiomas ?? []).filter((i) => validos.includes(i)))].slice(0, 3);
@@ -889,4 +871,72 @@ export async function moverMesaAction(cuentaId: string, mesa: string) {
 
 export async function reenviarTpvAction(registroId: string) {
   return comandero((jwt) => { if (!UUID.test(registroId)) throw new Error('x'); return reenviarRegistroAlTpv(jwt, registroId); });
+}
+
+// ------------------------------------------------------------------ equipo de sala (0047, B3)
+const ROLES: RolSala[] = ['camarero', 'encargado'];
+const enlaceSala = (token: string) => `${process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es'}/sala/${token}`;
+
+async function equipo<T>(fn: (jwt: string) => Promise<T>): Promise<Res<T>> {
+  try {
+    const { jwt } = await requerirSesionYRestaurante();
+    return { ok: true, datos: await fn(jwt) };
+  } catch (e) {
+    const m = e instanceof Error ? e.message : '';
+    // P0001 = mensaje pensado para el dueño (tope, nombre, rol, App de sala)
+    const propio = (e as { code?: string })?.code === 'P0001' || /no válid|Pon el nombre/i.test(m);
+    if (!propio) console.error('Equipo:', m);
+    return { ok: false, error: propio ? m : 'No se pudo completar. Inténtalo de nuevo.' };
+  }
+}
+
+export async function equipoAction() { return equipo((jwt) => equipoDueno(jwt)); }
+
+/** Alta: devuelve el enlace personal UNA vez (en la base solo queda su huella). */
+export async function crearMiembroAction(nombre: string, rol: RolSala) {
+  return equipo(async (jwt) => {
+    const n = String(nombre ?? '').trim().slice(0, 40);
+    if (!n) throw new Error('Pon el nombre del camarero.');
+    if (!ROLES.includes(rol)) throw new Error('Rol no válido.');
+    const token = await crearMiembro(jwt, n, rol);
+    revalidatePath('/panel');
+    return { enlace: enlaceSala(token) };
+  });
+}
+
+export async function editarMiembroAction(id: string, cambios: { nombre?: string; rol?: RolSala; activo?: boolean }) {
+  return equipo(async (jwt) => {
+    if (!UUID.test(id)) throw new Error('Camarero no válido.');
+    const limpio = {
+      nombre: typeof cambios?.nombre === 'string' ? cambios.nombre.trim().slice(0, 40) : undefined,
+      rol: cambios?.rol && ROLES.includes(cambios.rol) ? cambios.rol : undefined,
+      activo: typeof cambios?.activo === 'boolean' ? cambios.activo : undefined,
+    };
+    if (limpio.nombre === '') throw new Error('Pon el nombre del camarero.');
+    const ok = await editarMiembro(jwt, id, limpio);
+    revalidatePath('/panel');
+    return ok;
+  });
+}
+
+/** Enlace nuevo: el anterior deja de funcionar al momento (móvil perdido, cambio de persona). */
+export async function regenerarEnlaceAction(id: string) {
+  return equipo(async (jwt) => {
+    if (!UUID.test(id)) throw new Error('Camarero no válido.');
+    const token = await regenerarEnlace(jwt, id);
+    if (!token) throw new Error('Ese acceso no está activo.');
+    return { enlace: enlaceSala(token) };
+  });
+}
+
+export async function asignarZonaAction(zona: string, camareroId: string | null) {
+  return equipo(async (jwt) => {
+    const z = String(zona ?? '').trim();
+    if (!z || z.length > 30) throw new Error('Zona no válida.');
+    if (camareroId && !UUID.test(camareroId)) throw new Error('Camarero no válido.');
+    const n = await asignarZona(jwt, z, camareroId);
+    revalidatePath('/panel');
+    refrescarCartas();
+    return n;
+  });
 }

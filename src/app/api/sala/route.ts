@@ -3,6 +3,10 @@ import { contextoSala, atenderLlamadaSala, registrarSala } from '@/lib/sala';
 import { enviarRegistroAlTpv } from '@/lib/envio-tpv';
 import { abrirCuenta, cuentaDeMesa, cerrarCuentaCamarero } from '@/lib/comandero';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
+import {
+  equipoEncargado, crearCamareroEncargado, editarCamareroEncargado, regenerarEnlaceEncargado, asignarZonaEncargado,
+  anularLineaEncargado, cambiarCantidadEncargado, anularCuentaEncargado, moverCuentaEncargado,
+} from '@/lib/equipo';
 
 export const runtime = 'nodejs';
 
@@ -16,6 +20,8 @@ const MESA = /^[A-Za-z0-9-]{1,12}$/;
  * revoca desactivando al camarero). Freno por IP contra fuerza bruta de tokens.
  * Comandero (0045): abrir cuenta, ver la cuenta de una mesa y cerrarla
  * («cobrada fuera»). Los importes los pone la base; aquí no se calcula nada.
+ * Encargado (0047): las acciones de equipo y de anular/mover solo funcionan si
+ * el token es de un encargado activo (la base lo comprueba; si no, 403).
  */
 export async function POST(peticion: Request) {
   try {
@@ -69,10 +75,68 @@ export async function POST(peticion: Request) {
         if (!UUID.test(id)) return NextResponse.json({ error: 'datos' }, { status: 400 });
         return NextResponse.json({ ok: await cerrarCuentaCamarero(token, id) });
       }
+      // ------------------------------------------------------- encargado (0047)
+      case 'equipo': {
+        const x = await equipoEncargado(token);
+        return x ? NextResponse.json(x) : NextResponse.json({ error: 'rol' }, { status: 403 });
+      }
+      case 'equipo_crear': {
+        const nombre = String(c?.nombre ?? '').trim().slice(0, 40);
+        if (!nombre) return NextResponse.json({ error: 'datos', mensaje: 'Pon el nombre del camarero.' }, { status: 400 });
+        const nuevo = await crearCamareroEncargado(token, nombre);
+        if (!nuevo) return NextResponse.json({ error: 'rol' }, { status: 403 });
+        return NextResponse.json({ ok: true, enlace: `${new URL(peticion.url).origin}/sala/${nuevo}` });
+      }
+      case 'equipo_editar': {
+        const id = String(c?.camareroId ?? '');
+        const nombre = typeof c?.nombre === 'string' ? c.nombre.trim().slice(0, 40) : undefined;
+        const activo = typeof c?.activo === 'boolean' ? c.activo : undefined;
+        if (!UUID.test(id) || nombre === '') return NextResponse.json({ error: 'datos' }, { status: 400 });
+        return NextResponse.json({ ok: await editarCamareroEncargado(token, id, { nombre, activo }) });
+      }
+      case 'equipo_regenerar': {
+        const id = String(c?.camareroId ?? '');
+        if (!UUID.test(id)) return NextResponse.json({ error: 'datos' }, { status: 400 });
+        const nuevo = await regenerarEnlaceEncargado(token, id);
+        return nuevo ? NextResponse.json({ ok: true, enlace: `${new URL(peticion.url).origin}/sala/${nuevo}` }) : NextResponse.json({ ok: false });
+      }
+      case 'equipo_zona': {
+        const zona = String(c?.zona ?? '').trim();
+        const cam = c?.camareroId ? String(c.camareroId) : null;
+        if (!zona || zona.length > 30 || (cam && !UUID.test(cam))) return NextResponse.json({ error: 'datos' }, { status: 400 });
+        const n = await asignarZonaEncargado(token, zona, cam);
+        return n === null ? NextResponse.json({ error: 'rol' }, { status: 403 }) : NextResponse.json({ ok: true, mesas: n });
+      }
+      case 'anular_linea': {
+        const id = String(c?.lineaId ?? '');
+        if (!UUID.test(id)) return NextResponse.json({ error: 'datos' }, { status: 400 });
+        return NextResponse.json({ ok: await anularLineaEncargado(token, id, String(c?.motivo ?? '').slice(0, 200)) });
+      }
+      case 'cambiar_cantidad': {
+        const id = String(c?.lineaId ?? '');
+        const n = Math.trunc(Number(c?.cantidad));
+        if (!UUID.test(id) || !(n >= 0 && n <= 50)) return NextResponse.json({ error: 'datos' }, { status: 400 });
+        return NextResponse.json({ ok: await cambiarCantidadEncargado(token, id, n, String(c?.motivo ?? '').trim().slice(0, 200) || null) });
+      }
+      case 'anular_cuenta': {
+        const id = String(c?.cuentaId ?? '');
+        if (!UUID.test(id)) return NextResponse.json({ error: 'datos' }, { status: 400 });
+        return NextResponse.json({ ok: await anularCuentaEncargado(token, id, String(c?.motivo ?? '').slice(0, 200)) });
+      }
+      case 'mover': {
+        const id = String(c?.cuentaId ?? '');
+        const mesa = String(c?.mesa ?? '');
+        if (!UUID.test(id) || !MESA.test(mesa)) return NextResponse.json({ error: 'datos' }, { status: 400 });
+        return NextResponse.json(await moverCuentaEncargado(token, id, mesa));
+      }
       default:
         return NextResponse.json({ error: 'accion' }, { status: 400 });
     }
   } catch (error) {
+    // P0001 = mensaje de la base pensado para la persona (motivo, tope, cantidad…)
+    if ((error as { code?: string })?.code === 'P0001') {
+      return NextResponse.json({ error: 'datos', mensaje: (error as Error).message }, { status: 400 });
+    }
     console.error('App de sala:', (error as Error).message);
     return NextResponse.json({ error: 'servidor' }, { status: 500 });
   }

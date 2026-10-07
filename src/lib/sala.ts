@@ -1,5 +1,5 @@
 import 'server-only';
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { comoCliente, comoVisitante } from '@/lib/db';
 
 /**
@@ -47,17 +47,6 @@ export async function listarCamareros(jwt: string, restauranteId: string): Promi
     const { rows } = await c.query('SELECT id, nombre, activo, ultimo_acceso FROM camareros WHERE restaurante_id = $1 ORDER BY activo DESC, nombre', [restauranteId]);
     return rows.map((r) => ({ id: r.id, nombre: r.nombre, activo: r.activo, ultimoAcceso: r.ultimo_acceso ? new Date(r.ultimo_acceso).toISOString() : null }));
   });
-}
-
-/** Crea el acceso y devuelve el token UNA sola vez (en la base solo queda su huella). */
-export async function crearCamarero(jwt: string, nombre: string): Promise<string> {
-  const token = randomBytes(24).toString('base64url');
-  await comoCliente(jwt, (c) => c.query('SELECT dk.crear_camarero($1, $2)', [nombre, huellaToken(token)]));
-  return token;
-}
-
-export async function desactivarCamarero(jwt: string, id: string) {
-  await comoCliente(jwt, (c) => c.query('UPDATE camareros SET activo = false WHERE id = $1', [id]));
 }
 
 export async function estadoConexionTpv(jwt: string): Promise<{ proveedor: string; activa: boolean; ultimoEnvio: string | null; ultimoError: string | null } | null> {

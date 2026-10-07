@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { esIOS, probarSonido, useAlarmaLlamadas } from '@/lib/alarma-camarero';
+import EquipoGestion, { type OpsEquipo, type RespEquipo } from '@/components/sala/EquipoGestion';
+import type { Equipo } from '@/lib/equipo-tipos';
 
 interface MesaSala { id: string; numero: string; zona: string; forma: string; plazas: number; x: number; y: number; mia: boolean; camarero: string | null; ancho?: number; alto?: number }
 interface Elemento { tipo: string; x: number; y: number; ancho: number; alto: number; etiqueta: string | null; color: string | null }
 interface Llamada { id: string; mesa: string; motivo: 'camarero' | 'cuenta'; creada_en: string }
 interface Contexto {
-  camarero: { id: string; nombre: string };
+  camarero: { id: string; nombre: string; rol?: 'camarero' | 'encargado' };
   restaurante: { nombre: string; color: string | null; tpv: boolean };
   mesas: MesaSala[];
   elementos?: Elemento[];
@@ -30,6 +32,8 @@ const euros = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency',
  * en bucle hasta que se atienden, B1 07/10), rondas por secciones que van al TPV del local o a la pantalla del
  * encargado, y cierre de mesa «cobrada fuera». No cobra ni emite tickets: la
  * precuenta solo se ve en pantalla y no es una factura. El camarero no anula.
+ * Encargado (0047, B3): ve todas las mesas por defecto, cambia cantidades,
+ * anula con motivo, mueve o junta mesas y gestiona a los camareros (pestaña Equipo).
  */
 export default function AppSala({ token }: { token: string }) {
   const [ctx, setCtx] = useState<Contexto | null>(null);
@@ -37,6 +41,7 @@ export default function AppSala({ token }: { token: string }) {
   const [soloMias, setSoloMias] = useState(true);
   const [vista, setVista] = useState<'lista' | 'plano'>('lista');
   const [mesaAbierta, setMesaAbierta] = useState<string | null>(null);
+  const [seccionApp, setSeccionApp] = useState<'sala' | 'equipo'>('sala');
 
   const pedir = useCallback(async (cuerpo: object) => {
     const r = await fetch('/api/sala', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, ...cuerpo }) });
@@ -51,6 +56,9 @@ export default function AppSala({ token }: { token: string }) {
   }, [pedir]);
 
   useEffect(() => { cargar(); const t = setInterval(cargar, 4000); return () => clearInterval(t); }, [cargar]);
+  const encargado = ctx?.camarero.rol === 'encargado';
+  // El encargado supervisa toda la sala: empieza viendo todas las mesas
+  useEffect(() => { if (encargado) setSoloMias(false); }, [encargado]);
   const pendientes = ctx?.llamadas ?? [];
   const { listo, activar } = useAlarmaLlamadas(pendientes.length > 0, pendientes.length === 1 ? `Mesa ${pendientes[0].mesa} llama` : `${pendientes.length} mesas llaman`);
 
@@ -69,7 +77,7 @@ export default function AppSala({ token }: { token: string }) {
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
           <div>
             <p className="text-xs text-black/50">{ctx.restaurante.nombre}</p>
-            <p className="font-bold">Hola, {ctx.camarero.nombre}</p>
+            <p className="font-bold">Hola, {ctx.camarero.nombre}{encargado && <span className="ml-2 rounded-full bg-amber-400 px-2 py-0.5 align-middle text-[10px] font-black uppercase tracking-wide text-black">Encargado</span>}</p>
           </div>
           {listo ? (
             <button onClick={probarSonido} className="rounded-full bg-black/5 px-3 py-1.5 text-xs font-bold">🔔 Sonido activo · probar</button>
@@ -78,6 +86,17 @@ export default function AppSala({ token }: { token: string }) {
           )}
         </div>
       </header>
+
+      {encargado && (
+        <nav className="mx-auto flex max-w-3xl gap-2 px-4 pt-3" aria-label="Secciones">
+          {([['sala', 'Sala'], ['equipo', 'Equipo']] as const).map(([id, nombre]) => (
+            <button key={id} onClick={() => setSeccionApp(id)} aria-current={seccionApp === id ? 'page' : undefined}
+              className={`flex-1 rounded-full py-2.5 text-sm font-bold ${seccionApp === id ? 'text-white' : 'bg-white text-black/60'}`} style={seccionApp === id ? { background: color } : undefined}>
+              {nombre}
+            </button>
+          ))}
+        </nav>
+      )}
 
       <div className="mx-auto max-w-3xl space-y-5 px-4 pt-4">
         {ctx.llamadas.length > 0 && (
@@ -98,6 +117,9 @@ export default function AppSala({ token }: { token: string }) {
           </section>
         )}
 
+        {encargado && seccionApp === 'equipo' ? (
+          <EquipoApp pedir={pedir} yoId={ctx.camarero.id} />
+        ) : (
         <section className="space-y-2">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-black/50">Mesas</h2>
@@ -162,15 +184,41 @@ export default function AppSala({ token }: { token: string }) {
             <button disabled={!otraMesa} className="rounded-xl px-4 text-sm font-bold text-white disabled:opacity-40" style={{ background: color }}>Abrir</button>
           </form>
         </section>
+        )}
       </div>
 
-      {mesaAbierta && <CuentaMesa mesa={mesaAbierta} ctx={ctx} color={color} onCerrar={() => { setMesaAbierta(null); cargar(); }} pedir={pedir} />}
+      {mesaAbierta && <CuentaMesa mesa={mesaAbierta} ctx={ctx} color={color} encargado={encargado} onCerrar={() => { setMesaAbierta(null); cargar(); }} pedir={pedir} />}
     </main>
   );
 }
 
-function CuentaMesa({ mesa, ctx, color, onCerrar, pedir }: {
-  mesa: string; ctx: Contexto; color: string; onCerrar: () => void;
+type Pedir = (c: object) => Promise<{ status: number; json: Record<string, unknown> }>;
+
+/** Equipo desde la app del encargado: solo camareros (los encargados, en lectura). */
+function EquipoApp({ pedir, yoId }: { pedir: Pedir; yoId: string }) {
+  const [equipo, setEquipo] = useState<Equipo | null>(null);
+  const [error, setError] = useState(false);
+  const cargar = useCallback(async () => {
+    const { status, json } = await pedir({ accion: 'equipo' });
+    if (status === 200) { setEquipo(json as unknown as Equipo); setError(false); } else setError(true);
+  }, [pedir]);
+  useEffect(() => { cargar(); }, [cargar]);
+  const resp = ({ status, json }: { status: number; json: Record<string, unknown> }, fallo: string): RespEquipo =>
+    status === 200 && json.ok ? { ok: true, enlace: typeof json.enlace === 'string' ? json.enlace : undefined }
+      : { ok: false, error: typeof json.mensaje === 'string' ? json.mensaje : fallo };
+  const ops: OpsEquipo = {
+    crear: async (nombre) => resp(await pedir({ accion: 'equipo_crear', nombre }), 'No se pudo crear el acceso.'),
+    editar: async (camareroId, c) => resp(await pedir({ accion: 'equipo_editar', camareroId, nombre: c.nombre, activo: c.activo }), 'No se pudo guardar.'),
+    regenerar: async (camareroId) => resp(await pedir({ accion: 'equipo_regenerar', camareroId }), 'No se pudo crear el enlace.'),
+    zona: async (zona, camareroId) => resp(await pedir({ accion: 'equipo_zona', zona, camareroId }), 'No se pudo asignar la zona.'),
+  };
+  if (error) return <p className="rounded-2xl bg-white p-6 text-center text-sm text-black/55">No se pudo cargar el equipo. <button onClick={cargar} className="font-semibold underline">Reintentar</button></p>;
+  if (!equipo) return <p className="rounded-2xl bg-white p-6 text-center text-sm text-black/50">Cargando equipo…</p>;
+  return <EquipoGestion equipo={equipo} modo="encargado" yoId={yoId} ops={ops} onCambio={cargar} />;
+}
+
+function CuentaMesa({ mesa, ctx, color, encargado, onCerrar, pedir }: {
+  mesa: string; ctx: Contexto; color: string; encargado: boolean; onCerrar: () => void;
   pedir: (c: object) => Promise<{ status: number; json: Record<string, unknown> }>;
 }) {
   const [cuenta, setCuenta] = useState<Cuenta | null | undefined>(undefined);
@@ -182,6 +230,8 @@ function CuentaMesa({ mesa, ctx, color, onCerrar, pedir }: {
   const [estado, setEstado] = useState<'idle' | 'enviando' | 'error'>('idle');
   const [mensaje, setMensaje] = useState<{ ok: boolean; texto: string } | null>(null);
   const [confirmarCierre, setConfirmarCierre] = useState(false);
+  const [lineaSel, setLineaSel] = useState<string | null>(null);
+  const [gestion, setGestion] = useState<'mover' | 'anular' | null>(null);
 
   const cargarCuenta = useCallback(async () => {
     const { status, json } = await pedir({ accion: 'cuenta', mesa });
@@ -229,6 +279,16 @@ function CuentaMesa({ mesa, ctx, color, onCerrar, pedir }: {
     const { json } = await pedir({ accion: 'cerrar', cuentaId: cuenta.id });
     setEstado('idle');
     if (json.ok) onCerrar(); else setMensaje({ ok: false, texto: 'No se pudo cerrar la mesa (quizá ya estaba cerrada).' });
+  }
+
+  // Encargado (0047): cada cambio queda con motivo y en auditoría; la base rechaza si no es encargado
+  async function accionEncargado(cuerpo: object, ok: string): Promise<boolean> {
+    setEstado('enviando'); setMensaje(null);
+    const { status, json } = await pedir(cuerpo);
+    setEstado('idle');
+    if (status === 200 && json.ok) { setMensaje({ ok: true, texto: ok }); return true; }
+    setMensaje({ ok: false, texto: typeof json.mensaje === 'string' ? json.mensaje : 'No se pudo completar.' });
+    return false;
   }
 
   // Precuenta: solo en pantalla, agrupada por plato y precio; no se imprime ni se numera.
@@ -281,12 +341,22 @@ function CuentaMesa({ mesa, ctx, color, onCerrar, pedir }: {
               {cuenta.lineas.length === 0 && <li className="py-8 text-center text-sm text-black/50">Mesa abierta. Añade la primera ronda.</li>}
               {cuenta.lineas.map((l) => (
                 <li key={l.id} className={`py-2.5 text-sm ${l.anulada ? 'text-black/35' : ''}`}>
-                  <div className="flex justify-between gap-3">
-                    <span className={l.anulada ? 'line-through' : ''}>{l.cantidad} × {l.nombre}</span>
+                  <button type="button" disabled={!encargado || l.anulada} onClick={() => setLineaSel((v) => (v === l.id ? null : l.id))}
+                    className="flex w-full justify-between gap-3 text-left disabled:cursor-default" aria-expanded={encargado && !l.anulada ? lineaSel === l.id : undefined}>
+                    <span className={l.anulada ? 'line-through' : ''}>{l.cantidad} × {l.nombre}{encargado && !l.anulada && <span className="ml-1 text-xs text-black/35">✎</span>}</span>
                     <span className={`shrink-0 font-semibold ${l.anulada ? 'line-through' : ''}`}>{euros(l.cantidad * Number(l.precio))}</span>
-                  </div>
+                  </button>
                   {l.nota && <p className="text-xs text-black/45">{l.nota}</p>}
-                  {l.anulada && <p className="text-xs">Anulada por el encargado: {l.motivo_anulacion}</p>}
+                  {l.anulada && <p className="text-xs">Anulada: {l.motivo_anulacion}</p>}
+                  {encargado && lineaSel === l.id && !l.anulada && (
+                    <EditarLinea linea={l} color={color} ocupado={estado === 'enviando'}
+                      onGuardar={async (cantidad, motivo) => {
+                        const ok = cantidad === 0
+                          ? await accionEncargado({ accion: 'anular_linea', lineaId: l.id, motivo }, 'Línea anulada.')
+                          : await accionEncargado({ accion: 'cambiar_cantidad', lineaId: l.id, cantidad, motivo }, 'Cantidad cambiada.');
+                        if (ok) { setLineaSel(null); await cargarCuenta(); }
+                      }} />
+                  )}
                 </li>
               ))}
             </ul>
@@ -301,6 +371,27 @@ function CuentaMesa({ mesa, ctx, color, onCerrar, pedir }: {
                 )}
               </div>
               {confirmarCierre && <p className="text-center text-xs text-black/55">Cierra la mesa solo cuando se haya cobrado en el TPV. <button onClick={() => setConfirmarCierre(false)} className="underline">Cancelar</button></p>}
+              {encargado && (
+                gestion ? (
+                  <GestionMesa tipo={gestion} mesa={mesa} color={color} ocupado={estado === 'enviando'} onCancelar={() => setGestion(null)}
+                    onConfirmar={async (valor) => {
+                      if (gestion === 'mover') {
+                        setEstado('enviando'); setMensaje(null);
+                        const { status, json } = await pedir({ accion: 'mover', cuentaId: cuenta.id, mesa: valor });
+                        setEstado('idle');
+                        if (status === 200 && json.ok) onCerrar();
+                        else setMensaje({ ok: false, texto: typeof json.mensaje === 'string' ? json.mensaje : 'No se pudo mover la mesa.' });
+                      } else if (await accionEncargado({ accion: 'anular_cuenta', cuentaId: cuenta.id, motivo: valor }, 'Mesa anulada.')) {
+                        onCerrar();
+                      }
+                    }} />
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 border-t border-dashed border-black/10 pt-2">
+                    <button onClick={() => setGestion('mover')} className="rounded-2xl bg-amber-100 py-2.5 text-xs font-bold text-amber-900">Mover o juntar</button>
+                    <button onClick={() => setGestion('anular')} className="rounded-2xl bg-red-50 py-2.5 text-xs font-bold text-red-700">Anular mesa</button>
+                  </div>
+                )
+              )}
             </div>
           </>
         ) : (
@@ -349,5 +440,55 @@ function CuentaMesa({ mesa, ctx, color, onCerrar, pedir }: {
         )}
       </div>
     </div>
+  );
+}
+
+/** Encargado: cambiar la cantidad de una línea (0 = anularla) con motivo. */
+function EditarLinea({ linea, color, ocupado, onGuardar }: {
+  linea: LineaCuenta; color: string; ocupado: boolean; onGuardar: (cantidad: number, motivo: string) => void;
+}) {
+  const [cantidad, setCantidad] = useState(linea.cantidad);
+  const [motivo, setMotivo] = useState('');
+  const anular = cantidad === 0;
+  const valido = cantidad !== linea.cantidad && (!anular || motivo.trim().length >= 3);
+  return (
+    <div className="mt-2 space-y-2 rounded-xl bg-black/[0.04] p-3">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-semibold text-black/60">Cantidad</span>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setCantidad((n) => Math.max(0, n - 1))} className="h-9 w-9 rounded-full bg-white text-lg font-bold shadow-sm" aria-label="Menos">−</button>
+          <span className={`w-8 text-center text-lg font-black ${anular ? 'text-red-600' : ''}`}>{cantidad}</span>
+          <button type="button" onClick={() => setCantidad((n) => Math.min(50, n + 1))} className="h-9 w-9 rounded-full bg-white text-lg font-bold shadow-sm" aria-label="Más">+</button>
+        </div>
+      </div>
+      <input value={motivo} onChange={(e) => setMotivo(e.target.value.slice(0, 200))} placeholder={anular ? 'Motivo de la anulación (obligatorio)' : 'Motivo (opcional)'}
+        className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm" />
+      <button type="button" disabled={!valido || ocupado} onClick={() => onGuardar(cantidad, motivo.trim())}
+        className={`w-full rounded-xl py-2.5 text-sm font-bold text-white disabled:opacity-40 ${anular ? 'bg-red-600' : ''}`} style={anular ? undefined : { background: color }}>
+        {anular ? 'Anular línea' : `Dejar en ${cantidad}`}
+      </button>
+    </div>
+  );
+}
+
+/** Encargado: mover/juntar la mesa con otra, o anularla entera con motivo. */
+function GestionMesa({ tipo, mesa, color, ocupado, onCancelar, onConfirmar }: {
+  tipo: 'mover' | 'anular'; mesa: string; color: string; ocupado: boolean; onCancelar: () => void; onConfirmar: (valor: string) => void;
+}) {
+  const [valor, setValor] = useState('');
+  const mover = tipo === 'mover';
+  const valido = mover ? /^[A-Za-z0-9-]{1,12}$/.test(valor) && valor !== mesa : valor.trim().length >= 3;
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); if (valido && !ocupado) onConfirmar(mover ? valor : valor.trim()); }} className="space-y-2 rounded-2xl bg-black/[0.04] p-3">
+      <p className="text-xs text-black/60">{mover ? 'Pasa la cuenta a otra mesa. Si esa mesa ya tiene cuenta abierta, se juntan.' : 'La mesa se anula entera (no se borra: queda en el informe con el motivo).'}</p>
+      <input autoFocus value={valor} onChange={(e) => setValor(mover ? e.target.value.replace(/[^A-Za-z0-9-]/g, '').slice(0, 12) : e.target.value.slice(0, 200))}
+        placeholder={mover ? 'Mesa de destino' : 'Motivo (obligatorio)'} className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm" />
+      <div className="grid grid-cols-[auto_1fr] gap-2">
+        <button type="button" onClick={onCancelar} className="rounded-xl bg-white px-4 text-sm font-bold">Cancelar</button>
+        <button disabled={!valido || ocupado} className={`rounded-xl py-2.5 text-sm font-bold text-white disabled:opacity-40 ${mover ? '' : 'bg-red-600'}`} style={mover ? { background: color } : undefined}>
+          {mover ? 'Mover' : 'Anular mesa'}
+        </button>
+      </div>
+    </form>
   );
 }
