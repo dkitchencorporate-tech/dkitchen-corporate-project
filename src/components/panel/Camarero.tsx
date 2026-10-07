@@ -1,25 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { LlamadaCamarero } from '@/lib/llamadas-camarero';
 import { atenderLlamadaAction, llamadasPendientesAction } from '@/app/panel/actions';
+import { probarSonido } from '@/lib/alarma-camarero';
+import { EVENTO_LLAMADAS } from './AlarmaLlamadas';
 
-const INTERVALO_MS = 8000;
-
-/** Pitido corto con WebAudio: no necesita ningún archivo de sonido. */
-function pitar(ctx: AudioContext) {
-  [0, 0.25].forEach((t) => {
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.frequency.value = 880;
-    g.gain.setValueAtTime(0.0001, ctx.currentTime + t);
-    g.gain.exponentialRampToValueAtTime(0.4, ctx.currentTime + t + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t + 0.2);
-    o.connect(g).connect(ctx.destination);
-    o.start(ctx.currentTime + t);
-    o.stop(ctx.currentTime + t + 0.22);
-  });
-}
+const INTERVALO_MS = 5000;
 
 function haceCuanto(iso: string) {
   const s = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
@@ -28,18 +15,11 @@ function haceCuanto(iso: string) {
 
 export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: string | null }) {
   const [llamadas, setLlamadas] = useState<LlamadaCamarero[]>([]);
-  const [sonido, setSonido] = useState(false);
   const [mesas, setMesas] = useState(10);
-  const audio = useRef<AudioContext | null>(null);
-  const vistas = useRef<Set<string>>(new Set());
 
   const refrescar = useCallback(async () => {
     try {
-      const nuevas = await llamadasPendientesAction();
-      const hayNueva = nuevas.some((l) => !vistas.current.has(l.id));
-      nuevas.forEach((l) => vistas.current.add(l.id));
-      if (hayNueva && audio.current) pitar(audio.current);
-      setLlamadas(nuevas);
+      setLlamadas(await llamadasPendientesAction());
     } catch {
       /* red caída: se reintenta en el siguiente ciclo */
     }
@@ -48,19 +28,14 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
   useEffect(() => {
     refrescar();
     const id = setInterval(refrescar, INTERVALO_MS);
-    return () => clearInterval(id);
+    window.addEventListener(EVENTO_LLAMADAS, refrescar);
+    return () => { clearInterval(id); window.removeEventListener(EVENTO_LLAMADAS, refrescar); };
   }, [refrescar]);
-
-  function activarSonido() {
-    audio.current = audio.current ?? new AudioContext();
-    audio.current.resume();
-    pitar(audio.current);
-    setSonido(true);
-  }
 
   async function atender(id: string) {
     setLlamadas((prev) => prev.filter((l) => l.id !== id));
-    await atenderLlamadaAction(id);
+    await atenderLlamadaAction(id).catch(() => {});
+    window.dispatchEvent(new Event(EVENTO_LLAMADAS));
   }
 
   const base = codigoQr ? `https://dkitchencorporate.es/r/${codigoQr}` : `https://dkitchencorporate.es/m/${slug}`;
@@ -70,15 +45,11 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Llamadas de mesa</h2>
-          <p className="text-sm text-niebla">Deja esta pantalla abierta en la barra. Se actualiza sola cada 8 segundos.</p>
+          <p className="text-sm text-niebla">La alarma suena en todo el panel, fuerte y repetida, hasta que marcas la llamada como atendida. Deja el panel abierto en la barra.</p>
         </div>
-        {!sonido ? (
-          <button onClick={activarSonido} className="shrink-0 bg-vino hover:bg-vino-hondo text-white text-sm font-bold px-4 py-2 rounded-full">
-            🔔 Activar alarma sonora
-          </button>
-        ) : (
-          <span className="shrink-0 text-sm text-green-700">🔔 Alarma activa</span>
-        )}
+        <button onClick={probarSonido} className="shrink-0 bg-vino hover:bg-vino-hondo text-white text-sm font-bold px-4 py-2 rounded-full">
+          🔔 Probar sonido
+        </button>
       </div>
 
       {llamadas.length === 0 ? (
@@ -90,12 +61,12 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
           {llamadas.map((l) => (
             <li key={l.id} className="flex items-center justify-between gap-3 rounded-2xl border-2 border-vino bg-vino/10 p-5 animate-pulse">
               <div>
-                <p className="text-2xl font-black">Mesa {l.mesa}</p>
+                <p className="text-3xl font-black">Mesa {l.mesa}</p>
                 <p className="text-sm text-niebla">
                   {l.motivo === 'cuenta' ? 'Pide la cuenta' : 'Llama al camarero'} · {haceCuanto(l.creadaEn)}
                 </p>
               </div>
-              <button onClick={() => atender(l.id)} className="rounded-full bg-tinta text-white px-4 py-2 text-sm font-bold">
+              <button onClick={() => atender(l.id)} className="rounded-full bg-tinta text-white px-5 py-3 text-base font-bold">
                 Atendida
               </button>
             </li>

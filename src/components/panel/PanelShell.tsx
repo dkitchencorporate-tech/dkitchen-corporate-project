@@ -21,6 +21,7 @@ import GuiaSeccion from './GuiaSeccion';
 import type { ExtraPlato, DatosLegal } from '@/lib/estudio';
 import MiLocal from './MiLocal';
 import Camarero from './Camarero';
+import AlarmaLlamadas from './AlarmaLlamadas';
 import Promociones from './Promociones';
 import Reservas from './Reservas';
 import Mejoras from './Mejoras';
@@ -153,6 +154,8 @@ export default function PanelShell({
       </aside>
 
       <div className="min-w-0">
+        {/* Alarma de llamadas de mesa en todo el panel (B1, 07/10): suena en bucle hasta que se atienden */}
+        {restaurante.plan === 'ampliado' && !demo && <AlarmaLlamadas enLlamadas={pestana === 'camarero'} irALlamadas={() => setPestana('camarero')} />}
         {/* Cabecera */}
         <header className="sticky top-0 z-30 border-b border-linea bg-crema/90 backdrop-blur-xl">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">

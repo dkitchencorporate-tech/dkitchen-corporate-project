@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { esIOS, probarSonido, useAlarmaLlamadas } from '@/lib/alarma-camarero';
 
 interface MesaSala { id: string; numero: string; zona: string; forma: string; plazas: number; x: number; y: number; mia: boolean; camarero: string | null; ancho?: number; alto?: number }
 interface Elemento { tipo: string; x: number; y: number; ancho: number; alto: number; etiqueta: string | null; color: string | null }
@@ -25,8 +26,8 @@ const euros = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency',
 
 /**
  * App de sala del camarero (comandero, 0045): mesas con su cuenta abierta
- * (importe y minutos), llamadas casi en tiempo real (cada 6 s, con aviso
- * sonoro), rondas por secciones que van al TPV del local o a la pantalla del
+ * (importe y minutos), llamadas casi en tiempo real (cada 4 s, con alarma
+ * en bucle hasta que se atienden, B1 07/10), rondas por secciones que van al TPV del local o a la pantalla del
  * encargado, y cierre de mesa «cobrada fuera». No cobra ni emite tickets: la
  * precuenta solo se ve en pantalla y no es una factura. El camarero no anula.
  */
@@ -36,8 +37,6 @@ export default function AppSala({ token }: { token: string }) {
   const [soloMias, setSoloMias] = useState(true);
   const [vista, setVista] = useState<'lista' | 'plano'>('lista');
   const [mesaAbierta, setMesaAbierta] = useState<string | null>(null);
-  const [sonido, setSonido] = useState(false);
-  const previas = useRef<Set<string>>(new Set());
 
   const pedir = useCallback(async (cuerpo: object) => {
     const r = await fetch('/api/sala', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, ...cuerpo }) });
@@ -48,17 +47,12 @@ export default function AppSala({ token }: { token: string }) {
     const { status, json } = await pedir({ accion: 'contexto' });
     if (status === 401) { setError('Este acceso no es válido o ha sido desactivado. Pide un enlace nuevo al responsable.'); return; }
     if (status !== 200) return;
-    const nuevo = json as Contexto;
-    const nuevas = nuevo.llamadas.filter((l) => !previas.current.has(l.id));
-    if (sonido && nuevas.length > 0 && previas.current.size > 0) {
-      try { new AudioContext().resume().then(function () { const a = new AudioContext(); const o = a.createOscillator(); o.frequency.value = 880; o.connect(a.destination); o.start(); o.stop(a.currentTime + 0.35); }); } catch { /* sin audio */ }
-      navigator.vibrate?.(300);
-    }
-    previas.current = new Set(nuevo.llamadas.map((l) => l.id));
-    setCtx(nuevo);
-  }, [pedir, sonido]);
+    setCtx(json as Contexto);
+  }, [pedir]);
 
-  useEffect(() => { cargar(); const t = setInterval(cargar, 6000); return () => clearInterval(t); }, [cargar]);
+  useEffect(() => { cargar(); const t = setInterval(cargar, 4000); return () => clearInterval(t); }, [cargar]);
+  const pendientes = ctx?.llamadas ?? [];
+  const { listo, activar } = useAlarmaLlamadas(pendientes.length > 0, pendientes.length === 1 ? `Mesa ${pendientes[0].mesa} llama` : `${pendientes.length} mesas llaman`);
 
   const color = ctx?.restaurante.color || '#6E0C2B';
   const mesas = useMemo(() => (ctx?.mesas ?? []).filter((m) => !soloMias || m.mia || !m.camarero), [ctx, soloMias]);
@@ -77,15 +71,18 @@ export default function AppSala({ token }: { token: string }) {
             <p className="text-xs text-black/50">{ctx.restaurante.nombre}</p>
             <p className="font-bold">Hola, {ctx.camarero.nombre}</p>
           </div>
-          <button onClick={() => setSonido((s) => !s)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${sonido ? 'text-white' : 'bg-black/5'}`} style={sonido ? { background: color } : undefined}>
-            {sonido ? 'Aviso sonoro activo' : 'Activar aviso sonoro'}
-          </button>
+          {listo ? (
+            <button onClick={probarSonido} className="rounded-full bg-black/5 px-3 py-1.5 text-xs font-bold">🔔 Sonido activo · probar</button>
+          ) : (
+            <button onClick={activar} className="animate-pulse rounded-full bg-amber-400 px-4 py-2 text-sm font-black text-black">🔔 Toca para activar el sonido</button>
+          )}
         </div>
       </header>
 
       <div className="mx-auto max-w-3xl space-y-5 px-4 pt-4">
         {ctx.llamadas.length > 0 && (
-          <section className="space-y-2">
+          <section className="space-y-2 rounded-2xl bg-red-600/10 p-2 ring-2 ring-red-600 animate-pulse">
+            {esIOS() && <p className="px-2 text-xs font-semibold text-red-700">En iPhone, quita el modo silencio para oír la alarma.</p>}
             <h2 className="text-xs font-bold uppercase tracking-wider text-black/50">Llamadas ({ctx.llamadas.length})</h2>
             {ctx.llamadas.map((l) => (
               <div key={l.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-sm" style={{ borderLeft: `5px solid ${color}` }}>
