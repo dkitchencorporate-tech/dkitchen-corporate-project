@@ -266,7 +266,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     claves: ['idioma', 'ingles', 'frances', 'aleman', 'traducir', 'traduccion', 'turistas', 'extranjeros'],
     respuesta: [
       'Con el módulo de Idiomas eliges hasta 3 idiomas y nosotros traducimos tu carta. Tus clientes ven un selector de idioma.',
-      'Es un pago único, sin cuota. Si ya lo tienes, lo gestionas en Carta → Idiomas; si no, está en Negocio → Mejoras.',
+      'En el plan Sala viene incluido. Con Carta o Local es un pago único, sin cuota. Si ya lo tienes, lo gestionas en Carta → Idiomas; si no, está en Negocio → Mejoras.',
       'Cuando cambies o añadas platos, avísanos y traducimos lo nuevo.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'modulos', texto: 'Ver Mejoras' }],
@@ -551,4 +551,6 @@ export interface ContextoAyuda {
   camino: string[];
   busquedas: string[];
   pagina?: string;
+  /** Conversación con la ayuda IA del panel (punto 6), para el ticket. */
+  conversacion?: string[];
 }

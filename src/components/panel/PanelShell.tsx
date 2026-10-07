@@ -41,7 +41,7 @@ import { authClient } from '@/lib/auth-client';
 import ChatAyuda, { abrirAyuda } from '@/components/ayuda/ChatAyuda';
 import { TEMAS_PANEL } from '@/lib/ayuda';
 import { nombrePlan } from '@/lib/pricing-config';
-import { crearTicketAyudaAction, comprarServicioAction } from '@/app/panel/actions';
+import { crearTicketAyudaAction, comprarServicioAction, preguntarAyudaIaAction } from '@/app/panel/actions';
 
 type Pestana = 'inicio' | 'pedidos' | 'carta' | 'estudio' | 'local' | 'promociones' | 'reservas' | 'equipo' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
 
@@ -304,6 +304,8 @@ export default function PanelShell({
           if (demo) { window.location.href = '/qr#planes'; return; }
           const { url } = await comprarServicioAction('setup_esencial'); window.location.href = url;
         } } : null}
+        onPreguntarIa={demo ? undefined : (h) => preguntarAyudaIaAction(h, pestana)}
+        nombresSeccion={Object.fromEntries(PESTANAS.map((x) => [x.id, x.nombre]))}
         onPersona={async (d) => {
           if (demo) return 'En la demo no se envían mensajes. En tu panel real, esto llega a una persona de DKitchen con todo el contexto.';
           const r = await crearTicketAyudaAction(d);

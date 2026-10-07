@@ -22,7 +22,15 @@ type Entrada =
   | { tipo: 'utilidad'; tema: TemaAyuda }
   | { tipo: 'puesta' }
   | { tipo: 'persona' }
-  | { tipo: 'enviado'; texto: string };
+  | { tipo: 'enviado'; texto: string }
+  | { tipo: 'ia'; lineas: string[]; ir: string | null }
+  | { tipo: 'pensando' };
+
+/** Respuesta de la ayuda IA del panel (punto 6). `tope`: sin mensajes hoy o tope global de IA. */
+export type RespuestaIa =
+  | { ok: true; respuesta?: string[]; ir?: string | null; ticket?: boolean; quedan?: number; tope?: 'diario' | 'global' }
+  | { ok: false; error: string };
+type TurnoIa = { rol: 'yo' | 'ia'; texto: string };
 
 export interface PropsChat {
   modo: 'panel' | 'web';
@@ -39,11 +47,15 @@ export interface PropsChat {
   /** Paso a una persona. En el panel crea un ticket; en la web abre el formulario. */
   onPersona: (datos: { asunto: string; mensaje: string; contexto: ContextoAyuda }) => Promise<string | void>;
   onSolicitud?: (interes: string, contexto: ContextoAyuda) => void;
+  /** Panel: las dudas escritas las responde la IA con la guía y los datos del local. */
+  onPreguntarIa?: (historial: TurnoIa[]) => Promise<RespuestaIa>;
+  /** Nombre visible de cada sección, para el botón «Ir a…». */
+  nombresSeccion?: Record<string, string>;
 }
 
 const CURVA = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
-export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinBurbujaMovil, onIr, puesta, onPersona, onSolicitud }: PropsChat) {
+export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinBurbujaMovil, onIr, puesta, onPersona, onSolicitud, onPreguntarIa, nombresSeccion }: PropsChat) {
   const [abierto, setAbierto] = useState(false);
   const [entradas, setEntradas] = useState<Entrada[]>([]);
   const [texto, setTexto] = useState('');
@@ -52,14 +64,20 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinB
   const [mensaje, setMensaje] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
+  const [historialIa, setHistorialIa] = useState<TurnoIa[]>([]);
+  const [iaApagada, setIaApagada] = useState(false);
+  const [pensando, setPensando] = useState(false);
   const fin = useRef<HTMLDivElement>(null);
   const campo = useRef<HTMLInputElement>(null);
 
-  const contexto = (): ContextoAyuda => ({ seccion, camino, busquedas, pagina: typeof location !== 'undefined' ? location.pathname : undefined });
+  const contexto = (): ContextoAyuda => ({
+    seccion, camino, busquedas, pagina: typeof location !== 'undefined' ? location.pathname : undefined,
+    conversacion: historialIa.map((h) => `${h.rol === 'yo' ? 'Cliente' : 'Ayuda IA'}: ${h.texto}`).slice(-10),
+  });
 
   const reiniciar = () => {
     setEntradas([{ tipo: 'bot', lineas: [saludo] }, { tipo: 'opciones', temas: temasDeSeccion(temas, seccion) }]);
-    setCamino([]); setBusquedas([]); setMensaje(''); setError('');
+    setCamino([]); setBusquedas([]); setMensaje(''); setError(''); setHistorialIa([]);
   };
 
   useEffect(() => {
@@ -90,14 +108,47 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinB
   function buscar(e: React.FormEvent) {
     e.preventDefault();
     const q = texto.trim().slice(0, 300);
-    if (!q) return;
+    if (!q || pensando) return;
     setTexto('');
     setBusquedas((b) => [...b, q].slice(-6));
+    if (onPreguntarIa && !iaApagada) { preguntarIa(q); return; }
+    porPalabras(q);
+  }
+
+  async function preguntarIa(q: string) {
+    const historial = [...historialIa, { rol: 'yo' as const, texto: q }].slice(-8);
+    setHistorialIa(historial);
+    setCamino((c) => [...c, `Pregunta a la IA: «${q}»`].slice(-12));
+    setPensando(true);
+    poner({ tipo: 'yo', texto: q }, { tipo: 'pensando' });
+    const quitarPensando = () => setEntradas((en) => en.filter((x) => x.tipo !== 'pensando'));
+    try {
+      const r = await onPreguntarIa!(historial);
+      quitarPensando();
+      if (!r.ok || r.tope || !r.respuesta?.length) {
+        setIaApagada(true);
+        poner({ tipo: 'bot', lineas: [!r.ok ? r.error : r.tope === 'diario' ? 'Hoy ya has usado las 30 preguntas a la ayuda con IA. Mañana vuelve a estar disponible; mientras, aquí tienes las respuestas preparadas.' : 'La ayuda con IA está en pausa este mes. Te dejo las respuestas preparadas.'] });
+        porPalabras(q, false);
+        return;
+      }
+      const respuesta = r.respuesta ?? [];
+      setHistorialIa((h) => [...h, { rol: 'ia' as const, texto: respuesta.join(' ') }].slice(-8));
+      poner({ tipo: 'ia', lineas: respuesta, ir: r.ir && onIr ? r.ir : null });
+      if (r.ticket) { setMensaje((m) => m || q); poner({ tipo: 'persona' }); }
+    } catch {
+      quitarPensando();
+      setIaApagada(true);
+      porPalabras(q, false);
+    } finally { setPensando(false); }
+  }
+
+  function porPalabras(q: string, eco = true) {
+    const yo: Entrada[] = eco ? [{ tipo: 'yo', texto: q }] : [];
     const hallados = buscarTemas(temas, q);
-    if (hallados.length === 1) { setCamino((c) => [...c, `«${q}» → ${hallados[0].pregunta}`].slice(-12)); poner({ tipo: 'yo', texto: q }, { tipo: 'tema', tema: hallados[0] }, { tipo: 'utilidad', tema: hallados[0] }); return; }
-    if (hallados.length) { poner({ tipo: 'yo', texto: q }, { tipo: 'opciones', temas: hallados, titulo: '¿Es alguna de estas?' }); return; }
+    if (hallados.length === 1) { setCamino((c) => [...c, `«${q}» → ${hallados[0].pregunta}`].slice(-12)); poner(...yo, { tipo: 'tema', tema: hallados[0] }, { tipo: 'utilidad', tema: hallados[0] }); return; }
+    if (hallados.length) { poner(...yo, { tipo: 'opciones', temas: hallados, titulo: '¿Es alguna de estas?' }); return; }
     setMensaje((m) => m || q);
-    poner({ tipo: 'yo', texto: q }, { tipo: 'bot', lineas: ['No tengo una respuesta preparada para eso.'] }, { tipo: 'persona' });
+    poner(...yo, { tipo: 'bot', lineas: ['No tengo una respuesta preparada para eso.'] }, { tipo: 'persona' });
   }
 
   function noSirvio(tema: TemaAyuda) {
@@ -236,6 +287,24 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinB
                       )}
                     </div>
                   );
+                  if (e.tipo === 'pensando') return (
+                    <div key={i} className="flex w-fit items-center gap-1.5 rounded-2xl rounded-bl-md bg-white px-4 py-3 shadow-sm" aria-label="La ayuda está escribiendo">
+                      {[0, 1, 2].map((d) => <span key={d} className="h-1.5 w-1.5 rounded-full bg-niebla motion-safe:animate-bounce" style={{ animationDelay: `${d * 0.15}s` }} />)}
+                    </div>
+                  );
+                  if (e.tipo === 'ia') return (
+                    <div key={i} className="space-y-2">
+                      <div className="max-w-[92%] space-y-1.5 rounded-2xl rounded-bl-md bg-white px-4 py-3 text-[14px] leading-relaxed shadow-sm">
+                        {e.lineas.map((l, j) => <p key={j}>{l}</p>)}
+                        <p className="pt-1 text-[11px] text-ceniza">Respuesta con IA a partir de la guía y los datos de tu local.</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 pl-1">
+                        {e.ir && <button onClick={() => { onIr?.(e.ir!); setAbierto(false); }} className="rounded-full bg-vino px-4 py-2 text-[13px] font-semibold text-white hover:bg-vino-hondo">Ir a {nombresSeccion?.[e.ir] ?? e.ir}</button>}
+                        <button onClick={() => { setMensaje((m) => m || historialIa.filter((h) => h.rol === 'yo').at(-1)?.texto || ''); poner({ tipo: 'yo', texto: 'No me sirve' }, { tipo: 'persona' }); }}
+                          className="rounded-full border border-linea-fuerte bg-white px-3.5 py-1.5 text-[13px] font-medium">No me sirve</button>
+                      </div>
+                    </div>
+                  );
                   if (e.tipo === 'enviado') return <div key={i} className="rounded-2xl border border-exito/30 bg-exito/10 px-4 py-3 text-[14px] text-[#1F6B4F]">{e.texto}</div>;
                   return null;
                 })}
@@ -243,9 +312,9 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinB
               </div>
 
               <form onSubmit={buscar} className="flex items-center gap-2 border-t border-linea bg-white px-3 py-3">
-                <input ref={campo} value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={300} placeholder="Escribe tu duda (p. ej. «foto», «QR», «precio»)" aria-label="Escribe tu duda"
+                <input ref={campo} value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={300} placeholder={onPreguntarIa && !iaApagada ? 'Escribe tu duda con tus palabras' : 'Escribe tu duda (p. ej. «foto», «QR», «precio»)'} aria-label="Escribe tu duda"
                   className="min-w-0 flex-1 rounded-full bg-papel px-4 py-2.5 text-[14px] placeholder-ceniza focus:outline-none focus:ring-2 focus:ring-vino/30" />
-                <button type="submit" aria-label="Buscar" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-vino text-white">
+                <button type="submit" aria-label="Enviar" disabled={pensando} className="flex h-10 w-10 shrink-0 disabled:opacity-50 items-center justify-center rounded-full bg-vino text-white">
                   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                 </button>
               </form>

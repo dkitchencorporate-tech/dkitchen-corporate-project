@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { claveDeLimite, limiteSuperado } from '@/lib/limite-frecuencia';
 import { escaneosRango as dbEscaneosRango } from '@/lib/escaneos-cliente';
 import { mejorarTexto as dbMejorarTexto, type TipoTexto } from '@/lib/texto-ia';
+import { responderAyuda, type MensajeAyuda } from '@/lib/ayuda-ia';
 import { saldoIa as dbSaldoIa, generarImagen as dbGenerarImagen, limpiarTextoIa } from '@/lib/ia';
 import { moverSeccion as dbMoverSeccion, guardarExtras as dbGuardarExtras, guardarCombo as dbGuardarCombo, guardarLegal as dbGuardarLegal, ETIQUETAS, type Etiqueta, type DatosCombo, type DatosLegal } from '@/lib/estudio';
 import { obtenerJwtDeSesion, identidadActual } from '@/lib/sesion';
@@ -166,7 +167,7 @@ export async function crearTicketAction(datos: { asunto: string; mensaje: string
 async function crearTicketAyudaAction_(datos: {
   asunto: string;
   mensaje: string;
-  contexto: { seccion: string | null; camino: string[]; busquedas: string[]; pagina?: string };
+  contexto: { seccion: string | null; camino: string[]; busquedas: string[]; pagina?: string; conversacion?: string[] };
 }) {
   const texto = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
   const lista = (v: unknown, n: number) => (Array.isArray(v) ? v.slice(-n).map((x) => texto(x, 200)).filter(Boolean) : []);
@@ -180,6 +181,8 @@ async function crearTicketAyudaAction_(datos: {
     seccion: /^[a-z_]{2,20}$/.test(String(c.seccion ?? '')) ? c.seccion : null,
     camino: lista(c.camino, 12),
     busquedas: lista(c.busquedas, 6),
+    // Conversación con la ayuda IA (punto 6): la persona que responde la ve entera.
+    conversacion: Array.isArray(c.conversacion) ? c.conversacion.slice(-10).map((x) => texto(x, 600)).filter(Boolean) : [],
     pagina: texto(c.pagina, 120) || null,
     plan: restaurante.plan,
     nivel: restaurante.nivelDiseno,
@@ -768,6 +771,43 @@ export async function guardarLegalAction(...a: Parameters<typeof guardarLegalAct
 export async function moverSeccionAction(...a: Parameters<typeof moverSeccionAction_>) { return envolver(() => moverSeccionAction_(...a)); }
 export async function generarImagenIaAction(...a: Parameters<typeof generarImagenIaAction_>) { return envolver(() => generarImagenIaAction_(...a)); }
 export async function crearTicketAyudaAction(...a: Parameters<typeof crearTicketAyudaAction_>) { return envolver(() => crearTicketAyudaAction_(...a)); }
+
+/**
+ * Soporte nivel 1 con IA (punto 6, 0054). La base reserva el mensaje (permiso,
+ * 30 al día por local y tope mensual global de IA); después se anota el coste
+ * real. Si la IA falla, el mensaje no cuenta como gasto.
+ */
+async function preguntarAyudaIaAction_(historial: MensajeAyuda[], seccion: string | null) {
+  const lista = (Array.isArray(historial) ? historial : [])
+    .filter((m) => m && (m.rol === 'yo' || m.rol === 'ia') && typeof m.texto === 'string')
+    .map((m) => ({ rol: m.rol, texto: m.texto.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 600) }))
+    .filter((m) => m.texto)
+    .slice(-8);
+  if (lista.at(-1)?.rol !== 'yo') throw new Error('Escribe tu duda.');
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  const { comoCliente } = await import('@/lib/db');
+  let reserva: { uso: string; quedan: number };
+  try {
+    reserva = await comoCliente(jwt, async (c) => (await c.query<{ uso: string; quedan: number }>('SELECT * FROM dk.ayuda_ia_reservar($1)', [restaurante.id])).rows[0]);
+  } catch (e) {
+    const m = String((e as Error)?.message ?? '');
+    if (m.includes('ayuda_tope_diario')) return { tope: 'diario' as const };
+    if (m.includes('ia_tope_global')) return { tope: 'global' as const };
+    throw e;
+  }
+  const seccionValida = typeof seccion === 'string' && /^[a-z]{2,20}$/.test(seccion) ? seccion : null;
+  try {
+    const r = await responderAyuda(jwt, restaurante, lista, seccionValida);
+    await comoCliente(jwt, (c) => c.query('SELECT dk.ayuda_ia_coste($1, $2)', [reserva.uso, r.coste])).catch(() => {});
+    return { respuesta: r.respuesta, ir: r.ir, ticket: r.ticket, quedan: reserva.quedan };
+  } catch (e) {
+    const coste = Number((e as { coste?: number })?.coste ?? 0);
+    await comoCliente(jwt, (c) => c.query('SELECT dk.ayuda_ia_coste($1, $2)', [reserva.uso, coste])).catch(() => {});
+    console.error('Ayuda IA:', e);
+    throw new Error('La ayuda con IA no ha respondido. Prueba con los temas de abajo o habla con una persona.');
+  }
+}
+export async function preguntarAyudaIaAction(...a: Parameters<typeof preguntarAyudaIaAction_>) { return envolver(() => preguntarAyudaIaAction_(...a)); }
 
 // Corrector y mejora de textos (01/10/2026): 80 usos al día por restaurante.
 async function mejorarTextoAction_(tipo: TipoTexto, texto: string, contexto?: string) {
