@@ -163,7 +163,7 @@ export default function PanelShell({
       <div className="min-w-0">
         {/* Alarma de llamadas de mesa en todo el panel (B1, 07/10): suena en bucle hasta que se atienden */}
         {restaurante.plan === 'ampliado' && !demo && <AlarmaLlamadas enLlamadas={pestana === 'camarero'} irALlamadas={() => setPestana('camarero')} />}
-        {restaurante.plan === 'ampliado' && !demo && <AvisoReservas reservas={reservasVivas} whatsapp={restaurante.whatsapp} onReservas={setReservasVivas} abrir={(id) => { setReservaAbrir(id); setPestana('reservas'); }} />}
+        {restaurante.plan === 'ampliado' && <AvisoReservas demo={demo} reservas={reservasVivas} whatsapp={restaurante.whatsapp} onReservas={setReservasVivas} abrir={(id) => { setReservaAbrir(id); setPestana('reservas'); }} />}
         {/* Cabecera */}
         <header className="sticky top-0 z-30 border-b border-linea bg-crema/90 backdrop-blur-xl">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">

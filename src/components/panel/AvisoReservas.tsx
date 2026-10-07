@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, type Dispatch, type SetStateAction } from 'react';
 import type { Reserva } from '@/lib/reservas';
 import { misReservasAction } from '@/app/panel/actions';
 import { useCampanillaReservas } from '@/lib/alarma-camarero';
@@ -14,16 +14,24 @@ const INTERVALO_MS = 10000;
  * con una franja verde hasta que alguien toca «Visto» o la abre. Complementa al
  * correo que ya recibe el dueño y al WhatsApp del local (si lo tiene configurado).
  */
-export default function AvisoReservas({ reservas, whatsapp, onReservas, abrir }: {
-  reservas: Reserva[]; whatsapp: string | null; onReservas: (r: Reserva[]) => void; abrir: (id: string) => void;
+export default function AvisoReservas({ reservas, whatsapp, onReservas, abrir, demo = false }: {
+  reservas: Reserva[]; whatsapp: string | null; onReservas: Dispatch<SetStateAction<Reserva[]>>; abrir: (id: string) => void; demo?: boolean;
 }) {
   useEffect(() => {
+    if (demo) {
+      // Demo pública: a los 8 s entra una reserva de ejemplo para enseñar el aviso
+      const t = setTimeout(() => onReservas((prev) => [{
+        id: `demo-${Date.now()}`, nombre: 'Marta G.', telefono: '600 000 000', email: null, fecha: new Date().toISOString().slice(0, 10), hora: '21:30',
+        personas: 4, notas: 'Mesa tranquila, es un cumpleaños', estado: 'pendiente', creadaEn: new Date().toISOString(), avisadoEn: null,
+      }, ...prev]), 8000);
+      return () => clearTimeout(t);
+    }
     const refrescar = async () => { try { onReservas(await misReservasAction()); } catch { /* red caída: siguiente ciclo */ } };
     const id = setInterval(refrescar, INTERVALO_MS);
     const alVolver = () => { if (document.visibilityState === 'visible') void refrescar(); };
     document.addEventListener('visibilitychange', alVolver);
     return () => { clearInterval(id); document.removeEventListener('visibilitychange', alVolver); };
-  }, [onReservas]);
+  }, [onReservas, demo]);
 
   const { nuevas, marcar } = useReservasNuevas(reservas);
   const titulo = nuevas.length === 1 ? 'Nueva reserva' : `${nuevas.length} reservas nuevas`;
