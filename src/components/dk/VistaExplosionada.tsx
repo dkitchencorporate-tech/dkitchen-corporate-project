@@ -58,7 +58,7 @@ export default function VistaExplosionada() {
   const publicada = useTransform(p, [0.9, 0.97], [0, 1]);
   const aviso = useTransform(p, [0, 0.03, 0.8, 0.86], [1, 1, 1, 0]);
   // 08/10: en portátiles de 14" (≈730 px útiles) el móvil y las capas se salían por abajo
-  const ajuste = useAjusteAlto(600, 240);
+  const ajuste = useAjusteAlto(680, 250);
   const [fase, setFase] = useState(0);
   useMotionValueEvent(p, 'change', (v) => setFase(v < 0.12 ? 0 : v < 0.8 ? 1 : 2));
   const titulos = ['Una carta, seis superpoderes.', 'Todo lo que lleva tu carta.', 'Y todo cabe en un QR.'];
