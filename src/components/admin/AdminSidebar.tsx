@@ -18,6 +18,7 @@ const ESPACIOS = [
   { nombre: 'Embudo', href: '/admin-dkitchen/embudo', icono: 'negocio' },
 ];
 const MAS = [
+  { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' },
   { nombre: 'Fundador', href: '/admin-dkitchen/fundador' },
   { nombre: 'Socios', href: '/admin-dkitchen/socios' },
   { nombre: 'Resumen general', href: '/admin-dkitchen/overview' },

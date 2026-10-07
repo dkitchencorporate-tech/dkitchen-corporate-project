@@ -60,8 +60,41 @@ export async function POST(request: Request) {
   try { evento = JSON.parse(cuerpo); } catch { return NextResponse.json({ error: 'Cuerpo inválido' }, { status: 400 }); }
 
   const o = evento.data?.object as ObjetoStripe;
-  const origen = new URL(request.url).origin;
+  const respuesta = await procesar(evento, o, new URL(request.url).origin);
+  await anotarParaElMando(evento, o, respuesta);
+  return respuesta;
+}
 
+/**
+ * Panel de mando y parte diario (0056): deja constancia de cobros, impagos,
+ * bajas, reembolsos, disputas y errores de este webhook. Idempotente por
+ * referencia y nunca cambia la respuesta a Stripe.
+ */
+async function anotarParaElMando(evento: ObjetoStripe, o: ObjetoStripe, respuesta: NextResponse) {
+  let fila: [tipo: string, importe: number, referencia: string, detalle: string] | null = null;
+  if (respuesta.status >= 500) {
+    const motivo = await respuesta.clone().json().then((j) => String(j.error ?? ''), () => '');
+    fila = ['error_webhook', 0, String(evento.id), `${evento.type}: ${motivo}`];
+  } else if (evento.type === 'invoice.paid' && Number(o.amount_paid ?? 0) > 0) {
+    const renueva = o.billing_reason === 'subscription_cycle' || o.billing_reason === 'subscription_update';
+    fila = [renueva ? 'renovacion' : 'alta', Number(o.amount_paid), String(o.id), String(o.billing_reason ?? '')];
+  } else if (evento.type === 'setup_intent.succeeded' && String(o.metadata?.suscripcion ?? '').startsWith('sub_')) {
+    fila = ['alta', 0, String(o.id), 'alta sin cobro hoy'];
+  } else if (evento.type === 'invoice.payment_failed') {
+    fila = ['fallido', Number(o.amount_due ?? 0), String(o.id), String(o.billing_reason ?? '')];
+  } else if (evento.type === 'customer.subscription.deleted' && !o.metadata?.sustituida_por) {
+    fila = ['baja', 0, String(o.id), String(o.cancellation_details?.reason ?? '')];
+  } else if (evento.type === 'charge.refunded') {
+    fila = ['reembolso', Number(o.amount_refunded ?? o.amount ?? 0), String(o.id), ''];
+  } else if (evento.type === 'charge.dispute.created') {
+    fila = ['disputa', Number(o.amount ?? 0), String(o.id), String(o.reason ?? '')];
+  }
+  if (!fila) return;
+  await comoAprovisionamiento((c) => c.query('SELECT dk.cobro_anotar($1, $2, $3, $4, $5)', [String(o.customer ?? ''), ...fila]))
+    .catch((e) => console.error('Mando: no se pudo anotar el evento de Stripe', e));
+}
+
+async function procesar(evento: ObjetoStripe, o: ObjetoStripe, origen: string): Promise<NextResponse> {
   switch (evento.type) {
     case 'invoice.paid': {
       const subDet = o.parent?.subscription_details as ObjetoStripe | undefined;

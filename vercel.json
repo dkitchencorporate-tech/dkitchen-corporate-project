@@ -6,6 +6,10 @@
     {
       "path": "/api/cron/gracia-impago",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/parte-diario",
+      "schedule": "30 6 * * *"
     }
   ]
 }

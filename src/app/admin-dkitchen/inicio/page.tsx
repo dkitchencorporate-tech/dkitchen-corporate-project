@@ -4,6 +4,7 @@ import { listarClientesQr, type ClienteQr } from '@/lib/admin-clientes';
 import { comoCliente } from '@/lib/db';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
 import { QR_MENU } from '@/lib/pricing-config';
+import { NOMBRE_ALERTA, enlaceAlerta, type DatosMando, type Ventana } from '@/lib/mando';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,12 +62,89 @@ function Lista({ titulo, vacio, filas, accion }: { titulo: string; vacio: string
   );
 }
 
+/**
+ * Panel de mando (punto 8, 0056): qué necesita a una persona hoy, movimiento
+ * de altas, pasos a pago y bajas, y tickets por nivel. Mismos datos que el
+ * parte diario de las 08:30 (histórico en /admin-dkitchen/partes).
+ */
+function Movimiento({ titulo, v, vino }: { titulo: string; v: Ventana; vino?: boolean }) {
+  return (
+    <div className="rounded-2xl bg-papel px-2 py-3 text-center">
+      <p className="text-xs text-niebla">{titulo}</p>
+      <p className={`font-display mt-1 text-3xl font-semibold tabular-nums ${vino && v.hoy ? 'text-vino' : ''}`}>{v.hoy}</p>
+      <p className="text-[11px] tabular-nums text-ceniza">7 d: {v.d7} · 30 d: {v.d30}</p>
+    </div>
+  );
+}
+
+function PanelMando({ m }: { m?: DatosMando }) {
+  if (!m) return <section className={`${tarjeta} border-vino`}><p className="text-sm font-semibold text-vino">No se pudo leer el panel de mando.</p></section>;
+  const grupos = new Map<string, DatosMando['alertas']>();
+  for (const a of m.alertas) grupos.set(NOMBRE_ALERTA[a.tipo], [...(grupos.get(NOMBRE_ALERTA[a.tipo]) ?? []), a]);
+  const t = m.tickets;
+  const plural = (n: number, s: string) => `${n} ${s}${n === 1 ? '' : 's'}`;
+  return (
+    <div className="grid gap-3 lg:grid-cols-3">
+      <section className={`${tarjeta} lg:col-span-2 ${m.urgentes ? 'border-vino' : ''}`}>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="text-sm font-semibold">Necesita a una persona</p>
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums ${m.urgentes ? 'bg-vino/10 text-vino' : m.necesita_humano ? 'bg-amber-500/15 text-amber-700' : 'bg-exito/15 text-exito'}`}>
+            {m.necesita_humano === 0 ? 'Todo en orden' : `${plural(m.necesita_humano, 'pendiente')}${m.urgentes ? ` · ${plural(m.urgentes, 'urgente')}` : ''}`}
+          </span>
+        </div>
+        {m.alertas.length === 0 ? <p className="mt-4 text-sm text-ceniza">Sin pagos fallidos, locales atascados, tickets sin responder ni topes cerca.</p> : (
+          <div className="mt-3 space-y-3">
+            {[...grupos].map(([g, lista]) => (
+              <div key={g}>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ceniza">{g}</p>
+                <ul className="mt-1 divide-y divide-linea">
+                  {lista.map((a, i) => (
+                    <li key={g + i}>
+                      <Link href={enlaceAlerta(a)} className="flex items-start gap-3 py-2.5 text-sm hover:text-vino">
+                        <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${a.gravedad === 'urgente' ? 'bg-vino' : 'bg-amber-500'}`} title={a.gravedad === 'urgente' ? 'Urgente' : 'Aviso'} />
+                        <span className="min-w-0 flex-1">{a.nombre && <span className="font-medium">{a.nombre}: </span>}<span className="text-niebla">{a.texto}</span></span>
+                        <span className="shrink-0 text-xs text-vino">Abrir</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="mt-4 text-xs text-ceniza">
+          {m.ultimo_parte
+            ? <>Último parte: {new Date(m.ultimo_parte.fecha + 'T12:00:00Z').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} · {m.ultimo_parte.enviado_en ? 'enviado por correo' : 'sin enviar'} · </>
+            : 'El primer parte sale mañana a las 08:30 · '}
+          <Link href="/admin-dkitchen/partes" className="text-vino underline">Ver partes</Link>
+        </p>
+      </section>
+      <section className={tarjeta}>
+        <p className="text-sm font-semibold">Movimiento · hoy</p>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <Movimiento titulo="Altas" v={m.altas} />
+          <Movimiento titulo="A pago" v={m.pasos_pago} />
+          <Movimiento titulo="Bajas" v={m.bajas} vino />
+        </div>
+        <p className="mt-5 text-sm font-semibold">Tickets abiertos · {t.abiertos}</p>
+        <dl className="mt-2 grid grid-cols-4 gap-2 text-center text-xs">
+          {([['N1', t.n1], ['N2', t.n2], ['N3', t.n3], ['Sin nivel', t.sin_nivel]] as const).map(([k, v]) => (
+            <div key={k} className="rounded-xl bg-papel py-2"><dt className="text-ceniza">{k}</dt><dd className="mt-0.5 text-base font-semibold tabular-nums">{v}</dd></div>
+          ))}
+        </dl>
+        <p className="mt-3 text-xs text-ceniza">{t.abiertos_24h} con más de 24 h · N2 resueltos {t.resueltos_n2}/50 · {m.en_prueba} en prueba · {m.fundadores} fundadores</p>
+      </section>
+    </div>
+  );
+}
+
 export default async function CentralInicio() {
   const jwt = await exigirAdmin();
-  const [clientes, embudo, capacidad] = await Promise.all([
+  const [clientes, embudo, capacidad, mando] = await Promise.all([
     listarClientesQr(jwt),
     comoCliente(jwt, async (c) => (await c.query<{ producto: string; visitas: string; pagados: string }>('SELECT producto, visitas, pagados FROM dk.admin_embudo(30)')).rows).catch(() => []),
     comoCliente(jwt, async (c) => (await c.query<Capacidad>('SELECT * FROM dk.admin_capacidad()')).rows[0]).catch(() => undefined),
+    comoCliente(jwt, async (c) => (await c.query<{ m: DatosMando }>('SELECT dk.admin_mando() AS m')).rows[0]?.m).catch(() => undefined),
   ]);
   const avisos = evaluarCapacidad(capacidad);
   const hace30 = Date.now() - 30 * 864e5;
@@ -109,6 +187,8 @@ export default async function CentralInicio() {
           </div>
         ))}
       </div>
+
+      <PanelMando m={mando} />
 
       <div className="grid gap-3 lg:grid-cols-3">
         <div className="lg:col-span-2"><Lista titulo="Atender hoy" vacio="Nada pendiente. Todo al día." filas={atender} accion="Abre la ficha para responder o gestionar el envío." /></div>
