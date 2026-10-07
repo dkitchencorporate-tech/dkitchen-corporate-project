@@ -36,7 +36,7 @@ const APARIENCIA: Appearance = {
   },
 };
 
-function Formulario({ r, tipo, boton, terminosVersion }: { r: string; tipo: 'pago' | 'tarjeta'; boton: string; terminosVersion: string }) {
+function Formulario({ r, tipo, boton, terminosVersion, email }: { r: string; tipo: 'pago' | 'tarjeta'; boton: string; terminosVersion: string; email?: string | null }) {
   const stripe = useStripe();
   const elements = useElements();
   const [acepta, setAcepta] = useState(false);
@@ -64,7 +64,7 @@ function Formulario({ r, tipo, boton, terminosVersion }: { r: string; tipo: 'pag
 
   return (
     <form onSubmit={pagar} className="grid gap-5">
-      <PaymentElement onReady={() => setListo(true)} options={{ layout: { type: 'accordion', defaultCollapsed: false, radios: 'always', spacedAccordionItems: true }, business: { name: 'DKitchen' } }} />
+      <PaymentElement onReady={() => setListo(true)} options={{ layout: { type: 'accordion', defaultCollapsed: false, radios: 'always', spacedAccordionItems: true }, business: { name: 'DKitchen' }, defaultValues: email ? { billingDetails: { email } } : undefined }} />
       {!listo && <div className="h-40 animate-pulse rounded-xl bg-papel" aria-label="Cargando el formulario de pago seguro" />}
       <label className="flex items-start gap-2.5 text-[13px] leading-relaxed text-pizarra">
         <input type="checkbox" checked={acepta} onChange={(e) => setAcepta(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-vino" />
@@ -82,13 +82,13 @@ function Formulario({ r, tipo, boton, terminosVersion }: { r: string; tipo: 'pag
   );
 }
 
-export default function CheckoutStripe({ clavePublica, secreto, r, tipo, boton, terminosVersion }: {
-  clavePublica: string; secreto: string; r: string; tipo: 'pago' | 'tarjeta'; boton: string; terminosVersion: string;
+export default function CheckoutStripe({ clavePublica, secreto, r, tipo, boton, terminosVersion, email }: {
+  clavePublica: string; secreto: string; r: string; tipo: 'pago' | 'tarjeta'; boton: string; terminosVersion: string; email?: string | null;
 }) {
   const promesa = useMemo(() => loadStripe(clavePublica, { locale: 'es' }), [clavePublica]);
   return (
     <Elements stripe={promesa} options={{ clientSecret: secreto, appearance: APARIENCIA, locale: 'es' }}>
-      <Formulario r={r} tipo={tipo} boton={boton} terminosVersion={terminosVersion} />
+      <Formulario r={r} tipo={tipo} boton={boton} terminosVersion={terminosVersion} email={email} />
     </Elements>
   );
 }

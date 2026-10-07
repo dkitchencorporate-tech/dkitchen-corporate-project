@@ -97,7 +97,7 @@ export default async function Pago({ searchParams }: { searchParams: Promise<{ r
               </p>
               <div className="mt-6">
                 {resumen.secreto ? (
-                  <CheckoutStripe clavePublica={clavePublica} secreto={resumen.secreto} r={r} tipo={resumen.tipo} boton={boton} terminosVersion={TERMINOS_VERSION} />
+                  <CheckoutStripe clavePublica={clavePublica} secreto={resumen.secreto} r={r} tipo={resumen.tipo} boton={boton} terminosVersion={TERMINOS_VERSION} email={resumen.email} />
                 ) : (
                   <p className="text-sm text-vino">No se pudo preparar el pago. Recarga la página en unos segundos.</p>
                 )}
