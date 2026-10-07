@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import CartaMini from './CartaMini';
+import { useAjusteAlto } from '@/components/dk/useAjusteAlto';
 
 /**
  * Cómo funciona: 3 pasos fijados al hacer scroll. La pantalla de la derecha
@@ -68,6 +69,8 @@ const Marco = ({ children }: { children: React.ReactNode }) => (
 export default function ComoFuncionaQr() {
   const ref = useRef<HTMLElement>(null);
   const [paso, setPaso] = useState(0);
+  // 08/10: en portátiles de 14" el título y el móvil quedaban bajo la barra de menú
+  const ajuste = useAjusteAlto(700, 110);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
   useMotionValueEvent(scrollYProgress, 'change', (v) => setPaso(v < 0.34 ? 0 : v < 0.67 ? 1 : 2));
   const cabecera = (
@@ -80,9 +83,9 @@ export default function ComoFuncionaQr() {
   return (
     <>
       <div id="como-funciona" className="scroll-mt-20" />
-      <section ref={ref} className="relative hidden h-[300vh] bg-white md:block">
-        <div className="sticky top-0 flex h-screen items-center">
-          <div className="mx-auto grid w-full max-w-6xl grid-cols-[1fr_340px] gap-12 px-8">
+      <section ref={ref} className="relative hidden h-[240vh] bg-white md:block">
+        <div className="sticky top-0 flex h-screen items-center pt-20">
+          <div className="mx-auto grid w-full max-w-6xl grid-cols-[1fr_340px] gap-12 px-8" style={{ transform: `scale(${ajuste})` }}>
             <div>
               {cabecera}
               <ol className="mt-10 space-y-2">

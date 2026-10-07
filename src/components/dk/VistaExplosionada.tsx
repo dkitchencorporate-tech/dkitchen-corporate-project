@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion, useMotionValueEvent, useScroll, useSpring, useTransform, type MotionValue } from 'framer-motion';
 import CartaDemo from '@/components/qr-landing/CartaDemo';
+import { useAjusteAlto } from './useAjusteAlto';
 
 /**
  * Vista explosionada de la carta (29/09/2026, ref. «Camera» de Scrolltide,
@@ -56,12 +57,14 @@ export default function VistaExplosionada() {
   const giro = useTransform(p, [0, 0.12, 0.8, 0.95], [18, 0, 0, 0]);
   const publicada = useTransform(p, [0.9, 0.97], [0, 1]);
   const aviso = useTransform(p, [0, 0.03, 0.8, 0.86], [1, 1, 1, 0]);
+  // 08/10: en portátiles de 14" (≈730 px útiles) el móvil y las capas se salían por abajo
+  const ajuste = useAjusteAlto(600, 240);
   const [fase, setFase] = useState(0);
   useMotionValueEvent(p, 'change', (v) => setFase(v < 0.12 ? 0 : v < 0.8 ? 1 : 2));
   const titulos = ['Una carta, seis superpoderes.', 'Todo lo que lleva tu carta.', 'Y todo cabe en un QR.'];
 
   return (
-    <section ref={ref} className="relative h-[340vh] bg-crema">
+    <section ref={ref} className="relative h-[280vh] bg-crema">
       <div className="sticky top-0 flex h-[100dvh] flex-col items-center overflow-hidden pt-24 md:pt-28">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(23,25,30,.07)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
         <div className="relative z-30 px-6 text-center">
@@ -73,7 +76,7 @@ export default function VistaExplosionada() {
           <span className="rounded-full border border-linea bg-white/90 px-4 py-1.5 text-xs font-semibold shadow-sm backdrop-blur">Sigue bajando</span>
           <svg viewBox="0 0 24 24" className="h-6 w-6 animate-bounce text-vino" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
         </motion.div>
-        <div className="relative flex w-full flex-1 items-center justify-center">
+        <div className="relative flex w-full flex-1 items-center justify-center" style={{ transform: `scale(${ajuste})` }}>
           <motion.div style={{ scale: escMovil, rotateX: giro, transformPerspective: 1400 }} className="relative z-10 w-[230px] md:w-[270px]">
             <div className="rounded-[46px] p-[3px] shadow-[0_50px_100px_-20px_rgba(23,25,30,.45)] [background:linear-gradient(145deg,#6b707b,#1b1d22_35%,#0b0c0f_70%,#4a4e57)]">
               <div className="rounded-[43px] bg-obsidiana p-[9px]">
