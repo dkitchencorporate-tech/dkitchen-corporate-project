@@ -7,6 +7,7 @@ import BotonesMesa from '@/components/carta/BotonesMesa';
 import CarruselBanners from '@/components/carta/CarruselBanners';
 import FichaPlato from '@/components/carta/FichaPlato';
 import Reservar from '@/components/carta/Reservar';
+import IndiceSecciones from '@/components/carta/IndiceSecciones';
 import { EtiquetaPlato, PrecioAnterior, ComboPlato } from '@/components/carta/ExtrasPlato';
 
 /**
@@ -76,15 +77,7 @@ export default function CartaAutor({
 
       {/* Índice */}
       {grupos.length > 1 && (
-        <nav aria-label="Secciones de la carta" className="sticky top-0 z-20 border-b border-[#221D17]/10 bg-[#F7F3EA]/95 backdrop-blur">
-          <ul className="mx-auto flex max-w-3xl gap-6 overflow-x-auto px-6 py-3.5 [scrollbar-width:none]">
-            {grupos.map((g) => (
-              <li key={g.id} className="shrink-0">
-                <a href={`#s-${g.id}`} className={`${versalitas} text-[#221D17]/60 transition-colors hover:text-[var(--marca)]`}>{g.nombre}</a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <IndiceSecciones grupos={grupos.map(({ id, nombre }) => ({ id, nombre }))} variante="autor" />
       )}
 
       <div className="pt-6"><CarruselBanners banners={banners} color={color} /></div>

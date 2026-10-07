@@ -41,6 +41,19 @@
 .carta-oscura [class*="border-black/"], .carta-oscura [class*="divide-black/"] > * + *, .carta-oscura .border-b, .carta-oscura .border-y { border-color: rgba(243, 241, 236, 0.12) !important; }
 .carta-oscura [class*="bg-black/"] { background-color: rgba(243, 241, 236, 0.06) !important; }
 .carta-oscura .shadow-sm { box-shadow: none !important; }
+/* Modo oscuro completo (07/10, capturas de karc0): fichas, hoja del camarero y reservas tenían el texto
+   fijo en #1a1a1a y los campos con fondo blanco del navegador → texto negro sobre fondo oscuro. */
+.carta-oscura [class*="text-[#1a1a1a]"], .carta-oscura [class*="text-[#221D17]"] { color: #F3F1EC !important; }
+.carta-oscura input, .carta-oscura textarea, .carta-oscura select { background-color: transparent; color: inherit; color-scheme: dark; }
+.carta-oscura input::placeholder, .carta-oscura textarea::placeholder { color: rgba(243, 241, 236, 0.4); }
+.carta-oscura [class*="ring-black/"] { --tw-ring-color: rgba(243, 241, 236, 0.12) !important; }
+.carta-oscura .bg-green-50 { background-color: rgba(34, 197, 94, 0.14) !important; }
+.carta-oscura .text-green-800 { color: #86EFAC !important; }
+.carta-oscura .text-red-700 { color: #FCA5A5 !important; }
+/* Índice de secciones: sin barra de desplazamiento visible (la pista es el degradado de los bordes). */
+.indice-carta { scrollbar-width: none; }
+.carta-oscura .indice-carta [aria-current="location"] { color: #fff !important; }
+.indice-carta::-webkit-scrollbar { display: none; }
 
 /* ---------------------------------------------------------------- identidad DKitchen (29/09/2026) */
 .font-display { font-family: var(--fuente-display), Inter, system-ui, sans-serif; letter-spacing: -0.035em; }

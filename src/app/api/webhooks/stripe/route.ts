@@ -97,6 +97,8 @@ export async function POST(request: Request) {
       return ok();
     }
     case 'customer.subscription.deleted': {
+      // Sustituida al aplicar un código promocional en /pago: no es una baja.
+      if (o.metadata?.sustituida_por) return ok({ ignorado: 'sustituida' });
       await enviarCorreoInterno(`SUSCRIPCIÓN TERMINADA en Stripe: ${o.metadata?.restauranteNombre ?? o.metadata?.concepto ?? o.id}`,
         `<p>La suscripción ya no está activa (baja al final del periodo, prueba sin tarjeta o impago agotado).</p>${filasCorreo([
           ['Concepto', o.metadata?.concepto], ['Restaurante', o.metadata?.restauranteNombre], ['Correo', o.metadata?.email], ['Suscripción', o.id], ['Motivo', o.cancellation_details?.reason]])}`).catch(() => {});

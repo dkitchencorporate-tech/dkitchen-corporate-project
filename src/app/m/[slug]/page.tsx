@@ -11,6 +11,7 @@ import CartaAutor from '@/components/carta/CartaAutor';
 import FichaPlato from '@/components/carta/FichaPlato';
 import { EtiquetaPlato, PrecioAnterior, ComboPlato } from '@/components/carta/ExtrasPlato';
 import Reservar from '@/components/carta/Reservar';
+import IndiceSecciones, { type VarianteIndice } from '@/components/carta/IndiceSecciones';
 import { traducirCarta, IDIOMAS } from '@/lib/idiomas';
 import { Cormorant_Garamond } from 'next/font/google';
 
@@ -133,14 +134,14 @@ export default async function CartaPublica({
       {selector}
       <CarruselBanners banners={banners} color={color} />
 
-      {grupos.length > 1 && <IndiceSecciones grupos={grupos} plantilla={plantilla} ancho={ancho} />}
+      {grupos.length > 1 && <IndiceSecciones grupos={grupos.map(({ id, nombre }) => ({ id, nombre }))} variante={plantilla as VarianteIndice} ancho={ancho} />}
 
       <div className={`mx-auto px-5 pb-28 ${ancho}`}>
         {grupos.length === 0 ? (
           <p className="py-20 text-center text-black/50">Esta carta todavía no tiene platos publicados.</p>
         ) : (
           grupos.map((grupo) => (
-            <section key={grupo.id} id={`s-${grupo.id}`} className={`scroll-mt-16 ${plantilla === 'express' ? 'pt-6' : 'pt-10'}`}>
+            <section key={grupo.id} id={`s-${grupo.id}`} className={`scroll-mt-20 ${plantilla === 'express' ? 'pt-6' : 'pt-12'}`}>
               <h2
                 className={
                   plantilla === 'editorial'
@@ -148,18 +149,18 @@ export default async function CartaPublica({
                     : plantilla === 'express'
                     ? 'mb-2 text-xs font-bold uppercase tracking-widest text-black/50'
                     : plantilla === 'visual'
-                    ? 'mb-5 flex items-center gap-4 px-1 text-2xl font-semibold capitalize tracking-tight sm:text-3xl after:h-px after:flex-1 after:bg-current after:opacity-15'
-                    : 'mb-3 flex items-baseline justify-between px-1 text-xl font-semibold tracking-tight'
+                    ? 'mb-7 flex items-center justify-center gap-5 text-center text-3xl font-semibold capitalize tracking-tight sm:text-4xl before:h-px before:max-w-[160px] before:flex-1 before:bg-current before:opacity-20 after:h-px after:max-w-[160px] after:flex-1 after:bg-current after:opacity-20'
+                    : 'mb-5 flex flex-col items-center gap-1 text-center text-2xl font-semibold tracking-tight sm:text-3xl'
                 }
               >
                 {grupo.nombre}
                 {plantilla === 'clasica' && (
-                  <span className="text-xs font-normal text-black/35">
+                  <span className="text-xs font-normal tracking-normal text-black/40">
                     {grupo.platos.length} {grupo.platos.length === 1 ? 'plato' : 'platos'}
                   </span>
                 )}
               </h2>
-              {'descripcion' in grupo && grupo.descripcion && <p className={`-mt-1 mb-4 px-1 text-sm leading-relaxed opacity-60 ${plantilla === 'editorial' ? 'text-center italic' : ''}`}>{grupo.descripcion}</p>}
+              {'descripcion' in grupo && grupo.descripcion && <p className={`-mt-2 mb-6 px-1 text-sm leading-relaxed opacity-60 ${plantilla === 'editorial' ? 'text-center italic' : plantilla === 'express' ? '' : 'mx-auto max-w-xl text-center'}`}>{grupo.descripcion}</p>}
               {plantilla === 'editorial' ? (
                 <ul className="space-y-6">
                   {grupo.platos.map((plato) => (
@@ -169,10 +170,10 @@ export default async function CartaPublica({
                   ))}
                 </ul>
               ) : plantilla === 'visual' ? (
-                <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <ul className="flex flex-wrap justify-center gap-5">
                   {grupo.platos.map((plato) => (
-                    <li key={plato.id}>
-                      <FichaPlato plato={plato} nombresAlergenos={nombres}><PlatoVisual plato={plato} /></FichaPlato>
+                    <li key={plato.id} className="w-full sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-2.5rem)/3)]">
+                      <FichaPlato plato={plato} nombresAlergenos={nombres} className="h-full"><PlatoVisual plato={plato} /></FichaPlato>
                     </li>
                   ))}
                 </ul>
@@ -329,31 +330,6 @@ function CabeceraExpress({ carta, accion }: { carta: Carta; accion: ReactNode })
         {accion}
       </div>
     </header>
-  );
-}
-
-function IndiceSecciones({ grupos, plantilla, ancho }: { grupos: SeccionCarta[]; plantilla: string; ancho: string }) {
-  return (
-    <nav aria-label="Secciones de la carta" className={`sticky top-0 z-10 mt-4 ${plantilla === 'visual' ? 'bg-transparent' : 'border-y border-black/10 bg-white/95 backdrop-blur'}`}>
-      <ul className={`mx-auto flex gap-2 overflow-x-auto px-5 py-3 ${ancho} ${plantilla === 'visual' ? 'my-1 w-fit max-w-[calc(100%-2rem)] rounded-full bg-white/75 px-2 py-2 shadow-[0_10px_30px_-12px_rgba(0,0,0,.25)] backdrop-blur-md' : ''}`}>
-        {grupos.map((g) => (
-          <li key={g.id} className="shrink-0">
-            <a
-              href={`#s-${g.id}`}
-              className={
-                plantilla === 'express'
-                  ? 'block rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-black/60 hover:text-[var(--marca)]'
-                  : plantilla === 'visual'
-                  ? 'block rounded-full px-4 py-1.5 text-[13px] font-medium capitalize text-black/70 transition-colors hover:bg-[var(--marca)] hover:text-white'
-                  : 'block rounded-full border border-black/10 px-3 py-1.5 text-xs font-medium text-black/70 transition-colors hover:border-[var(--marca)] hover:text-[var(--marca)]'
-              }
-            >
-              {g.nombre}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
   );
 }
 

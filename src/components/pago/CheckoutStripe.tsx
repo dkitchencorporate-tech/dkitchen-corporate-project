@@ -29,6 +29,9 @@ const APARIENCIA: Appearance = {
     '.Input:focus': { border: '1px solid #6E0C2B', boxShadow: '0 0 0 3px rgba(110,12,43,.15)' },
     '.Tab': { border: '1px solid #8B8F97', boxShadow: 'none' },
     '.Tab--selected': { border: '1px solid #6E0C2B', boxShadow: '0 0 0 1px #6E0C2B' },
+    // Lista vertical (07/10): cada método a todo el ancho, sin desplegables en el móvil.
+    '.AccordionItem': { border: '1px solid #D5D7DB', boxShadow: 'none', padding: '16px' },
+    '.AccordionItem--selected': { border: '1px solid #6E0C2B', boxShadow: '0 0 0 1px #6E0C2B' },
     '.Label': { fontWeight: '500' },
   },
 };
@@ -61,7 +64,7 @@ function Formulario({ r, tipo, boton, terminosVersion }: { r: string; tipo: 'pag
 
   return (
     <form onSubmit={pagar} className="grid gap-5">
-      <PaymentElement onReady={() => setListo(true)} options={{ layout: { type: 'tabs' }, business: { name: 'DKitchen' } }} />
+      <PaymentElement onReady={() => setListo(true)} options={{ layout: { type: 'accordion', defaultCollapsed: false, radios: 'always', spacedAccordionItems: true }, business: { name: 'DKitchen' } }} />
       {!listo && <div className="h-40 animate-pulse rounded-xl bg-papel" aria-label="Cargando el formulario de pago seguro" />}
       <label className="flex items-start gap-2.5 text-[13px] leading-relaxed text-pizarra">
         <input type="checkbox" checked={acepta} onChange={(e) => setAcepta(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-vino" />

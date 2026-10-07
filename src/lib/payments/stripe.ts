@@ -195,8 +195,17 @@ export type Metadata = Record<string, string | undefined>;
 const limpiar = (m: Metadata) =>
   Object.fromEntries(Object.entries(m).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => [k, String(v).slice(0, 500)]));
 
+/**
+ * Receta del cobro (07/10/2026): lo necesario para rehacerlo idéntico con un
+ * código promocional (las facturas ya finalizadas no admiten descuentos). Si no
+ * cabe en los 500 caracteres de Stripe, ese cobro no admite códigos.
+ */
+const RECETA = 'dk_receta';
+const receta = (o: unknown) => { const t = JSON.stringify(o); return t.length <= 500 ? t : undefined; };
+const descuentos = (promocion?: string) => (promocion ? [{ promotion_code: promocion }] : undefined);
+
 /** Pago único: factura suelta con sus líneas e IVA, finalizada y lista para pagar en /pago. */
-export async function crearFacturaUnica(cliente: string, lineas: Linea[], metadata: Metadata, descripcion: string): Promise<string> {
+export async function crearFacturaUnica(cliente: string, lineas: Linea[], metadata: Metadata, descripcion: string, promocion?: string): Promise<string> {
   const iva = await tipoIva();
   const factura = await stripe('POST', '/invoices', {
     customer: cliente,
@@ -204,7 +213,8 @@ export async function crearFacturaUnica(cliente: string, lineas: Linea[], metada
     auto_advance: false,
     pending_invoice_items_behavior: 'exclude',
     description: descripcion.slice(0, 500),
-    metadata: limpiar(metadata),
+    discounts: descuentos(promocion),
+    metadata: limpiar({ ...metadata, [RECETA]: receta({ l: lineas }) }),
   });
   for (const l of lineas) {
     await asegurarProducto(l.producto, l.nombre);
@@ -231,6 +241,8 @@ export interface DatosSuscripcion {
   /** Fin de la prueba (segundos Unix): hasta entonces no se cobra la cuota. */
   finPrueba?: number;
   metadata: Metadata;
+  /** Código promocional ya validado (promo_…). */
+  promocion?: string;
 }
 
 /**
@@ -254,7 +266,8 @@ export async function crearSuscripcion(d: DatosSuscripcion): Promise<string> {
     trial_settings: d.finPrueba ? { end_behavior: { missing_payment_method: 'cancel' } } : undefined,
     payment_behavior: 'default_incomplete',
     payment_settings: { save_default_payment_method: 'on_subscription' },
-    metadata: limpiar(d.metadata),
+    discounts: descuentos(d.promocion),
+    metadata: limpiar({ ...d.metadata, [RECETA]: receta({ c: d.cuota, h: d.hoy ?? [], t: d.finPrueba ?? null }) }),
     expand: ['latest_invoice'],
   });
   // Hoy no se cobra nada (upgrade en prueba, enlace sin primer cobro): la
@@ -297,6 +310,10 @@ export interface ResumenPago {
   recurrente: { cuotaCentimos: number; desde: number | null; nombre: string } | null;
   metadata: Record<string, string>;
   email: string | null;
+  /** Código promocional aplicado (importe descontado hoy, sin IVA). */
+  descuento: { codigo: string; centimos: number; texto: string } | null;
+  /** Si el cobro admite códigos (los creados antes del 07/10 no llevan receta). */
+  admiteCodigo: boolean;
 }
 
 function lineasDe(factura: ObjetoStripe) {
@@ -310,18 +327,34 @@ function totalesDe(factura: ObjetoStripe) {
   return { baseCentimos: Number(factura.total_excluding_tax ?? factura.subtotal ?? 0), ivaCentimos: iva, totalCentimos: Number(factura.total ?? 0) };
 }
 
+const eurosTexto = (c: number) => (c / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+
+async function descuentoDe(lista: unknown, factura: ObjetoStripe | undefined): Promise<ResumenPago['descuento']> {
+  const d = ((Array.isArray(lista) ? lista : []) as ObjetoStripe[]).find((x) => x && typeof x === 'object' && x.promotion_code);
+  if (!d) return null;
+  const pc = (typeof d.promotion_code === 'object' ? d.promotion_code : {}) as ObjetoStripe;
+  // Un cupón de una sola vez ya no figura en la suscripción, solo en su primera factura (sin expandir el cupón).
+  const idCupon = pc.promotion?.coupon ?? d.source?.coupon;
+  const c = (typeof idCupon === 'string' ? await stripe('GET', `/coupons/${encodeURIComponent(idCupon)}`).catch(() => ({})) : idCupon ?? {}) as ObjetoStripe;
+  const cuanto = c.percent_off ? `${c.percent_off} %` : c.amount_off ? eurosTexto(Number(c.amount_off)) : '';
+  const cuando = c.duration === 'forever' ? 'en todos los cobros' : c.duration === 'repeating' ? `durante ${c.duration_in_months} meses` : 'en este pago';
+  const centimos = ((factura?.total_discount_amounts ?? []) as ObjetoStripe[]).reduce((t, x) => t + Number(x.amount ?? 0), 0);
+  return { codigo: String(pc.code ?? ''), centimos, texto: cuanto ? `−${cuanto} ${cuando}` : '' };
+}
+
 export async function resumenPago(id: string): Promise<ResumenPago | null> {
   try {
     if (id.startsWith('in_')) {
-      const f = await stripe('GET', `/invoices/${id}`, { expand: ['confirmation_secret', 'customer'] });
+      const f = await stripe('GET', `/invoices/${id}`, { expand: ['confirmation_secret', 'customer', 'discounts.promotion_code.promotion.coupon'] });
       return {
         id, tipo: 'pago', secreto: f.confirmation_secret?.client_secret ?? null,
         estado: f.status === 'paid' ? 'pagado' : f.status === 'open' ? 'pendiente' : 'caducado',
         lineas: lineasDe(f), ...totalesDe(f), recurrente: null, metadata: f.metadata ?? {},
         email: f.customer_email ?? f.customer?.email ?? null,
+        descuento: await descuentoDe(f.discounts, f), admiteCodigo: Boolean(f.metadata?.[RECETA]),
       };
     }
-    const s = await stripe('GET', `/subscriptions/${id}`, { expand: ['latest_invoice.confirmation_secret', 'customer'] });
+    const s = await stripe('GET', `/subscriptions/${id}`, { expand: ['latest_invoice.confirmation_secret', 'latest_invoice.discounts.promotion_code', 'customer', 'discounts.promotion_code.promotion.coupon'] });
     const f = s.latest_invoice as ObjetoStripe;
     const cobraHoy = Number(f?.amount_due ?? 0) > 0;
     const item = (s.items?.data?.[0] ?? {}) as ObjetoStripe;
@@ -339,10 +372,64 @@ export async function resumenPago(id: string): Promise<ResumenPago | null> {
       },
       metadata: s.metadata ?? {},
       email: s.customer?.email ?? null,
+      descuento: await descuentoDe(s.discounts?.length ? s.discounts : f?.discounts, f), admiteCodigo: Boolean(s.metadata?.[RECETA]),
     };
   } catch (e) {
     console.error(`Stripe: no se pudo leer el pago ${id}:`, e);
     return null;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Códigos promocionales (07/10/2026): se crean en el Dashboard de Stripe
+// (Productos → Cupones → código). Se validan aquí y Stripe aplica las
+// restricciones del código (caducidad, usos, importe mínimo, productos).
+// ─────────────────────────────────────────────────────────────
+
+async function buscarCodigo(codigo: string): Promise<ObjetoStripe | null> {
+  const limpio = codigo.trim().slice(0, 60);
+  if (!/^[A-Za-z0-9_-]{2,60}$/.test(limpio)) return null;
+  for (const c of [...new Set([limpio, limpio.toUpperCase()])]) {
+    const l = await stripe('GET', '/promotion_codes', { code: c, active: true, limit: 1 });
+    if ((l.data as ObjetoStripe[])[0]) return (l.data as ObjetoStripe[])[0];
+  }
+  return null;
+}
+
+/** Claves de la metadata que no se copian al rehacer un cobro. */
+const INTERNAS = new Set([RECETA, 'setup_intent', 'terminos_version', 'terminos_aceptados', 'terminos_ip', 'sustituida_por']);
+const metaCopiable = (m: Record<string, string> | undefined) => Object.fromEntries(Object.entries(m ?? {}).filter(([k]) => !INTERNAS.has(k)));
+
+/**
+ * Aplica (o quita, con código vacío) un código promocional a un cobro aún sin
+ * pagar: rehace el cobro idéntico con el descuento y anula el anterior. Devuelve
+ * el id del cobro nuevo. Nunca lanza: los errores vuelven como texto para el cliente.
+ */
+export async function aplicarCodigo(id: string, codigo: string): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  try {
+    const actual = await resumenPago(id);
+    if (!actual || actual.estado !== 'pendiente') return { ok: false, error: 'Este pago ya no se puede modificar.' };
+    if (!actual.admiteCodigo) return { ok: false, error: 'Este pago no admite códigos. Vuelve a empezar desde la página del producto.' };
+    const promo = codigo.trim() ? await buscarCodigo(codigo) : null;
+    if (codigo.trim() && !promo) return { ok: false, error: 'Ese código no existe o ya no está activo.' };
+    const rec = JSON.parse(actual.metadata[RECETA]);
+    let nuevo: string;
+    if (id.startsWith('in_')) {
+      const f = await stripe('GET', `/invoices/${id}`);
+      nuevo = await crearFacturaUnica(String(f.customer), rec.l, metaCopiable(f.metadata), String(f.description ?? ''), promo?.id);
+      await stripe('POST', `/invoices/${id}/void`).catch((e) => console.error(`No se pudo anular la factura ${id}:`, e));
+    } else {
+      const s = await stripe('GET', `/subscriptions/${id}`);
+      nuevo = await crearSuscripcion({ cliente: String(s.customer), cuota: rec.c, hoy: rec.h, finPrueba: rec.t ?? undefined, metadata: metaCopiable(s.metadata), promocion: promo?.id });
+      // Marca para que el webhook no avise de una «suscripción terminada» que solo se ha sustituido.
+      await stripe('POST', `/subscriptions/${id}`, { metadata: { sustituida_por: nuevo } }).catch(() => {});
+      await stripe('DELETE', `/subscriptions/${id}`).catch((e) => console.error(`No se pudo cancelar la suscripción ${id}:`, e));
+    }
+    return { ok: true, id: nuevo };
+  } catch (e) {
+    console.error(`No se pudo aplicar el código a ${id}:`, e);
+    if (e instanceof ErrorStripe && e.estado < 500) return { ok: false, error: 'Ese código no se puede usar en este pedido.' };
+    return { ok: false, error: 'No se pudo aplicar el código. Inténtalo de nuevo en unos segundos.' };
   }
 }
 

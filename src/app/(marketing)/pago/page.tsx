@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import CheckoutStripe from '@/components/pago/CheckoutStripe';
+import CodigoPromocional from '@/components/pago/CodigoPromocional';
 import PasosPago from '@/components/pago/PasosPago';
 import { IVA_PORCENTAJE, leerRefPago, modoPruebaStripe, resumenPago } from '@/lib/payments/stripe';
 import { TERMINOS_VERSION } from '@/lib/terminos';
@@ -68,6 +69,12 @@ export default async function Pago({ searchParams }: { searchParams: Promise<{ r
                 ))}
               </ul>
               <dl className="mt-3 space-y-2 border-t border-linea pt-4 text-[15px]">
+                {resumen.descuento && resumen.descuento.centimos > 0 && (
+                  <div className="flex justify-between gap-4 text-vino">
+                    <dt>Descuento <span className="text-[13px]">({resumen.descuento.codigo}{resumen.descuento.texto ? `, ${resumen.descuento.texto}` : ''})</span></dt>
+                    <dd className="shrink-0 tabular-nums">−{euros(resumen.descuento.centimos)}</dd>
+                  </div>
+                )}
                 <div className="flex justify-between"><dt className="text-pizarra">Base imponible</dt><dd className="tabular-nums">{euros(resumen.baseCentimos)}</dd></div>
                 <div className="flex justify-between"><dt className="text-pizarra">IVA ({IVA_PORCENTAJE} %)</dt><dd className="tabular-nums">{euros(resumen.ivaCentimos)}</dd></div>
                 <div className="flex items-baseline justify-between border-t border-linea pt-3"><dt className="font-semibold">Total hoy</dt><dd className="font-display text-3xl font-semibold tabular-nums">{euros(hoy)}</dd></div>
@@ -79,6 +86,7 @@ export default async function Pago({ searchParams }: { searchParams: Promise<{ r
                   Sin permanencia: das de baja la renovación desde tu panel cuando quieras.
                 </p>
               )}
+              {resumen.admiteCodigo && <CodigoPromocional r={r} aplicado={resumen.descuento?.codigo || null} />}
               <p className="mt-4 text-[13px] text-pizarra">Recibirás la factura con el IVA desglosado en {resumen.email ?? 'tu correo'}.</p>
             </aside>
 
