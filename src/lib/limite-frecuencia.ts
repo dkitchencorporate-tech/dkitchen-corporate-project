@@ -69,3 +69,23 @@ export async function limiteSuperado(
     return rows[0]?.limite_superado ?? false;
   });
 }
+
+/**
+ * Varios frenos en UNA sola ida a Neon (cada uno cuenta su intento: ARRAY evalúa todos, OR podría cortar). true si
+ * cualquiera se ha superado. Lo usa /api/sala, que se sondea cada pocos
+ * segundos desde cada móvil y no puede pagar dos viajes por petición.
+ */
+export async function algunLimiteSuperado(
+  frenos: { clave: string; limite: number; ventanaSegundos: number }[]
+): Promise<boolean> {
+  if (!frenos.length) return false;
+  const params: unknown[] = [];
+  const exprs = frenos.map((f, i) => {
+    params.push(f.clave, f.limite, f.ventanaSegundos);
+    return `dk.limite_superado($${i * 3 + 1}, $${i * 3 + 2}, make_interval(secs => $${i * 3 + 3}))`;
+  });
+  return comoVisitante(async (c) => {
+    const { rows } = await c.query<{ superado: boolean }>(`SELECT true = ANY(ARRAY[${exprs.join(', ')}]) AS superado`, params);
+    return rows[0]?.superado ?? false;
+  });
+}

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { contextoSala, atenderLlamadaSala, registrarSala } from '@/lib/sala';
 import { enviarRegistroAlTpv } from '@/lib/envio-tpv';
 import { abrirCuenta, cuentaDeMesa, cerrarCuentaCamarero } from '@/lib/comandero';
-import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
+import { claveDeLimite, ipDeLaPeticion, algunLimiteSuperado } from '@/lib/limite-frecuencia';
 import {
   equipoEncargado, crearCamareroEncargado, editarCamareroEncargado, regenerarEnlaceEncargado, asignarZonaEncargado,
   anularLineaEncargado, cambiarCantidadEncargado, anularCuentaEncargado, moverCuentaEncargado,
@@ -17,22 +17,29 @@ const MESA = /^[A-Za-z0-9-]{1,12}$/;
 /**
  * App de sala (0027). El camarero entra con su enlace personal; el token solo
  * viaja en el cuerpo y la base valida su huella SHA-256 en cada llamada (se
- * revoca desactivando al camarero). Freno por IP contra fuerza bruta de tokens.
+ * revoca desactivando al camarero).
+ * Freno doble (08/10): por token (90/min; un móvil gasta ~21) y por IP (600/min).
+ * Antes era solo por IP a 120/min y un local con 6 o más móviles en el mismo
+ * WiFi (misma IP pública) se bloqueaba. Contra fuerza bruta basta el de IP:
+ * los tokens tienen 24+ caracteres aleatorios.
  * Comandero (0045): abrir cuenta, ver la cuenta de una mesa y cerrarla
  * («cobrada fuera»). Los importes los pone la base; aquí no se calcula nada.
  * Encargado (0047): las acciones de equipo y de anular/mover solo funcionan si
  * el token es de un encargado activo (la base lo comprueba; si no, 403).
  */
 export async function POST(peticion: Request) {
-  try {
-    if (await limiteSuperado(claveDeLimite('sala', ipDeLaPeticion(peticion)), 120, 60)) {
-      return NextResponse.json({ error: 'limite' }, { status: 429 });
-    }
-  } catch { /* si el freno falla, se sigue: la BD valida el token igualmente */ }
-
   const c = (await peticion.json().catch(() => null)) as Record<string, unknown> | null;
   const token = String(c?.token ?? '');
   if (!TOKEN.test(token)) return NextResponse.json({ error: 'acceso' }, { status: 401 });
+
+  try {
+    if (await algunLimiteSuperado([
+      { clave: claveDeLimite('sala-token', token), limite: 90, ventanaSegundos: 60 },
+      { clave: claveDeLimite('sala', ipDeLaPeticion(peticion)), limite: 600, ventanaSegundos: 60 },
+    ])) {
+      return NextResponse.json({ error: 'limite' }, { status: 429 });
+    }
+  } catch { /* si el freno falla, se sigue: la BD valida el token igualmente */ }
 
   try {
     switch (c?.accion) {
