@@ -149,7 +149,7 @@ export default async function CartaPublica({
                     : plantilla === 'express'
                     ? 'mb-2 text-xs font-bold uppercase tracking-widest text-black/50'
                     : plantilla === 'visual'
-                    ? 'mb-7 flex items-center justify-center gap-5 text-center text-3xl font-semibold capitalize tracking-tight sm:text-4xl before:h-px before:max-w-[160px] before:flex-1 before:bg-current before:opacity-20 after:h-px after:max-w-[160px] after:flex-1 after:bg-current after:opacity-20'
+                    ? 'mb-7 flex items-center justify-center gap-5 text-center text-3xl font-semibold capitalize tracking-tight sm:text-4xl before:h-px before:min-w-6 before:max-w-[160px] before:flex-1 before:bg-current before:opacity-20 after:h-px after:min-w-6 after:max-w-[160px] after:flex-1 after:bg-current after:opacity-20'
                     : 'mb-5 flex flex-col items-center gap-1 text-center text-2xl font-semibold tracking-tight sm:text-3xl'
                 }
               >
