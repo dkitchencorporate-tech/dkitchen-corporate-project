@@ -8,6 +8,7 @@ import type { Reserva } from '@/lib/reservas';
 import type { EstadoServicios } from '@/lib/servicios';
 import { registrarOfertaAction } from '@/app/panel/actions';
 import { TEXTOS_OFERTA } from './OfertaFranja';
+import TarjetaSignature from './TarjetaSignature';
 import { Contador } from '@/components/dk/Movimiento';
 import { Icono } from './Iconos';
 import { QR_MENU, nombrePlan } from '@/lib/pricing-config';
@@ -92,6 +93,8 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
           <p className="mt-1 text-xs text-niebla">{sinFoto ? `${sinFoto} sin foto` : 'Todos con foto'}</p>
         </motion.button>
       </div>
+
+      {servicios.signature?.mostrar && <TarjetaSignature senal={servicios.signature} telefono={restaurante.telefono} demo={restaurante.id === 'demo'} />}
 
       <div className="grid gap-3 lg:grid-cols-3">
         <motion.section {...entra(3)} className={`${tarjeta} lg:col-span-2`}>

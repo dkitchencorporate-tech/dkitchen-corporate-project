@@ -1045,3 +1045,28 @@ export async function socioPermisoAction(permitir: boolean): Promise<{ ok: boole
     return { ok: false, error: 'No se pudo guardar el permiso. Inténtalo en unos segundos.' };
   }
 }
+
+/**
+ * «Quiero una llamada» de la tarjeta de Signature (0057): lead en Central →
+ * Oportunidades, alerta en el panel de mando y aviso por correo a karc0.
+ * Solo el dueño (el socio en puesta a punto no pide Signature por él).
+ */
+export async function pedirLlamadaSignatureAction(telefono?: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const { jwt, identidad, restaurante } = await requerirDueno();
+    const { comoCliente } = await import('@/lib/db');
+    const { enviarCorreoInterno, filasCorreo, escaparHtml } = await import('@/lib/email');
+    const d = await comoCliente(jwt, async (c) => (await c.query<{ d: Record<string, unknown> }>('SELECT dk.signature_pedir_llamada() AS d')).rows[0].d);
+    const tel = String(telefono ?? '').replace(/[^\d+ ]/g, '').slice(0, 20) || restaurante.telefono || null;
+    await enviarCorreoInterno(`LEAD SIGNATURE: ${restaurante.nombre} pide una llamada`,
+      `<p><strong>${escaparHtml(restaurante.nombre)}</strong> ha pulsado «Quiero una llamada» en la tarjeta de Signature de su panel.</p>${filasCorreo([
+        ['Correo', identidad.email], ['Teléfono', tel], ['Plan', String(d.plan ?? '')], ['Fundador', d.fundador ? 'Sí' : 'No'],
+        ['Escaneos 30 días', String(d.escaneos ?? 0)], ['Reservas 30 días', String(d.reservas ?? 0)], ['Llamadas al camarero 30 días', String(d.llamadas ?? 0)]])}`,
+      { boton: { texto: 'Abrir Oportunidades', url: 'https://dkitchencorporate.es/admin-dkitchen/oportunidades' } }).catch((e) => console.error('Lead Signature: correo no enviado', e));
+    revalidatePath('/panel');
+    return { ok: true };
+  } catch (e) {
+    console.error('Lead Signature:', e);
+    return { ok: false, error: e instanceof Error && /dueño/.test(e.message) ? e.message : 'No se pudo enviar. Inténtalo en unos segundos.' };
+  }
+}

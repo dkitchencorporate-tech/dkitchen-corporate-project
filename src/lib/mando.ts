@@ -10,7 +10,7 @@ import { enviarCorreoInterno, escaparHtml } from '@/lib/email';
  */
 export type Ventana = { hoy: number; d7: number; d30: number };
 export type Alerta = {
-  tipo: 'pago' | 'prueba' | 'reembolso' | 'disputa' | 'montaje' | 'dormido' | 'ticket' | 'ia' | 'neon' | 'webhook';
+  tipo: 'pago' | 'prueba' | 'reembolso' | 'disputa' | 'montaje' | 'dormido' | 'ticket' | 'signature' | 'ia' | 'neon' | 'webhook';
   gravedad: 'urgente' | 'aviso';
   texto: string;
   nombre?: string | null;
@@ -42,12 +42,13 @@ export type DatosMando = {
 export const NOMBRE_ALERTA: Record<Alerta['tipo'], string> = {
   pago: 'Pagos', prueba: 'Pagos', reembolso: 'Pagos', disputa: 'Pagos',
   montaje: 'Locales atascados', dormido: 'Locales atascados',
-  ticket: 'Tickets', ia: 'Topes técnicos', neon: 'Topes técnicos', webhook: 'Topes técnicos',
+  ticket: 'Tickets', signature: 'Oportunidades', ia: 'Topes técnicos', neon: 'Topes técnicos', webhook: 'Topes técnicos',
 };
 
 /** Dónde se resuelve cada alerta dentro de Central. */
 export function enlaceAlerta(a: Alerta): string {
   if (a.tipo === 'ticket') return '/admin-dkitchen/soporte';
+  if (a.tipo === 'signature') return '/admin-dkitchen/oportunidades';
   if (a.restaurante_id) return `/admin-dkitchen/qr/${a.restaurante_id}`;
   return '/admin-dkitchen/inicio';
 }

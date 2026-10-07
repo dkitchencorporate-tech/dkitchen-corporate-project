@@ -48,6 +48,7 @@ const servicios: EstadoServicios = {
   ],
   contratados: [{ servicio: 'idiomas', estado: 'activo', origen: 'pago', contratadoEn: new Date(hoy.getTime() - 20 * 864e5).toISOString(), checklist: {} }],
   plazasExperto: 12, oferta: { oferta: 'setup_experto', motivo: 'demo' }, credito: null,
+  signature: { mostrar: true, motivo: 'escaneos', escaneos: 812, reservas: 46, llamadas: 210 },
 };
 
 const reservas = [
