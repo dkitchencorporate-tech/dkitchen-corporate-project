@@ -21,6 +21,7 @@ import GuiaSeccion from './GuiaSeccion';
 import type { ExtraPlato, DatosLegal } from '@/lib/estudio';
 import MiLocal from './MiLocal';
 import Camarero from './Camarero';
+import Pedidos from './Pedidos';
 import AlarmaLlamadas from './AlarmaLlamadas';
 import Promociones from './Promociones';
 import Reservas from './Reservas';
@@ -36,7 +37,7 @@ import ChatAyuda, { abrirAyuda } from '@/components/ayuda/ChatAyuda';
 import { TEMAS_PANEL } from '@/lib/ayuda';
 import { crearTicketAyudaAction, comprarServicioAction } from '@/app/panel/actions';
 
-type Pestana = 'inicio' | 'carta' | 'estudio' | 'local' | 'promociones' | 'reservas' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
+type Pestana = 'inicio' | 'pedidos' | 'carta' | 'estudio' | 'local' | 'promociones' | 'reservas' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
 
 /**
  * Navegación por espacios (29/09/2026): un raíl de iconos con 5 espacios y,
@@ -50,7 +51,7 @@ const ESPACIOS: { id: string; nombre: string; icono: string; items: { id: Pestan
     { id: 'promociones', nombre: 'Banners' }, { id: 'qr', nombre: 'Mi QR' },
   ] },
   { id: 'servicio', nombre: 'Servicio', icono: 'servicio', items: [
-    { id: 'reservas', nombre: 'Reservas' }, { id: 'camarero', nombre: 'Llamadas' }, { id: 'sala', nombre: 'Sala' },
+    { id: 'pedidos', nombre: 'Pedidos' }, { id: 'reservas', nombre: 'Reservas' }, { id: 'camarero', nombre: 'Llamadas' }, { id: 'sala', nombre: 'Sala' },
   ] },
   { id: 'negocio', nombre: 'Negocio', icono: 'negocio', items: [
     { id: 'escaneos', nombre: 'Escaneos' }, { id: 'local', nombre: 'Mi local' }, { id: 'plan', nombre: 'Mi plan' }, { id: 'modulos', nombre: 'Mejoras' },
@@ -96,6 +97,7 @@ export default function PanelShell({
   const modulos = { plano: tieneServ('plano_mesas'), app: tieneServ('app_sala'), tpv: tieneServ('conexion_tpv') };
   const visible = (id: Pestana) =>
     id === 'sala' ? modulos.plano || modulos.app || modulos.tpv
+    : id === 'pedidos' ? modulos.app
     : id === 'idiomas' ? tieneServ('idiomas')
     : (id !== 'camarero' && id !== 'reservas') || restaurante.plan === 'ampliado';
   const [pestana, setPestanaBase] = useState<Pestana>('inicio');
@@ -212,6 +214,7 @@ export default function PanelShell({
         {pestana === 'sala' && <Sala mesas={sala.mesas} elementos={sala.elementos} camareros={sala.camareros} tpv={sala.tpv} modulos={modulos} informe={sala.informe} />}
         {pestana === 'idiomas' && <Idiomas activos={restaurante.idiomas ?? []} secciones={carta.secciones} platos={carta.platos} traducciones={traducciones} />}
         {pestana === 'reservas' && <Reservas reservas={reservas} whatsapp={restaurante.whatsapp} />}
+        {pestana === 'pedidos' && <Pedidos />}
         {pestana === 'camarero' && <Camarero slug={restaurante.slug} codigoQr={codigoQr} />}
         {pestana === 'qr' && (
           <MiQr codigoQr={codigoQr} restauranteNombre={restaurante.nombre} solicitudes={solicitudesQr} />

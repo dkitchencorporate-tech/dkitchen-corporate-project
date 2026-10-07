@@ -5,7 +5,6 @@ import { useState, useTransition } from 'react';
 import dynamic from 'next/dynamic';
 import type { ElementoPlano, MesaPlano, Camarero, FilaInforme } from '@/lib/sala';
 import { crearCamareroAction, desactivarCamareroAction } from '@/app/panel/actions';
-import MesasEnVivo from './MesasEnVivo';
 import InformesComandero from './InformesComandero';
 
 // El editor solo se descarga y renderiza al abrirlo (no pesa en el panel).
@@ -15,7 +14,7 @@ type Tpv = { proveedor: string; activa: boolean; ultimoEnvio: string | null; ult
 
 const duracion = (s: number | null) => (s === null ? '—' : s < 60 ? `${s} s` : `${Math.round(s / 60)} min`);
 
-/** Módulos de Sala: mesas en vivo y resumen de sala (comandero, 0045), editor de plano (modal), camareros e informes, estado TPV. */
+/** Módulos de Sala: resumen de sala (comandero, 0045; los pedidos en vivo están en Pedidos.tsx), editor de plano (modal), camareros e informes, estado TPV. */
 export default function Sala({
   mesas, elementos, camareros, tpv, modulos, informe,
 }: {
@@ -45,7 +44,9 @@ export default function Sala({
         {aviso && <p className={`mt-2 text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</p>}
       </header>
 
-      {modulos.app && <MesasEnVivo />}
+      {modulos.app && (
+        <a href="/panel?pestana=pedidos" className="block rounded-2xl border-2 border-vino bg-vino/10 p-4 text-sm font-semibold text-vino">Las mesas en vivo y los pedidos están ahora en <strong>Servicio → Pedidos</strong> →</a>
+      )}
       {modulos.app && <InformesComandero camareros={camareros.map((c) => ({ id: c.id, nombre: c.nombre }))} mesas={mesas.map((m) => m.numero)} />}
 
       {modulos.plano && (

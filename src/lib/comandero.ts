@@ -94,6 +94,38 @@ export async function anularCuenta(jwt: string, cuentaId: string, motivo: string
   return comoCliente(jwt, async (c) => (await c.query('SELECT dk.anular_cuenta($1, $2) AS ok', [cuentaId, motivo])).rows[0]?.ok === true);
 }
 
+// --------------------------------------------------------------- encargado: pedidos (0046)
+export interface CartaPanel { secciones: { id: string; nombre: string }[]; carta: { id: string; nombre: string; precio: number; seccion_id: string | null }[] }
+export type LineaPedido = { plato_id: string; cantidad: number; nota: string };
+
+export async function panelCarta(jwt: string): Promise<CartaPanel> {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT dk.panel_carta() AS j')).rows[0].j);
+}
+
+export async function panelAbrirCuenta(jwt: string, mesa: string, comensales: number | null): Promise<string | null> {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT dk.panel_abrir_cuenta($1, $2) AS id', [mesa, comensales])).rows[0]?.id ?? null);
+}
+
+export async function panelRegistrar(jwt: string, mesa: string, lineas: LineaPedido[]): Promise<string | null> {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT dk.panel_registrar($1, $2::jsonb) AS id', [mesa, JSON.stringify(lineas)])).rows[0]?.id ?? null);
+}
+
+export async function panelCambiarCantidad(jwt: string, lineaId: string, cantidad: number, motivo: string | null): Promise<boolean> {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT dk.panel_cambiar_cantidad($1, $2, $3) AS ok', [lineaId, cantidad, motivo])).rows[0]?.ok === true);
+}
+
+export async function panelMoverCuenta(jwt: string, cuentaId: string, mesa: string): Promise<{ ok: boolean; juntada?: boolean; cuenta?: string }> {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT dk.panel_mover_cuenta($1, $2) AS j', [cuentaId, mesa])).rows[0].j);
+}
+
+export async function panelDestinoTpv(jwt: string, registroId: string) {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT * FROM dk.panel_destino_tpv($1)', [registroId])).rows[0] ?? null);
+}
+
+export async function panelResultadoTpv(jwt: string, registroId: string, ok: boolean, detalle: string) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.panel_resultado_tpv($1, $2, $3)', [registroId, ok, detalle]));
+}
+
 export interface Filtro { desde: string; hasta: string; mesa: string | null; camareroId: string | null }
 
 export async function resumenSala(jwt: string, f: Filtro): Promise<ResumenSala> {

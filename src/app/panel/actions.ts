@@ -42,7 +42,10 @@ import {
   mesasEnVivo as dbMesasEnVivo, cuentaDetalle as dbCuentaDetalle, rondaRevisada as dbRondaRevisada, cerrarCuenta as dbCerrarCuenta,
   anularLinea as dbAnularLinea, anularCuenta as dbAnularCuenta, resumenSala as dbResumenSala, informeCuentas as dbInformeCuentas,
   informeAnulaciones as dbInformeAnulaciones, type Filtro,
+  panelCarta as dbPanelCarta, panelAbrirCuenta as dbPanelAbrirCuenta, panelRegistrar as dbPanelRegistrar,
+  panelCambiarCantidad as dbPanelCambiarCantidad, panelMoverCuenta as dbPanelMoverCuenta,
 } from '@/lib/comandero';
+import { reenviarRegistroAlTpv } from '@/lib/envio-tpv';
 
 /** Todo cambio del panel se ve al momento en la carta pública (01/10: antes tardaba hasta 60 s). */
 function refrescarCartas() {
@@ -797,7 +800,7 @@ async function comandero<T>(fn: (jwt: string) => Promise<T>): Promise<Res<T>> {
     return { ok: true, datos: await fn(jwt) };
   } catch (e) {
     const m = e instanceof Error ? e.message : '';
-    const propio = /Comandero Pro|App de sala|motivo|Rango de fechas|histórico/i.test(m);
+    const propio = /Comandero Pro|App de sala|motivo|Rango de fechas|histórico|no válid|Cantidad/i.test(m);
     if (!propio) console.error('Comandero:', m);
     return { ok: false, error: propio ? m : 'No se pudo completar. Inténtalo de nuevo.' };
   }
@@ -838,4 +841,52 @@ export async function informeCuentasAction(f: Filtro) { return comandero((jwt) =
 
 export async function informeAnulacionesAction(f: Filtro) {
   return comandero((jwt) => { const v = filtroValido(f); return dbInformeAnulaciones(jwt, v.desde, v.hasta); });
+}
+
+// ------------------------------------------------------------------ pedidos del encargado (0046, B2)
+const MESA = /^[A-Za-z0-9-]{1,12}$/;
+
+export async function cartaPedidosAction() { return comandero((jwt) => dbPanelCarta(jwt)); }
+
+export async function abrirMesaAction(mesa: string, comensales: number | null) {
+  return comandero((jwt) => {
+    if (!MESA.test(String(mesa ?? ''))) throw new Error('Número de mesa no válido.');
+    const n = Math.trunc(Number(comensales));
+    return dbPanelAbrirCuenta(jwt, mesa, n >= 1 && n <= 99 ? n : null);
+  });
+}
+
+/** Añade una ronda desde el panel y, si hay TPV conectado, la envía al momento. */
+export async function anadirRondaAction(mesa: string, lineas: { plato_id: string; cantidad: number; nota?: string }[]) {
+  return comandero(async (jwt) => {
+    const limpias = (Array.isArray(lineas) ? lineas : [])
+      .filter((l) => UUID.test(String(l?.plato_id ?? '')))
+      .slice(0, 60)
+      .map((l) => ({ plato_id: String(l.plato_id), cantidad: Math.min(50, Math.max(1, Math.trunc(Number(l.cantidad)) || 1)), nota: String(l.nota ?? '').slice(0, 120) }));
+    if (!MESA.test(String(mesa ?? '')) || limpias.length === 0) throw new Error('Pedido no válido.');
+    const id = await dbPanelRegistrar(jwt, mesa, limpias);
+    if (!id) throw new Error('Pedido no válido.');
+    const tpv = await reenviarRegistroAlTpv(jwt, id);
+    return { id, tpv };
+  });
+}
+
+export async function cambiarCantidadAction(lineaId: string, cantidad: number, motivo: string) {
+  return comandero((jwt) => {
+    if (!UUID.test(lineaId)) throw new Error('x');
+    const n = Math.trunc(Number(cantidad));
+    if (!(n >= 0 && n <= 50)) throw new Error('Cantidad no válida (de 0 a 50).');
+    return dbPanelCambiarCantidad(jwt, lineaId, n, String(motivo ?? '').trim().slice(0, 200) || null);
+  });
+}
+
+export async function moverMesaAction(cuentaId: string, mesa: string) {
+  return comandero((jwt) => {
+    if (!UUID.test(cuentaId) || !MESA.test(String(mesa ?? ''))) throw new Error('Número de mesa no válido.');
+    return dbPanelMoverCuenta(jwt, cuentaId, mesa);
+  });
+}
+
+export async function reenviarTpvAction(registroId: string) {
+  return comandero((jwt) => { if (!UUID.test(registroId)) throw new Error('x'); return reenviarRegistroAlTpv(jwt, registroId); });
 }
