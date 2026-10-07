@@ -28,8 +28,23 @@ type Aviso = { ok: boolean; texto: string } | null;
  * cantidades, anula con motivo, mueve o junta mesas, reenvía al TPV y cierra.
  * Los precios los pone siempre el servidor; nada se borra (0045 + 0046).
  */
-export default function Pedidos() {
-  const [datos, setDatos] = useState<Datos | null>(null);
+/** Datos de ejemplo para la demo pública del panel (sin sesión no hay base). */
+const hace = (min: number) => new Date(Date.now() - min * 60000).toISOString();
+const EJEMPLO: Datos = {
+  tpv: false, pro: false, mesas: [],
+  cuentas: [
+    { id: 'd1', mesa: '3', comensales: 4, abierta_en: hace(25), minutos: 25, abierta_por: 'Lucía', importe: 64.5, rondas: 2 },
+    { id: 'd2', mesa: '7', comensales: 2, abierta_en: hace(58), minutos: 58, abierta_por: 'Marcos', importe: 38, rondas: 3 },
+    { id: 'd3', mesa: 'T1', comensales: 6, abierta_en: hace(97), minutos: 97, abierta_por: null, importe: 142.8, rondas: 5 },
+  ],
+  rondas_entrantes: [
+    { id: 'r1', mesa: '3', cuenta_id: 'd1', estado: 'registrado', creado_en: hace(2), detalle_tpv: null, camarero: 'Lucía',
+      lineas: [{ nombre: 'Croquetas de jamón', cantidad: 2, nota: '' }, { nombre: 'Entrecot', cantidad: 1, nota: 'poco hecho' }] },
+  ],
+};
+
+export default function Pedidos({ demo = false }: { demo?: boolean }) {
+  const [datos, setDatos] = useState<Datos | null>(demo ? EJEMPLO : null);
   const [error, setError] = useState<string | null>(null);
   const [abierta, setAbierta] = useState<string | null>(null);
   const [nuevo, setNuevo] = useState(false);
@@ -38,7 +53,7 @@ export default function Pedidos() {
   const vistas = useRef<Set<string> | null>(null);
 
   const cargar = useCallback(async () => {
-    if (typeof document !== 'undefined' && document.hidden) return;
+    if (demo || (typeof document !== 'undefined' && document.hidden)) return;
     const r = await mesasEnVivoAction();
     if (!r.ok) { setError(r.error); return; }
     // Aviso sonoro corto por cada ronda NUEVA por pasar (no en la primera carga)
@@ -46,7 +61,7 @@ export default function Pedidos() {
     if (vistas.current && [...ids].some((id) => !vistas.current!.has(id))) probarSonido();
     vistas.current = ids;
     setDatos(r.datos); setError(null); setActualizado(Date.now());
-  }, []);
+  }, [demo]);
   useEffect(() => { cargar(); const t = setInterval(cargar, INTERVALO_MS); return () => clearInterval(t); }, [cargar]);
 
   const pedirCarta = useCallback(async () => {
@@ -67,11 +82,12 @@ export default function Pedidos() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Pedidos</h2>
-          <p className="text-sm text-niebla">Todo lo que entra de sala, en directo. Se actualiza solo cada 5 s · {Math.round((Date.now() - actualizado) / 1000) < 10 ? 'al día' : 'reconectando…'}</p>
+          <p className="text-sm text-niebla">Todo lo que entra de sala, en directo. Se actualiza solo cada 5 s · {demo || Math.round((Date.now() - actualizado) / 1000) < 10 ? 'al día' : 'reconectando…'}</p>
         </div>
         <button onClick={() => { setNuevo(true); void pedirCarta(); }} className="rounded-full bg-vino px-5 py-3 text-sm font-bold text-white hover:bg-vino-hondo">+ Nuevo pedido</button>
       </header>
       {error && <p className="text-sm text-red-600">{error}</p>}
+      {demo && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Ejemplo de un servicio en marcha. En tu panel real, desde aquí añades productos, cambias cantidades, mueves o juntas mesas y las cierras.</p>}
 
       <dl className="grid grid-cols-3 gap-2 sm:gap-3">
         {([['Mesas abiertas', String(datos.cuentas.length)], ['En sala', euros(total)], [datos.tpv ? 'Sin llegar al TPV' : 'Por pasar', String(porPasar.length)]] as const).map(([k, v], i) => (
@@ -120,8 +136,8 @@ export default function Pedidos() {
         <p className="text-[11px] text-ceniza">Verde: menos de 45 min · ámbar: 45–90 min · rojo: más de 90 min. El cobro y el ticket se hacen siempre en tu TPV.</p>
       </section>
 
-      {abierta && <DetalleCuenta id={abierta} tpv={datos.tpv} pedirCarta={pedirCarta} onCerrar={() => { setAbierta(null); cargar(); }} />}
-      {nuevo && (
+      {abierta && !demo && <DetalleCuenta id={abierta} tpv={datos.tpv} pedirCarta={pedirCarta} onCerrar={() => { setAbierta(null); cargar(); }} />}
+      {nuevo && !demo && (
         <NuevoPedido mesas={datos.mesas.map((m) => m.numero)} abiertas={datos.cuentas.map((k) => k.mesa)} pedirCarta={pedirCarta}
           onCerrar={(cuenta) => { setNuevo(false); cargar(); if (cuenta) setAbierta(cuenta); }} />
       )}

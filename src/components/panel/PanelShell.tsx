@@ -214,7 +214,7 @@ export default function PanelShell({
         {pestana === 'sala' && <Sala mesas={sala.mesas} elementos={sala.elementos} camareros={sala.camareros} tpv={sala.tpv} modulos={modulos} informe={sala.informe} />}
         {pestana === 'idiomas' && <Idiomas activos={restaurante.idiomas ?? []} secciones={carta.secciones} platos={carta.platos} traducciones={traducciones} />}
         {pestana === 'reservas' && <Reservas reservas={reservas} whatsapp={restaurante.whatsapp} />}
-        {pestana === 'pedidos' && <Pedidos />}
+        {pestana === 'pedidos' && <Pedidos demo={demo} />}
         {pestana === 'camarero' && <Camarero slug={restaurante.slug} codigoQr={codigoQr} />}
         {pestana === 'qr' && (
           <MiQr codigoQr={codigoQr} restauranteNombre={restaurante.nombre} solicitudes={solicitudesQr} />
