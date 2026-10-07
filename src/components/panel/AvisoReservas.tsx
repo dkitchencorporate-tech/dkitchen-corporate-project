@@ -15,11 +15,14 @@ const INTERVALO_MS = 10000;
  * correo que ya recibe el dueño y al WhatsApp del local (si lo tiene configurado).
  * En móvil es una tarjeta encima de la barra de navegación; en escritorio, una franja abajo.
  */
-export default function AvisoReservas({ reservas, whatsapp, onReservas, abrir, demo = false }: {
+export default function AvisoReservas({ reservas, whatsapp, onReservas, abrir, demo = false, arriba = false }: {
   reservas: Reserva[]; whatsapp: string | null; onReservas: Dispatch<SetStateAction<Reserva[]>>; abrir: (id: string) => void; demo?: boolean;
+  /** Durante el montaje guiado (B5) va arriba para no tapar la tarjeta del tutorial. */
+  arriba?: boolean;
 }) {
   useEffect(() => {
     if (demo) {
+      if (arriba) return;
       // Demo pública: a los 8 s entra una reserva de ejemplo para enseñar el aviso
       const t = setTimeout(() => onReservas((prev) => [{
         id: `demo-${Date.now()}`, nombre: 'Marta G.', telefono: '600 000 000', email: null, fecha: new Date().toISOString().slice(0, 10), hora: '21:30',
@@ -32,7 +35,7 @@ export default function AvisoReservas({ reservas, whatsapp, onReservas, abrir, d
     const alVolver = () => { if (document.visibilityState === 'visible') void refrescar(); };
     document.addEventListener('visibilitychange', alVolver);
     return () => { clearInterval(id); document.removeEventListener('visibilitychange', alVolver); };
-  }, [onReservas, demo]);
+  }, [onReservas, demo, arriba]);
 
   const { nuevas, marcar } = useReservasNuevas(reservas);
   const titulo = nuevas.length === 1 ? 'Nueva reserva' : `${nuevas.length} reservas nuevas`;
@@ -40,7 +43,9 @@ export default function AvisoReservas({ reservas, whatsapp, onReservas, abrir, d
   if (!nuevas.length) return null;
 
   return (
-    <div role="status" className="fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[46] rounded-2xl bg-emerald-600 p-3 text-white shadow-2xl lg:inset-x-0 lg:bottom-0 lg:rounded-none lg:py-3 lg:pl-4 lg:pr-24">
+    <div role="status" className={`fixed z-[46] rounded-2xl bg-emerald-600 p-3 text-white shadow-2xl ${arriba
+      ? 'inset-x-3 top-3 lg:left-auto lg:right-6 lg:top-6 lg:w-[420px]'
+      : 'inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] lg:inset-x-0 lg:bottom-0 lg:rounded-none lg:py-3 lg:pl-4 lg:pr-24'}`}>
       <div className="mx-auto max-w-6xl space-y-2">
         <div className="flex items-center justify-between gap-3">
           <p className="font-black lg:text-lg">📅 {titulo}</p>
