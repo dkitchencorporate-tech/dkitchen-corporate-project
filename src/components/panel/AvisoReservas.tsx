@@ -39,7 +39,7 @@ export default function AvisoReservas({ reservas, whatsapp, onReservas, abrir, d
   if (!nuevas.length) return null;
 
   return (
-    <div role="status" className="fixed inset-x-0 bottom-0 z-40 bg-emerald-600 px-4 py-3 text-white shadow-2xl">
+    <div role="status" className="fixed inset-x-0 bottom-0 z-40 bg-emerald-600 py-3 pl-4 pr-24 text-white shadow-2xl">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3">
         <p className="text-lg font-black">📅 {titulo}</p>
         <div className="flex flex-1 flex-wrap gap-2">
