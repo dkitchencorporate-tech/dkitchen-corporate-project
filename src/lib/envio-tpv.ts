@@ -4,6 +4,7 @@ import { isIP } from 'node:net';
 import { descifrar } from '@/lib/cifrado';
 import { destinoTpv, resultadoTpv } from '@/lib/sala';
 import { panelDestinoTpv, panelResultadoTpv } from '@/lib/comandero';
+import { comoCliente } from '@/lib/db';
 
 /**
  * Envío de lo registrado en sala al TPV del local (Conexión TPV, 0027).
@@ -37,6 +38,12 @@ type Guardar = (ok: boolean, detalle: string) => Promise<void>;
 /** Camarero (app de sala, por token). */
 export async function enviarRegistroAlTpv(token: string, registroId: string) {
   return enviar(await destinoTpv(token, registroId), registroId, (ok, d) => resultadoTpv(token, registroId, ok, d));
+}
+
+/** Central (soporte N2, 0055): reintento de una ronda que no llegó, con las mismas salvaguardas. */
+export async function reintentarTpvAdmin(jwt: string, registroId: string) {
+  const d = await comoCliente(jwt, async (c) => (await c.query<DestinoTpv>('SELECT * FROM dk.admin_destino_tpv($1)', [registroId])).rows[0] ?? null);
+  return enviar(d, registroId, (ok, detalle) => comoCliente(jwt, async (c) => { await c.query('SELECT dk.admin_resultado_tpv($1, $2, $3)', [registroId, ok, detalle]); }));
 }
 
 /** Encargado (panel, por sesión): «Reenviar al TPV» de una ronda que no llegó (0046). */
