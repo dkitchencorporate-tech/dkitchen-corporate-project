@@ -166,7 +166,9 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
 
       <section className="bg-white border border-linea rounded-2xl p-6 space-y-5">
         <h3 className="text-lg font-semibold">Identidad</h3>
-        <SubirImagen valor={d.logoUrl} onCambio={(url) => setD((p) => ({ ...p, logoUrl: url }))} etiqueta="Logo" redonda ia={{ modo: 'logo' }} />
+        <div data-tutorial="logo">
+          <SubirImagen valor={d.logoUrl} onCambio={(url) => setD((p) => ({ ...p, logoUrl: url }))} etiqueta="Logo" redonda ia={{ modo: 'logo' }} />
+        </div>
         <div className="grid sm:grid-cols-[1fr_auto] gap-3">
           <label className="space-y-1">
             <span className="text-xs text-niebla">Nombre del local *</span>
@@ -193,6 +195,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
             <input value={d.instagram} onChange={set('instagram')} maxLength={60} placeholder="@tulocal" className={campo} />
           </label>
         </div>
+        <div data-tutorial="datos-local" className="space-y-4">
         <label className="block space-y-1">
           <span className="text-xs text-niebla">Dirección</span>
           <input value={d.direccion} onChange={set('direccion')} maxLength={160} placeholder="Calle, número, ciudad" className={campo} />
@@ -201,6 +204,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
           <span className="text-xs text-niebla">Horario</span>
           <input value={d.horario} onChange={set('horario')} maxLength={200} placeholder="L-V 13:00-16:00 y 20:00-23:30 · S-D 13:00-00:00" className={campo} />
         </label>
+        </div>
       </section>
 
       <section className="bg-white border border-linea rounded-2xl p-6 space-y-4">

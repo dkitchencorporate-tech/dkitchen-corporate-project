@@ -39,7 +39,7 @@ export default function Sala({
               <h3 className="text-lg font-semibold">Plano de tu local</h3>
               <p className="text-sm text-niebla">{mesas.length} {mesas.length === 1 ? 'mesa' : 'mesas'} · {zonas.length} {zonas.length === 1 ? 'zona' : 'zonas'} · {mesas.filter((m) => m.camareroId).length} con camarero asignado</p>
             </div>
-            <button onClick={() => setEditor(true)} className="rounded-full bg-vino px-4 py-2 text-sm font-bold">{mesas.length ? 'Abrir editor de sala' : 'Dibujar mi sala'}</button>
+            <button data-tutorial="editor-sala" onClick={() => setEditor(true)} className="rounded-full bg-vino px-4 py-2 text-sm font-bold">{mesas.length ? 'Abrir editor de sala' : 'Dibujar mi sala'}</button>
           </div>
           {zonas.length > 0 && (
             <ul className="mt-4 flex flex-wrap gap-2 text-xs">

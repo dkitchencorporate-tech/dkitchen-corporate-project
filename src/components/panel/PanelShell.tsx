@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Inicio from './Inicio';
 import { Icono } from './Iconos';
@@ -25,6 +25,8 @@ import Pedidos from './Pedidos';
 import Equipo from './Equipo';
 import AlarmaLlamadas from './AlarmaLlamadas';
 import AvisoReservas from './AvisoReservas';
+import TutorialMontaje from './TutorialMontaje';
+import type { TutorialEstado } from '@/lib/tutorial-tipos';
 import Promociones from './Promociones';
 import Reservas from './Reservas';
 import Mejoras from './Mejoras';
@@ -46,7 +48,8 @@ type Pestana = 'inicio' | 'pedidos' | 'carta' | 'estudio' | 'local' | 'promocion
  * dentro de cada uno, sus vistas en píldora. Misma estructura en escritorio
  * (raíl lateral) y móvil (barra flotante inferior).
  */
-const ESPACIOS: { id: string; nombre: string; icono: string; items: { id: Pestana; nombre: string }[] }[] = [
+type Espacio = { id: string; nombre: string; icono: string; items: { id: Pestana; nombre: string }[] };
+const ESPACIOS: Espacio[] = [
   { id: 'inicio', nombre: 'Inicio', icono: 'inicio', items: [{ id: 'inicio', nombre: 'Inicio' }] },
   { id: 'carta', nombre: 'Carta', icono: 'carta', items: [
     { id: 'carta', nombre: 'Platos' }, { id: 'estudio', nombre: 'Estudio' }, { id: 'diseno', nombre: 'Diseño' }, { id: 'idiomas', nombre: 'Idiomas' },
@@ -61,6 +64,25 @@ const ESPACIOS: { id: string; nombre: string; icono: string; items: { id: Pestan
   { id: 'ayuda', nombre: 'Ayuda', icono: 'ayuda', items: [{ id: 'soporte', nombre: 'Soporte' }] },
 ];
 const PESTANAS = ESPACIOS.flatMap((e) => e.items);
+const espacioDe = (id: string) => ESPACIOS.find((e) => e.id === id)!;
+/**
+ * B5 (07/10/2026): dos modos. DÍA A DÍA (montaje completado): Servicio primero.
+ * MONTAJE (primera vez): espacios numerados en el orden en que se monta un local.
+ */
+const ESPACIOS_DIA: Espacio[] = ['inicio', 'servicio', 'carta', 'negocio', 'ayuda'].map(espacioDe);
+const ESPACIOS_MONTAJE: Espacio[] = [
+  espacioDe('inicio'),
+  { id: 'm-local', nombre: '1 Local', icono: 'local', items: [{ id: 'local', nombre: 'Mi local' }] },
+  { id: 'm-carta', nombre: '2 Carta', icono: 'carta', items: [
+    { id: 'carta', nombre: 'Platos' }, { id: 'estudio', nombre: 'Estudio' }, { id: 'diseno', nombre: 'Diseño' }, { id: 'idiomas', nombre: 'Idiomas' },
+    { id: 'promociones', nombre: 'Banners' }, { id: 'qr', nombre: 'Mi QR' },
+  ] },
+  { id: 'm-sala', nombre: '3 Sala', icono: 'servicio', items: [
+    { id: 'sala', nombre: 'Sala' }, { id: 'equipo', nombre: 'Equipo' }, { id: 'pedidos', nombre: 'Pedidos' }, { id: 'reservas', nombre: 'Reservas' }, { id: 'camarero', nombre: 'Llamadas' },
+  ] },
+  { id: 'negocio', nombre: 'Negocio', icono: 'negocio', items: [{ id: 'escaneos', nombre: 'Escaneos' }, { id: 'plan', nombre: 'Mi plan' }, { id: 'modulos', nombre: 'Mejoras' }] },
+  espacioDe('ayuda'),
+];
 
 export default function PanelShell({
   identidad,
@@ -78,6 +100,7 @@ export default function PanelShell({
   traducciones,
   cobro,
   estudio = { extras: [], legal: { titular: null, nif: null, email: null, domicilio: null, activo: false } },
+  tutorial = null,
 }: {
   identidad: { id: string; nombre: string; email: string };
   restaurante: MiRestaurante;
@@ -94,6 +117,7 @@ export default function PanelShell({
   traducciones: { entidad: 'plato' | 'seccion'; entidadId: string; idioma: string; campo: 'nombre' | 'descripcion'; texto: string }[];
   cobro: ResumenCobro | null;
   estudio?: { extras: ExtraPlato[]; legal: DatosLegal };
+  tutorial?: TutorialEstado | null;
 }) {
   const tieneServ = (id: string) => servicios.contratados.some((c) => c.servicio === id || (c.servicio === 'pack_sala' && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(id)));
   const modulos = { plano: tieneServ('plano_mesas'), app: tieneServ('app_sala'), tpv: tieneServ('conexion_tpv') };
@@ -107,8 +131,13 @@ export default function PanelShell({
   // B4: la lista de reservas se refresca en vivo (AvisoReservas) y «→» abre una en concreto
   const [reservasVivas, setReservasVivas] = useState(reservas);
   const [reservaAbrir, setReservaAbrir] = useState<string | null>(null);
+  // B5: montaje guiado. Mientras está activo, solo se abre la sección del paso (y llamadas/reservas, que siguen sonando).
+  const [tut, setTut] = useState<TutorialEstado | null>(tutorial);
+  const bloqueo = useRef<string[] | null>(null);
+  const [avisoBloqueo, setAvisoBloqueo] = useState(0);
   // Cada sección entra en el historial del navegador: el botón «atrás» del móvil vuelve a la sección anterior en vez de sacar al usuario del panel.
   const setPestana = (p: Pestana, historial: 'push' | 'replace' | 'no' = 'push') => {
+    if (bloqueo.current && !bloqueo.current.includes(p) && p !== 'camarero' && p !== 'reservas') { setAvisoBloqueo(Date.now()); return; }
     setPestanaBase(p); setMenu(false); window.scrollTo({ top: 0 });
     if (historial === 'no') return;
     const url = p === 'inicio' ? window.location.pathname : `${window.location.pathname}?pestana=${p}`;
@@ -130,10 +159,15 @@ export default function PanelShell({
   }, []);
 
   const salir = async () => { await authClient.signOut(); window.location.href = '/panel/iniciar-sesion'; };
-  const espacios = ESPACIOS.map((e) => ({ ...e, items: e.items.filter((p) => visible(p.id)) })).filter((e) => e.items.length > 0);
+  const demo = identidad.id === 'demo';
+  const montaje = Boolean(tut && !tut.completado && restaurante.estadoAcceso === 'activo' && !demo);
+  const espacios = (montaje ? ESPACIOS_MONTAJE : ESPACIOS_DIA).map((e) => ({ ...e, items: e.items.filter((p) => visible(p.id)) })).filter((e) => e.items.length > 0);
+  const setPestanaRef = useRef(setPestana);
+  setPestanaRef.current = setPestana;
+  const irATutorial = useCallback((p: string) => setPestanaRef.current(p as Pestana), []);
+  const alBloquear = useCallback((l: string[] | null) => { bloqueo.current = l; }, []);
   const espacio = espacios.find((e) => e.items.some((p) => p.id === pestana)) ?? espacios[0];
   const titulo = PESTANAS.find((p) => p.id === pestana)?.nombre ?? '';
-  const demo = identidad.id === 'demo';
   const puesta = servicios.contratados.some((c) => c.servicio === 'setup_esencial' || c.servicio === 'setup_experto') ? null : servicios.catalogo.find((c) => c.servicio === 'setup_esencial') ?? null;
   const euros = (c: number) => `${(c / 100).toLocaleString('es-ES', { maximumFractionDigits: 2 })} €`;
   return (
@@ -163,6 +197,7 @@ export default function PanelShell({
       <div className="min-w-0">
         {/* Alarma de llamadas de mesa en todo el panel (B1, 07/10): suena en bucle hasta que se atienden */}
         {restaurante.plan === 'ampliado' && !demo && <AlarmaLlamadas enLlamadas={pestana === 'camarero'} irALlamadas={() => setPestana('camarero')} />}
+        {montaje && tut && <TutorialMontaje inicial={tut} pestana={pestana} irA={irATutorial} onBloqueo={alBloquear} avisoBloqueo={avisoBloqueo} onCompletado={(t) => { bloqueo.current = null; setTut(t); setPestana('inicio'); }} />}
         {restaurante.plan === 'ampliado' && <AvisoReservas demo={demo} reservas={reservasVivas} whatsapp={restaurante.whatsapp} onReservas={setReservasVivas} abrir={(id) => { setReservaAbrir(id); setPestana('reservas'); }} />}
         {/* Cabecera */}
         <header className="sticky top-0 z-30 border-b border-linea bg-crema/90 backdrop-blur-xl">

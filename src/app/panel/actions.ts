@@ -48,6 +48,7 @@ import {
   panelCambiarCantidad as dbPanelCambiarCantidad, panelMoverCuenta as dbPanelMoverCuenta,
 } from '@/lib/comandero';
 import { reenviarRegistroAlTpv } from '@/lib/envio-tpv';
+import { tutorialEstado as dbTutorialEstado, tutorialAvanzar as dbTutorialAvanzar, tutorialCompletar as dbTutorialCompletar } from '@/lib/tutorial';
 
 /** Todo cambio del panel se ve al momento en la carta pública (01/10: antes tardaba hasta 60 s). */
 function refrescarCartas() {
@@ -297,6 +298,31 @@ export async function llamadasPendientesAction() {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   if (restaurante.plan !== 'ampliado') return [];
   return llamadasPendientes(jwt, restaurante.id);
+}
+
+// ---------------------------------------------------------------------------
+// Montaje guiado (0049, B5): la base comprueba las tareas y abona +10 créditos una vez.
+// ---------------------------------------------------------------------------
+export async function tutorialEstadoAction() {
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  return dbTutorialEstado(jwt, restaurante.id);
+}
+
+export async function tutorialAvanzarAction(paso: number, qr: boolean) {
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  return dbTutorialAvanzar(jwt, restaurante.id, Math.min(50, Math.max(0, Math.trunc(Number(paso)) || 0)), qr === true);
+}
+
+export async function tutorialCompletarAction() {
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  try {
+    const r = await dbTutorialCompletar(jwt, restaurante.id);
+    revalidatePath('/panel');
+    return r;
+  } catch (e) {
+    if (/tutorial_incompleto/.test(String((e as Error)?.message))) throw new Error('Aún falta alguna tarea del montaje: revisa la lista.');
+    throw e;
+  }
 }
 
 /** Reservas en tiempo real (B4): el panel las vuelve a pedir cada 10 s. */

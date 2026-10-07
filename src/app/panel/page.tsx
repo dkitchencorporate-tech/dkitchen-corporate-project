@@ -13,6 +13,7 @@ import { cargarPlano, listarCamareros, estadoConexionTpv, informeCamareros } fro
 import { listarTraducciones } from '@/lib/idiomas';
 import { llamadasPendientes } from '@/lib/llamadas-camarero';
 import PanelShell from '@/components/panel/PanelShell';
+import { tutorialEstado } from '@/lib/tutorial';
 import { resumenCobro } from '@/lib/prueba';
 import { SesionNoValida } from '@/lib/db';
 import { estadoAdmin } from '@/lib/guard-admin';
@@ -65,8 +66,8 @@ export default async function Panel() {
       listarPromociones(jwt, restaurante.id),
       restaurante.plan === 'ampliado' ? listarMisReservas(jwt, restaurante.id) : Promise.resolve([]),
     ]);
-    const [servicios, cobro, extras, legal] = await Promise.all([estadoServicios(jwt, restaurante.id), resumenCobro(jwt, restaurante.id).catch(() => null),
-      listarExtras(jwt, restaurante.id), obtenerLegal(jwt, restaurante.id)]);
+    const [servicios, cobro, extras, legal, tutorial] = await Promise.all([estadoServicios(jwt, restaurante.id), resumenCobro(jwt, restaurante.id).catch(() => null),
+      listarExtras(jwt, restaurante.id), obtenerLegal(jwt, restaurante.id), tutorialEstado(jwt, restaurante.id).catch(() => null)]);
     const c = servicios.contratados;
     const hayPlano = tiene(c, 'plano_mesas'), hayApp = tiene(c, 'app_sala'), hayTpv = tiene(c, 'conexion_tpv');
     const [plano, camareros, tpv, llamadas, traducciones, informe] = await Promise.all([
@@ -95,6 +96,7 @@ export default async function Panel() {
         traducciones={traducciones}
         cobro={cobro}
         estudio={{ extras, legal }}
+        tutorial={tutorial}
       />
     );
   } catch (error) {

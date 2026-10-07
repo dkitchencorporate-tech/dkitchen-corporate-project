@@ -68,7 +68,7 @@ export default function EquipoGestion({ equipo, modo, yoId, ops, onCambio }: {
       )}
 
       {/* Alta */}
-      <section className="space-y-3 rounded-2xl border border-black/10 bg-white p-4 sm:p-5">
+      <section data-tutorial="alta-equipo" className="space-y-3 rounded-2xl border border-black/10 bg-white p-4 sm:p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="text-lg font-bold">Añadir al equipo</h3>
           <span className="text-xs text-black/50">{activos.length} de {TOPE} accesos activos</span>

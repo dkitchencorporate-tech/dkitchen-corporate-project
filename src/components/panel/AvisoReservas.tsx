@@ -40,7 +40,7 @@ export default function AvisoReservas({ reservas, whatsapp, onReservas, abrir, d
   if (!nuevas.length) return null;
 
   return (
-    <div role="status" className="fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-40 rounded-2xl bg-emerald-600 p-3 text-white shadow-2xl lg:inset-x-0 lg:bottom-0 lg:rounded-none lg:py-3 lg:pl-4 lg:pr-24">
+    <div role="status" className="fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[46] rounded-2xl bg-emerald-600 p-3 text-white shadow-2xl lg:inset-x-0 lg:bottom-0 lg:rounded-none lg:py-3 lg:pl-4 lg:pr-24">
       <div className="mx-auto max-w-6xl space-y-2">
         <div className="flex items-center justify-between gap-3">
           <p className="font-black lg:text-lg">📅 {titulo}</p>

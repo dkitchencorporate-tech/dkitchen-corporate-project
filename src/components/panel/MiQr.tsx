@@ -26,7 +26,7 @@ export default function MiQr({
       <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Mi QR</h2>
 
       {codigoQr ? (
-        <div className="bg-white border border-linea rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6">
+        <div data-tutorial="mi-qr" className="bg-white border border-linea rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/api/mi-qr/imagen"

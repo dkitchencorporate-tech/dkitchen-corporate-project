@@ -38,6 +38,7 @@ export default function MiCarta({
       <div className="flex items-center justify-between">
         <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Mi Carta</h2>
         <button
+          data-tutorial="nuevo-plato"
           onClick={() => setPlatoEnEdicion('nuevo')}
           className="bg-vino hover:bg-vino-hondo text-white text-sm font-bold px-4 py-2 rounded-full transition-colors"
         >
@@ -155,7 +156,7 @@ function SeccionCard({
       {platos.length === 0 ? (
         <p className="text-ceniza text-sm">Sin platos todavía.</p>
       ) : (
-        <ul className="divide-y divide-linea">
+        <ul data-tutorial="lista-platos" className="divide-y divide-linea">
           {platos.map((plato) => (
             <li key={plato.id} className="py-3 flex items-center justify-between gap-3">
               {plato.fotoUrl ? (
