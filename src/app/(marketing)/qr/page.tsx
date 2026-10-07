@@ -13,6 +13,7 @@ import VistaExplosionada from '@/components/dk/VistaExplosionada';
 import { CartasAutorDemo } from '@/components/dk/Modelos';
 import { Titulo, BandaFoto } from '@/components/dk/Bloques';
 import { FondoVivo } from '@/components/dk/Movimiento';
+import { QR_MENU, PLANES_QR } from '@/lib/pricing-config';
 
 export const metadata: Metadata = {
   title: 'Carta digital QR para restaurantes · 1 € el primer mes',
@@ -36,8 +37,7 @@ const datosEstructurados = [
     operatingSystem: 'Web',
     description: 'Carta digital con QR para restaurantes y bares, con alérgenos, estilos personalizables, reservas y llamada al camarero.',
     offers: [
-      { '@type': 'Offer', name: 'Plan Básico', price: '9', priceCurrency: 'EUR', category: 'subscription', url: 'https://dkitchencorporate.es/qr#planes' },
-      { '@type': 'Offer', name: 'Plan Ampliado', price: '25', priceCurrency: 'EUR', category: 'subscription', url: 'https://dkitchencorporate.es/qr#planes' },
+      ...PLANES_QR.map((p) => ({ '@type': 'Offer', name: `Plan ${QR_MENU.planes[p].nombre}`, price: String(QR_MENU.planes[p].mensual), priceCurrency: 'EUR', category: 'subscription', url: 'https://dkitchencorporate.es/qr#planes' })),
     ],
     provider: { '@type': 'Organization', name: 'DKitchen', url: 'https://dkitchencorporate.es' },
   },

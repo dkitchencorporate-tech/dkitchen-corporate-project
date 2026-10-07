@@ -238,6 +238,8 @@ export interface DatosSuscripcion {
   cuota: Linea;
   /** Cargos de hoy además de la cuota (el 1 € del QR, la entrada de Signature…). */
   hoy?: Linea[];
+  /** Cada cuántos meses se cobra la cuota (Fundador: 3). Por defecto, 1. */
+  intervaloMeses?: number;
   /** Fin de la prueba (segundos Unix): hasta entonces no se cobra la cuota. */
   finPrueba?: number;
   metadata: Metadata;
@@ -256,7 +258,7 @@ export async function crearSuscripcion(d: DatosSuscripcion): Promise<string> {
   for (const l of d.hoy ?? []) await asegurarProducto(l.producto, l.nombre);
   const sub = await stripe('POST', '/subscriptions', {
     customer: d.cliente,
-    items: [{ price_data: { currency: 'eur', product: d.cuota.producto, unit_amount: Math.round(d.cuota.centimos), recurring: { interval: 'month' } } }],
+    items: [{ price_data: { currency: 'eur', product: d.cuota.producto, unit_amount: Math.round(d.cuota.centimos), recurring: { interval: 'month', interval_count: d.intervaloMeses ?? 1 } } }],
     add_invoice_items: (d.hoy ?? []).map((l) => ({
       price_data: { currency: 'eur', product: l.producto, unit_amount: Math.round(l.centimos) },
       tax_rates: [iva],
@@ -267,7 +269,7 @@ export async function crearSuscripcion(d: DatosSuscripcion): Promise<string> {
     payment_behavior: 'default_incomplete',
     payment_settings: { save_default_payment_method: 'on_subscription' },
     discounts: descuentos(d.promocion),
-    metadata: limpiar({ ...d.metadata, [RECETA]: receta({ c: d.cuota, h: d.hoy ?? [], t: d.finPrueba ?? null }) }),
+    metadata: limpiar({ ...d.metadata, [RECETA]: receta({ c: d.cuota, h: d.hoy ?? [], t: d.finPrueba ?? null, m: d.intervaloMeses ?? 1 }) }),
     expand: ['latest_invoice'],
   });
   // Hoy no se cobra nada (upgrade en prueba, enlace sin primer cobro): la
@@ -307,7 +309,7 @@ export interface ResumenPago {
   baseCentimos: number;
   ivaCentimos: number;
   totalCentimos: number;
-  recurrente: { cuotaCentimos: number; desde: number | null; nombre: string } | null;
+  recurrente: { cuotaCentimos: number; desde: number | null; nombre: string; meses?: number } | null;
   metadata: Record<string, string>;
   email: string | null;
   /** Código promocional aplicado (importe descontado hoy, sin IVA). */
@@ -367,6 +369,7 @@ export async function resumenPago(id: string): Promise<ResumenPago | null> {
       lineas: f ? lineasDe(f) : [], ...(f ? totalesDe(f) : { baseCentimos: 0, ivaCentimos: 0, totalCentimos: 0 }),
       recurrente: {
         cuotaCentimos: Number(item.price?.unit_amount ?? 0),
+        meses: Number(item.price?.recurring?.interval_count ?? 1),
         desde: s.status === 'trialing' || s.status === 'incomplete' ? (s.trial_end ?? null) : (s.items?.data?.[0]?.current_period_end ?? null),
         nombre: String(s.metadata?.concepto ?? ''),
       },
@@ -420,7 +423,7 @@ export async function aplicarCodigo(id: string, codigo: string): Promise<{ ok: t
       await stripe('POST', `/invoices/${id}/void`).catch((e) => console.error(`No se pudo anular la factura ${id}:`, e));
     } else {
       const s = await stripe('GET', `/subscriptions/${id}`);
-      nuevo = await crearSuscripcion({ cliente: String(s.customer), cuota: rec.c, hoy: rec.h, finPrueba: rec.t ?? undefined, metadata: metaCopiable(s.metadata), promocion: promo?.id });
+      nuevo = await crearSuscripcion({ cliente: String(s.customer), cuota: rec.c, hoy: rec.h, finPrueba: rec.t ?? undefined, intervaloMeses: rec.m ?? 1, metadata: metaCopiable(s.metadata), promocion: promo?.id });
       // Marca para que el webhook no avise de una «suscripción terminada» que solo se ha sustituido.
       await stripe('POST', `/subscriptions/${id}`, { metadata: { sustituida_por: nuevo } }).catch(() => {});
       await stripe('DELETE', `/subscriptions/${id}`).catch((e) => console.error(`No se pudo cancelar la suscripción ${id}:`, e));

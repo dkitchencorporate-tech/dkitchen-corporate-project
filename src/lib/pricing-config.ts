@@ -29,35 +29,60 @@ export const QR_MENU = {
   },
   /** Primer mes simbólico, con tarjeta registrada desde la compra. No es gratis. */
   primerMes: 1,
+  /**
+   * Planes por cantidades (decisión A de karc0, 07/10; 0050). Ids internos
+   * históricos: basico = Carta, ampliado = Local. Cada plan trae «de todo un
+   * poco» con topes; la base deja un 10 % de cortesía antes de bloquear
+   * (dk.plan_tope_max) y la llamada al camarero nunca se corta.
+   * Espejo de dk.precio_plan y dk.plan_tope: si cambias aquí, cambia allí.
+   */
   planes: {
     basico: {
       id: 'basico',
-      nombre: 'Básico',
-      // 9€/mes — revisado en PARTE 11 (análisis competitivo PARTE 10: banda real
-      // de mercado en QR digital 4-12€/mes). Sustituye a los 19€ originales.
+      nombre: 'Carta',
       mensual: 9,
+      /** Sin 1 € el primer mes: se paga la cuota desde el primer día. */
+      primerMesSimbolico: false,
       topeProductos: 50,
+      topes: { productos: 50, mesas: 4, camareros: 0, reservasMes: 10, banners: 1 },
       plantillas: 3,
       personalizacionQr: false,
-      promocionesVisibles: false,
-      llamarCamarero: false,
+      promocionesVisibles: true,
+      llamarCamarero: true,
+      resumen: 'Carta digital con QR, reservas y aviso del camarero, ajustado a un local pequeño.',
     },
     ampliado: {
       id: 'ampliado',
-      nombre: 'Ampliado',
-      // 25€/mes — revisado en PARTE 11, sustituye a los 49€ originales.
-      mensual: 25,
+      nombre: 'Local',
+      mensual: 29,
+      /** El único con el primer mes a 1 € + IVA. */
+      primerMesSimbolico: true,
       topeProductos: 150,
+      topes: { productos: 150, mesas: 15, camareros: 3, reservasMes: 150, banners: 3 },
       plantillas: 3,
       personalizacionQr: true,
       promocionesVisibles: true,
       llamarCamarero: true,
-      // CONFIRMADO en PARTE 11: absorbidos sin coste adicional dentro de los
-      // 25€/mes — la antigua tarifa puente de +10€ (59€/mes total, ver
-      // motorReservas más abajo) queda retirada.
       sincronizacionGoogleBusiness: true,
       motorReservasIncluido: true,
       botonResenas: true,
+      resumen: 'Carta, reservas, plano de mesas y app de sala para hasta 3 camareros.',
+    },
+    sala: {
+      id: 'sala',
+      nombre: 'Sala',
+      mensual: 69,
+      primerMesSimbolico: false,
+      topeProductos: 300,
+      topes: { productos: 300, mesas: 40, camareros: 10, reservasMes: 500, banners: 3 },
+      plantillas: 3,
+      personalizacionQr: true,
+      promocionesVisibles: true,
+      llamarCamarero: true,
+      sincronizacionGoogleBusiness: true,
+      motorReservasIncluido: true,
+      botonResenas: true,
+      resumen: 'Todo incluido: TPV, Comandero Pro e idiomas, hasta 10 personas en el equipo.',
     },
   },
   /**
@@ -70,6 +95,26 @@ export const QR_MENU = {
   motorReservas: {
     retirado: true,
   },
+} as const;
+
+/**
+ * Fundador (decisiones de karc0 del 07/10; 0051): 40 % sobre Sala, cobrado por
+ * trimestre, vitalicio mientras siga activo en Sala y sin impagos. 100 plazas o
+ * 90 días desde que se abre en Central, lo primero. El estado vivo (abierto,
+ * quedan) lo da dk.fundador_estado(); esto son solo las cifras de texto.
+ */
+export type PlanQr = keyof typeof QR_MENU.planes;
+export const PLANES_QR = ['basico', 'ampliado', 'sala'] as const satisfies readonly PlanQr[];
+export const esPlanQr = (p: unknown): p is PlanQr => typeof p === 'string' && (PLANES_QR as readonly string[]).includes(p);
+export const nombrePlan = (p: string) => (esPlanQr(p) ? QR_MENU.planes[p].nombre : p);
+
+export const FUNDADOR = {
+  descuento: 0.4,
+  plan: 'sala' as const,
+  mensual: 41.4,
+  trimestre: 124.2,
+  plazas: 100,
+  dias: 90,
 } as const;
 
 /**
@@ -301,15 +346,10 @@ export const SERVICIOS_QR = {
   bonoIa: 9,
   imagenesBonoIa: 50,
   imagenesGratisIa: 3,
-  /** Comandero Pro (0045): histórico, descargas, anulaciones y ranking. 12 € + IVA al mes. Espejo de catalogo_servicios. */
-  comanderoPro: 12,
+  /** Comandero Pro (0045): histórico, descargas, anulaciones y ranking. Extra de Local (9 € + IVA al mes; 0050), incluido en Sala. Espejo de catalogo_servicios. */
+  comanderoPro: 9,
   /** Idiomas (hasta 3, traducidos por DKitchen): pago único. Espejo de catalogo_servicios (05/10). */
   idiomas: 29,
-  /** Módulos de sala (0027), mensuales y con plan Ampliado. Espejo de catalogo_servicios (05/10). */
-  planoMesas: 24,
-  appSala: 49,
-  conexionTpv: 59,
-  packSala: 119,
-  /** Suma de los tres módulos sueltos: el precio tachado del Pack Sala. */
-  packSalaAncla: 132,
+  /** Conexión con tu TPV: extra de Local (19 € + IVA al mes; 0050), incluida en Sala. Plano y app de sala van incluidos en Local. */
+  conexionTpv: 19,
 } as const;

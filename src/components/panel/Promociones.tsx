@@ -27,7 +27,7 @@ function resumenProgramacion(p: DatosPromocion): string {
 export default function Promociones({
   promociones, secciones, plan, platos = [],
 }: { promociones: Promocion[]; secciones: SeccionPropia[]; plan: string; platos?: { id: string; nombre: string }[] }) {
-  const ampliado = plan === 'ampliado';
+  const ampliado = plan !== 'basico';
   const [editando, setEditando] = useState<{ id: string | null; d: DatosPromocion } | null>(null);
   const [pendiente, iniciar] = useTransition();
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
@@ -98,7 +98,7 @@ export default function Promociones({
           <div className="space-y-2">
             <p className="text-xs font-semibold text-grafito">Botón del banner</p>
             <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="A dónde lleva el botón">
-              {([['ninguno', 'Sin botón'], ['seccion', 'A una sección'], ['plato', 'A un plato'], ...(ampliado ? [['reservar', 'A reservar']] : []), ['inicio', 'Solo el banner']] as [DatosPromocion['botonDestino'], string][]).map(([v, t]) => (
+              {([['ninguno', 'Sin botón'], ['seccion', 'A una sección'], ['plato', 'A un plato'], ['reservar', 'A reservar'], ['inicio', 'Solo el banner']] as [DatosPromocion['botonDestino'], string][]).map(([v, t]) => (
                 <button key={v} type="button" role="radio" aria-checked={d.botonDestino === v} onClick={() => set('botonDestino', v)}
                   className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${d.botonDestino === v ? 'border-tinta bg-tinta text-white' : 'border-linea bg-white'}`}>{t}</button>
               ))}
@@ -159,7 +159,7 @@ export default function Promociones({
             </div>
           ) : (
             <p className="rounded-lg bg-papel p-3 text-xs text-niebla">
-              Programar por días y horas (ej. «menú del día de lunes a viernes de 12 a 16 h») y tener varias promociones está en el plan Ampliado.
+              Programar por días y horas (ej. «menú del día de lunes a viernes de 12 a 16 h») y tener varias promociones está en el plan Local.
             </p>
           )}
 

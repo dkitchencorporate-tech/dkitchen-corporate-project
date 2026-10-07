@@ -101,7 +101,8 @@ export default async function CartaPublica({
   const fondo = FONDO[carta.estiloFondo ?? 'papel'] ?? FONDO.papel;
   const letra = carta.estiloLetra === 'serif' || plantilla === 'editorial' ? `carta-serif ${serifCarta.variable}` : '';
   const color = carta.colorMarca || '#6E0C2B';
-  const ampliado = carta.plan === 'ampliado';
+  // Reservas y llamada al camarero en todos los planes (0050); reseñas desde Local.
+  const ampliado = carta.plan !== 'basico';
 
   const grupos: SeccionCarta[] = [
     ...carta.secciones,
@@ -111,7 +112,7 @@ export default async function CartaPublica({
   const nombres = Object.fromEntries(alergenosEnCarta.map((a) => [a, nombreAlergeno(a)]));
   const fotoPortada = carta.portadaUrl || grupos.flatMap((g) => g.platos).find((p) => p.fotoUrl)?.fotoUrl || null;
   const ancho = plantilla === 'visual' ? 'max-w-5xl' : 'max-w-2xl';
-  const reservar = ampliado ? <Reservar slug={carta.slug} color={color} nombreLocal={carta.nombre} /> : null;
+  const reservar = <Reservar slug={carta.slug} color={color} nombreLocal={carta.nombre} />;
 
   return (
     <main className={`min-h-screen ${fondo} ${letra}`} style={{ '--marca': color } as CSSProperties}>
@@ -239,7 +240,7 @@ export default async function CartaPublica({
         </footer>
       </div>
 
-      {ampliado && <BotonesMesa slug={carta.slug} color={color} />}
+      <BotonesMesa slug={carta.slug} color={color} />
     </main>
   );
 }

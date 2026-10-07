@@ -81,8 +81,8 @@ export default async function Pago({ searchParams }: { searchParams: Promise<{ r
               </dl>
               {rec && rec.cuotaCentimos > 0 && (
                 <p className="mt-5 rounded-xl bg-papel px-4 py-3 text-[13px] leading-relaxed text-pizarra">
-                  Después, <strong className="text-tinta">{euros(rec.cuotaCentimos)} + IVA ({euros(Math.round(rec.cuotaCentimos * (1 + IVA_PORCENTAJE / 100)))}) al mes</strong>
-                  {rec.desde ? <>, con el primer cobro el <strong className="text-tinta">{fecha(rec.desde)}</strong> y después cada mes ese mismo día</> : null}.
+                  Después, <strong className="text-tinta">{euros(rec.cuotaCentimos)} + IVA ({euros(Math.round(rec.cuotaCentimos * (1 + IVA_PORCENTAJE / 100)))}) {rec.meses === 3 ? 'cada trimestre' : 'al mes'}</strong>
+                  {rec.desde ? <>, con el primer cobro el <strong className="text-tinta">{fecha(rec.desde)}</strong> y después {rec.meses === 3 ? 'cada 3 meses' : 'cada mes'} ese mismo día</> : null}.
                   Sin permanencia: das de baja la renovación desde tu panel cuando quieras.
                 </p>
               )}

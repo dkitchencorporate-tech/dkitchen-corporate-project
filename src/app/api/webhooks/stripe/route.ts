@@ -11,7 +11,7 @@ import { enviarCorreoInterno, enviarCorreoCliente, escaparHtml, filasCorreo } fr
 import { PRODUCTOS_PAGO, PRODUCTOS_WEBHOOK_GENERICO } from '@/lib/productos-pago';
 import { crearPedidoNivelB } from '@/lib/pedidos-nivel-b';
 import { dispararTuberiaPostPago } from '@/lib/tuberia-nivel-b';
-import { BASE_OPERATIVA } from '@/lib/pricing-config';
+import { BASE_OPERATIVA, esPlanQr, nombrePlan } from '@/lib/pricing-config';
 import { firmaWebhookValida, stripe, type ObjetoStripe } from '@/lib/payments/stripe';
 import { pasarSignatureAMantenimiento } from '@/lib/payments/cobros';
 
@@ -232,19 +232,20 @@ async function alta(ctx: Contexto) {
 
     case 'qr-upgrade': {
       try {
-        const aplicado = await comoAprovisionamiento(async (c) => (await c.query<{ ok: boolean }>('SELECT dk.aplicar_upgrade_ampliado($1, $2) AS ok', [meta.restauranteId, ctx.suscripcion ?? ctx.idPago])).rows[0]?.ok === true);
+        const destino = meta.planDestino === 'sala' ? 'sala' : 'ampliado';
+        const aplicado = await comoAprovisionamiento(async (c) => (await c.query<{ ok: boolean }>('SELECT dk.aplicar_cambio_plan($1, $2, $3) AS ok', [meta.restauranteId, destino, ctx.suscripcion ?? ctx.idPago])).rows[0]?.ok === true);
         // Reenvío de Stripe de un upgrade ya aplicado: nada que hacer.
         if (!aplicado) return ok({ duplicado: true });
-        // La Básica se cancela al momento: el día de cobro ya lo conserva la nueva.
+        // La anterior se cancela al momento: el día de cobro ya lo conserva la nueva.
         let anterior = 'sin suscripción anterior';
         if (meta.suscripcionAnterior?.startsWith('sub_')) {
           anterior = await stripe('DELETE', `/subscriptions/${meta.suscripcionAnterior}`, { prorate: false })
             .then(() => 'cancelada en Stripe')
             .catch((e) => `NO SE PUDO CANCELAR (${e instanceof Error ? e.message : e}): cancélala a mano en Stripe`);
         }
-        await enviarCorreoInterno(`UPGRADE A AMPLIADO: ${meta.restauranteNombre}`,
-          `<p><strong>${escaparHtml(meta.restauranteNombre)}</strong> (${escaparHtml(meta.email)}) ha pasado al plan Ampliado.</p>${filasCorreo([
-            ['Suscripción Básica', anterior], ['Suscripción nueva', ctx.suscripcion]])}`).catch(() => {});
+        await enviarCorreoInterno(`SUBIDA A ${nombrePlan(destino).toUpperCase()}: ${meta.restauranteNombre}`,
+          `<p><strong>${escaparHtml(meta.restauranteNombre)}</strong> (${escaparHtml(meta.email)}) ha pasado al plan ${nombrePlan(destino)}.</p>${filasCorreo([
+            ['Suscripción anterior', anterior], ['Suscripción nueva', ctx.suscripcion]])}`).catch(() => {});
       } catch (e) {
         console.error(`No se pudo aplicar el upgrade (${ctx.idPago}):`, e);
         return fallo('Fallo aplicando upgrade');
@@ -255,17 +256,41 @@ async function alta(ctx: Contexto) {
     case 'qr-menu':
       return altaQr(ctx);
 
+    case 'fundador':
+      return altaFundador(ctx);
+
     default:
       console.warn(`Webhook de Stripe: cobro ${ctx.idPago} sin producto conocido (${meta.producto ?? '¿?'}).`);
       return ok();
   }
 }
 
+/**
+ * Fundador (0051): misma alta que QR (plan Sala) y, después, la plaza. Si el
+ * programa se cerró entre el checkout y el pago, se respeta igual (ya ha
+ * pagado) y se avisa a karc0.
+ */
+async function altaFundador(ctx: Contexto) {
+  const res = await altaQr(ctx);
+  if (res.status !== 200 || !ctx.cliente) return res;
+  try {
+    const dentro = await comoAprovisionamiento(async (c) => (await c.query<{ ok: boolean }>('SELECT dk.fundador_marcar($1) AS ok', [ctx.cliente])).rows[0]?.ok === true);
+    if (!dentro) {
+      await enviarCorreoInterno(`FUNDADOR FUERA DE PLAZO: ${ctx.meta.restauranteNombre}`,
+        `<p>Ha pagado Fundador con el programa ya cerrado (plazas o plazo). Se le ha respetado el precio. Revisa en Central.</p>${filasCorreo([['Correo', ctx.meta.email], ['Cliente de Stripe', ctx.cliente], ['Suscripción', ctx.suscripcion]])}`).catch(() => {});
+    }
+  } catch (e) {
+    console.error(`No se pudo ocupar la plaza de Fundador (${ctx.idPago}):`, e);
+    return fallo('Fallo marcando Fundador');
+  }
+  return res;
+}
+
 async function altaQr(ctx: Contexto) {
   const { meta } = ctx;
   const { plan, restauranteNombre, slugBase, nombreContacto, email } = meta;
   const base = { idPago: ctx.idPago, idEvento: ctx.idEvento, referenciaCliente: ctx.cliente, email, restauranteNombre, nombreContacto };
-  if (plan !== 'basico' && plan !== 'ampliado') {
+  if (!esPlanQr(plan)) {
     await avisarAltaQr('fallo', base, `Pago sin plan válido en la metadata (plan=${String(plan)})`);
     return ok();
   }

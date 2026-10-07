@@ -1,4 +1,5 @@
 import 'server-only';
+import { nombrePlan } from '@/lib/pricing-config';
 import { enviarCorreoCliente, escaparHtml } from '@/lib/email';
 
 /**
@@ -12,7 +13,7 @@ export async function enviarBienvenidaQr(email: string, nombre: string, local: s
     email,
     `Bienvenido a DKitchen · ${local}`,
     `<p style="margin:0 0 12px">Hola ${escaparHtml(nombre)},</p>
-     <p style="margin:0 0 12px">Ya está creada la carta digital de <strong>${escaparHtml(local)}</strong> (plan ${plan === 'ampliado' ? 'Ampliado' : 'Básico'}). Solo te falta un paso para entrar en tu panel:</p>
+     <p style="margin:0 0 12px">Ya está creada la carta digital de <strong>${escaparHtml(local)}</strong> (plan ${escaparHtml(nombrePlan(plan))}). Solo te falta un paso para entrar en tu panel:</p>
      <ol style="margin:0 0 12px;padding-left:20px">
        <li style="margin-bottom:6px"><strong>Crea tu contraseña.</strong> En unos minutos recibirás otro correo nuestro, en inglés, con el asunto <em>«Reset your password»</em>. Pulsa su botón y elige tu contraseña. Si no lo ves, revisa la carpeta de spam.</li>
        <li style="margin-bottom:6px"><strong>Entra en tu panel</strong> con tu correo y esa contraseña.</li>

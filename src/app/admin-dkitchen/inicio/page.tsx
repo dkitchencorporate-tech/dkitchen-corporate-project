@@ -3,6 +3,7 @@ import { exigirAdmin } from '@/lib/guard-admin';
 import { listarClientesQr, type ClienteQr } from '@/lib/admin-clientes';
 import { comoCliente } from '@/lib/db';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
+import { QR_MENU } from '@/lib/pricing-config';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,7 @@ export const dynamic = 'force-dynamic';
  * lista de a quién atender hoy. Todo sale de la base en cada visita.
  * Umbrales de subida según DKITCHEN_ESTRATEGIA_PRECIOS_ESCALERA (§7).
  */
-const PRECIO: Record<string, number> = { basico: 9, ampliado: 25 };
+const PRECIO: Record<string, number> = { basico: QR_MENU.planes.basico.mensual, ampliado: QR_MENU.planes.ampliado.mensual, sala: QR_MENU.planes.sala.mensual };
 type Capacidad = { bytes_base: string; conexiones: number; max_conexiones: number; restaurantes: string; platos: string; escaneos_30d: string; escaneos_total: string };
 
 /** Límites del plan actual de Neon (Free: 0,5 GB y 0,25 CU fijo). Si cambias de plan, actualiza aquí. */
@@ -121,7 +122,7 @@ export default async function CentralInicio() {
 
       <div className="grid gap-3 lg:grid-cols-3">
         <Lista titulo="Listos para Signature" vacio="Ningún cliente supera 600 escaneos al mes todavía." filas={signature} accion="Umbral de la escalera: 600 escaneos/mes sostenidos." />
-        <Lista titulo="Listos para Ampliado" vacio="Ningún Básico supera 150 escaneos al mes." filas={ampliado} />
+        <Lista titulo="Listos para Local" vacio="Ningún Carta supera 150 escaneos al mes." filas={ampliado} />
         <Lista titulo="Sin actividad" vacio="Todos los clientes tienen escaneos este mes." filas={dormidos} accion="Clientes con más de 14 días y 0 escaneos: escríbeles antes de que se vayan." />
       </div>
 

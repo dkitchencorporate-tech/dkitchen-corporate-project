@@ -7,6 +7,7 @@ const MENSAJES: Record<string, string> = {
   duplicada: 'Ya hemos recibido tu reserva hace un momento.',
   datos_invalidos: 'Revisa los datos: nombre, teléfono, fecha, hora y personas.',
   no_disponible: 'Este local no acepta reservas online ahora mismo. Llámales directamente.',
+  tope_plan: 'Este mes el local ya no admite más reservas online. Llámales directamente y te atienden.',
   limite: 'Demasiados intentos. Espera unos minutos.',
   error: 'No se pudo enviar. Inténtalo de nuevo o llama al local.',
 };

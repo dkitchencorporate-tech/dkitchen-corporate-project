@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import type { ResumenCobro } from '@/lib/prueba';
+import { nombrePlan } from '@/lib/pricing-config';
 import { quedarmeConTodoAction, portalFacturasAction } from '@/app/panel/actions';
 
 /**
@@ -85,7 +86,7 @@ export function DesgloseCobro({ cobro }: { cobro: ResumenCobro | null }) {
         </div>
       </div>
       <ul className="mt-4 divide-y divide-linea text-sm">
-        <li className="flex justify-between gap-3 py-2"><span>Plan {cobro.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</span><span className="text-niebla">{euros(cobro.precio_plan)}/mes</span></li>
+        <li className="flex justify-between gap-3 py-2"><span>Plan {nombrePlan(cobro.plan)}</span><span className="text-niebla">{euros(cobro.precio_plan)}/mes</span></li>
         {cobro.items.map((i) => (
           <li key={i.servicio} className="flex justify-between gap-3 py-2">
             <span>{i.nombre}{i.origen !== 'pago' && <span className="ml-1.5 rounded-full bg-exito/10 px-2 py-0.5 text-[11px] font-semibold text-exito">{i.origen === 'regalo' ? 'incluido gratis' : 'demo'}</span>}</span>

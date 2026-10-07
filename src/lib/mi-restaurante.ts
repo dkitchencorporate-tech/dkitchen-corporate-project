@@ -7,6 +7,8 @@ export interface MiRestaurante {
   nombre: string;
   logoUrl: string | null;
   plan: string;
+  /** Precio Fundador vigente (0051): plan Sala al 40 %, por trimestre. */
+  fundador?: boolean;
   activo: boolean;
   colorMarca: string | null;
   estadoAcceso: string;
@@ -37,6 +39,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       nombre: string;
       logo_url: string | null;
       plan: string;
+      fundador: boolean;
       activo: boolean;
       color_marca: string | null;
       estado_acceso: string;
@@ -56,7 +59,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       estilo_fondo: string;
       estilo_letra: string;
     }>(
-      `SELECT id, slug, nombre, logo_url, plan, activo, color_marca, estado_acceso,
+      `SELECT id, slug, nombre, logo_url, plan, (fundador_desde IS NOT NULL AND fundador_perdido_en IS NULL) AS fundador, activo, color_marca, estado_acceso,
               descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en, estilo_fondo, estilo_letra, portada_url, portada_con_nombre
          FROM restaurantes
         WHERE propietario = dk.identidad_actual()`
@@ -69,6 +72,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       nombre: fila.nombre,
       logoUrl: fila.logo_url,
       plan: fila.plan,
+      fundador: fila.fundador === true,
       activo: fila.activo,
       colorMarca: fila.color_marca,
       estadoAcceso: fila.estado_acceso,

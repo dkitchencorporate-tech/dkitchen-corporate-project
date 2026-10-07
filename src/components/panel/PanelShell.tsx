@@ -39,6 +39,7 @@ import type { Reserva } from '@/lib/reservas';
 import { authClient } from '@/lib/auth-client';
 import ChatAyuda, { abrirAyuda } from '@/components/ayuda/ChatAyuda';
 import { TEMAS_PANEL } from '@/lib/ayuda';
+import { nombrePlan } from '@/lib/pricing-config';
 import { crearTicketAyudaAction, comprarServicioAction } from '@/app/panel/actions';
 
 type Pestana = 'inicio' | 'pedidos' | 'carta' | 'estudio' | 'local' | 'promociones' | 'reservas' | 'equipo' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
@@ -125,7 +126,7 @@ export default function PanelShell({
     id === 'sala' ? modulos.plano || modulos.app || modulos.tpv
     : id === 'pedidos' || id === 'equipo' ? modulos.app
     : id === 'idiomas' ? tieneServ('idiomas')
-    : (id !== 'camarero' && id !== 'reservas') || restaurante.plan === 'ampliado';
+    : true;
   const [pestana, setPestanaBase] = useState<Pestana>('inicio');
   const [menu, setMenu] = useState(false);
   // B4: la lista de reservas se refresca en vivo (AvisoReservas) y «→» abre una en concreto
@@ -201,15 +202,15 @@ export default function PanelShell({
 
       <div className="min-w-0">
         {/* Alarma de llamadas de mesa en todo el panel (B1, 07/10): suena en bucle hasta que se atienden */}
-        {restaurante.plan === 'ampliado' && !demo && <AlarmaLlamadas enLlamadas={pestana === 'camarero'} irALlamadas={() => setPestana('camarero')} />}
+        {!demo && <AlarmaLlamadas enLlamadas={pestana === 'camarero'} irALlamadas={() => setPestana('camarero')} />}
         {montaje && tut && <TutorialMontaje demo={demo} inicial={tut} pestana={pestana} irA={irATutorial} onBloqueo={alBloquear} avisoBloqueo={avisoBloqueo} onCompletado={(t) => { bloqueo.current = null; setTut(t); setPestana('inicio'); }} />}
-        {restaurante.plan === 'ampliado' && <AvisoReservas demo={demo} arriba={montaje} reservas={reservasVivas} whatsapp={restaurante.whatsapp} onReservas={setReservasVivas} abrir={(id) => { setReservaAbrir(id); setPestana('reservas'); }} />}
+        <AvisoReservas demo={demo} arriba={montaje} reservas={reservasVivas} whatsapp={restaurante.whatsapp} onReservas={setReservasVivas} abrir={(id) => { setReservaAbrir(id); setPestana('reservas'); }} />
         {/* Cabecera */}
         <header className="sticky top-0 z-30 border-b border-linea bg-crema/90 backdrop-blur-xl">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
             <div className="min-w-0">
               <p className="truncate text-[15px] font-semibold">{restaurante.nombre}</p>
-              <p className="text-xs text-niebla">{espacio?.nombre}{espacio && espacio.items.length > 1 ? ` · ${titulo}` : ''} · plan {restaurante.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</p>
+              <p className="text-xs text-niebla">{espacio?.nombre}{espacio && espacio.items.length > 1 ? ` · ${titulo}` : ''} · plan {nombrePlan(restaurante.plan)}</p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <a href={`/m/${restaurante.slug}`} target="_blank" rel="noopener" className="hidden rounded-full border border-linea-fuerte bg-white px-4 py-2 text-sm font-medium sm:inline-flex lg:hidden">Ver carta</a>

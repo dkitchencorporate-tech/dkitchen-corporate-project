@@ -2,10 +2,11 @@ import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { listarClientesQr } from '@/lib/admin-clientes';
 import NuevoCliente from '@/components/admin/NuevoCliente';
+import { QR_MENU } from '@/lib/pricing-config';
 
 export const dynamic = 'force-dynamic';
 
-const PRECIO: Record<string, number> = { basico: 9, ampliado: 25 };
+const PRECIO: Record<string, number> = { basico: QR_MENU.planes.basico.mensual, ampliado: QR_MENU.planes.ampliado.mensual, sala: QR_MENU.planes.sala.mensual };
 const fecha = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
 const COLOR_ESTADO: Record<string, string> = {
   activo: 'bg-green-500/15 text-green-700',

@@ -32,7 +32,8 @@ import {
 } from '@/lib/promociones';
 import { cambiarEstadoReserva as dbCambiarEstadoReserva, marcarAvisada as dbMarcarAvisada, listarMisReservas } from '@/lib/reservas';
 import { avisarEstadoAlCliente, whatsappParaCliente } from '@/lib/correos-reserva';
-import { crearCheckoutServicio, crearCheckoutUpgradeAmpliado, crearCheckoutEnlaceAdmin } from '@/lib/payments/cobros';
+import { crearCheckoutServicio, crearCheckoutCambioPlan, crearCheckoutEnlaceAdmin } from '@/lib/payments/cobros';
+import { PLANES_QR, esPlanQr } from '@/lib/pricing-config';
 import { cancelarTodoAlFinalDelPeriodo, suscripcionesVivas, urlPortalCliente } from '@/lib/payments/stripe';
 import { quedarmeConTodo, fijarUrlPrueba } from '@/lib/prueba';
 import { estadoServicios, tiene, registrarOferta as dbRegistrarOferta, type Servicio } from '@/lib/servicios';
@@ -235,12 +236,21 @@ export async function actualizarLocalAction(d: DatosLocal) {
 }
 
 export async function iniciarUpgradeAmpliadoAction(): Promise<{ url: string }> {
+  return iniciarCambioPlanAction('ampliado');
+}
+
+/** Subida de plan (Carta → Local → Sala, 0050). Bajar de plan se pide por Soporte. */
+export async function iniciarCambioPlanAction(destino: 'ampliado' | 'sala'): Promise<{ url: string }> {
+  if (destino !== 'ampliado' && destino !== 'sala') throw new Error('Plan no válido.');
   const { jwt, identidad, restaurante } = await requerirSesionYRestaurante();
-  if (restaurante.plan === 'ampliado') throw new Error('Ya tienes el plan Ampliado.');
-  // La suscripción Básica viva en Stripe: la nueva conserva su día de cobro y el webhook la cancela.
+  const actual = esPlanQr(restaurante.plan) ? restaurante.plan : 'basico';
+  if (PLANES_QR.indexOf(destino) <= PLANES_QR.indexOf(actual)) throw new Error('Ya tienes ese plan o uno superior.');
+  // La suscripción viva en Stripe: la nueva conserva su día de cobro y el webhook la cancela.
   const cliente = await clienteStripe(jwt, restaurante.id);
-  const basica = cliente ? (await suscripcionesVivas(cliente).catch(() => [])).find((x) => ['qr-menu', 'enlace-admin'].includes(String(x.metadata?.producto))) : undefined;
-  return crearCheckoutUpgradeAmpliado({
+  const basica = cliente ? (await suscripcionesVivas(cliente).catch(() => [])).find((x) => ['qr-menu', 'enlace-admin', 'qr-upgrade'].includes(String(x.metadata?.producto))) : undefined;
+  return crearCheckoutCambioPlan({
+    planActual: actual,
+    planDestino: destino,
     restauranteId: restaurante.id,
     restauranteNombre: restaurante.nombre,
     email: identidad.email,
@@ -282,7 +292,7 @@ export async function quedarmeConTodoAction(): Promise<{ url?: string; error?: s
     const nombres: Record<string, string> = { pack_sala: 'Pack Sala', plano_mesas: 'Plano de mesas', app_sala: 'App de sala', conexion_tpv: 'Conexión TPV' };
     const { url } = await crearCheckoutEnlaceAdmin({
       enlaceId: p.enlace, restauranteId: restaurante.id, restauranteNombre: restaurante.nombre, email: identidad.email,
-      concepto: ['Plan Ampliado', ...p.servicios.map((x) => nombres[x] ?? x)].join(' + '),
+      concepto: ['Plan Sala', ...p.servicios.map((x) => nombres[x] ?? x)].join(' + '),
       primerCentimos: p.primer, mensualCentimos: p.mensual, diasGratis: p.dias,
       origen: process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es',
     });
@@ -296,7 +306,6 @@ export async function quedarmeConTodoAction(): Promise<{ url?: string; error?: s
 
 export async function llamadasPendientesAction() {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
-  if (restaurante.plan !== 'ampliado') return [];
   return llamadasPendientes(jwt, restaurante.id);
 }
 
@@ -328,7 +337,6 @@ export async function tutorialCompletarAction() {
 /** Reservas en tiempo real (B4): el panel las vuelve a pedir cada 10 s. */
 export async function misReservasAction() {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
-  if (restaurante.plan !== 'ampliado') return [];
   return listarMisReservas(jwt, restaurante.id);
 }
 
@@ -346,7 +354,7 @@ export async function atenderLlamadaAction(llamadaId: string) {
 function mensajeBase(error: unknown): never {
   const m = error instanceof Error ? error.message : '';
   // Los RAISE de 0023 ya vienen redactados para el cliente.
-  if (/plan|promoción|banner|Ampliado/i.test(m)) throw new Error(m);
+  if (/plan|promoción|banner|Local|Sala/i.test(m)) throw new Error(m);
   throw new Error('No se pudo guardar. Revisa los datos e inténtalo de nuevo.');
 }
 
@@ -454,7 +462,7 @@ export async function comprarServicioAction(servicio: Servicio): Promise<{ url: 
   const item = estado.catalogo.find((c) => c.servicio === servicio);
   if (!item) throw new Error('Servicio no disponible.');
   if (tiene(estado.contratados, servicio) || (servicio === 'comandero_pro' && estado.comanderoPro)) throw new Error('Ya tienes este servicio.');
-  if (item.requiereAmpliado && restaurante.plan !== 'ampliado') throw new Error('Los Módulos de Sala requieren el plan Ampliado.');
+  if (item.requiereAmpliado && restaurante.plan === 'basico') throw new Error('Este extra requiere el plan Local.');
   const origen = process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es';
   await dbRegistrarOferta(jwt, servicio, 'aceptada').catch(() => {});
   return crearCheckoutServicio({

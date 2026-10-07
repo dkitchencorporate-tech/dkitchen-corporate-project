@@ -4,35 +4,39 @@ import { FondoVivo, TextoRevelado, BotonMagnetico } from '@/components/dk/Movimi
 import Aparecer from '@/components/qr-landing/Aparecer';
 import { Titulo } from '@/components/dk/Bloques';
 import {
-  QR_MENU, QR_FISICOS, SERVICIOS_QR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES, DARK_KITCHEN, formatPrecio,
+  QR_MENU, QR_FISICOS, SERVICIOS_QR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES, DARK_KITCHEN, FUNDADOR, formatPrecio,
 } from '@/lib/pricing-config';
+import { estadoFundador } from '@/lib/fundador';
+import ContadorFundador from '@/components/fundador/ContadorFundador';
+
+// El contador Fundador sale de la base: la página se regenera cada 5 minutos.
+export const revalidate = 300;
 
 /**
  * Página de precios (SEO bloque 2, 05/10/2026). Todo el catálogo en una sola
  * página, sin un solo importe escrito a mano: sale de pricing-config (y de su
  * espejo SERVICIOS_QR, que copia catalogo_servicios). Todos los precios + IVA.
- * La oferta Fundador NO va aquí hasta que karc0 la cierre (§3.11 del ESTADO).
+ * Fundador (0051): el bloque solo aparece con el programa abierto en Central.
  */
 const URL_PRECIOS = 'https://dkitchencorporate.es/precios';
 const eur = (n: number) => formatPrecio(n) as string;
 
 export const metadata: Metadata = {
   title: 'Precios: carta QR y app propia para restaurantes · DKitchen',
-  description: `Carta QR desde ${QR_MENU.planes.basico.mensual} €/mes y primer mes a ${QR_MENU.primerMes} €. App propia desde ${BASE_OPERATIVA.pagoUnico} €. Módulos de sala y eventos. Sin comisiones. Precios + IVA.`,
+  description: `Carta QR desde ${QR_MENU.planes.basico.mensual} €/mes; plan ${QR_MENU.planes.ampliado.nombre} con el primer mes a ${QR_MENU.primerMes} €. App propia desde ${BASE_OPERATIVA.pagoUnico} €. Módulos de sala y eventos. Sin comisiones. Precios + IVA.`,
   alternates: { canonical: URL_PRECIOS },
 };
 
 type Linea = { nombre: string; detalle: string; precio: string; ancla?: string; mensual?: number };
 
+const { basico: PC, ampliado: PL, sala: PS } = QR_MENU.planes;
 const QR_PLANES = [
-  { id: QR_MENU.planes.basico.id, nombre: QR_MENU.planes.basico.nombre, mensual: QR_MENU.planes.basico.mensual, puntos: [`Hasta ${QR_MENU.planes.basico.topeProductos} platos`, 'Carta con fotos, precios y alérgenos', 'La cambias cuando quieras desde el móvil', 'QR que nunca reimprimes'] },
-  { id: QR_MENU.planes.ampliado.id, nombre: QR_MENU.planes.ampliado.nombre, mensual: QR_MENU.planes.ampliado.mensual, destacado: true, puntos: [`Hasta ${QR_MENU.planes.ampliado.topeProductos} platos`, 'Promociones visibles y QR con tu marca', 'Llamada al camarero desde la mesa', 'Reservas, botón de reseñas y Google Business'] },
+  { id: PC.id, nombre: PC.nombre, mensual: PC.mensual, unEuro: false, puntos: [`Hasta ${PC.topes.productos} platos y ${PC.topes.mesas} mesas`, `${PC.topes.reservasMes} reservas al mes`, 'Aviso del camarero en tu panel', 'Fotos, precios y alérgenos'] },
+  { id: PL.id, nombre: PL.nombre, mensual: PL.mensual, unEuro: true, destacado: true, puntos: [`Hasta ${PL.topes.productos} platos y ${PL.topes.mesas} mesas con plano`, `App de sala para ${PL.topes.camareros} camareros`, `${PL.topes.reservasMes} reservas al mes`, 'Banners programables y reseñas de Google'] },
+  { id: PS.id, nombre: PS.nombre, mensual: PS.mensual, unEuro: false, puntos: [`Hasta ${PS.topes.productos} platos y ${PS.topes.mesas} mesas`, `${PS.topes.camareros} personas en el equipo`, `${PS.topes.reservasMes} reservas al mes`, 'TPV, Comandero Pro e idiomas incluidos'] },
 ];
 
 const MODULOS: Linea[] = [
-  { nombre: 'Pack Sala Completo', detalle: 'Plano de mesas + app de sala + conexión con tu TPV', precio: `${eur(SERVICIOS_QR.packSala)}/mes`, mensual: SERVICIOS_QR.packSala, ancla: `${eur(SERVICIOS_QR.packSalaAncla)}/mes` },
-  { nombre: 'Plano de mesas', detalle: 'Tus mesas en pantalla, con su estado en vivo', precio: `${eur(SERVICIOS_QR.planoMesas)}/mes`, mensual: SERVICIOS_QR.planoMesas },
-  { nombre: 'App de sala', detalle: 'Comandero para tus camareros: rondas por mesa a cocina o TPV', precio: `${eur(SERVICIOS_QR.appSala)}/mes`, mensual: SERVICIOS_QR.appSala },
   { nombre: 'Conexión con tu TPV', detalle: 'Las comandas entran solas en el TPV que ya usas', precio: `${eur(SERVICIOS_QR.conexionTpv)}/mes`, mensual: SERVICIOS_QR.conexionTpv },
   { nombre: 'Comandero Pro', detalle: 'Histórico con filtros, Excel y CSV, anulaciones y ranking de camareros', precio: `${eur(SERVICIOS_QR.comanderoPro)}/mes`, mensual: SERVICIOS_QR.comanderoPro },
 ];
@@ -96,7 +100,8 @@ function Tabla({ titulo, sub, filas }: { titulo: string; sub: string; filas: Lin
   );
 }
 
-export default function PaginaPrecios() {
+export default async function PaginaPrecios() {
+  const fundador = await estadoFundador();
   const mensual = (precio: number) => ({ '@type': 'UnitPriceSpecification', price: precio, priceCurrency: 'EUR', valueAddedTaxIncluded: false, unitCode: 'MON', referenceQuantity: { '@type': 'QuantitativeValue', value: 1, unitCode: 'MON' } });
   const producto = (nombre: string, url: string, offers: object) => ({ '@type': 'Product', name: nombre, url, brand: { '@type': 'Brand', name: 'DKitchen' }, offers: { '@type': 'Offer', priceCurrency: 'EUR', availability: 'https://schema.org/InStock', url, ...offers } });
   const ld = [
@@ -144,8 +149,8 @@ export default function PaginaPrecios() {
 
       <section id="carta-qr" className="scroll-mt-20 bg-crema py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <Titulo etiqueta="01 · Carta digital QR" texto="Tu carta al día, desde el móvil." sub={`Alta de ${eur(QR_MENU.setup.precio)} incluida. Primer mes ${eur(QR_MENU.primerMes)}, después la cuota de tu plan.`} />
-          <div className="mt-14 grid gap-5 md:grid-cols-2">
+          <Titulo etiqueta="01 · Carta digital QR" texto="Planes por tamaño, no por módulos." sub={`Alta de ${eur(QR_MENU.setup.precio)} incluida. Con ${PL.nombre}, el primer mes cuesta ${eur(QR_MENU.primerMes)}.`} />
+          <div className="mt-14 grid gap-5 md:grid-cols-3">
             {QR_PLANES.map((p, i) => (
               <Aparecer key={p.id} retraso={i * 0.08}>
                 <div className={`relative h-full overflow-hidden rounded-[28px] border p-8 md:p-10 ${p.destacado ? 'border-tinta bg-noche text-white' : 'border-linea bg-white'}`}>
@@ -155,18 +160,31 @@ export default function PaginaPrecios() {
                   <ul className={`relative mt-7 space-y-3 ${p.destacado ? 'text-white/75' : 'text-grafito'}`}>
                     {p.puntos.map((x) => <li key={x} className="flex gap-3"><span aria-hidden="true" className="text-vino">✓</span>{x}</li>)}
                   </ul>
-                  <Link href="/qr#planes" className={`relative mt-9 inline-flex rounded-full px-7 py-3.5 text-[15px] font-semibold ${p.destacado ? 'bg-vino text-white' : 'bg-tinta text-white'}`}>Empezar con {p.nombre} por {eur(QR_MENU.primerMes)} →</Link>
+                  <Link href="/qr#planes" className={`relative mt-9 inline-flex rounded-full px-7 py-3.5 text-[15px] font-semibold ${p.destacado ? 'bg-vino text-white' : 'bg-tinta text-white'}`}>{p.unEuro ? `Empezar con ${p.nombre} por ${eur(QR_MENU.primerMes)}` : `Empezar con ${p.nombre}`} →</Link>
                 </div>
               </Aparecer>
             ))}
           </div>
+
+          {fundador?.abierto && (
+            <Aparecer>
+              <div className="mt-10 flex flex-col gap-5 rounded-[28px] border border-vino/40 bg-vino/[0.06] p-7 md:flex-row md:items-center md:justify-between md:p-9">
+                <div>
+                  <p className="etiqueta-dk text-vino">Oferta Fundador · plazas limitadas</p>
+                  <p className="font-display mt-3 text-3xl font-semibold leading-tight md:text-4xl">Plan {PS.nombre} al 40 % de por vida: {eur(FUNDADOR.mensual)}/mes</p>
+                  <p className="mt-2 text-sm text-niebla">{eur(FUNDADOR.trimestre)} + IVA por trimestre, mientras sigas en {PS.nombre}. Condiciones en <Link href="/terms#fundador" className="underline">las condiciones del servicio</Link>.</p>
+                </div>
+                <ContadorFundador quedan={fundador.quedan} plazas={fundador.plazas} cierraEn={fundador.cierraEn} />
+              </div>
+            </Aparecer>
+          )}
 
           <div id="modulos" className="scroll-mt-20 mt-24 border-t border-linea pt-16">
             <p className="etiqueta-dk text-vino">02 · Módulos y extras de la carta QR</p>
             <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl">Suma solo lo que tu sala necesita.</h2>
           </div>
           <div className="mt-12 grid gap-14 md:grid-cols-2">
-            <Tabla titulo="Módulos de sala" sub={`Mensuales · con el plan ${QR_MENU.planes.ampliado.nombre} · se activan desde tu panel`} filas={MODULOS} />
+            <Tabla titulo="Extras del plan Local" sub={`Mensuales · incluidos en el plan ${PS.nombre} · se activan desde tu panel`} filas={MODULOS} />
             <Tabla titulo="Servicios y extras" sub="Pago único · sin suscripción" filas={SERVICIOS} />
           </div>
         </div>

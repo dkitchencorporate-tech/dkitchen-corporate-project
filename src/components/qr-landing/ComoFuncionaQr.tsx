@@ -18,7 +18,7 @@ const CURVA = [0.22, 1, 0.36, 1] as [number, number, number, number];
 function PantallaAlta() {
   return (
     <div className="flex h-full flex-col bg-crema p-6 text-[#1A1714]">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-vino">QR Menú · Plan Ampliado</p>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-vino">QR Menú · Plan Local</p>
       <p className="font-display mt-2 text-2xl font-semibold">Activa tu carta</p>
       <div className="mt-4 flex items-baseline justify-between rounded-2xl border border-linea bg-white px-4 py-3">
         <span className="text-sm font-semibold">Primer mes</span><span className="font-display text-2xl font-semibold">1 €</span>

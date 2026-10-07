@@ -10,10 +10,10 @@ import { registrarOfertaAction } from '@/app/panel/actions';
 import { TEXTOS_OFERTA } from './OfertaFranja';
 import { Contador } from '@/components/dk/Movimiento';
 import { Icono } from './Iconos';
-import { QR_MENU, SERVICIOS_QR } from '@/lib/pricing-config';
+import { QR_MENU, nombrePlan } from '@/lib/pricing-config';
 
-// Ampliado + Pack Sala + Comandero Pro: lo que paga un cliente QR con todos los módulos.
-const QR_CON_TODO = QR_MENU.planes.ampliado.mensual + SERVICIOS_QR.packSala + SERVICIOS_QR.comanderoPro;
+// Plan Sala: lo que paga un cliente QR con todo incluido (0050).
+const QR_CON_TODO = QR_MENU.planes.sala.mensual;
 
 /**
  * Inicio del panel (rediseño 29/09/2026, ref. REFERENCIAS_DASHBOARD_Y_WEB):
@@ -49,7 +49,7 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
   const serie = escaneos30d.map((d) => d.total);
   const semana = serie.slice(-7).reduce((a, b) => a + b, 0);
   const oferta = servicios.oferta?.oferta;
-  const ampliado = restaurante.plan === 'ampliado';
+  const ampliado = restaurante.plan !== 'basico';
   useEffect(() => { if (oferta) registrarOfertaAction(oferta, 'mostrada').catch(() => {}); }, [oferta]);
 
   const pasos: { t: string; hecho: boolean; ir: Parameters<Ir>[0] }[] = [
@@ -81,19 +81,11 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
             <Mini datos={serie.length ? serie : [0, 0]} />
           </div>
         </motion.button>
-        {ampliado ? (
-          <motion.button {...entra(1)} onClick={() => ir('reservas')} className={`${tarjeta} text-left`}>
+        <motion.button {...entra(1)} onClick={() => ir('reservas')} className={`${tarjeta} text-left`}>
             <p className="text-xs text-niebla">Reservas por confirmar</p>
             <p className={`mt-2 font-display text-4xl font-semibold tabular-nums ${pendientes ? 'text-vino' : ''}`}><Contador hasta={pendientes} /></p>
             <p className="mt-1 text-xs text-niebla">{deHoy.length} para hoy</p>
           </motion.button>
-        ) : (
-          <motion.button {...entra(1)} onClick={() => ir('qr')} className={`${tarjeta} text-left`}>
-            <p className="text-xs text-niebla">Tu QR</p>
-            <p className="mt-2 text-lg font-semibold">Descargar e imprimir</p>
-            <p className="mt-1 text-xs text-niebla">Nunca cambia</p>
-          </motion.button>
-        )}
         <motion.button {...entra(2)} onClick={() => ir('carta')} className={`${tarjeta} text-left`}>
           <p className="text-xs text-niebla">Platos en tu carta</p>
           <p className="font-display mt-2 text-4xl font-semibold tabular-nums"><Contador hasta={activos} /></p>
@@ -139,14 +131,14 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
         ) : (
           <motion.section {...entra(4)} className={tarjeta}>
             <p className="text-xs text-niebla">Tu cuenta</p>
-            <p className="mt-3 text-lg font-semibold">Plan {ampliado ? 'Ampliado' : 'Básico'}</p>
+            <p className="mt-3 text-lg font-semibold">Plan {nombrePlan(restaurante.plan)}{restaurante.fundador ? ' · Fundador' : ''}</p>
             <p className="mt-1 text-sm text-niebla">Todo al día.</p>
             <button onClick={() => ir('plan')} className="mt-5 rounded-full border border-linea-fuerte px-5 py-2.5 text-sm font-semibold">Ver mi plan</button>
           </motion.section>
         )}
       </div>
 
-      {ampliado && deHoy.length > 0 && (
+      {deHoy.length > 0 && (
         <motion.section {...entra(5)} className={tarjeta}>
           <div className="flex items-center justify-between">
             <p className="text-xs text-niebla">Reservas de hoy</p>

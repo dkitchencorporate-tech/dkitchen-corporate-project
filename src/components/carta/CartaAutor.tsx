@@ -30,7 +30,7 @@ const versalitas = 'text-[11px] font-medium uppercase tracking-[0.28em]';
 export default function CartaAutor({
   carta, banners, desdeRespaldo = false, vistaPrevia = false, legal = false }: { carta: Carta; banners: Banner[]; desdeRespaldo?: boolean; vistaPrevia?: boolean; legal?: boolean }) {
   const color = carta.colorMarca || '#8A5A2B';
-  const ampliado = carta.plan === 'ampliado';
+  const ampliado = carta.plan !== 'basico';
   const grupos: SeccionCarta[] = [
     ...carta.secciones,
     ...(carta.sueltos.length > 0 ? [{ id: 'otros', nombre: 'Otros platos', platos: carta.sueltos }] : []),
@@ -59,7 +59,7 @@ export default function CartaAutor({
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={carta.logoUrl} alt={carta.nombre} className="h-11 w-11 rounded-full object-cover ring-1 ring-white/40" />
             ) : <span />}
-            {ampliado && !vistaPrevia && <Reservar slug={carta.slug} color={color} nombreLocal={carta.nombre} />}
+            {!vistaPrevia && <Reservar slug={carta.slug} color={color} nombreLocal={carta.nombre} />}
           </div>
           <div className="absolute inset-x-0 bottom-0 px-6 pb-10 text-center text-white sm:pb-14">
             <p className={`${versalitas} text-white/75`}>La carta</p>
@@ -167,7 +167,7 @@ export default function CartaAutor({
         </footer>
       </div>
 
-      {ampliado && !vistaPrevia && <BotonesMesa slug={carta.slug} color={color} />}
+      {!vistaPrevia && <BotonesMesa slug={carta.slug} color={color} />}
     </main>
   );
 }

@@ -4,27 +4,19 @@ import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import type { EstadoServicios } from '@/lib/servicios';
+import { QR_MENU, FUNDADOR, PLANES_QR, esPlanQr, type PlanQr } from '@/lib/pricing-config';
 import SaltoSignature from './SaltoSignature';
-import { iniciarUpgradeAmpliadoAction, solicitarBajaAction } from '@/app/panel/actions';
+import { iniciarCambioPlanAction, solicitarBajaAction } from '@/app/panel/actions';
 
-const PLANES = {
-  basico: {
-    nombre: 'Básico',
-    precio: 9,
-    funciones: ['Carta digital ilimitada con fotos y alérgenos', 'QR descargable y QR físico', 'Estadísticas de escaneos', 'Soporte por ticket'],
-  },
-  ampliado: {
-    nombre: 'Ampliado',
-    precio: 25,
-    funciones: [
-      'Todo lo del plan Básico',
-      'Llamar al camarero desde la mesa, con alarma en barra',
-      'Pedir la cuenta desde la mesa',
-      'Botón de reseñas de Google en la carta',
-      'QR individual por mesa',
-    ],
-  },
-} as const;
+/** Qué trae cada plan (0050). Cifras de pricing-config; los topes reales los aplica la base. */
+const FUNCIONES: Record<PlanQr, string[]> = (() => {
+  const { basico: c, ampliado: l, sala: s } = QR_MENU.planes;
+  return {
+    basico: [`Hasta ${c.topes.productos} productos y ${c.topes.mesas} mesas`, `${c.topes.reservasMes} reservas al mes`, 'Aviso del camarero en tu panel', '1 banner en la carta'],
+    ampliado: [`Hasta ${l.topes.productos} productos y ${l.topes.mesas} mesas con plano`, `${l.topes.camareros} camareros con app de sala`, `${l.topes.reservasMes} reservas al mes`, '3 banners y promociones programadas', 'Botón de reseñas de Google'],
+    sala: [`Hasta ${s.topes.productos} productos y ${s.topes.mesas} mesas`, `${s.topes.camareros} personas en el equipo (con encargados)`, `${s.topes.reservasMes} reservas al mes`, 'Conexión con tu TPV y Comandero Pro', 'Carta en hasta 3 idiomas'],
+  };
+})();
 
 const ESTADOS: Record<string, { texto: string; color: string }> = {
   activo: { texto: 'Activa', color: 'text-green-700' },
@@ -33,17 +25,20 @@ const ESTADOS: Record<string, { texto: string; color: string }> = {
 };
 
 export default function MiPlan({ restaurante, servicios }: { restaurante: MiRestaurante; servicios: EstadoServicios }) {
-  const esAmpliado = restaurante.plan === 'ampliado';
+  const planId: PlanQr = esPlanQr(restaurante.plan) ? restaurante.plan : 'basico';
+  const nivel = PLANES_QR.indexOf(planId);
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const actual = esAmpliado ? PLANES.ampliado : PLANES.basico;
+  const actual = QR_MENU.planes[planId];
+  const fundador = restaurante.fundador === true && planId === 'sala';
+  const precioActual = fundador ? FUNDADOR.mensual : actual.mensual;
   const estado = ESTADOS[restaurante.estadoAcceso] ?? { texto: restaurante.estadoAcceso, color: 'text-niebla' };
 
-  function mejorar() {
+  function mejorar(destino: 'ampliado' | 'sala') {
     setError(null);
     iniciar(async () => {
       try {
-        const { url } = await iniciarUpgradeAmpliadoAction();
+        const { url } = await iniciarCambioPlanAction(destino);
         window.location.href = url;
       } catch (e) {
         setError(mensajeError(e, 'No se pudo iniciar el pago.'));
@@ -55,36 +50,37 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
     <div className="space-y-8">
       <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Mi Plan</h2>
 
-      <ResumenCuenta restaurante={restaurante} servicios={servicios} precioPlan={actual.precio} nombrePlan={actual.nombre} />
+      <ResumenCuenta restaurante={restaurante} servicios={servicios} precioPlan={precioActual} nombrePlan={fundador ? `${actual.nombre} · Fundador` : actual.nombre} />
 
       <div className="bg-white border border-linea rounded-2xl p-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-niebla text-sm">Plan actual</p>
-          <p className="text-3xl font-black mt-1">{actual.nombre}</p>
-          <p className="text-niebla text-sm mt-1">{actual.precio} €/mes · sin permanencia</p>
+          <p className="text-3xl font-black mt-1">{actual.nombre}{fundador && <span className="ml-2 align-middle rounded-full bg-vino/10 px-2.5 py-1 text-xs font-bold text-vino">Fundador</span>}</p>
+          <p className="text-niebla text-sm mt-1">
+            {fundador
+              ? `${FUNDADOR.trimestre.toLocaleString('es-ES', { minimumFractionDigits: 2 })} € + IVA cada trimestre (40 % de por vida mientras sigas en Sala)`
+              : `${actual.mensual} € + IVA al mes · sin permanencia`}
+          </p>
         </div>
         <p className="text-sm">
           Cuenta: <span className={`font-semibold ${estado.color}`}>{estado.texto}</span>
         </p>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-4">
-        {(['basico', 'ampliado'] as const).map((id) => {
-          const p = PLANES[id];
-          const esActual = restaurante.plan === id;
+      <div className="grid gap-4 md:grid-cols-3">
+        {PLANES_QR.map((id, i) => {
+          const p = QR_MENU.planes[id];
+          const esActual = planId === id;
           return (
-            <div
-              key={id}
-              className={`rounded-2xl p-6 border ${id === 'ampliado' ? 'border-vino/60 bg-vino/5' : 'border-linea bg-white'}`}
-            >
+            <div key={id} className={`rounded-2xl p-6 border ${id === 'ampliado' ? 'border-vino/60 bg-vino/5' : 'border-linea bg-white'}`}>
               <div className="flex items-baseline justify-between">
                 <h3 className="text-lg font-semibold">{p.nombre}</h3>
                 <p className="font-black text-xl">
-                  {p.precio} €<span className="text-sm font-normal text-niebla">/mes</span>
+                  {p.mensual} €<span className="text-sm font-normal text-niebla">/mes</span>
                 </p>
               </div>
               <ul className="mt-4 space-y-2">
-                {p.funciones.map((f) => (
+                {FUNCIONES[id].map((f) => (
                   <li key={f} className="flex gap-2 text-sm text-grafito">
                     <span className="text-vino">✓</span> {f}
                   </li>
@@ -92,13 +88,13 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
               </ul>
               {esActual ? (
                 <p className="mt-5 text-center text-sm font-semibold text-niebla">Tu plan actual</p>
-              ) : id === 'ampliado' ? (
+              ) : i > nivel && id !== 'basico' ? (
                 <button
-                  onClick={mejorar}
+                  onClick={() => mejorar(id as 'ampliado' | 'sala')}
                   disabled={pendiente}
                   className="mt-5 w-full bg-vino hover:bg-vino-hondo disabled:opacity-50 text-white font-bold py-2.5 rounded-full"
                 >
-                  {pendiente ? 'Abriendo pago seguro…' : 'Pasar a Ampliado'}
+                  {pendiente ? 'Abriendo pago seguro…' : `Pasar a ${p.nombre}`}
                 </button>
               ) : null}
             </div>
@@ -106,9 +102,9 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
         })}
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
-      {!esAmpliado && (
+      {planId !== 'sala' && (
         <p className="text-xs text-ceniza">
-          El cambio se activa en cuanto se confirma el pago. Tu suscripción Básica se cancela para que no pagues las dos.
+          El cambio se activa en cuanto se confirma el pago. Tu suscripción anterior se cancela para que no pagues las dos. Para bajar de plan, escríbenos desde Soporte.
         </p>
       )}
       <DarseDeBaja />
@@ -139,12 +135,12 @@ function ResumenCuenta({ restaurante, servicios, precioPlan, nombrePlan }: {
     const pagas = c.origen === 'pago' ? cat?.precioCentimos ?? 0 : 0;
     return {
       id: c.servicio, nombre: cat?.nombre ?? c.servicio, desde: c.contratadoEn, mensual,
-      precio: c.origen === 'regalo' ? 'Incluido por DKitchen' : c.origen === 'demo' ? 'Prueba' : `${eur(pagas)}${mensual ? '/mes' : ' · pago único'}`,
+      precio: c.origen === 'plan' ? 'Incluido en tu plan' : c.origen === 'regalo' ? 'Incluido por DKitchen' : c.origen === 'demo' ? 'Prueba' : `${eur(pagas)}${mensual ? '/mes' : ' · pago único'}`,
       cuota: mensual ? pagas : 0,
       estado: c.estado === 'entregado' ? 'Entregado' : 'Activo',
     };
   });
-  const cuotaMensual = precioPlan * 100 + filas.reduce((t, x) => t + x.cuota, 0);
+  const cuotaMensual = Math.round(precioPlan * 100) + filas.reduce((t, x) => t + x.cuota, 0);
   return (
     <section className="rounded-2xl border border-linea bg-white">
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-linea p-6">
@@ -159,9 +155,9 @@ function ResumenCuenta({ restaurante, servicios, precioPlan, nombrePlan }: {
         <li className="flex flex-wrap items-start justify-between gap-2 p-5">
           <div>
             <p className="font-semibold">Plan {nombrePlan}</p>
-            <p className="text-sm text-niebla">Tu carta QR{restaurante.plan === 'ampliado' ? ' con reservas, llamada al camarero y banners' : ''}</p>
+            <p className="text-sm text-niebla">{esPlanQr(restaurante.plan) ? QR_MENU.planes[restaurante.plan].resumen : 'Tu carta QR'}</p>
           </div>
-          <p className="text-sm font-semibold">{precioPlan} €/mes</p>
+          <p className="text-sm font-semibold">{precioPlan.toLocaleString('es-ES')} €/mes</p>
         </li>
         {filas.map((x) => (
           <li key={x.id} className="flex flex-wrap items-start justify-between gap-2 p-5">

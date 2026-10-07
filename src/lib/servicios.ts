@@ -10,6 +10,8 @@ import { comoCliente, comoVisitante } from '@/lib/db';
 export type Servicio = 'setup_esencial' | 'setup_experto' | 'idiomas' | 'plano_mesas' | 'app_sala' | 'conexion_tpv' | 'pack_sala' | 'bono_ia' | 'comandero_pro';
 export const SERVICIOS: Servicio[] = ['setup_esencial', 'setup_experto', 'idiomas', 'plano_mesas', 'app_sala', 'conexion_tpv', 'pack_sala', 'comandero_pro'];
 export const MODULOS_SALA: Servicio[] = ['plano_mesas', 'app_sala', 'conexion_tpv'];
+/** Lo que un plan puede traer incluido (dk.tiene_servicio, 0050). */
+const INCLUIBLES: Servicio[] = ['plano_mesas', 'app_sala', 'conexion_tpv', 'comandero_pro', 'idiomas'];
 
 export interface ItemCatalogo {
   servicio: Servicio;
@@ -23,7 +25,8 @@ export interface ItemCatalogo {
 export interface ServicioContratado {
   servicio: Servicio;
   estado: 'activo' | 'entregado' | 'cancelado';
-  origen: 'pago' | 'regalo' | 'demo';
+  /** 'plan': incluido en el plan (0050: Local trae plano y app; Sala, además TPV, Comandero Pro e idiomas). */
+  origen: 'pago' | 'regalo' | 'demo' | 'plan';
   contratadoEn: string;
   checklist: Record<string, boolean>;
 }
@@ -40,23 +43,28 @@ export interface EstadoServicios {
 
 export async function estadoServicios(jwt: string, restauranteId: string): Promise<EstadoServicios> {
   return comoCliente(jwt, async (c) => {
-    const [cat, con, plazas, oferta, credito, pro] = await Promise.all([
-      c.query('SELECT servicio, nombre, tipo, dk.precio_servicio(servicio) AS precio, precio_ancla_centimos, requiere_ampliado FROM catalogo_servicios ORDER BY precio_centimos'),
+    const [cat, con, plazas, oferta, credito, pro, inc] = await Promise.all([
+      c.query('SELECT servicio, nombre, tipo, dk.precio_servicio(servicio) AS precio, precio_ancla_centimos, requiere_ampliado FROM catalogo_servicios WHERE en_venta ORDER BY precio_centimos'),
       c.query(`SELECT servicio, estado, origen, contratado_en, checklist FROM servicios_contratados
                 WHERE restaurante_id = $1 AND estado <> 'cancelado'`, [restauranteId]),
       c.query('SELECT dk.plazas_setup_experto() AS n'),
       c.query('SELECT * FROM dk.ofertas_para_mi()'),
       c.query('SELECT * FROM dk.credito_migracion_mio()'),
       c.query("SELECT dk.tiene_servicio($1, 'comandero_pro') AS si", [restauranteId]),
+      c.query('SELECT s FROM unnest($2::text[]) s WHERE dk.tiene_servicio($1, s)', [restauranteId, INCLUIBLES]),
     ]);
+    const contratados: ServicioContratado[] = con.rows.map((r) => ({
+      servicio: r.servicio, estado: r.estado, origen: r.origen, contratadoEn: new Date(r.contratado_en).toISOString(), checklist: r.checklist ?? {},
+    }));
+    for (const { s } of inc.rows as { s: Servicio }[]) {
+      if (!tiene(contratados, s)) contratados.push({ servicio: s, estado: 'activo', origen: 'plan', contratadoEn: new Date(0).toISOString(), checklist: {} });
+    }
     return {
       catalogo: cat.rows.map((r) => ({
         servicio: r.servicio, nombre: r.nombre, tipo: r.tipo, precioCentimos: Number(r.precio),
         precioAnclaCentimos: r.precio_ancla_centimos, requiereAmpliado: r.requiere_ampliado,
       })),
-      contratados: con.rows.map((r) => ({
-        servicio: r.servicio, estado: r.estado, origen: r.origen, contratadoEn: new Date(r.contratado_en).toISOString(), checklist: r.checklist ?? {},
-      })),
+      contratados,
       plazasExperto: Number(plazas.rows[0]?.n ?? 0),
       oferta: oferta.rows[0] ?? null,
       credito: credito.rows[0] ? { centimos: Number(credito.rows[0].centimos), venceEn: new Date(credito.rows[0].vence_en).toISOString() } : null,

@@ -9,6 +9,8 @@ import { QR_MENU, SERVICIOS_QR, AUDITORIA_CANALES, BASE_OPERATIVA, EXPERIENCE } 
 
 const BASICO = QR_MENU.planes.basico.mensual;
 const AMPLIADO = QR_MENU.planes.ampliado.mensual;
+const SALA = QR_MENU.planes.sala.mensual;
+const T = { c: QR_MENU.planes.basico.topes, l: QR_MENU.planes.ampliado.topes, s: QR_MENU.planes.sala.topes };
 const PRIMER_MES = QR_MENU.primerMes;
 
 export type AccionAyuda =
@@ -219,7 +221,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     id: 'reservas', pregunta: 'Cómo funcionan las reservas', secciones: ['reservas', 'inicio'],
     claves: ['reserva', 'reservar', 'mesa libre', 'comensales', 'confirmar', 'cancelar reserva'],
     respuesta: [
-      'Las reservas están en el plan Ampliado. Tus clientes reservan desde la carta y a ti te llega el aviso al momento.',
+      `Las reservas están en todos los planes (${T.c.reservasMes} al mes en Carta, ${T.l.reservasMes} en Local y ${T.s.reservasMes} en Sala). Tus clientes reservan desde la carta y a ti te llega el aviso al momento.`,
       'En Servicio → Reservas las confirmas o rechazas; el cliente recibe la respuesta por correo y tienes un botón para escribirle por WhatsApp.',
       'Pon tu número en Negocio → Mi local («WhatsApp para recibir reservas») para recibirlas también ahí.',
     ],
@@ -243,7 +245,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     respuesta: [
       'En Servicio → Sala colocas las mesas y elementos arrastrándolos. En el móvil puedes hacer zoom y cambiar el tamaño de cada mesa con − y +.',
       'El botón «?» del editor muestra la ayuda paso a paso.',
-      'El plano, la app de sala y la conexión con el TPV forman el Pack Sala (plan Ampliado).',
+      'El plano y la app de sala vienen con el plan Local. La conexión con el TPV y el Comandero Pro van incluidos en Sala o como extras de Local.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'sala', texto: 'Ir a Sala' }],
     siguientes: ['modulos'], ofrecerPuesta: true,
@@ -253,8 +255,8 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     claves: ['banner', 'promocion', 'oferta', 'menu del dia', 'anuncio', 'destacar'],
     respuesta: [
       'En Carta → Banners creas un aviso con imagen o texto y un botón que lleva a una sección de tu carta.',
-      'El plan Básico incluye 1 banner activo. Con Ampliado puedes tener varios y programarlos por días y horas (por ejemplo, el menú del día de lunes a viernes de 12 a 16 h).',
-      'En «Botón del banner» eliges qué pasa al tocarlo: nada (sin botón), bajar a una sección, abrir un plato concreto o abrir la reserva (plan Ampliado).',
+      'El plan Carta incluye 1 banner activo. Con Local o Sala puedes tener hasta 3 y programarlos por días y horas (por ejemplo, el menú del día de lunes a viernes de 12 a 16 h).',
+      'En «Botón del banner» eliges qué pasa al tocarlo: nada (sin botón), bajar a una sección, abrir un plato concreto o abrir la reserva.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'promociones', texto: 'Ir a Banners' }],
     siguientes: ['plan-ampliado'],
@@ -295,7 +297,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     id: 'prueba', pregunta: 'Qué pasa cuando termina la prueba', secciones: ['plan', 'inicio'],
     claves: ['prueba', 'gratis', 'termina', 'caduca', 'todo incluido', 'quedarme', 'dias'],
     respuesta: [
-      'Durante la prueba tienes todo incluido: plan Ampliado, idiomas y Pack Sala. Arriba de cada pantalla ves los días que quedan.',
+      'Durante la prueba tienes todo incluido: el plan Sala, con plano, app de sala, TPV, Comandero Pro e idiomas. Arriba de cada pantalla ves los días que quedan.',
       'Si pulsas «Quedarme con todo», sigues con lo mismo y el primer cobro es el día 12 después del fin de la prueba.',
       'Si no haces nada, al terminar tu panel pasa a solo lectura, pero tu carta pública sigue visible. Te avisamos por correo 3 días y 1 día antes.',
     ],
@@ -303,11 +305,13 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     siguientes: ['plan-pago', 'plan-ampliado'],
   },
   {
-    id: 'plan-ampliado', pregunta: 'Qué diferencia hay entre Básico y Ampliado', secciones: ['plan', 'modulos'],
-    claves: ['ampliado', 'basico', 'diferencia', 'subir de plan', 'mejorar plan', 'cambiar plan'],
+    id: 'plan-ampliado', pregunta: 'Qué diferencia hay entre Carta, Local y Sala', secciones: ['plan', 'modulos'],
+    claves: ['ampliado', 'basico', 'carta', 'local', 'sala', 'diferencia', 'subir de plan', 'mejorar plan', 'cambiar plan', 'limite', 'tope'],
     respuesta: [
-      `Básico (${BASICO} € + IVA al mes): carta digital con fotos y alérgenos, diseño, QR y estadísticas.`,
-      `Ampliado (${AMPLIADO} € + IVA al mes): todo lo anterior más reservas, llamada al camarero, varios banners programables, reseñas de Google, QR por mesa y acceso a los módulos de sala.`,
+      `Carta (${BASICO} € + IVA al mes): hasta ${T.c.productos} productos y ${T.c.mesas} mesas, ${T.c.reservasMes} reservas al mes, aviso del camarero en tu panel y 1 banner.`,
+      `Local (${AMPLIADO} € + IVA al mes; primer mes a 1 €): hasta ${T.l.productos} productos y ${T.l.mesas} mesas con plano, app de sala para ${T.l.camareros} camareros, ${T.l.reservasMes} reservas al mes, 3 banners programables y reseñas de Google.`,
+      `Sala (${SALA} € + IVA al mes): hasta ${T.s.productos} productos, ${T.s.mesas} mesas, ${T.s.camareros} personas en el equipo y ${T.s.reservasMes} reservas al mes, con TPV, Comandero Pro e idiomas incluidos.`,
+      'Tienes un 10 % de margen sobre cada límite; al llegar, el panel te avisa y subes de plan desde Mi plan. La llamada al camarero nunca se corta.',
       'Puedes subir de plan desde Negocio → Mi plan.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'plan', texto: 'Ir a Mi plan' }],
@@ -317,7 +321,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     id: 'modulos', pregunta: 'Qué módulos puedo añadir', secciones: ['modulos', 'sala'],
     claves: ['modulo', 'mejora', 'pack sala', 'tpv', 'app sala', 'extra', 'anadir servicio'],
     respuesta: [
-      'En Negocio → Mejoras tienes: Idiomas (pago único), y con el plan Ampliado el Plano de mesas, la App de sala y la Conexión con tu TPV, o todo junto en el Pack Sala.',
+      'En Negocio → Mejoras tienes: Idiomas (pago único) y, con el plan Local, la Conexión con tu TPV y el Comandero Pro como extras. En Sala ya vienen incluidos.',
       'Cada módulo muestra su precio antes de pagar y se activa al momento.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'modulos', texto: 'Ver Mejoras' }],
@@ -372,7 +376,7 @@ export const TEMAS_WEB: TemaAyuda[] = [
     id: 'precio-qr', pregunta: 'Cuánto cuesta la carta QR',
     claves: ['precio', 'cuesta', 'cuanto', 'tarifa', 'coste', 'mes', 'mensual', 'barato', 'qr', 'carta'],
     respuesta: [
-      `Plan Básico: ${BASICO} € + IVA al mes. Plan Ampliado: ${AMPLIADO} € + IVA al mes (reservas, llamada al camarero, promociones programadas y módulos de sala).`,
+      `Plan Carta: ${BASICO} € + IVA al mes. Plan Local: ${AMPLIADO} € + IVA al mes (el primer mes, 1 €). Plan Sala: ${SALA} € + IVA al mes, todo incluido.`,
       `El primer mes cuesta ${PRIMER_MES} € + IVA en cualquiera de los dos. Sin permanencia: cancelas desde tu panel.`,
     ],
     acciones: [{ tipo: 'enlace', href: '/qr#planes', texto: 'Ver planes' }],
@@ -393,7 +397,7 @@ export const TEMAS_WEB: TemaAyuda[] = [
     claves: ['incluye', 'funciones', 'que tiene', 'alergenos', 'fotos', 'reservas', 'camarero', 'idiomas'],
     respuesta: [
       'Carta con fotos, precios y alérgenos según el Reglamento UE, que cambias desde el móvil al momento; cuatro estilos de diseño; un QR que nunca reimprimes y estadísticas de visitas.',
-      'Con Ampliado, además: reservas con aviso, llamada al camarero, banners programados, reseñas de Google y QR por mesa. Hay módulos de idiomas y de sala.',
+      'Con Local, además: plano de mesas, app de sala para tus camareros, banners programados y reseñas de Google. Con Sala, también TPV, Comandero Pro e idiomas.',
     ],
     acciones: [{ tipo: 'enlace', href: '/qr', texto: 'Ver cómo funciona' }],
     siguientes: ['precio-qr', 'puesta-web'],

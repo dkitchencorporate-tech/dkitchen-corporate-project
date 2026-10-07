@@ -104,7 +104,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
   });
   const esencial = restaurante.nivelDiseno === 'esencial';
   const plantillaActual = PLANTILLAS.find((p) => p.id === restaurante.plantilla) ?? PLANTILLAS[0];
-  const ampliado = restaurante.plan === 'ampliado';
+  const ampliado = restaurante.plan !== 'basico';
   const urlCarta = `https://dkitchencorporate.es/m/${restaurante.slug}`;
   const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setD((prev) => ({ ...prev, [k]: e.target.value }));
@@ -210,9 +210,8 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
       <section className="bg-white border border-linea rounded-2xl p-6 space-y-4">
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-lg font-semibold">Reservas y Google</h3>
-          {!ampliado && <span className="rounded-full bg-papel px-2 py-0.5 text-[11px] font-semibold text-niebla">Plan Ampliado</span>}
         </div>
-        {ampliado ? (
+        {(
           <>
             <label className="block space-y-1">
               <span className="text-xs text-niebla">WhatsApp para recibir reservas</span>
@@ -221,13 +220,13 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
                 Tus clientes reservan desde la carta: te llega un correo y pueden enviártelo también por WhatsApp. Lo ves todo en la pestaña Reservas.
               </span>
             </label>
-            <label className="block space-y-1">
+            {ampliado ? <label className="block space-y-1">
               <span className="text-xs text-niebla">Enlace para dejar reseñas en Google</span>
               <input value={d.urlResenas} onChange={set('urlResenas')} maxLength={300} placeholder="https://g.page/r/..." className={campo} />
               <span className="block text-[11px] text-ceniza">
                 En tu Perfil de Empresa de Google: «Pedir reseñas» → copia el enlace y pégalo aquí. Aparecerá un botón al final de tu carta.
               </span>
-            </label>
+            </label> : <p className="text-xs text-niebla">El botón de reseñas de Google en tu carta está en el plan Local. Puedes subir desde <strong>Mi Plan</strong>.</p>}
             <div className="rounded-lg bg-papel p-4 text-xs text-niebla space-y-2">
               <p className="font-semibold text-grafito">Pon tu carta en Google Maps (2 minutos)</p>
               <ol className="list-decimal pl-4 space-y-1">
@@ -247,11 +246,6 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
               <p>Así quien te busque en Google ve tu carta siempre actualizada.</p>
             </div>
           </>
-        ) : (
-          <p className="text-sm text-niebla">
-            Reservas desde la carta (con aviso por correo y WhatsApp), botón de reseñas de Google y carta enlazada en Google Maps están
-            incluidos en el plan Ampliado. Puedes activarlo desde <strong>Mi Plan</strong>.
-          </p>
         )}
       </section>
 

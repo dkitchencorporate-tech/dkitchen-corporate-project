@@ -4,7 +4,7 @@
  * queda fuera por completo, no como opción de repuesto.
  */
 export interface DatosCheckoutQr {
-  plan: 'basico' | 'ampliado';
+  plan: import('@/lib/pricing-config').PlanQr;
   restauranteNombre: string;
   slugBase: string;
   email: string;

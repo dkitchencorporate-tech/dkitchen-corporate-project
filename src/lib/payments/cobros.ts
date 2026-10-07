@@ -1,5 +1,5 @@
 import 'server-only';
-import { QR_MENU, AUDITORIA_CANALES, BASE_OPERATIVA } from '@/lib/pricing-config';
+import { QR_MENU, AUDITORIA_CANALES, BASE_OPERATIVA, FUNDADOR, type PlanQr } from '@/lib/pricing-config';
 import type { DatosCheckoutQr, DatosCheckoutAuditoria, DatosCheckoutNucleoOperativo } from './tipos';
 import {
   asegurarCliente,
@@ -36,10 +36,11 @@ function dentroDeDias(dias: number, desde = new Date()): number {
   return Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 9) / 1000);
 }
 
-const productoQr = (plan: 'basico' | 'ampliado') => `dk_qr_${plan}`;
+const productoQr = (plan: PlanQr) => `dk_qr_${plan}`;
 
 // ─────────────────────────────────────────────────────────────
-// QR Menú: 1 € + IVA hoy y gratis hasta el primer día 12 pasados 30 días
+// QR Menú. Local: 1 € + IVA hoy y gratis hasta el primer día 12 pasados 30 días.
+// Carta y Sala (decisión A, 07/10): la cuota se paga desde el primer día.
 // ─────────────────────────────────────────────────────────────
 
 export async function crearCheckoutQr(datos: DatosCheckoutQr): Promise<{ url: string }> {
@@ -48,8 +49,8 @@ export async function crearCheckoutQr(datos: DatosCheckoutQr): Promise<{ url: st
   const id = await crearSuscripcion({
     cliente,
     cuota: { producto: productoQr(datos.plan), nombre: `QR Menú · Plan ${plan.nombre} (cuota mensual)`, centimos: plan.mensual * 100 },
-    hoy: [{ producto: 'dk_qr_primer_mes', nombre: 'QR Menú · Primer mes', centimos: QR_MENU.primerMes * 100 }],
-    finPrueba: finPruebaQr(),
+    hoy: plan.primerMesSimbolico ? [{ producto: 'dk_qr_primer_mes', nombre: 'QR Menú · Primer mes', centimos: QR_MENU.primerMes * 100 }] : undefined,
+    finPrueba: plan.primerMesSimbolico ? finPruebaQr() : undefined,
     metadata: {
       producto: 'qr-menu',
       plan: datos.plan,
@@ -214,7 +215,7 @@ export async function crearCheckoutServicio(datos: {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Upgrade Básico → Ampliado, conservando el día de cobro
+// Subida de plan (Carta → Local → Sala), conservando el día de cobro
 // ─────────────────────────────────────────────────────────────
 
 /**
@@ -223,15 +224,25 @@ export async function crearCheckoutServicio(datos: {
  * (nada si la Básica está aún en prueba). El webhook cancela la Básica al
  * momento, así que nunca se cobran las dos.
  */
-export async function crearCheckoutUpgradeAmpliado(datos: {
+export async function crearCheckoutUpgradeAmpliado(datos: Omit<DatosCambioPlan, 'planActual' | 'planDestino'>): Promise<{ url: string }> {
+  return crearCheckoutCambioPlan({ ...datos, planActual: 'basico', planDestino: 'ampliado' });
+}
+
+interface DatosCambioPlan {
   restauranteId: string;
   restauranteNombre: string;
   email: string;
   nombreContacto: string;
   origen: string;
   suscripcionActual?: string | null;
-}): Promise<{ url: string }> {
-  const { basico, ampliado } = QR_MENU.planes;
+  planActual: PlanQr;
+  planDestino: Exclude<PlanQr, 'basico'>;
+}
+
+export async function crearCheckoutCambioPlan(datos: DatosCambioPlan): Promise<{ url: string }> {
+  const basico = QR_MENU.planes[datos.planActual];
+  const ampliado = QR_MENU.planes[datos.planDestino];
+  if (ampliado.mensual <= basico.mensual) throw new Error('Solo se puede subir de plan.');
   const cliente = await asegurarCliente({ email: datos.email, nombre: datos.nombreContacto, negocio: datos.restauranteNombre });
   let finPrueba: number | undefined;
   let diferencia = 0;
@@ -250,11 +261,12 @@ export async function crearCheckoutUpgradeAmpliado(datos: {
   }
   const id = await crearSuscripcion({
     cliente,
-    cuota: { producto: productoQr('ampliado'), nombre: `QR Menú · Plan ${ampliado.nombre} (cuota mensual)`, centimos: ampliado.mensual * 100 },
-    hoy: diferencia > 50 ? [{ producto: 'dk_qr_upgrade_diferencia', nombre: 'Cambio a Plan Ampliado · diferencia hasta tu próximo cobro', centimos: diferencia }] : undefined,
+    cuota: { producto: productoQr(datos.planDestino), nombre: `QR Menú · Plan ${ampliado.nombre} (cuota mensual)`, centimos: ampliado.mensual * 100 },
+    hoy: diferencia > 50 ? [{ producto: 'dk_qr_upgrade_diferencia', nombre: `Cambio a Plan ${ampliado.nombre} · diferencia hasta tu próximo cobro`, centimos: diferencia }] : undefined,
     finPrueba,
     metadata: {
       producto: 'qr-upgrade',
+      planDestino: datos.planDestino,
       restauranteId: datos.restauranteId,
       restauranteNombre: datos.restauranteNombre,
       email: datos.email,
@@ -262,6 +274,36 @@ export async function crearCheckoutUpgradeAmpliado(datos: {
       suscripcionAnterior: datos.suscripcionActual ?? undefined,
       concepto: `QR Menú · Plan ${ampliado.nombre}`,
       destino: '/panel?upgrade=ok',
+    },
+  });
+  return { url: urlPago(datos.origen, id) };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Fundador (0051): plan Sala al 40 %, 124,20 € + IVA cada trimestre, sin prueba
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Alta directa de Fundador desde la landing privada /fundador. Quien comprueba
+ * que el programa sigue abierto es la ruta (dk.fundador_estado) y, otra vez,
+ * el webhook al ocupar la plaza (dk.fundador_marcar).
+ */
+export async function crearCheckoutFundador(datos: Omit<DatosCheckoutQr, 'plan'>): Promise<{ url: string }> {
+  const cliente = await asegurarCliente({ email: datos.email, nombre: datos.nombreContacto, negocio: datos.restauranteNombre });
+  const centimos = Math.round(FUNDADOR.trimestre * 100);
+  const id = await crearSuscripcion({
+    cliente,
+    cuota: { producto: 'dk_qr_sala_fundador', nombre: 'DKitchen · Plan Sala Fundador (cuota trimestral, 40 % vitalicio)', centimos },
+    intervaloMeses: 3,
+    metadata: {
+      producto: 'fundador',
+      plan: 'sala',
+      restauranteNombre: datos.restauranteNombre,
+      slugBase: datos.slugBase,
+      email: datos.email,
+      nombreContacto: datos.nombreContacto,
+      concepto: 'Plan Sala · Fundador',
+      destino: `/qr/bienvenida?email=${encodeURIComponent(datos.email)}&nombre=${encodeURIComponent(datos.nombreContacto)}&restaurante=${encodeURIComponent(datos.restauranteNombre)}`,
     },
   });
   return { url: urlPago(datos.origen, id) };

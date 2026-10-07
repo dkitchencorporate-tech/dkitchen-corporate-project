@@ -8,6 +8,7 @@ import { obtenerCarta } from '@/lib/menu';
 import { listarTraducciones } from '@/lib/idiomas';
 import TraductorCarta from '@/components/admin/TraductorCarta';
 import { anularEnlaceAction, regalarTodoAction, cartaDemoAction, reenviarAccesoAction, cambiarEstadoAction, cambiarPlanAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction } from '../actions';
+import { QR_MENU, PLANES_QR, esPlanQr, nombrePlan } from '@/lib/pricing-config';
 
 export const dynamic = 'force-dynamic';
 
@@ -121,7 +122,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { t: 'Plan', v: r.plan === 'ampliado' ? 'Ampliado · 25 € + IVA' : 'Básico · 9 € + IVA' },
+          { t: 'Plan', v: esPlanQr(r.plan) ? `${nombrePlan(r.plan)} · ${QR_MENU.planes[r.plan].mensual} € + IVA` : r.plan },
           { t: 'Pago', v: pago },
           { t: 'Escaneos 30 días', v: total30 },
           { t: 'Llamadas de mesa 30 días', v: ficha.llamadas_30d },
@@ -164,10 +165,10 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             </p>
           )}
           <ul className="mt-4 divide-y divide-linea text-sm">
-            <li className="flex justify-between gap-3 py-2"><span>Plan {cobro.plan === 'ampliado' ? 'Ampliado' : 'Básico'}</span><span className="text-niebla">{euros(cobro.precio_plan)}/mes</span></li>
+            <li className="flex justify-between gap-3 py-2"><span>Plan {nombrePlan(cobro.plan)}{cobro.fundador ? ' · Fundador' : ''}</span><span className="text-niebla">{euros(cobro.precio_plan)}/mes</span></li>
             {cobro.items.map((i) => (
               <li key={i.servicio} className="flex justify-between gap-3 py-2">
-                <span>{i.nombre} <span className="text-xs text-niebla">· {i.origen === 'pago' ? 'pagado' : i.origen === 'regalo' ? 'regalo' : 'demo'}</span></span>
+                <span>{i.nombre} <span className="text-xs text-niebla">· {i.origen === 'pago' ? 'pagado' : i.origen === 'regalo' ? 'regalo' : i.origen === 'plan' ? 'incluido en el plan' : 'demo'}</span></span>
                 <span className="shrink-0 text-niebla">{euros(i.precio)}{i.tipo === 'mensual' ? '/mes' : ' una vez'}</span>
               </li>
             ))}
@@ -236,13 +237,15 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
               {r.activo ? 'Suspender cuenta' : 'Reactivar cuenta'}
             </button>
           </form>
-          <form action={cambiarPlanAction}>
-            <input type="hidden" name="restauranteId" value={r.id} />
-            <input type="hidden" name="plan" value={r.plan === 'ampliado' ? 'basico' : 'ampliado'} />
-            <button className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">
-              Pasar a {r.plan === 'ampliado' ? 'Básico' : 'Ampliado'}
-            </button>
-          </form>
+          {PLANES_QR.filter((p) => p !== r.plan).map((p) => (
+            <form key={p} action={cambiarPlanAction}>
+              <input type="hidden" name="restauranteId" value={r.id} />
+              <input type="hidden" name="plan" value={p} />
+              <button className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">
+                Pasar a {nombrePlan(p)}
+              </button>
+            </form>
+          ))}
           <Link href="/admin-dkitchen/soporte" className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">
             Soporte y QR físico
           </Link>

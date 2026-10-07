@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { crearCheckoutQr } from '@/lib/payments/cobros';
+import { esPlanQr } from '@/lib/pricing-config';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
 
 export const runtime = 'nodejs';
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
   const nombreContacto = String((body as { nombreContacto?: unknown })?.nombreContacto ?? '').trim();
   const email = String((body as { email?: unknown })?.email ?? '').trim();
 
-  if (plan !== 'basico' && plan !== 'ampliado') {
+  if (!esPlanQr(plan)) {
     return NextResponse.json({ error: 'Plan desconocido.' }, { status: 400 });
   }
   if (!restauranteNombre || restauranteNombre.length > 80) {

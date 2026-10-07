@@ -11,7 +11,9 @@ import { enviarCorreoCliente, escaparHtml } from '@/lib/email';
 export interface ResumenCobro {
   plan: string;
   precio_plan: number;
-  items: { servicio: string; nombre: string; tipo: 'unico' | 'mensual'; precio: number; origen: 'pago' | 'regalo' | 'demo' }[];
+  /** Precio Fundador vigente (0051). */
+  fundador?: boolean;
+  items: { servicio: string; nombre: string; tipo: 'unico' | 'mensual'; precio: number; origen: 'pago' | 'regalo' | 'demo' | 'plan' }[];
   valor_mensual: number;
   paga_mensual: number;
   prueba_hasta: string | null;

@@ -13,6 +13,7 @@ import {
 import { enviarCorreoCliente, escaparHtml, escaparTexto } from '@/lib/email';
 import { cifrar } from '@/lib/cifrado';
 import { guardarTraducciones, type Traduccion } from '@/lib/idiomas';
+import { esPlanQr, nombrePlan } from '@/lib/pricing-config';
 
 /**
  * Acciones del super admin. Doble cerrojo: exigirAdmin() aquí y dk.es_admin()
@@ -44,7 +45,7 @@ export async function cambiarPlanAction(formulario: FormData) {
   const jwt = await exigirAdmin();
   const id = uuid(formulario.get('restauranteId'));
   const plan = String(formulario.get('plan'));
-  if (plan !== 'basico' && plan !== 'ampliado') throw new Error('Plan no válido.');
+  if (!esPlanQr(plan)) throw new Error('Plan no válido.');
   await cambiarPlanCliente(jwt, id, plan);
   revalidatePath('/admin-dkitchen/qr');
   revalidatePath(`/admin-dkitchen/qr/${id}`);
@@ -164,7 +165,7 @@ export async function crearClienteAction(datos: { email: string; contacto: strin
   const email = String(datos.email ?? '').trim().toLowerCase();
   const contacto = String(datos.contacto ?? '').trim().slice(0, 80);
   const local = String(datos.local ?? '').trim().slice(0, 80);
-  const plan = datos.plan === 'ampliado' ? 'ampliado' : 'basico';
+  const plan = esPlanQr(datos.plan) ? datos.plan : 'basico';
   if (!CORREO.test(email) || email.length > 254) return { error: 'El correo no es válido.' };
   if (contacto.length < 2 || local.length < 2) return { error: 'Pon el nombre del contacto y del local.' };
 
@@ -231,7 +232,7 @@ const NOMBRES: Record<string, string> = {
 export async function crearEnlaceAction(d: { restauranteId: string; plan: string; servicios: string[]; primer: number; mensual: number; nota: string; enviar: boolean }): Promise<{ url?: string; error?: string }> {
   if (!UUID.test(d.restauranteId)) return { error: 'Cliente no válido.' };
   const jwt = await exigirAdmin();
-  const plan = d.plan === 'basico' || d.plan === 'ampliado' ? d.plan : null;
+  const plan = esPlanQr(d.plan) ? d.plan : null;
   const servicios = [...new Set((d.servicios ?? []).filter((s) => SERVICIOS_ADMIN.includes(s)))];
   const primer = Math.round(Number(d.primer) * 100), mensual = Math.round(Number(d.mensual || 0) * 100);
   if (!plan && servicios.length === 0) return { error: 'Elige un plan o al menos un servicio.' };
@@ -241,7 +242,7 @@ export async function crearEnlaceAction(d: { restauranteId: string; plan: string
   if (!ficha?.restaurante || !ficha.email) return { error: 'El cliente no tiene correo.' };
 
   const id = await crearEnlace(jwt, d.restauranteId, { plan, servicios, primer, mensual, nota: String(d.nota ?? '').slice(0, 300) });
-  const concepto = [plan ? `Plan ${plan === 'ampliado' ? 'Ampliado' : 'Básico'}` : null, ...servicios.map((s) => NOMBRES[s])].filter(Boolean).join(' + ');
+  const concepto = [plan ? `Plan ${nombrePlan(plan)}` : null, ...servicios.map((s) => NOMBRES[s])].filter(Boolean).join(' + ');
   let url: string;
   try {
     ({ url } = await crearCheckoutEnlaceAdmin({

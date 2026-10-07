@@ -64,7 +64,7 @@ export default async function Panel() {
       listarMisSolicitudesQrFisico(jwt, restaurante.id),
       listarMisTickets(jwt, restaurante.id),
       listarPromociones(jwt, restaurante.id),
-      restaurante.plan === 'ampliado' ? listarMisReservas(jwt, restaurante.id) : Promise.resolve([]),
+      listarMisReservas(jwt, restaurante.id),
     ]);
     const [servicios, cobro, extras, legal, tutorial] = await Promise.all([estadoServicios(jwt, restaurante.id), resumenCobro(jwt, restaurante.id).catch(() => null),
       listarExtras(jwt, restaurante.id), obtenerLegal(jwt, restaurante.id), tutorialEstado(jwt, restaurante.id).catch(() => null)]);
@@ -74,7 +74,7 @@ export default async function Panel() {
       hayPlano || hayApp ? cargarPlano(jwt, restaurante.id) : Promise.resolve({ mesas: [], elementos: [] }),
       hayApp || hayPlano ? listarCamareros(jwt, restaurante.id) : Promise.resolve([]),
       hayTpv ? estadoConexionTpv(jwt) : Promise.resolve(null),
-      hayPlano && restaurante.plan === 'ampliado' ? llamadasPendientes(jwt, restaurante.id).then((l) => l.map((x) => x.mesa)) : Promise.resolve([] as string[]),
+      hayPlano ? llamadasPendientes(jwt, restaurante.id).then((l) => l.map((x) => x.mesa)) : Promise.resolve([] as string[]),
       tiene(c, 'idiomas') ? listarTraducciones(jwt, restaurante.id) : Promise.resolve([]),
       hayApp ? informeCamareros(jwt, 30) : Promise.resolve([]),
     ]);

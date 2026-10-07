@@ -38,7 +38,7 @@ export default function QrMenuPricing() {
             </ul>
             <ActivarPlanBoton
               plan="basico"
-              etiqueta="Activar Básico"
+              etiqueta="Activar Carta"
               className="mt-8 text-center bg-gray-900 text-white px-6 py-3.5 rounded-full font-bold hover:bg-black transition-colors"
             />
           </TiltCard>
@@ -53,7 +53,7 @@ export default function QrMenuPricing() {
               <span className="text-gray-500 font-bold">/mes</span>
             </div>
             <ul className="space-y-3 text-gray-700 flex-1">
-              <li>✓ Todo lo del plan Básico</li>
+              <li>✓ Todo lo del plan Carta</li>
               <li>✓ QR con logo, color de marca y marco (nivel de corrección alto)</li>
               <li>✓ Promociones y ofertas visibles en el menú</li>
               <li>✓ Botón de &quot;llamar al camarero&quot;</li>
@@ -64,7 +64,7 @@ export default function QrMenuPricing() {
             </ul>
             <ActivarPlanBoton
               plan="ampliado"
-              etiqueta="Activar Ampliado"
+              etiqueta="Activar Local"
               className="mt-8 text-center bg-vino text-white px-6 py-3.5 rounded-full font-bold hover:bg-orange-600 transition-colors shadow-lg"
             />
           </TiltCard>

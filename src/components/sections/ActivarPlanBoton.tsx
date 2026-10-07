@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { QR_MENU, FUNDADOR, type PlanQr } from '@/lib/pricing-config';
 
 /**
  * Alta de QR Menú: pide local, nombre y correo y abre el checkout nativo (/pago).
@@ -10,14 +11,27 @@ import { AnimatePresence, motion } from 'framer-motion';
  * atrapado dentro de la tarjeta inclinada de precios y se veía roto), como
  * hoja inferior en móvil y ventana centrada en escritorio.
  */
-const PLANES = {
-  basico: { nombre: 'Básico', precio: 9, resumen: 'Carta digital con QR que nunca reimprimes.' },
-  ampliado: { nombre: 'Ampliado', precio: 25, resumen: 'Carta, reservas, llamada al camarero y banners.' },
-} as const;
+const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: Number.isInteger(n) ? 0 : 2 }) + ' €';
+type Opcion = PlanQr | 'fundador';
+const PLANES: Record<Opcion, { nombre: string; resumen: string; cuando: string; hoy: string; despues: string }> = {
+  ...(Object.fromEntries((['basico', 'ampliado', 'sala'] as const).map((id) => {
+    const p = QR_MENU.planes[id];
+    return [id, {
+      nombre: p.nombre, resumen: p.resumen, cuando: 'Primer mes',
+      hoy: eur(p.primerMesSimbolico ? QR_MENU.primerMes : p.mensual),
+      despues: `Después ${eur(p.mensual)}/mes · sin permanencia`,
+    }];
+  })) as Record<PlanQr, { nombre: string; resumen: string; cuando: string; hoy: string; despues: string }>),
+  fundador: {
+    nombre: 'Sala · Fundador', resumen: QR_MENU.planes.sala.resumen, cuando: 'Primer trimestre',
+    hoy: eur(FUNDADOR.trimestre),
+    despues: `Después ${eur(FUNDADOR.trimestre)} cada trimestre · 40 % de por vida`,
+  },
+};
 
 export default function ActivarPlanBoton({
   plan, etiqueta, className,
-}: { plan: 'basico' | 'ampliado'; etiqueta: string; className?: string }) {
+}: { plan: Opcion; etiqueta: string; className?: string }) {
   const [abierto, setAbierto] = useState(false);
   const [montado, setMontado] = useState(false);
   const [nombre, setNombre] = useState('');
@@ -42,7 +56,7 @@ export default function ActivarPlanBoton({
     setError(null);
     setCargando(true);
     try {
-      const respuesta = await fetch('/api/checkout/qr', {
+      const respuesta = await fetch(plan === 'fundador' ? '/api/checkout/fundador' : '/api/checkout/qr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan, restauranteNombre: nombre, nombreContacto, email }),
@@ -83,10 +97,10 @@ export default function ActivarPlanBoton({
 
                 <div className="mx-7 mt-5 flex items-baseline justify-between rounded-2xl border border-linea bg-white px-5 py-4">
                   <div>
-                    <p className="text-sm font-semibold">Primer mes</p>
-                    <p className="text-xs text-black/45">Después {p.precio} €/mes · sin permanencia</p>
+                    <p className="text-sm font-semibold">{p.cuando}</p>
+                    <p className="text-xs text-black/45">{p.despues}</p>
                   </div>
-                  <p className="text-3xl font-bold tracking-tight">1 €</p>
+                  <p className="text-3xl font-bold tracking-tight">{p.hoy}</p>
                 </div>
 
                 <div className="space-y-4 px-7 pt-5">

@@ -44,7 +44,7 @@ export interface DatosPagoQr {
   idEvento: string;
   email: string;
   nombreContacto: string;
-  plan: 'basico' | 'ampliado';
+  plan: import('@/lib/pricing-config').PlanQr;
   restauranteNombre: string;
   slugBase: string;
   /** Id del cliente en el proveedor (customer_id en Stripe, member_id en Whop). */

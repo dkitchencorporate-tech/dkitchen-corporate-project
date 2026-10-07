@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { crearClienteAction } from '@/app/admin-dkitchen/qr/actions';
+import { QR_MENU, nombrePlan } from '@/lib/pricing-config';
 
 /**
  * Alta manual de un cliente QR desde Central, en 3 pasos con instrucciones
@@ -11,7 +12,7 @@ import { crearClienteAction } from '@/app/admin-dkitchen/qr/actions';
 type Modo = 'pago' | 'gratis' | 'solo';
 const MODOS: { id: Modo; titulo: string; texto: string }[] = [
   { id: 'pago', titulo: 'Preparar un enlace de pago', texto: 'Creas la cuenta y a continuación le preparas un enlace con el precio que acordéis (plan, módulos, descuento).' },
-  { id: 'gratis', titulo: 'Prueba con todo incluido', texto: 'Plan Ampliado, idiomas y Pack Sala (plano de mesas, app de sala y TPV) sin coste durante el tiempo que elijas. El cliente elige su plantilla y colores; la Carta de Autor se paga aparte. Al acabar, se le invita a quedarse; si no paga, su panel pasa a solo lectura.' },
+  { id: 'gratis', titulo: 'Prueba con todo incluido', texto: 'Plan Sala (plano de mesas, app de sala, TPV, Comandero Pro e idiomas) sin coste durante el tiempo que elijas. El cliente elige su plantilla y colores; la Carta de Autor se paga aparte. Al acabar, se le invita a quedarse; si no paga, su panel pasa a solo lectura.' },
   { id: 'solo', titulo: 'Solo crear la cuenta', texto: 'Cuenta con el plan elegido y nada más. Podrás añadir servicios o un enlace de pago desde su ficha.' },
 ];
 
@@ -70,7 +71,7 @@ export default function NuevoCliente() {
           </label>
           <label className="block text-sm font-medium">Plan
             <select value={d.plan} onChange={(e) => setD({ ...d, plan: e.target.value })} className={campo}>
-              <option value="ampliado">Ampliado · 25 €/mes</option><option value="basico">Básico · 9 €/mes</option>
+              {(['ampliado', 'basico', 'sala'] as const).map((p) => <option key={p} value={p}>{nombrePlan(p)} · {QR_MENU.planes[p].mensual} €/mes</option>)}
             </select>
           </label>
         </div>
@@ -102,7 +103,7 @@ export default function NuevoCliente() {
       {paso === 3 && (
         <dl className="mt-6 divide-y divide-linea rounded-2xl border border-linea text-sm">
           {([
-            ['Local', d.local], ['Contacto', d.contacto], ['Correo', d.email], ['Plan', d.plan === 'ampliado' ? 'Ampliado' : 'Básico'],
+            ['Local', d.local], ['Contacto', d.contacto], ['Correo', d.email], ['Plan', nombrePlan(d.plan)],
             ['Qué recibe', MODOS.find((m) => m.id === d.modo)!.titulo + (d.modo === 'gratis' ? (d.dias === 'sin' ? ' · sin fecha de fin' : ` · ${d.dias} días`) : '')], ['Carta de ejemplo', d.demo ? 'Sí' : 'No'],
           ] as const).map(([k, v]) => (
             <div key={k} className="flex justify-between gap-4 px-4 py-3"><dt className="text-niebla">{k}</dt><dd className="text-right font-medium">{v}</dd></div>

@@ -129,7 +129,7 @@ export async function cambiarEstadoCliente(jwt: string, restauranteId: string, e
   await comoCliente(jwt, (c) => c.query('SELECT dk.admin_cambiar_estado($1, $2)', [restauranteId, estado]));
 }
 
-export async function cambiarPlanCliente(jwt: string, restauranteId: string, plan: 'basico' | 'ampliado') {
+export async function cambiarPlanCliente(jwt: string, restauranteId: string, plan: import('@/lib/pricing-config').PlanQr) {
   await comoCliente(jwt, (c) => c.query('SELECT dk.admin_cambiar_plan($1, $2)', [restauranteId, plan]));
 }
 

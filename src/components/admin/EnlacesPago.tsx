@@ -2,9 +2,10 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { crearEnlaceAction } from '@/app/admin-dkitchen/qr/actions';
+import { QR_MENU, PLANES_QR, nombrePlan } from '@/lib/pricing-config';
 
 type Cat = { servicio: string; nombre: string; tipo: string; precio: number };
-const PLANES: Record<string, number> = { basico: 900, ampliado: 2500 };
+const PLANES: Record<string, number> = Object.fromEntries(PLANES_QR.map((p) => [p, QR_MENU.planes[p].mensual * 100]));
 const eur = (c: number) => (c / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
 const numero = (s: string) => Number(s.replace(',', '.'));
 
@@ -66,8 +67,7 @@ export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId
           <label className="block text-sm font-medium">Plan mensual
             <select value={plan} onChange={(e) => setPlan(e.target.value)} className={campo}>
               <option value="">Sin cambio de plan (solo servicios)</option>
-              <option value="basico">Plan Básico · 9 €/mes</option>
-              <option value="ampliado">Plan Ampliado · 25 €/mes</option>
+              {PLANES_QR.map((p) => <option key={p} value={p}>Plan {nombrePlan(p)} · {QR_MENU.planes[p].mensual} €/mes</option>)}
             </select>
           </label>
           <div>
@@ -113,7 +113,7 @@ export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId
       {paso === 3 && (
         <div className="space-y-4">
           <dl className="divide-y divide-linea rounded-2xl border border-linea text-sm">
-            <div className="flex justify-between gap-4 px-4 py-3"><dt className="text-niebla">Qué incluye</dt><dd className="text-right font-medium">{[plan ? `Plan ${plan === 'ampliado' ? 'Ampliado' : 'Básico'}` : null, ...servicios.map((s) => catalogo.find((c) => c.servicio === s)?.nombre)].filter(Boolean).join(' + ')}</dd></div>
+            <div className="flex justify-between gap-4 px-4 py-3"><dt className="text-niebla">Qué incluye</dt><dd className="text-right font-medium">{[plan ? `Plan ${nombrePlan(plan)}` : null, ...servicios.map((s) => catalogo.find((c) => c.servicio === s)?.nombre)].filter(Boolean).join(' + ')}</dd></div>
             <div className="flex justify-between gap-4 px-4 py-3"><dt className="text-niebla">Primer pago</dt><dd className="font-semibold">{eur(Math.round(primerFinal * 100))}</dd></div>
             <div className="flex justify-between gap-4 px-4 py-3"><dt className="text-niebla">Después</dt><dd className="font-medium">{mensualFinal ? `${eur(Math.round(mensualFinal * 100))}/mes` : 'Pago único'}</dd></div>
           </dl>

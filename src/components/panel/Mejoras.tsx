@@ -4,6 +4,7 @@ import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import type { EstadoServicios, Servicio } from '@/lib/servicios';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
+import { QR_MENU } from '@/lib/pricing-config';
 import { comprarServicioAction } from '@/app/panel/actions';
 import EstiloCarta from './EstiloCarta';
 import SaltoSignature from './SaltoSignature';
@@ -31,7 +32,7 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
   const [error, setError] = useState<string | null>(null);
   // Portada compartida con la vista previa de Diseño (se actualiza al momento).
   const [portada, setPortada] = useState<{ url: string | null; conNombre: boolean }>({ url: restaurante.portadaUrl ?? null, conNombre: !!restaurante.portadaConNombre });
-  const ampliado = restaurante.plan === 'ampliado';
+  const ampliado = restaurante.plan !== 'basico';
   const precio = (s: Servicio) => servicios.catalogo.find((c) => c.servicio === s);
   const tiene = (s: Servicio) => servicios.contratados.some((c) => c.servicio === s || (c.servicio === 'pack_sala' && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(s)));
   const nModulos = MODULOS.filter((m) => tiene(m.id)).length;
@@ -152,7 +153,7 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
           <h3 className="font-display mt-1 text-2xl font-semibold tracking-tight">Organiza el servicio en sala sin cambiar tu TPV</h3>
           <p className="mt-1 text-sm text-niebla">
             Tu carta sigue siendo para mirar: el cliente nunca pide desde el móvil. Estos módulos ayudan a tu equipo.
-            {!ampliado && ' Requieren el plan Ampliado.'}
+            {!ampliado && ' El plano y la app de sala vienen con el plan Local; la conexión con el TPV, con Sala o como extra de Local.'}
           </p>
         </div>
         <div className="space-y-4">
@@ -167,8 +168,8 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
                   <ul className="mt-3 grid gap-1 text-sm text-grafito sm:grid-cols-2">{m.incluye.map((i) => <li key={i}>✓ {i}</li>)}</ul>
                 </div>
                 <div className="flex flex-col justify-center gap-2">
-                  <p className="text-center text-2xl font-black">{p ? euros(p.precioCentimos) : ''}<span className="text-xs font-normal text-niebla"> /mes</span></p>
-                  {ampliado ? <Boton s={m.id} /> : <a href="/panel?pestana=plan" className="block rounded-xl border border-linea-fuerte py-3 text-center text-sm font-bold">Pasar a Ampliado</a>}
+                  {p ? <p className="text-center text-2xl font-black">{euros(p.precioCentimos)}<span className="text-xs font-normal text-niebla"> /mes</span></p> : !ampliado && <p className="text-center text-sm font-semibold text-niebla">Incluido en el plan Local</p>}
+                  {ampliado ? <Boton s={m.id} /> : <a href="/panel?pestana=plan" className="block rounded-xl border border-linea-fuerte py-3 text-center text-sm font-bold">Pasar a Local</a>}
                 </div>
               </article>
             );
@@ -214,7 +215,7 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
       </>)}
 
       {/* QR ≠ DKitchen Signature (Núcleo Operativo), en ambas pestañas */}
-      <MapaNucleo credito={credito ? { euros: euros(credito.centimos), dias: diasCredito } : null} nModulos={nModulos} precioTodo={euros((precio('pack_sala')?.precioCentimos ?? 11900) + 2500)} />
+      <MapaNucleo credito={credito ? { euros: euros(credito.centimos), dias: diasCredito } : null} nModulos={nModulos} precioTodo={euros(QR_MENU.planes.sala.mensual * 100)} />
     </div>
   );
 }
@@ -274,7 +275,7 @@ function MapaNucleo({ credito, nModulos, precioTodo }: { credito: { euros: strin
     ['Cobros y ventas', 'Los gestiona tu TPV', 'TPV propio, historial de ventas y cierres'],
     ['Marca', 'Plantillas de DKitchen', 'App/web con tu marca, diseño de autor'],
     ['Propiedad', 'Servicio mensual: si lo dejas, se apaga', 'En propiedad: el sistema es tuyo'],
-    ['Precio', `QR Ampliado + Pack Sala = ${precioTodo}/mes`, 'Entrada + desde 99 €/mes (según volumen)'],
+    ['Precio', `Plan Sala, todo incluido = ${precioTodo}/mes`, 'Entrada + desde 99 €/mes (según volumen)'],
   ];
   return (
     <section className="space-y-4">
