@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { FondoVivo, TextoRevelado, BotonMagnetico } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
+import TodoIncluidoQr from '@/components/qr-landing/TodoIncluidoQr';
 import { PREGUNTAS_SIN_CAMBIAR } from '@/lib/preguntas-sin-cambiar';
 import { Titulo } from '@/components/dk/Bloques';
 import {
@@ -42,7 +43,7 @@ const MODULOS: Linea[] = [
   { nombre: 'Comandero Pro', detalle: 'Histórico con filtros, Excel y CSV, anulaciones y ranking de camareros', precio: `${eur(SERVICIOS_QR.comanderoPro)}/mes`, mensual: SERVICIOS_QR.comanderoPro },
 ];
 const SERVICIOS: Linea[] = [
-  { nombre: 'Puesta a punto', detalle: 'Montamos tu carta por ti', precio: eur(SERVICIOS_QR.puestaAPunto) },
+  { nombre: 'Puesta a punto', detalle: `Carta cargada, conexión con tu TPV (${SERVICIOS_QR.mesesTpvConPuesta} meses gratis), formación de tu equipo y fotos con IA · ${eur(SERVICIOS_QR.puestaAPuntoBienvenida)} al darte de alta`, precio: eur(SERVICIOS_QR.puestaAPunto) },
   { nombre: 'Carta de Autor', detalle: 'Diseño de carta a medida, con tu identidad', precio: eur(SERVICIOS_QR.cartaDeAutor) },
   { nombre: 'Idiomas', detalle: 'Hasta 3 idiomas, traducidos por DKitchen', precio: eur(SERVICIOS_QR.idiomas) },
   { nombre: 'Bono de imágenes con IA', detalle: `${SERVICIOS_QR.imagenesBonoIa} fotos de plato (${SERVICIOS_QR.imagenesGratisIa} gratis siempre)`, precio: eur(SERVICIOS_QR.bonoIa) },
@@ -191,6 +192,8 @@ export default async function PaginaPrecios() {
           </div>
         </div>
       </section>
+
+      <TodoIncluidoQr fondo="blanco" />
 
       {OTROS.map((o) => (
         <section key={o.id} id={o.id} className={`scroll-mt-20 py-24 md:py-32 ${o.oscuro ? 'bg-noche text-white' : 'border-t border-linea bg-white'}`}>

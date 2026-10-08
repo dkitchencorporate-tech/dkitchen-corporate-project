@@ -5,6 +5,7 @@ import ComoFuncionaQr from '@/components/qr-landing/ComoFuncionaQr';
 import PruebaloQr from '@/components/qr-landing/PruebaloQr';
 import SalaViva from '@/components/qr-landing/SalaViva';
 import PlanesQr from '@/components/qr-landing/PlanesQr';
+import TodoIncluidoQr from '@/components/qr-landing/TodoIncluidoQr';
 import ComparativaQr from '@/components/qr-landing/ComparativaQr';
 import PreguntasQr, { PREGUNTAS } from '@/components/qr-landing/PreguntasQr';
 import { LineaServicio } from '@/components/qr-landing/Extras';
@@ -79,6 +80,7 @@ export default function PaginaQr() {
         </div>
       </section>
       <SalaViva />
+      <TodoIncluidoQr />
       <PlanesQr />
       <ComparativaQr />
       <PreguntasQr />

@@ -1,6 +1,6 @@
 import ActivarPlanBoton from '@/components/sections/ActivarPlanBoton';
 import { TextoRevelado } from '@/components/dk/Movimiento';
-import { QR_MENU } from '@/lib/pricing-config';
+import { QR_MENU, SERVICIOS_QR } from '@/lib/pricing-config';
 
 /**
  * Precios de /qr. Planes por cantidades (decisión A de karc0, 07/10; 0050):
@@ -8,10 +8,10 @@ import { QR_MENU } from '@/lib/pricing-config';
  * y Sala 69 € con todo incluido. Cifras de pricing-config; topes, de la base.
  */
 const { basico: C, ampliado: L, sala: S } = QR_MENU.planes;
-const CARTA = [`Hasta ${C.topes.productos} productos`, 'Fotos, precios y alérgenos', `${C.topes.reservasMes} reservas al mes desde la carta`, `Aviso del camarero en tu panel (${C.topes.mesas} mesas)`, '1 banner de promoción', 'QR que nunca reimprimes'];
-const LOCAL = [`Hasta ${L.topes.productos} productos`, `Plano con ${L.topes.mesas} mesas`, `App de sala para ${L.topes.camareros} camareros`, `${L.topes.reservasMes} reservas al mes con aviso`, 'Llamada al camarero y petición de la cuenta', '3 banners programables', 'Botón de reseñas de Google', 'TPV y Comandero Pro como extras'];
-const SALA = [`Hasta ${S.topes.productos} productos y ${S.topes.mesas} mesas`, `${S.topes.camareros} personas en el equipo, con encargados`, `${S.topes.reservasMes} reservas al mes`, 'Conexión con tu TPV incluida', 'Comandero Pro incluido', 'Carta en hasta 3 idiomas'];
-const GARANTIAS = ['Local: primer mes por 1 €', 'Sin permanencia', 'Cancelas desde tu panel', 'Alérgenos según el Reglamento UE', 'Soporte en español'];
+const CARTA = [`Hasta ${C.topes.productos} productos`, 'Fotos, precios y alérgenos', `${C.topes.reservasMes} reservas al mes desde la carta`, `Aviso del camarero en tu panel (${C.topes.mesas} mesas)`, '1 banner de promoción', 'QR que nunca reimprimes', 'Fotos de platos con IA', 'Asistente con IA 24/7 + WhatsApp', `Idiomas: ${SERVICIOS_QR.idiomas} € una vez`];
+const LOCAL = [`Hasta ${L.topes.productos} productos`, `Plano con ${L.topes.mesas} mesas`, `App de sala para ${L.topes.camareros} camareros`, `${L.topes.reservasMes} reservas al mes con aviso`, 'Llamada al camarero y petición de la cuenta', '3 banners programables', 'Botón de reseñas de Google', 'Fotos de platos con IA', 'Asistente con IA 24/7 + WhatsApp', `Conexión TPV: ${SERVICIOS_QR.conexionTpv} €/mes (${SERVICIOS_QR.mesesTpvConPuesta} meses gratis con la puesta a punto)`, `Comandero Pro: ${SERVICIOS_QR.comanderoPro} €/mes`];
+const SALA = [`Hasta ${S.topes.productos} productos y ${S.topes.mesas} mesas`, `${S.topes.camareros} personas en el equipo, con encargados`, `${S.topes.reservasMes} reservas al mes`, 'Conexión con tu TPV incluida', 'Comandero Pro incluido', 'Carta en hasta 3 idiomas', 'Botón de reseñas de Google', 'Fotos de platos con IA', 'Asistente con IA 24/7 + WhatsApp'];
+const GARANTIAS = ['Local: primer mes por 1 €', 'Sin permanencia', 'Cancelas desde tu panel', 'Alérgenos según el Reglamento UE', 'Soporte en español', 'Sin cambiar tu TPV'];
 
 const Check = ({ className = '' }: { className?: string }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className={`mt-0.5 shrink-0 ${className}`} aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
@@ -63,6 +63,7 @@ export default function PlanesQr() {
           {GARANTIAS.map((g) => <li key={g} className="flex items-center gap-2"><Check className="text-exito" />{g}</li>)}
         </ul>
         <p className="mt-6 text-center text-sm text-ceniza">Si te quedas corto, el panel te avisa antes de llegar al límite (te dejamos un 10 % de margen) y subes de plan en un minuto. La llamada al camarero nunca se corta.</p>
+        <p className="mt-3 text-center text-sm text-grafito">Con cualquier plan puedes añadir la <a href="#todo-incluido" className="font-semibold text-vino underline underline-offset-4">puesta a punto</a>: carta cargada, conexión con tu TPV, formación de tu equipo y fotos con IA. {SERVICIOS_QR.puestaAPunto} € (o {SERVICIOS_QR.puestaAPuntoBienvenida} € al darte de alta).</p>
       </div>
     </section>
   );
