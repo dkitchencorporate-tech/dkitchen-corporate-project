@@ -3,6 +3,7 @@ import React from "react";
 import "./globals.css";
 import AnalyticsPixel from "@/components/AnalyticsPixel";
 import CookieConsent from "@/components/CookieConsent";
+import AnaliticaWeb from "@/components/AnaliticaWeb";
 import CapturaVendedor from "@/components/CapturaVendedor";
 
 export const metadata = {
@@ -85,6 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <Solicitud />
         <CookieConsent />
+        <AnaliticaWeb />
         <CapturaVendedor />
       </body>
     </html>
