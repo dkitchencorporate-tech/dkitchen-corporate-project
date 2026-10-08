@@ -196,7 +196,7 @@ export default function ActivarPlanBoton({
  * cubre el formulario con pasos que avanzan y una barra en movimiento, para
  * que quede claro que el pago seguro se está preparando.
  */
-const PASOS_CARGA = ['Comprobando tus datos', 'Creando tu pedido en Stripe', 'Abriendo el pago seguro'];
+const PASOS_CARGA = ['Comprobando tus datos', 'Preparando tu pedido en DKitchen Corporate', 'Abriendo el pago seguro'];
 function PreparandoPago() {
   const [paso, setPaso] = useState(0);
   useEffect(() => {
