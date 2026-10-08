@@ -14,7 +14,10 @@ const numero = (s: string) => Number(s.replace(',', '.'));
  * 1. Qué cobras · 2. Cuánto · 3. Enviar. El importe se guarda en la base
  * antes de ir al pago; al pagarlo se activa solo.
  */
-export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId: string; catalogo: Cat[] }) {
+export default function EnlacesPago({ restauranteId, catalogo: todo, demo = false }: { restauranteId: string; catalogo: Cat[]; demo?: boolean }) {
+  // 08/10 (karc0): los módulos mensuales sueltos quedaron sustituidos por los planes por cantidades
+  // (Carta/Local/Sala). Aquí solo se ofrecen extras de pago único.
+  const catalogo = todo.filter((c) => c.tipo !== 'mensual');
   const [paso, setPaso] = useState(1);
   const [plan, setPlan] = useState('');
   const [servicios, setServicios] = useState<string[]>([]);
@@ -64,15 +67,33 @@ export default function EnlacesPago({ restauranteId, catalogo }: { restauranteId
 
       {paso === 1 && (
         <div className="space-y-4">
+          <div>
+            <p className="text-sm font-medium">{demo ? 'Convertir esta demo en cliente' : 'Activación rápida'}</p>
+            <p className="text-xs text-ceniza">Un toque prepara el cobro con el precio de la web. Al pagarlo, la cuenta pasa a cliente activo sola{demo ? ' y deja de ser demo' : ''}.</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              {PLANES_QR.map((p) => {
+                const pl = QR_MENU.planes[p];
+                const hoy = pl.primerMesSimbolico ? QR_MENU.primerMes : pl.mensual;
+                return (
+                  <button key={p} type="button" onClick={() => { setPlan(p); setServicios([]); setPrimer(String(hoy)); setMensual(String(pl.mensual)); setPaso(3); }}
+                    className="rounded-xl border border-linea px-4 py-3 text-left text-sm transition hover:border-tinta hover:bg-crema">
+                    <span className="block font-semibold">Plan {pl.nombre}</span>
+                    <span className="block text-xs text-niebla">Hoy {eur(hoy * 100)} + IVA · después {eur(pl.mensual * 100)}/mes</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <p className="border-t border-linea pt-4 text-sm font-medium">O a medida</p>
           <label className="block text-sm font-medium">Plan mensual
             <select value={plan} onChange={(e) => setPlan(e.target.value)} className={campo}>
-              <option value="">Sin cambio de plan (solo servicios)</option>
+              <option value="">Sin cambio de plan (solo extras)</option>
               {PLANES_QR.map((p) => <option key={p} value={p}>Plan {nombrePlan(p)} · {QR_MENU.planes[p].mensual} €/mes</option>)}
             </select>
           </label>
           <div>
-            <p className="text-sm font-medium">Servicios y módulos</p>
-            <p className="text-xs text-ceniza">Marca todo lo que entra en este pago.</p>
+            <p className="text-sm font-medium">Extras de pago único</p>
+            <p className="text-xs text-ceniza">Opcional. Lo que va incluido en cada plan ya no se cobra aparte.</p>
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
               {catalogo.map((c) => {
                 const on = servicios.includes(c.servicio);

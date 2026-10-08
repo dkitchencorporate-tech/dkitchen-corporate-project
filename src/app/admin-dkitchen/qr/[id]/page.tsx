@@ -171,6 +171,23 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         </div>
       )}
 
+      {r.demo_interna && (
+        <section className="rounded-[22px] border border-vino/25 bg-vino/[0.04] p-5 sm:p-6">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">Demo para captar</p>
+          <h2 className="mt-1 font-display text-xl font-semibold tracking-tight">De demo a cliente en 3 pasos</h2>
+          <ol className="mt-3 space-y-1.5 text-sm text-pizarra">
+            <li><strong>1.</strong> Déjala con la cara del local: nombre, logo, fotos y 3–5 platos. Usa «Entrar en su panel».</li>
+            <li><strong>2.</strong> Prepara el cobro: «Convertir esta demo en cliente» → plan (Local = 1 € + IVA el primer mes). Cópialo o envíalo por WhatsApp.</li>
+            <li><strong>3.</strong> Si el local está en Prospección, su propuesta ya enseña esta carta y el botón de pago. Al pagar, deja de ser demo y cuenta como cliente.</li>
+          </ol>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <a href="#enlace" className="rounded-full bg-vino px-4 py-2 text-sm font-semibold text-white">Convertir en cliente</a>
+            <a href={`/m/${r.slug}`} target="_blank" rel="noopener" className="rounded-full border border-linea bg-white px-4 py-2 text-sm font-semibold">Ver su carta</a>
+            <a href="/admin-dkitchen/prospeccion" className="rounded-full border border-linea bg-white px-4 py-2 text-sm font-semibold">Ir a Prospección</a>
+          </div>
+        </section>
+      )}
+
       {proyectos.length > 0 && (
         <p className="rounded-2xl bg-papel px-4 py-3 text-sm">Proyectos de este cliente: {proyectos.map((p, i) => <span key={p.id}>{i ? ' · ' : ''}<Link href={`/admin-dkitchen/proyectos/${p.id}`} className="font-semibold text-vino underline">{PRODUCTOS_PROYECTO[p.producto]} ({nombreFase(p.producto, p.fase)})</Link></span>)}</p>
       )}
@@ -324,7 +341,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           <h2 className="font-display text-xl font-semibold tracking-tight">Enlace de pago a medida</h2>
           <p className="text-xs text-niebla">Plan y/o servicios al precio que decidas. Al pagarlo se activa solo y queda en el historial.</p>
         </div>
-        <EnlacesPago restauranteId={r.id} catalogo={catalogo} />
+        <EnlacesPago restauranteId={r.id} catalogo={catalogo} demo={!!r.demo_interna} />
         {enlaces.length > 0 && (
           <ul className="divide-y divide-linea border-t border-linea pt-2 text-sm">
             {enlaces.map((e) => (

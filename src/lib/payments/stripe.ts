@@ -125,6 +125,7 @@ export interface DatosCliente {
   nombre: string;
   negocio?: string;
   telefono?: string;
+  direccion?: { calle: string; localidad: string; cp: string };
 }
 
 /** Reutiliza el cliente por correo; si no existe, lo crea (facturas en español). */
@@ -135,6 +136,7 @@ export async function asegurarCliente(d: DatosCliente): Promise<string> {
   const datos = {
     name: (d.negocio || d.nombre).slice(0, 200),
     phone: d.telefono || undefined,
+    ...(d.direccion ? { address: { line1: d.direccion.calle.slice(0, 200), city: d.direccion.localidad.slice(0, 100), postal_code: d.direccion.cp, country: 'ES' } } : {}),
     preferred_locales: ['es'],
     metadata: { contacto: d.nombre.slice(0, 200), ...(d.negocio ? { negocio: d.negocio.slice(0, 200) } : {}) },
   };

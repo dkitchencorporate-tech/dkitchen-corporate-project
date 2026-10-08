@@ -9,6 +9,9 @@ export interface DatosCheckoutQr {
   slugBase: string;
   email: string;
   nombreContacto: string;
+  /** Datos del alta (08/10, karc0): teléfono y dirección del local; van al cliente de Stripe y a la metadata. */
+  telefono?: string;
+  direccion?: { calle: string; localidad: string; cp: string };
   /** Origen de la petición (para construir redirect_url). */
   origen: string;
   /** Código del socio que vende (0052), ya validado en la base. */

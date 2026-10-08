@@ -8,7 +8,7 @@ import { useState } from 'react';
  * referencia nueva: el total y el formulario de pago salen ya descontados.
  */
 export default function CodigoPromocional({ r, aplicado }: { r: string; aplicado: string | null }) {
-  const [abierto, setAbierto] = useState(false);
+  const [abierto, setAbierto] = useState(true);
   const [codigo, setCodigo] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -43,7 +43,7 @@ export default function CodigoPromocional({ r, aplicado }: { r: string; aplicado
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); if (codigo.trim()) enviar(codigo); }} className="mt-4">
-      <label htmlFor="codigo-promocional" className="text-[13px] font-medium text-tinta">Código promocional</label>
+      <label htmlFor="codigo-promocional" className="text-[13px] font-medium text-tinta">¿Tienes un código de descuento?</label>
       <div className="mt-1.5 flex gap-2">
         <input
           id="codigo-promocional"

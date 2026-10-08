@@ -47,7 +47,7 @@ const metaVendedor = (v: DatosCheckoutQr['vendedor']): Record<string, string> =>
 
 export async function crearCheckoutQr(datos: DatosCheckoutQr): Promise<{ url: string }> {
   const plan = QR_MENU.planes[datos.plan];
-  const cliente = await asegurarCliente({ email: datos.email, nombre: datos.nombreContacto, negocio: datos.restauranteNombre });
+  const cliente = await asegurarCliente({ email: datos.email, nombre: datos.nombreContacto, negocio: datos.restauranteNombre, telefono: datos.telefono, direccion: datos.direccion });
   const id = await crearSuscripcion({
     cliente,
     cuota: { producto: productoQr(datos.plan), nombre: `QR Menú · Plan ${plan.nombre} (cuota mensual)`, centimos: plan.mensual * 100 },
@@ -60,6 +60,8 @@ export async function crearCheckoutQr(datos: DatosCheckoutQr): Promise<{ url: st
       slugBase: datos.slugBase,
       email: datos.email,
       nombreContacto: datos.nombreContacto,
+      telefono: datos.telefono,
+      direccion: datos.direccion ? `${datos.direccion.calle}, ${datos.direccion.cp} ${datos.direccion.localidad}` : undefined,
       ...metaVendedor(datos.vendedor),
       concepto: `QR Menú · Plan ${plan.nombre}`,
       destino: `/qr/bienvenida?email=${encodeURIComponent(datos.email)}&nombre=${encodeURIComponent(datos.nombreContacto)}&restaurante=${encodeURIComponent(datos.restauranteNombre)}`,

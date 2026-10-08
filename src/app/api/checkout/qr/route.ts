@@ -37,8 +37,13 @@ export async function POST(request: Request) {
 
   // El código de comercial se resuelve ANTES del freno: con código válido el límite es más alto (H32).
   let vendedor: Vendedor | null = null;
+  const escrito = String((body as { vendedor?: unknown })?.vendedor ?? '').trim();
   try {
     vendedor = await vendedorDeLaPeticion((body as { vendedor?: unknown })?.vendedor, (body as { vendedorDelEnlace?: unknown })?.vendedorDelEnlace);
+    // Código escrito y no válido: se avisa en vez de ignorarlo en silencio (08/10, karc0).
+    if (escrito && !vendedor) {
+      return NextResponse.json({ error: 'Ese código de asesor no existe. Revísalo o déjalo en blanco (los códigos de descuento se ponen en el paso siguiente).', campo: 'vendedor' }, { status: 400 });
+    }
   } catch (error) {
     console.error('No se pudo comprobar el código de comercial:', error);
   }
@@ -58,6 +63,10 @@ export async function POST(request: Request) {
   const restauranteNombre = String((body as { restauranteNombre?: unknown })?.restauranteNombre ?? '').trim();
   const nombreContacto = String((body as { nombreContacto?: unknown })?.nombreContacto ?? '').trim();
   const email = String((body as { email?: unknown })?.email ?? '').trim();
+  const telefono = String((body as { telefono?: unknown })?.telefono ?? '').replace(/[^0-9+]/g, '');
+  const calle = String((body as { direccion?: unknown })?.direccion ?? '').trim();
+  const localidad = String((body as { localidad?: unknown })?.localidad ?? '').trim();
+  const cp = String((body as { cp?: unknown })?.cp ?? '').trim();
 
   if (!esPlanQr(plan)) {
     return NextResponse.json({ error: 'Plan desconocido.' }, { status: 400 });
@@ -72,6 +81,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'El correo no es válido.' }, { status: 400 });
   }
 
+  if (!/^\+?[0-9]{9,15}$/.test(telefono)) {
+    return NextResponse.json({ error: 'El teléfono no es válido.' }, { status: 400 });
+  }
+  if (calle.length < 4 || calle.length > 160 || !localidad || localidad.length > 80 || !/^[0-9]{5}$/.test(cp)) {
+    return NextResponse.json({ error: 'Revisa la dirección del local (calle, código postal de 5 cifras y localidad).' }, { status: 400 });
+  }
+
   const slugBase = normalizarSlug(restauranteNombre);
   const origen = new URL(request.url).origin;
 
@@ -81,6 +97,8 @@ export async function POST(request: Request) {
       restauranteNombre,
       nombreContacto,
       email,
+      telefono,
+      direccion: { calle, localidad, cp },
       slugBase,
       origen,
       vendedor,

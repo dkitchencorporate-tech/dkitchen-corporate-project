@@ -392,6 +392,11 @@ async function altaQr(ctx: Contexto) {
   });
   if (!resultado.ok) return resultado.motivo === 'db_fallo' ? fallo('Fallo aprovisionando') : ok({ aprovisionado: false });
   await atribuirVendedor(ctx);
+  // Teléfono y dirección del alta (08/10, 0062): adelantan el montaje. Nunca tumban el alta.
+  if (resultado.restauranteId && (ctx.meta.telefono || ctx.meta.direccion)) {
+    await comoAprovisionamiento((c) => c.query('SELECT dk.alta_datos_local($1, $2, $3)', [resultado.restauranteId, String(ctx.meta.telefono ?? '').slice(0, 30) || null, String(ctx.meta.direccion ?? '').slice(0, 160) || null]))
+      .catch((e) => console.error('Datos del local no guardados:', e));
+  }
   // Marca para distinguir un reenvío de Stripe de un segundo local con el mismo correo.
   await stripe('POST', `/subscriptions/${ctx.suscripcion}`, { metadata: { alta_hecha: 'si' } }).catch(() => {});
   return ok({ aprovisionado: true });

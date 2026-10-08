@@ -20,6 +20,8 @@ const SITIO = process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es'
 type Propuesta = {
   nombre: string; tipo: keyof typeof TIPOS; zona: string; texto: string | null; muestra_url: string | null;
   oferta: string; comercial: string; telefono: string | null; codigo: string | null;
+  /** 0062: demo ya montada en Central para este local y su enlace de pago pendiente. */
+  demo_slug?: string | null; pago_url?: string | null;
 };
 const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: Number.isInteger(n) ? 0 : 2 }) + ' €';
 const PREMIUM: Record<string, { ruta: string; nombre: string }> = {
@@ -38,9 +40,11 @@ export default async function PropuestaPublica({ params }: { params: Promise<{ t
   const fundador = p.oferta === 'fundador' ? await estadoFundador() : null;
   const conFundador = !!fundador?.abierto;
   const utm = 'utm_source=propuesta&utm_medium=directo&utm_campaign=crm';
-  const alta = `${SITIO}/${conFundador ? 'fundador' : 'qr'}?${p.codigo ? `v=${p.codigo}&` : ''}${utm}`;
+  // Si hay demo con enlace de pago preparado en Central, activar = pagar ESA cuenta (demo → cliente, 08/10).
+  const alta = p.pago_url || `${SITIO}/${conFundador ? 'fundador' : 'qr'}?${p.codigo ? `v=${p.codigo}&` : ''}${utm}`;
+  const muestra = p.muestra_url || (p.demo_slug ? `${SITIO}/m/${p.demo_slug}` : null);
   const premium = PREMIUM[p.oferta];
-  const qr = await QRCode.toDataURL(p.muestra_url || alta, { width: 320, margin: 1 });
+  const qr = await QRCode.toDataURL(muestra || alta, { width: 320, margin: 1 });
   const wa = enlaceWhatsapp(p.telefono);
 
   return (
@@ -58,13 +62,13 @@ export default async function PropuestaPublica({ params }: { params: Promise<{ t
 
         <section className="grid gap-5 rounded-[22px] bg-papel p-5 sm:grid-cols-[1fr_auto] sm:items-center">
           <div>
-            <h2 className="font-semibold">{p.muestra_url ? 'Tu carta, ya montada' : 'Tu carta digital con QR'}</h2>
+            <h2 className="font-semibold">{muestra ? 'Tu carta, ya montada' : 'Tu carta digital con QR'}</h2>
             <p className="mt-1 text-sm text-niebla">
-              {p.muestra_url
+              {muestra
                 ? 'Escanea el código o pulsa el botón: así la verán tus clientes en el móvil, con tus platos y tus colores.'
                 : 'Escanea el código para activarla. La montamos contigo y la cambias desde el móvil cuando quieras.'}
             </p>
-            {p.muestra_url && <a href={p.muestra_url} className="mt-3 inline-flex rounded-full bg-tinta px-5 py-3 text-sm font-semibold text-white print:hidden">Ver mi carta</a>}
+            {muestra && <a href={muestra} className="mt-3 inline-flex rounded-full bg-tinta px-5 py-3 text-sm font-semibold text-white print:hidden">Ver mi carta</a>}
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={qr} alt="Código QR" width={140} height={140} className="justify-self-center" />
@@ -88,7 +92,7 @@ export default async function PropuestaPublica({ params }: { params: Promise<{ t
             ))}
           </ul>
           <div className="flex flex-wrap gap-2 print:hidden">
-            <a href={alta} className="rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white">{conFundador ? 'Quiero ser Fundador' : `Activar por ${eur(QR_MENU.primerMes)}`}</a>
+            <a href={alta} className="rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white">{p.pago_url ? 'Activar mi carta' : conFundador ? 'Quiero ser Fundador' : `Activar por ${eur(QR_MENU.primerMes)}`}</a>
             {premium && <a href={`${SITIO}/${premium.ruta}?${utm}`} className="rounded-full bg-white px-5 py-3 text-sm font-semibold ring-1 ring-linea">Ver {premium.nombre}</a>}
           </div>
           {p.codigo && <p className="text-xs text-niebla">Código de tu asesor: <span className="font-mono font-semibold">{p.codigo}</span></p>}

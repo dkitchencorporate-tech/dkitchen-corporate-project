@@ -39,6 +39,11 @@ export default function ActivarPlanBoton({
   const [nombre, setNombre] = useState('');
   const [nombreContacto, setNombreContacto] = useState('');
   const [email, setEmail] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [direccion, setDireccion] = useState('');
+  const [cp, setCp] = useState('');
+  const [localidad, setLocalidad] = useState('');
+  const [errorVendedor, setErrorVendedor] = useState<string | null>(null);
   // Código del socio (0052): del enlace o QR, de una visita anterior o escrito a mano.
   const [vendedor, setVendedor] = useState('');
   const [vendedorEnlace, setVendedorEnlace] = useState<string | null>(null);
@@ -50,6 +55,11 @@ export default function ActivarPlanBoton({
     setMontado(true);
     const v = codigoDeLaUrl() ?? codigoGuardado();
     if (v) { setVendedor(v); setVendedorEnlace(v); }
+    // Volver atrás desde /pago: el navegador restaura la página tal cual (bfcache)
+    // con el botón en «Abriendo el pago seguro…» y bloqueado. Se reactiva (08/10).
+    const alVolver = (e: PageTransitionEvent) => { if (e.persisted) setCargando(false); };
+    window.addEventListener('pageshow', alVolver);
+    return () => window.removeEventListener('pageshow', alVolver);
   }, []);
   useEffect(() => {
     if (!abierto) return;
@@ -63,14 +73,16 @@ export default function ActivarPlanBoton({
   async function activar(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setErrorVendedor(null);
     setCargando(true);
     try {
       const respuesta = await fetch(plan === 'fundador' ? '/api/checkout/fundador' : '/api/checkout/qr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, restauranteNombre: nombre, nombreContacto, email, vendedor, vendedorDelEnlace: !!vendedorEnlace && vendedor === vendedorEnlace }),
+        body: JSON.stringify({ plan, restauranteNombre: nombre, nombreContacto, email, telefono, direccion, cp, localidad, vendedor, vendedorDelEnlace: !!vendedorEnlace && vendedor === vendedorEnlace }),
       });
       const datos = await respuesta.json();
+      if (datos?.campo === 'vendedor') { setErrorVendedor(datos.error); setCargando(false); return; }
       if (!respuesta.ok || !datos.url) throw new Error(datos?.error ?? 'No se pudo iniciar el pago.');
       // Embudo (0032): va al pago; al salir de la página ya no cuenta como «se fue sin pagar».
       const producto = plan === 'fundador' ? 'fundador' : 'qr';
@@ -91,12 +103,11 @@ export default function ActivarPlanBoton({
       {montado && createPortal(
         <AnimatePresence>
           {abierto && (
-            <motion.div key="fondo" className="fixed inset-0 z-[200] flex items-end justify-center bg-[#0F0B08]/70 backdrop-blur-sm sm:items-center sm:p-6"
+            <motion.div key="fondo" className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0F0B08]/70 p-3 backdrop-blur-sm sm:p-6"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !cargando && setAbierto(false)}>
               <motion.form role="dialog" aria-modal="true" aria-labelledby={`alta-${plan}`} onSubmit={activar} onClick={(e) => e.stopPropagation()}
                 initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                className="max-h-[92dvh] w-full overflow-y-auto rounded-t-[28px] bg-crema text-[#1A1714] shadow-2xl sm:max-w-md sm:rounded-[28px]">
-                <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-black/15 sm:hidden" />
+                className="max-h-[94dvh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-[28px] bg-crema text-[#1A1714] shadow-2xl">
                 <div className="flex items-start justify-between gap-4 px-7 pt-6">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vino">QR Menú · Plan {p.nombre}</p>
@@ -123,14 +134,31 @@ export default function ActivarPlanBoton({
                   <label className="block text-sm font-medium">Tu nombre
                     <input type="text" required maxLength={80} autoComplete="name" value={nombreContacto} onChange={(e) => setNombreContacto(e.target.value)} className={campo} />
                   </label>
-                  <label className="block text-sm font-medium">Tu correo
+                  <label className="block text-sm font-medium">Tu correo <span className="font-normal text-black/45">(aquí recibes el acceso y las facturas)</span>
                     <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={campo} />
                   </label>
+                  <label className="block text-sm font-medium">Teléfono de contacto
+                    <input type="tel" required inputMode="tel" maxLength={16} autoComplete="tel" pattern="[0-9+ ]{9,16}" value={telefono} onChange={(e) => setTelefono(e.target.value.replace(/[^0-9+ ]/g, ''))} placeholder="600 000 000" className={campo} />
+                  </label>
+                  <p className="pt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">Dirección del local</p>
+                  <label className="block text-sm font-medium">Calle y número
+                    <input type="text" required minLength={4} maxLength={160} autoComplete="street-address" value={direccion} onChange={(e) => setDireccion(e.target.value)} className={campo} />
+                  </label>
+                  <div className="grid grid-cols-[7.5rem_1fr] gap-3">
+                    <label className="block text-sm font-medium">C. postal
+                      <input type="text" required inputMode="numeric" pattern="[0-9]{5}" maxLength={5} autoComplete="postal-code" value={cp} onChange={(e) => setCp(e.target.value.replace(/\D/g, ''))} className={campo} />
+                    </label>
+                    <label className="block text-sm font-medium">Localidad
+                      <input type="text" required maxLength={80} autoComplete="address-level2" value={localidad} onChange={(e) => setLocalidad(e.target.value)} className={campo} />
+                    </label>
+                  </div>
                   <label className="block text-sm font-medium">Código de tu asesor <span className="font-normal text-black/45">(opcional)</span>
                     <input type="text" maxLength={12} autoComplete="off" autoCapitalize="characters" spellCheck={false} value={vendedor}
                       onChange={(e) => setVendedor(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))} placeholder="Si te ha visitado alguien de DKitchen"
-                      className={`${campo} uppercase tracking-[0.12em] placeholder:normal-case placeholder:tracking-normal`} />
+                      className={`${campo} uppercase tracking-[0.12em] placeholder:normal-case placeholder:tracking-normal ${errorVendedor ? 'border-red-600' : ''}`} />
                   </label>
+                  {errorVendedor && <p role="alert" className="-mt-2 text-sm text-red-700">{errorVendedor}</p>}
+                  <p className="text-xs text-black/50">¿Tienes un código de descuento? Lo pones en el siguiente paso, junto al total.</p>
                 </div>
 
                 {error && <p className="px-7 pt-3 text-sm text-red-700">{error}</p>}
