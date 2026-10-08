@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { crearTransporte, REMITENTE, BUZON_INTERNO, enviarCorreoCliente } from '@/lib/email';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
 import { INTERESES } from '@/lib/intereses';
+import { crearProyecto, PRODUCTO_DE_INTERES } from '@/lib/proyectos';
 
 /**
  * Solicitudes desde cualquier botón de la web sin pago directo (29/09/2026).
@@ -50,6 +51,16 @@ export async function POST(request: Request) {
   } catch (e) {
     console.error('Solicitud: fallo en el correo interno', e);
     return NextResponse.json({ error: 'No se pudo enviar ahora. Inténtalo en unos minutos.' }, { status: 500 });
+  }
+
+  // Signature, Experience, Auditoría y Dark Kitchen abren (o anotan) un proyecto en Central (0060).
+  const producto = PRODUCTO_DE_INTERES[interes];
+  if (producto) {
+    await crearProyecto(producto, 'solicitud', {
+      email, nombre, telefono, negocio: txt(b.negocio, 100) || null,
+      datos: { interes, detalle: detalle || undefined, mensaje: txt(b.mensaje, 1000) || undefined, pagina: txt(b.pagina, 120) || undefined },
+      texto: `Solicitud web: ${info.nombre}${detalle ? ` · ${detalle}` : ''}${txt(b.mensaje, 300) ? ` · «${txt(b.mensaje, 300)}»` : ''}`,
+    });
   }
 
   await enviarCorreoCliente(email, `Hemos recibido tu solicitud · ${info.nombre}`,

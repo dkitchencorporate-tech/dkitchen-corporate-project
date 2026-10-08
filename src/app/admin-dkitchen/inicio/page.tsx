@@ -5,6 +5,7 @@ import { comoCliente } from '@/lib/db';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
 import { QR_MENU } from '@/lib/pricing-config';
 import { NOMBRE_ALERTA, enlaceAlerta, type DatosMando, type Ventana } from '@/lib/mando';
+import { resumenProyectos } from '@/lib/proyectos';
 
 export const dynamic = 'force-dynamic';
 
@@ -140,11 +141,12 @@ function PanelMando({ m }: { m?: DatosMando }) {
 
 export default async function CentralInicio() {
   const jwt = await exigirAdmin();
-  const [clientes, embudo, capacidad, mando] = await Promise.all([
+  const [clientes, embudo, capacidad, mando, proyectos] = await Promise.all([
     listarClientesQr(jwt),
     comoCliente(jwt, async (c) => (await c.query<{ producto: string; visitas: string; pagados: string }>('SELECT producto, visitas, pagados FROM dk.admin_embudo(30)')).rows).catch(() => []),
     comoCliente(jwt, async (c) => (await c.query<Capacidad>('SELECT * FROM dk.admin_capacidad()')).rows[0]).catch(() => undefined),
     comoCliente(jwt, async (c) => (await c.query<{ m: DatosMando }>('SELECT dk.admin_mando() AS m')).rows[0]?.m).catch(() => undefined),
+    resumenProyectos(jwt).catch(() => undefined),
   ]);
   const avisos = evaluarCapacidad(capacidad);
   const hace30 = Date.now() - 30 * 864e5;
@@ -189,6 +191,15 @@ export default async function CentralInicio() {
       </div>
 
       <PanelMando m={mando} />
+
+      <Link href={proyectos?.hoy ? '/admin-dkitchen/proyectos?hoy=1' : '/admin-dkitchen/proyectos'}
+        className={`${tarjeta} flex flex-wrap items-center justify-between gap-3 transition-colors hover:border-linea-fuerte ${proyectos?.hoy ? 'border-vino' : ''}`}>
+        <span>
+          <span className="block text-sm font-semibold">Proyectos que tocan hoy</span>
+          <span className="block text-xs text-niebla">{proyectos ? `${proyectos.abiertos} abiertos · ${proyectos.nuevos_7d} nuevos en 7 días · Signature, Experience, Auditoría, Dark Kitchen` : 'No se pudieron leer los proyectos.'}</span>
+        </span>
+        <span className={`font-display text-3xl font-semibold tabular-nums ${proyectos?.hoy ? 'text-vino' : ''}`}>{proyectos?.hoy ?? '—'}</span>
+      </Link>
 
       <div className="grid gap-3 lg:grid-cols-3">
         <div className="lg:col-span-2"><Lista titulo="Atender hoy" vacio="Nada pendiente. Todo al día." filas={atender} accion="Abre la ficha para responder o gestionar el envío." /></div>

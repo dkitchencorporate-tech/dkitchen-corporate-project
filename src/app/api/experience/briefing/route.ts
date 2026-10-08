@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { crearTransporte, REMITENTE, BUZON_INTERNO, enviarCorreoCliente } from '@/lib/email';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
+import { crearProyecto } from '@/lib/proyectos';
 
 /**
  * Briefing de Experience tras el pago (06/10/2026): llega al buzón interno con
@@ -52,6 +53,13 @@ export async function POST(request: Request) {
     console.error('Briefing de Experience: fallo en el correo interno', e);
     return NextResponse.json({ error: 'No se pudo enviar ahora. Inténtalo en unos minutos.' }, { status: 500 });
   }
+
+  // Proyecto en Central (0060): la solicitud sin pago lo abre; el briefing tras el pago se anota en el ya creado.
+  await crearProyecto('experience', 'solicitud', {
+    email, nombre, telefono, negocio: txt(b.negocio, 100) || null,
+    datos: Object.fromEntries(filas.filter(([k, v]) => v && !['Nombre', 'Correo', 'Teléfono', 'Negocio'].includes(k))),
+    texto: `${registro ? 'Solicitud' : 'Briefing'} de Experience: ${txt(b.formato, 60)} para el ${fecha}`,
+  });
 
   // El correo interno ya salió: si falla la copia al cliente no se devuelve
   // error (antes daba 500 y el cliente reenviaba el formulario, H20).

@@ -15,6 +15,7 @@ import { BASE_OPERATIVA, esPlanQr, nombrePlan } from '@/lib/pricing-config';
 import { firmaWebhookValida, stripe, type ObjetoStripe } from '@/lib/payments/stripe';
 import { pasarSignatureAMantenimiento } from '@/lib/payments/cobros';
 import { avisarCobroFallido } from '@/lib/avisos-impago';
+import { crearProyecto, type AltaProyecto } from '@/lib/proyectos';
 
 export const runtime = 'nodejs';
 
@@ -45,6 +46,13 @@ interface Contexto {
 const ok = (extra: Record<string, unknown> = {}) => NextResponse.json({ recibido: true, ...extra });
 const fallo = (motivo: string) => NextResponse.json({ error: motivo }, { status: 500 });
 const euros = (c: number) => (c / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+
+/** Datos comunes del proyecto (0060) que deja cada alta pagada. */
+const altaProyecto = (ctx: Contexto, extra: Partial<AltaProyecto> = {}): AltaProyecto => ({
+  email: ctx.meta.email, nombre: ctx.meta.nombreContacto, telefono: ctx.meta.telefono, negocio: ctx.meta.restauranteNombre,
+  referencia: ctx.idPago, importe: ctx.importe, stripe_cliente: ctx.cliente || null, stripe_factura: ctx.idPago.startsWith('in_') ? ctx.idPago : null,
+  stripe_suscripcion: ctx.suscripcion, comercial: ctx.meta.vendedor || null, texto: `Pago de ${euros(ctx.importe)} (Stripe ${ctx.idPago})`, ...extra,
+});
 
 export async function POST(request: Request) {
   const secreto = process.env.STRIPE_WEBHOOK_SECRET;
@@ -198,6 +206,7 @@ async function alta(ctx: Contexto) {
   }
 
   if (PRODUCTOS_WEBHOOK_GENERICO.includes(String(meta.producto))) {
+    if (meta.producto === 'experience' && meta.email) await crearProyecto('experience', 'pago', altaProyecto(ctx));
     if (productoDirecto) {
       await enviarCorreoInterno(`PAGO DIRECTO (${euros(ctx.importe)}): ${productoDirecto.nombre} · ${meta.nombreContacto || meta.email}`,
         `<h2>${escaparHtml(productoDirecto.nombre)} pagado</h2>${filasCorreo([['Nombre', meta.nombreContacto], ['Negocio', meta.restauranteNombre], ['Correo', meta.email], ['Teléfono', meta.telefono], ['Factura (Stripe)', ctx.idPago]])}`).catch(() => {});
@@ -207,6 +216,7 @@ async function alta(ctx: Contexto) {
 
   switch (meta.producto) {
     case 'auditoria': {
+      if (meta.email) await crearProyecto('auditoria', 'pago', altaProyecto(ctx));
       await enviarCorreoInterno(`AUDITORÍA PAGADA (${euros(ctx.importe)}): ${meta.nombreContacto || meta.email}`,
         `<p>Han pagado la Auditoría + Escandallo. Agenda la reunión 1 a 1:</p>${filasCorreo([['Nombre', meta.nombreContacto], ['Correo', meta.email], ['Teléfono', meta.telefono], ['Restaurante', meta.restauranteNombre], ['Factura (Stripe)', ctx.idPago]])}`).catch((e) => console.error('Aviso de Auditoría no enviado', e));
       return ok();
@@ -224,6 +234,7 @@ async function alta(ctx: Contexto) {
           restauranteNombre: meta.restauranteNombre || undefined,
           importeCentimos: importeEntrada,
         });
+        await crearProyecto('signature', 'pago', altaProyecto(ctx, { referencia: ctx.suscripcion ?? ctx.idPago, importe: importeEntrada, pedido_id: pedido.id }));
         if (!pedido.yaExistia) {
           await dispararTuberiaPostPago({
             id: pedido.id, producto: 'nucleo-operativo', token: pedido.token, email: meta.email,
