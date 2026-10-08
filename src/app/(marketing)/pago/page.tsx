@@ -87,7 +87,7 @@ export default async function Pago({ searchParams }: { searchParams: Promise<{ r
                 </p>
               )}
               {resumen.admiteCodigo && <CodigoPromocional r={r} aplicado={resumen.descuento?.codigo || null} />}
-              <p className="mt-4 text-[13px] text-pizarra">Recibirás la factura con el IVA desglosado en {resumen.email ?? 'tu correo'}.</p>
+              <p className="mt-4 text-[13px] text-pizarra [overflow-wrap:anywhere]">Recibirás la factura con el IVA desglosado en {resumen.email ?? 'tu correo'}.</p>
             </aside>
 
             <div className="min-w-0 rounded-[24px] border border-linea bg-white p-5 sm:p-6 md:p-8">

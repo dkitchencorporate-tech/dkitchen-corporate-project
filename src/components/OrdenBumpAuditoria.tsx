@@ -44,7 +44,7 @@ export default function OrdenBumpAuditoria({
   return (
     <div className="mt-4 bg-white border border-linea rounded-[24px] p-6 md:p-8 text-left shadow-lg">
       <p className="text-xs font-semibold uppercase tracking-widest text-vino mb-2">
-        Opcional · para cuando tengas la carta
+        Opcional
       </p>
       <h2 className="font-display text-xl md:text-2xl font-semibold text-tinta mb-2">
         ¿Sabes si tu negocio es realmente rentable?
