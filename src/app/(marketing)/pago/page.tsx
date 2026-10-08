@@ -58,20 +58,20 @@ export default async function Pago({ searchParams }: { searchParams: Promise<{ r
             <Link href="/" className="mt-8 inline-block rounded-full bg-vino px-7 py-3.5 text-sm font-semibold text-white">Volver a la web</Link>
           </div>
         ) : (
-          <div className="mt-10 grid gap-8 md:grid-cols-[1fr_1.1fr] md:gap-12">
-            <aside className="h-fit rounded-[24px] border border-linea bg-white p-6 md:sticky md:top-28 md:p-8">
+          <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-12">
+            <aside className="h-fit min-w-0 rounded-[24px] border border-linea bg-white p-5 sm:p-6 md:sticky md:top-28 md:p-8">
               <p className="etiqueta-dk text-vino">Tu pedido</p>
               <ul className="mt-5 divide-y divide-linea">
                 {resumen.lineas.map((l, i) => (
                   <li key={i} className="flex items-baseline justify-between gap-4 py-3 text-[15px]">
-                    <span>{l.nombre}</span><span className="tabular-nums">{euros(l.centimos)}</span>
+                    <span className="min-w-0">{l.nombre}</span><span className="tabular-nums">{euros(l.centimos)}</span>
                   </li>
                 ))}
               </ul>
               <dl className="mt-3 space-y-2 border-t border-linea pt-4 text-[15px]">
                 {resumen.descuento && resumen.descuento.centimos > 0 && (
                   <div className="flex justify-between gap-4 text-vino">
-                    <dt>Descuento <span className="text-[13px]">({resumen.descuento.codigo}{resumen.descuento.texto ? `, ${resumen.descuento.texto}` : ''})</span></dt>
+                    <dt className="min-w-0">Descuento <span className="text-[13px]">({resumen.descuento.codigo}{resumen.descuento.texto ? `, ${resumen.descuento.texto}` : ''})</span></dt>
                     <dd className="shrink-0 tabular-nums">−{euros(resumen.descuento.centimos)}</dd>
                   </div>
                 )}
@@ -90,7 +90,7 @@ export default async function Pago({ searchParams }: { searchParams: Promise<{ r
               <p className="mt-4 text-[13px] text-pizarra">Recibirás la factura con el IVA desglosado en {resumen.email ?? 'tu correo'}.</p>
             </aside>
 
-            <div className="rounded-[24px] border border-linea bg-white p-6 md:p-8">
+            <div className="min-w-0 rounded-[24px] border border-linea bg-white p-5 sm:p-6 md:p-8">
               <h1 className="font-display text-2xl font-semibold">{resumen.tipo === 'tarjeta' ? 'Añade tu tarjeta' : 'Pago seguro'}</h1>
               <p className="mt-1.5 text-sm text-pizarra">
                 {resumen.tipo === 'tarjeta' ? 'Hoy no se cobra nada: guardamos la tarjeta para los próximos cobros.' : 'Paga con tarjeta, Apple Pay o Google Pay.'}

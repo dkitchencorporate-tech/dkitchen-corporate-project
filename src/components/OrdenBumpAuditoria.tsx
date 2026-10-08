@@ -42,30 +42,30 @@ export default function OrdenBumpAuditoria({
   };
 
   return (
-    <div className="mt-10 bg-white border-2 border-vino rounded-3xl p-6 md:p-8 text-left shadow-lg">
-      <p className="text-xs font-black uppercase tracking-widest text-vino mb-2">
-        Ya tienes tu carta digital
+    <div className="mt-4 bg-white border border-linea rounded-[24px] p-6 md:p-8 text-left shadow-lg">
+      <p className="text-xs font-semibold uppercase tracking-widest text-vino mb-2">
+        Opcional · para cuando tengas la carta
       </p>
-      <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-2">
+      <h2 className="font-display text-xl md:text-2xl font-semibold text-tinta mb-2">
         ¿Sabes si tu negocio es realmente rentable?
       </h2>
-      <p className="text-gray-600 mb-6">
+      <p className="text-pizarra mb-6">
         Añade tu Auditoría de canales + Escandallo por{' '}
         <span className="line-through text-gray-400">{formatPrecio(AUDITORIA_CANALES.precioAncla)}</span>{' '}
-        <span className="font-black text-gray-900">{formatPrecio(AUDITORIA_CANALES.precioOferta)}</span> — un
+        <span className="font-semibold text-tinta">{formatPrecio(AUDITORIA_CANALES.precioOferta)}</span> — un
         diagnóstico 1 a 1 de tu presencia digital y de los márgenes reales de tu carta.
       </p>
       <div className="flex flex-col sm:flex-row gap-3">
         <button
           onClick={activar}
           disabled={estado === 'cargando'}
-          className="flex-1 bg-vino text-white px-6 py-3.5 rounded-full font-black hover:bg-orange-600 transition-colors disabled:opacity-60"
+          className="flex-1 bg-vino text-white px-6 py-3.5 rounded-full font-semibold hover:bg-vino-hondo transition-colors disabled:opacity-60"
         >
           {estado === 'cargando' ? 'Abriendo pago…' : `Añadir por ${formatPrecio(AUDITORIA_CANALES.precioOferta)}`}
         </button>
         <button
           onClick={() => setEstado('descartado')}
-          className="text-gray-500 font-bold text-sm hover:text-gray-700 transition-colors px-4"
+          className="text-pizarra font-semibold text-sm hover:text-tinta transition-colors px-4"
         >
           No, gracias
         </button>

@@ -44,6 +44,7 @@ export default function ActivarPlanBoton({
   const [cp, setCp] = useState('');
   const [localidad, setLocalidad] = useState('');
   const [errorVendedor, setErrorVendedor] = useState<string | null>(null);
+  const [errorEmail, setErrorEmail] = useState<string | null>(null);
   // Código del socio (0052): del enlace o QR, de una visita anterior o escrito a mano.
   const [vendedor, setVendedor] = useState('');
   const [vendedorEnlace, setVendedorEnlace] = useState<string | null>(null);
@@ -74,6 +75,7 @@ export default function ActivarPlanBoton({
     e.preventDefault();
     setError(null);
     setErrorVendedor(null);
+    setErrorEmail(null);
     setCargando(true);
     try {
       const respuesta = await fetch(plan === 'fundador' ? '/api/checkout/fundador' : '/api/checkout/qr', {
@@ -83,6 +85,8 @@ export default function ActivarPlanBoton({
       });
       const datos = await respuesta.json();
       if (datos?.campo === 'vendedor') { setErrorVendedor(datos.error); setCargando(false); return; }
+      // Correo ya registrado (08/10, fallo 1 de la entrada 122): se avisa en el campo ANTES de pagar.
+      if (datos?.campo === 'email') { setErrorEmail(datos.error); setCargando(false); return; }
       if (!respuesta.ok || !datos.url) throw new Error(datos?.error ?? 'No se pudo iniciar el pago.');
       // Embudo (0032): va al pago; al salir de la página ya no cuenta como «se fue sin pagar».
       const producto = plan === 'fundador' ? 'fundador' : 'qr';
@@ -135,8 +139,14 @@ export default function ActivarPlanBoton({
                     <input type="text" required maxLength={80} autoComplete="name" value={nombreContacto} onChange={(e) => setNombreContacto(e.target.value)} className={campo} />
                   </label>
                   <label className="block text-sm font-medium">Tu correo <span className="font-normal text-black/45">(aquí recibes el acceso y las facturas)</span>
-                    <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={campo} />
+                    <input type="email" required autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); setErrorEmail(null); }}
+                      aria-invalid={!!errorEmail} className={`${campo} ${errorEmail ? 'border-red-600' : ''}`} />
                   </label>
+                  {errorEmail && (
+                    <p role="alert" className="-mt-2 text-sm text-red-700">
+                      {errorEmail} <a href="/panel/iniciar-sesion" className="font-semibold underline">Entrar en mi panel</a>
+                    </p>
+                  )}
                   <label className="block text-sm font-medium">Teléfono de contacto
                     <input type="tel" required inputMode="tel" maxLength={16} autoComplete="tel" pattern="[0-9+ ]{9,16}" value={telefono} onChange={(e) => setTelefono(e.target.value.replace(/[^0-9+ ]/g, ''))} placeholder="600 000 000" className={campo} />
                   </label>

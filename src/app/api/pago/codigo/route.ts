@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import { aplicarCodigo, leerRefPago, refPago } from '@/lib/payments/stripe';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
 
@@ -22,5 +22,7 @@ export async function POST(request: Request) {
   if (!id) return NextResponse.json({ error: 'Pago no válido.' }, { status: 400 });
   const r = await aplicarCodigo(id, String(b.codigo ?? ''));
   if (!r.ok) return NextResponse.json({ error: r.error }, { status: 400 });
+  // El cobro anterior se anula después de responder: el cliente no espera a esa limpieza (08/10).
+  after(r.retirar);
   return NextResponse.json({ ok: true, r: refPago(r.id) });
 }

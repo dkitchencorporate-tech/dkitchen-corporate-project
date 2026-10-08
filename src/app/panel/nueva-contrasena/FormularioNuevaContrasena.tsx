@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import ReenviarAcceso from '@/components/pago/ReenviarAcceso';
 
 const SEGUNDOS_REDIRECCION = 4;
 
@@ -120,10 +121,12 @@ export default function FormularioNuevaContrasena() {
 
   if (!token) {
     return (
-      <p className="text-center text-red-600 bg-red-50 border border-red-200 rounded-xl p-4">
-        Este enlace no es válido o le falta el token. Pide uno nuevo desde el correo de bienvenida o
-        escríbenos por WhatsApp.
-      </p>
+      <div className="rounded-xl border border-linea bg-white p-5">
+        <p className="text-sm text-gray-700">
+          Para crear o cambiar tu contraseña te mandamos un enlace al correo de tu cuenta. Escríbelo y pulsa enviar.
+        </p>
+        <ReenviarAcceso etiqueta="Enviarme el enlace" />
+      </div>
     );
   }
 

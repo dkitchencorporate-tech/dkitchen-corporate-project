@@ -7,6 +7,16 @@ import { useState } from 'react';
  * el servidor rehace el cobro con el descuento y la página se recarga con la
  * referencia nueva: el total y el formulario de pago salen ya descontados.
  */
+/** Aviso visible mientras el servidor rehace el cobro (08/10, karc0: «aplicar el cupón tarda un montón»). */
+function Aplicando({ texto = 'Aplicando tu código y recalculando el total…' }: { texto?: string }) {
+  return (
+    <p role="status" className="mt-2 flex items-center gap-2 text-[13px] text-pizarra">
+      <span className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-vino border-t-transparent" aria-hidden="true" />
+      {texto}
+    </p>
+  );
+}
+
 export default function CodigoPromocional({ r, aplicado }: { r: string; aplicado: string | null }) {
   const [abierto, setAbierto] = useState(true);
   const [codigo, setCodigo] = useState('');
@@ -24,12 +34,15 @@ export default function CodigoPromocional({ r, aplicado }: { r: string; aplicado
 
   if (aplicado) {
     return (
+      <>
       <p className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-papel px-4 py-3 text-[13px] text-pizarra">
         <span>Código <strong className="font-semibold uppercase tracking-wide text-tinta">{aplicado}</strong> aplicado</span>
         <button type="button" disabled={enviando} onClick={() => enviar('')} className="font-semibold text-vino underline-offset-2 hover:underline disabled:opacity-60">
           {enviando ? 'Quitando…' : 'Quitar'}
         </button>
       </p>
+      {enviando && <Aplicando texto="Quitando el código y recalculando el total…" />}
+      </>
     );
   }
 
@@ -59,6 +72,7 @@ export default function CodigoPromocional({ r, aplicado }: { r: string; aplicado
           {enviando ? 'Aplicando…' : 'Aplicar'}
         </button>
       </div>
+      {enviando && <Aplicando />}
       {error && <p role="alert" className="mt-2 text-[13px] text-vino">{error}</p>}
     </form>
   );

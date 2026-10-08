@@ -2,7 +2,7 @@ import { comoAprovisionamiento } from '@/lib/db';
 import { NextResponse } from 'next/server';
 import {
   aprovisionarClienteQr,
-  avisarAltaQr,
+  avisarAltaQr, avisarClienteAltaPendiente,
   esClienteExistente,
   registrarPagoRecuperado,
   registrarPagoFallido,
@@ -381,6 +381,7 @@ async function altaQr(ctx: Contexto) {
     if (s?.metadata?.alta_hecha !== 'si') {
       await enviarCorreoInterno(`QR: cliente que ya tenía carta ha pagado otra alta (${restauranteNombre})`,
         `<p>El cliente de Stripe ya tiene un restaurante, así que no se ha creado otro automáticamente. Si es un segundo local, créalo en Central; si es un duplicado, reembolsa el cobro en Stripe.</p>${filasCorreo([['Restaurante pedido', restauranteNombre], ['Correo', email], ['Cliente de Stripe', ctx.cliente], ['Suscripción', ctx.suscripcion], ['Factura', ctx.idPago]])}`).catch(() => {});
+      await avisarClienteAltaPendiente({ email, nombreContacto, restauranteNombre });
     }
     await atribuirVendedor(ctx);
     return ok({ duplicado: true });

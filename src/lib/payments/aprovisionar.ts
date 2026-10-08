@@ -2,7 +2,7 @@ import 'server-only';
 import { crearCuentaCliente, enviarEnlaceDeContrasena, ErrorNeonAuth } from '@/lib/neon-auth';
 import { comoAprovisionamiento } from '@/lib/db';
 import { enviarBienvenidaQr } from '@/lib/bienvenida';
-import { enviarCorreoInterno, filasCorreo } from '@/lib/email';
+import { enviarCorreoCliente, enviarCorreoInterno, escaparHtml, filasCorreo } from '@/lib/email';
 
 /**
  * Aviso interno de cada alta QR (07/10/2026, H1/H4/H12 del mapa del cliente):
@@ -31,6 +31,20 @@ export async function avisarAltaQr(
     ['Cobro de Stripe', datos.idPago],
     ['Evento', datos.idEvento],
   ])).catch((e) => console.error('Aviso interno de alta QR no enviado:', e));
+}
+
+/**
+ * Correo al cliente cuando su alta no se puede completar sola (08/10, fallo 1
+ * de la entrada 122): nunca silencio tras un pago. Nunca lanza.
+ */
+export async function avisarClienteAltaPendiente(datos: { email?: string; nombreContacto?: string; restauranteNombre?: string }): Promise<void> {
+  if (!datos.email) return;
+  const nombre = (datos.nombreContacto ?? '').trim().split(/\s+/)[0] ?? '';
+  await enviarCorreoCliente(datos.email, `Hemos recibido tu pago${datos.restauranteNombre ? ` · ${datos.restauranteNombre}` : ''}: terminamos tu alta hoy`,
+    `<p>Hola${nombre ? ` ${escaparHtml(nombre)}` : ''}:</p>
+<p>Tu pago ha llegado bien, pero este correo ya tenía una cuenta en DKitchen, así que no hemos podido crear la carta${datos.restauranteNombre ? ` de <strong>${escaparHtml(datos.restauranteNombre)}</strong>` : ''} de forma automática.</p>
+<p>No tienes que hacer nada: hoy mismo la dejamos vinculada a tu cuenta y te escribimos para que entres en tu panel. No se te cobra nada más por esto.</p>
+<p>Si lo prefieres, respóndenos a este correo o escríbenos por WhatsApp al 622 652 659 y lo hacemos contigo al momento.</p>`).catch((e) => console.error('Aviso al cliente de alta pendiente no enviado:', e));
 }
 
 /**
@@ -116,7 +130,8 @@ export async function aprovisionarClienteQr(datos: DatosPagoQr): Promise<Resulta
       `No se pudo crear la cuenta de Neon Auth para ${datos.email} (evento ${datos.idEvento}):`,
       error instanceof ErrorNeonAuth ? `${error.codigo ?? ''} ${error.message}` : error
     );
-    await avisarAltaQr('fallo', datos, `No se pudo crear la cuenta (¿el correo ya tenía cuenta o es un reintento tras un fallo de la base?): ${error instanceof Error ? error.message : String(error)}`);
+    await avisarAltaQr('fallo', datos, `No se pudo crear la cuenta (¿el correo ya tenía cuenta o es un reintento tras un fallo de la base?): ${error instanceof Error ? error.message : String(error)}. Al cliente se le ha avisado por correo de que lo terminamos hoy.`);
+    await avisarClienteAltaPendiente(datos);
     return { ok: false, motivo: 'cuenta_neon_auth_fallo' };
   }
 

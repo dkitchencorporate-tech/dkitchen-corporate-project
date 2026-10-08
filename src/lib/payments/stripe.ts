@@ -84,8 +84,12 @@ export async function stripe(
 // Catálogo: productos con id fijo y tipo de IVA único
 // ─────────────────────────────────────────────────────────────
 
+/** Productos ya comprobados en esta instancia: no se vuelven a pedir a Stripe (08/10, lentitud). */
+const productosVistos = new Set<string>();
+
 /** Producto con id propio (dk_…): idempotente, se crea la primera vez. */
 export async function asegurarProducto(id: string, nombre: string): Promise<string> {
+  if (productosVistos.has(id)) return id;
   try {
     await stripe('GET', `/products/${id}`);
   } catch (e) {
@@ -97,7 +101,13 @@ export async function asegurarProducto(id: string, nombre: string): Promise<stri
       if (!(e2 instanceof ErrorStripe) || e2.codigo !== 'resource_already_exists') throw e2;
     }
   }
+  productosVistos.add(id);
   return id;
+}
+
+/** IVA y productos de un cobro, todo a la vez; luego crearSuscripcion los encuentra en caché. */
+export async function prepararCatalogo(productos: { producto: string; nombre: string }[]): Promise<void> {
+  await Promise.all([tipoIva(), ...productos.map((p) => asegurarProducto(p.producto, p.nombre))]);
 }
 
 let ivaEnCache: string | null = null;
@@ -208,18 +218,21 @@ const descuentos = (promocion?: string) => (promocion ? [{ promotion_code: promo
 
 /** Pago único: factura suelta con sus líneas e IVA, finalizada y lista para pagar en /pago. */
 export async function crearFacturaUnica(cliente: string, lineas: Linea[], metadata: Metadata, descripcion: string, promocion?: string): Promise<string> {
+  const [, factura] = await Promise.all([
+    prepararCatalogo(lineas),
+    stripe('POST', '/invoices', {
+      customer: cliente,
+      collection_method: 'charge_automatically',
+      auto_advance: false,
+      pending_invoice_items_behavior: 'exclude',
+      description: descripcion.slice(0, 500),
+      discounts: descuentos(promocion),
+      metadata: limpiar({ ...metadata, [RECETA]: receta({ l: lineas }) }),
+    }),
+  ]);
   const iva = await tipoIva();
-  const factura = await stripe('POST', '/invoices', {
-    customer: cliente,
-    collection_method: 'charge_automatically',
-    auto_advance: false,
-    pending_invoice_items_behavior: 'exclude',
-    description: descripcion.slice(0, 500),
-    discounts: descuentos(promocion),
-    metadata: limpiar({ ...metadata, [RECETA]: receta({ l: lineas }) }),
-  });
+  // Las líneas, una tras otra: así salen en la factura en el mismo orden.
   for (const l of lineas) {
-    await asegurarProducto(l.producto, l.nombre);
     await stripe('POST', '/invoiceitems', {
       customer: cliente,
       invoice: factura.id,
@@ -255,9 +268,8 @@ export interface DatosSuscripcion {
  * se cobra cada día 12.
  */
 export async function crearSuscripcion(d: DatosSuscripcion): Promise<string> {
+  await prepararCatalogo([d.cuota, ...(d.hoy ?? [])]);
   const iva = await tipoIva();
-  await asegurarProducto(d.cuota.producto, d.cuota.nombre);
-  for (const l of d.hoy ?? []) await asegurarProducto(l.producto, l.nombre);
   const sub = await stripe('POST', '/subscriptions', {
     customer: d.cliente,
     items: [{ price_data: { currency: 'eur', product: d.cuota.producto, unit_amount: Math.round(d.cuota.centimos), recurring: { interval: 'month', interval_count: d.intervaloMeses ?? 1 } } }],
@@ -314,6 +326,8 @@ export interface ResumenPago {
   recurrente: { cuotaCentimos: number; desde: number | null; nombre: string; meses?: number } | null;
   metadata: Record<string, string>;
   email: string | null;
+  /** Cliente de Stripe (cus_…). */
+  cliente: string | null;
   /** Código promocional aplicado (importe descontado hoy, sin IVA). */
   descuento: { codigo: string; centimos: number; texto: string } | null;
   /** Si el cobro admite códigos (los creados antes del 07/10 no llevan receta). */
@@ -333,13 +347,23 @@ function totalesDe(factura: ObjetoStripe) {
 
 const eurosTexto = (c: number) => (c / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
 
+/** Cupones ya leídos en esta instancia (no cambian de importe ni duración). */
+const cupones = new Map<string, ObjetoStripe>();
+async function cupon(id: string): Promise<ObjetoStripe> {
+  const visto = cupones.get(id);
+  if (visto) return visto;
+  const c = await stripe('GET', `/coupons/${encodeURIComponent(id)}`).catch(() => null);
+  if (c) cupones.set(id, c);
+  return c ?? {};
+}
+
 async function descuentoDe(lista: unknown, factura: ObjetoStripe | undefined): Promise<ResumenPago['descuento']> {
   const d = ((Array.isArray(lista) ? lista : []) as ObjetoStripe[]).find((x) => x && typeof x === 'object' && x.promotion_code);
   if (!d) return null;
   const pc = (typeof d.promotion_code === 'object' ? d.promotion_code : {}) as ObjetoStripe;
   // Un cupón de una sola vez ya no figura en la suscripción, solo en su primera factura (sin expandir el cupón).
   const idCupon = pc.promotion?.coupon ?? d.source?.coupon;
-  const c = (typeof idCupon === 'string' ? await stripe('GET', `/coupons/${encodeURIComponent(idCupon)}`).catch(() => ({})) : idCupon ?? {}) as ObjetoStripe;
+  const c = (typeof idCupon === 'string' ? await cupon(idCupon) : idCupon ?? {}) as ObjetoStripe;
   const cuanto = c.percent_off ? `${c.percent_off} %` : c.amount_off ? eurosTexto(Number(c.amount_off)) : '';
   const cuando = c.duration === 'forever' ? 'en todos los cobros' : c.duration === 'repeating' ? `durante ${c.duration_in_months} meses` : 'en este pago';
   const centimos = ((factura?.total_discount_amounts ?? []) as ObjetoStripe[]).reduce((t, x) => t + Number(x.amount ?? 0), 0);
@@ -354,7 +378,7 @@ export async function resumenPago(id: string): Promise<ResumenPago | null> {
         id, tipo: 'pago', secreto: f.confirmation_secret?.client_secret ?? null,
         estado: f.status === 'paid' ? 'pagado' : f.status === 'open' ? 'pendiente' : 'caducado',
         lineas: lineasDe(f), ...totalesDe(f), recurrente: null, metadata: f.metadata ?? {},
-        email: f.customer_email ?? f.customer?.email ?? null,
+        email: f.customer_email ?? f.customer?.email ?? null, cliente: f.customer?.id ?? (typeof f.customer === 'string' ? f.customer : null),
         descuento: await descuentoDe(f.discounts, f), admiteCodigo: Boolean(f.metadata?.[RECETA]),
       };
     }
@@ -362,7 +386,11 @@ export async function resumenPago(id: string): Promise<ResumenPago | null> {
     const f = s.latest_invoice as ObjetoStripe;
     const cobraHoy = Number(f?.amount_due ?? 0) > 0;
     const item = (s.items?.data?.[0] ?? {}) as ObjetoStripe;
-    const si = !cobraHoy && s.metadata?.setup_intent ? await stripe('GET', `/setup_intents/${s.metadata.setup_intent}`) : null;
+    // Tarjeta y descuento a la vez (08/10, lentitud).
+    const [si, descuento] = await Promise.all([
+      !cobraHoy && s.metadata?.setup_intent ? stripe('GET', `/setup_intents/${s.metadata.setup_intent}`) : null,
+      descuentoDe(s.discounts?.length ? s.discounts : f?.discounts, f),
+    ]);
     const pagado = cobraHoy ? f?.status === 'paid' && s.status !== 'incomplete' : si?.status === 'succeeded';
     return {
       id, tipo: cobraHoy ? 'pago' : 'tarjeta',
@@ -376,8 +404,8 @@ export async function resumenPago(id: string): Promise<ResumenPago | null> {
         nombre: String(s.metadata?.concepto ?? ''),
       },
       metadata: s.metadata ?? {},
-      email: s.customer?.email ?? null,
-      descuento: await descuentoDe(s.discounts?.length ? s.discounts : f?.discounts, f), admiteCodigo: Boolean(s.metadata?.[RECETA]),
+      email: s.customer?.email ?? null, cliente: s.customer?.id ?? (typeof s.customer === 'string' ? s.customer : null),
+      descuento, admiteCodigo: Boolean(s.metadata?.[RECETA]),
     };
   } catch (e) {
     console.error(`Stripe: no se pudo leer el pago ${id}:`, e);
@@ -394,11 +422,9 @@ export async function resumenPago(id: string): Promise<ResumenPago | null> {
 async function buscarCodigo(codigo: string): Promise<ObjetoStripe | null> {
   const limpio = codigo.trim().slice(0, 60);
   if (!/^[A-Za-z0-9_-]{2,60}$/.test(limpio)) return null;
-  for (const c of [...new Set([limpio, limpio.toUpperCase()])]) {
-    const l = await stripe('GET', '/promotion_codes', { code: c, active: true, limit: 1 });
-    if ((l.data as ObjetoStripe[])[0]) return (l.data as ObjetoStripe[])[0];
-  }
-  return null;
+  // Tal cual y en mayúsculas a la vez (08/10, lentitud); gana la forma escrita.
+  const listas = await Promise.all([...new Set([limpio, limpio.toUpperCase()])].map((c) => stripe('GET', '/promotion_codes', { code: c, active: true, limit: 1 })));
+  return listas.map((l) => (l.data as ObjetoStripe[])[0]).find(Boolean) ?? null;
 }
 
 /** Claves de la metadata que no se copian al rehacer un cobro. */
@@ -407,30 +433,32 @@ const metaCopiable = (m: Record<string, string> | undefined) => Object.fromEntri
 
 /**
  * Aplica (o quita, con código vacío) un código promocional a un cobro aún sin
- * pagar: rehace el cobro idéntico con el descuento y anula el anterior. Devuelve
- * el id del cobro nuevo. Nunca lanza: los errores vuelven como texto para el cliente.
+ * pagar: rehace el cobro idéntico con el descuento. Devuelve el id del cobro
+ * nuevo y `retirar`, que anula el anterior: quien llama lo ejecuta después de
+ * responder (after), para que el cliente no espere a esa limpieza (08/10).
+ * Nunca lanza: los errores vuelven como texto para el cliente.
  */
-export async function aplicarCodigo(id: string, codigo: string): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+export async function aplicarCodigo(id: string, codigo: string): Promise<{ ok: true; id: string; retirar: () => Promise<void> } | { ok: false; error: string }> {
   try {
-    const actual = await resumenPago(id);
+    const [actual, promo] = await Promise.all([resumenPago(id), codigo.trim() ? buscarCodigo(codigo) : null]);
     if (!actual || actual.estado !== 'pendiente') return { ok: false, error: 'Este pago ya no se puede modificar.' };
     if (!actual.admiteCodigo) return { ok: false, error: 'Este pago no admite códigos. Vuelve a empezar desde la página del producto.' };
-    const promo = codigo.trim() ? await buscarCodigo(codigo) : null;
     if (codigo.trim() && !promo) return { ok: false, error: 'Ese código no existe o ya no está activo.' };
     const rec = JSON.parse(actual.metadata[RECETA]);
-    let nuevo: string;
     if (id.startsWith('in_')) {
       const f = await stripe('GET', `/invoices/${id}`);
-      nuevo = await crearFacturaUnica(String(f.customer), rec.l, metaCopiable(f.metadata), String(f.description ?? ''), promo?.id);
-      await stripe('POST', `/invoices/${id}/void`).catch((e) => console.error(`No se pudo anular la factura ${id}:`, e));
-    } else {
-      const s = await stripe('GET', `/subscriptions/${id}`);
-      nuevo = await crearSuscripcion({ cliente: String(s.customer), cuota: rec.c, hoy: rec.h, finPrueba: rec.t ?? undefined, intervaloMeses: rec.m ?? 1, metadata: metaCopiable(s.metadata), promocion: promo?.id });
+      const nuevo = await crearFacturaUnica(String(f.customer), rec.l, metaCopiable(f.metadata), String(f.description ?? ''), promo?.id);
+      return { ok: true, id: nuevo, retirar: async () => {
+        await stripe('POST', `/invoices/${id}/void`).catch((e) => console.error(`No se pudo anular la factura ${id}:`, e));
+      } };
+    }
+    if (!actual.cliente) throw new Error(`La suscripción ${id} no tiene cliente.`);
+    const nuevo = await crearSuscripcion({ cliente: actual.cliente, cuota: rec.c, hoy: rec.h, finPrueba: rec.t ?? undefined, intervaloMeses: rec.m ?? 1, metadata: metaCopiable(actual.metadata), promocion: promo?.id });
+    return { ok: true, id: nuevo, retirar: async () => {
       // Marca para que el webhook no avise de una «suscripción terminada» que solo se ha sustituido.
       await stripe('POST', `/subscriptions/${id}`, { metadata: { sustituida_por: nuevo } }).catch(() => {});
       await stripe('DELETE', `/subscriptions/${id}`).catch((e) => console.error(`No se pudo cancelar la suscripción ${id}:`, e));
-    }
-    return { ok: true, id: nuevo };
+    } };
   } catch (e) {
     console.error(`No se pudo aplicar el código a ${id}:`, e);
     if (e instanceof ErrorStripe && e.estado < 500) return { ok: false, error: 'Ese código no se puede usar en este pedido.' };

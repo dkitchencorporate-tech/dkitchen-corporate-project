@@ -6,6 +6,7 @@ import {
   crearFacturaUnica,
   crearSuscripcion,
   finPruebaQr,
+  prepararCatalogo,
   stripe,
   urlPago,
   cancelarAlFinalDelPeriodo,
@@ -47,7 +48,14 @@ const metaVendedor = (v: DatosCheckoutQr['vendedor']): Record<string, string> =>
 
 export async function crearCheckoutQr(datos: DatosCheckoutQr): Promise<{ url: string }> {
   const plan = QR_MENU.planes[datos.plan];
-  const cliente = await asegurarCliente({ email: datos.email, nombre: datos.nombreContacto, negocio: datos.restauranteNombre, telefono: datos.telefono, direccion: datos.direccion });
+  // Cliente, productos e IVA a la vez (08/10, fallo 3: lentitud al ir al pago).
+  const [cliente] = await Promise.all([
+    asegurarCliente({ email: datos.email, nombre: datos.nombreContacto, negocio: datos.restauranteNombre, telefono: datos.telefono, direccion: datos.direccion }),
+    prepararCatalogo([
+      { producto: productoQr(datos.plan), nombre: `QR Menú · Plan ${plan.nombre} (cuota mensual)` },
+      ...(plan.primerMesSimbolico ? [{ producto: 'dk_qr_primer_mes', nombre: 'QR Menú · Primer mes' }] : []),
+    ]),
+  ]);
   const id = await crearSuscripcion({
     cliente,
     cuota: { producto: productoQr(datos.plan), nombre: `QR Menú · Plan ${plan.nombre} (cuota mensual)`, centimos: plan.mensual * 100 },
@@ -294,7 +302,10 @@ export async function crearCheckoutCambioPlan(datos: DatosCambioPlan): Promise<{
  * el webhook al ocupar la plaza (dk.fundador_marcar).
  */
 export async function crearCheckoutFundador(datos: Omit<DatosCheckoutQr, 'plan'>): Promise<{ url: string }> {
-  const cliente = await asegurarCliente({ email: datos.email, nombre: datos.nombreContacto, negocio: datos.restauranteNombre });
+  const [cliente] = await Promise.all([
+    asegurarCliente({ email: datos.email, nombre: datos.nombreContacto, negocio: datos.restauranteNombre, telefono: datos.telefono, direccion: datos.direccion }),
+    prepararCatalogo([{ producto: 'dk_qr_sala_fundador', nombre: 'DKitchen · Plan Sala Fundador (cuota trimestral, 40 % vitalicio)' }]),
+  ]);
   const centimos = Math.round(FUNDADOR.trimestre * 100);
   const id = await crearSuscripcion({
     cliente,
@@ -307,6 +318,8 @@ export async function crearCheckoutFundador(datos: Omit<DatosCheckoutQr, 'plan'>
       slugBase: datos.slugBase,
       email: datos.email,
       nombreContacto: datos.nombreContacto,
+      telefono: datos.telefono,
+      direccion: datos.direccion ? `${datos.direccion.calle}, ${datos.direccion.cp} ${datos.direccion.localidad}` : undefined,
       ...metaVendedor(datos.vendedor),
       concepto: 'Plan Sala · Fundador',
       destino: `/qr/bienvenida?email=${encodeURIComponent(datos.email)}&nombre=${encodeURIComponent(datos.nombreContacto)}&restaurante=${encodeURIComponent(datos.restauranteNombre)}`,
