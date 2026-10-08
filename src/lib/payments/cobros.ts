@@ -209,8 +209,12 @@ export async function crearCheckoutServicio(datos: {
   restauranteNombre: string;
   email: string;
   origen: string;
+  /** Página de vuelta tras pagar (por defecto, el panel). */
+  destino?: string;
+  /** Cliente de Stripe ya conocido (upsell tras el alta): no se vuelve a buscar. */
+  clienteStripe?: string;
 }): Promise<{ url: string }> {
-  const cliente = await asegurarCliente({ email: datos.email, nombre: datos.restauranteNombre, negocio: datos.restauranteNombre });
+  const cliente = datos.clienteStripe ?? await asegurarCliente({ email: datos.email, nombre: datos.restauranteNombre, negocio: datos.restauranteNombre });
   const meta = {
     producto: 'servicio-qr',
     servicio: datos.servicio,
@@ -218,7 +222,7 @@ export async function crearCheckoutServicio(datos: {
     restauranteNombre: datos.restauranteNombre,
     email: datos.email,
     concepto: `QR Menú · ${datos.nombre}`,
-    destino: '/panel?pestana=modulos&pago=ok',
+    destino: datos.destino ?? '/panel?pestana=modulos&pago=ok',
   };
   const linea = { producto: `dk_qr_${datos.servicio}`, nombre: `QR Menú · ${datos.nombre}`, centimos: Math.round(datos.precioCentimos) };
   const id = datos.tipo === 'mensual'

@@ -22,7 +22,11 @@ export default async function PagoListo({ searchParams }: { searchParams: Promis
   if (!resumen) redirect('/');
 
   const destino = String(resumen.metadata.destino ?? '');
-  if (resumen.estado === 'pagado') redirect(destino.startsWith('/') && !destino.startsWith('//') ? destino : '/pagar/gracias');
+  if (resumen.estado === 'pagado') {
+    if (!destino.startsWith('/') || destino.startsWith('//')) redirect('/pagar/gracias');
+    // La bienvenida del alta QR recibe la referencia firmada del pago: con ella ofrece la puesta a punto (upsell, 08/10).
+    redirect(destino.startsWith('/qr/bienvenida?email=') ? `${destino}&r=${encodeURIComponent(r)}` : destino);
+  }
 
   const fallido = q.redirect_status === 'failed';
   return (

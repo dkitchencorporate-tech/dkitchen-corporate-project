@@ -3,6 +3,7 @@ import Link from 'next/link';
 import OrdenBumpAuditoria from '@/components/OrdenBumpAuditoria';
 import PasosPago from '@/components/pago/PasosPago';
 import ReenviarAcceso from '@/components/pago/ReenviarAcceso';
+import OfertaPuestaAPunto from '@/components/pago/OfertaPuestaAPunto';
 
 export const metadata: Metadata = {
   title: 'Pago confirmado | DKitchen',
@@ -19,9 +20,9 @@ const WHATSAPP = 'https://wa.me/34622652659?text=Hola,%20acabo%20de%20activar%20
 export default async function BienvenidaQr({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string; nombre?: string; restaurante?: string; auditoria?: string }>;
+  searchParams: Promise<{ email?: string; nombre?: string; restaurante?: string; auditoria?: string; r?: string; puesta?: string }>;
 }) {
-  const { email = '', nombre = '', restaurante = '', auditoria } = await searchParams;
+  const { email = '', nombre = '', restaurante = '', auditoria, r = '', puesta } = await searchParams;
   const nombreCorto = nombre.trim().split(/\s+/)[0] ?? '';
 
   const pasos = [
@@ -90,6 +91,18 @@ export default async function BienvenidaQr({
             Escribir por WhatsApp
           </a>
         </div>
+
+        {puesta === 'ok' ? (
+          <div className="mt-10 rounded-[24px] border border-linea bg-white p-6 text-center">
+            <p className="font-semibold text-vino">Puesta a punto contratada.</p>
+            <p className="mt-1 text-sm text-pizarra">Te escribimos hoy para pedirte la carta y los datos de tu TPV e impresoras. Tú no tienes que montar nada.</p>
+          </div>
+        ) : r && !auditoria ? (
+          <>
+            <p className="mt-14 text-center"><span className="etiqueta-dk text-vino">Una oferta antes de empezar</span></p>
+            <OfertaPuestaAPunto r={r} />
+          </>
+        ) : null}
 
         {auditoria === 'ok' ? (
           <div className="mt-10 rounded-[24px] border border-linea bg-white p-6 text-center">

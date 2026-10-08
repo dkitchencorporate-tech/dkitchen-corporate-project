@@ -341,6 +341,8 @@ export const REGLAS_COMERCIALES = {
  */
 export const SERVICIOS_QR = {
   puestaAPunto: 49,
+  /** Oferta de bienvenida (08/10, karc0): la misma puesta a punto a 29 € + IVA, SOLO desde «Pago confirmado» tras el alta. */
+  puestaAPuntoBienvenida: 29,
   cartaDeAutor: 199,
   /** Bono de 50 imágenes con IA (0038): pago único, sin caducidad. 3 gratis siempre. */
   bonoIa: 9,

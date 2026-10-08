@@ -181,6 +181,7 @@ export default function ActivarPlanBoton({
                   <p className="mt-3 text-center text-xs text-black/45">Pago seguro gestionado por Stripe. Cancelas cuando quieras desde tu panel.</p>
                 </div>
               </motion.form>
+              {cargando && <PreparandoPago />}
             </motion.div>
           )}
         </AnimatePresence>,
@@ -189,3 +190,36 @@ export default function ActivarPlanBoton({
     </>
   );
 }
+
+/**
+ * Preloader de «Continuar al pago» (08/10, karc0: «tarda de forma estática»):
+ * cubre el formulario con pasos que avanzan y una barra en movimiento, para
+ * que quede claro que el pago seguro se está preparando.
+ */
+const PASOS_CARGA = ['Comprobando tus datos', 'Creando tu pedido en Stripe', 'Abriendo el pago seguro'];
+function PreparandoPago() {
+  const [paso, setPaso] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setPaso((p) => Math.min(p + 1, PASOS_CARGA.length - 1)), 1100);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div role="status" aria-live="polite" onClick={(e) => e.stopPropagation()} className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-crema/95 px-8 py-16 text-center backdrop-blur-sm">
+      <div className="h-12 w-12 animate-spin rounded-full border-[3px] border-vino border-t-transparent" aria-hidden="true" />
+      <ol className="space-y-2.5 text-left">
+        {PASOS_CARGA.map((t, i) => (
+          <li key={t} className={`flex items-center gap-2.5 text-[15px] transition-opacity duration-300 ${i <= paso ? 'opacity-100' : 'opacity-35'}`}>
+            <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] text-white ${i < paso ? 'bg-vino' : i === paso ? 'animate-pulse bg-vino/70' : 'bg-black/20'}`}>{i < paso ? '✓' : ''}</span>
+            {t}{i === paso ? '…' : ''}
+          </li>
+        ))}
+      </ol>
+      <div className="h-1 w-48 overflow-hidden rounded-full bg-black/10" aria-hidden="true">
+        <div className="h-full animate-[cargaPago_1.2s_ease-in-out_infinite] rounded-full bg-vino" style={{ width: '40%' }} />
+      </div>
+      <p className="text-xs text-black/50">Unos segundos. No cierres esta ventana.</p>
+      <style>{'@keyframes cargaPago{0%{transform:translateX(-110%)}100%{transform:translateX(260%)}}'}</style>
+    </div>
+  );
+}
+
