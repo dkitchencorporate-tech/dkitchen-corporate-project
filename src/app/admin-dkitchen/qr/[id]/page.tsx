@@ -17,8 +17,9 @@ export const dynamic = 'force-dynamic';
 
 const CATALOGO_SERVICIOS: [string, string][] = [
   ['setup_esencial', 'Setup Esencial'], ['setup_experto', 'Setup Experto · Carta de Autor'], ['idiomas', 'Pack de idiomas'],
-  ['plano_mesas', 'Plano de mesas'], ['app_sala', 'App de sala'], ['conexion_tpv', 'Conexión TPV'], ['pack_sala', 'Pack Sala Completo'],
 ];
+// 08/10 (karc0): plano de mesas, app de sala, TPV y Pack Sala ya no son módulos sueltos: van
+// incluidos según el plan (Carta/Local/Sala, 0050). La ficha solo enseña los extras de pago único.
 const PUNTOS_SETUP: [string, string][] = [
   ['carta', 'Carta completa cargada'], ['imagenes', 'Imágenes optimizadas'], ['banner', 'Banner de lanzamiento'], ['google', 'Google Business optimizado'],
   ['redes', 'Contenido redes 1.er mes'], ['material', 'Pegatinas / flyers enviados'], ['soporte', 'Soporte premium activo'], ['formacion', 'Formaciones realizadas'],
@@ -436,8 +437,8 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
 
       <section id="servicios" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6 space-y-4">
         <div>
-          <h2 className="font-display text-xl font-semibold tracking-tight">Servicios y módulos</h2>
-          <p className="text-xs text-niebla">Para activar un módulo que no tiene, prepárale un enlace de pago en «Cobrar» (o una prueba con fecha). Aquí se marca la entrega o se cancela. Todo queda en el historial.</p>
+          <h2 className="font-display text-xl font-semibold tracking-tight">Extras contratados</h2>
+          <p className="text-xs text-niebla">Mesas, camareros, reservas, TPV y app de sala van incluidos según su plan ({nombrePlan(r.plan)}); para cambiarlos, cambia de plan. Aquí solo están los extras de pago único: se cobran en «Cobrar» y aquí se marcan como entregados o se cancelan. Todo queda en el historial.</p>
         </div>
         <ul className="divide-y divide-linea text-sm">
           {CATALOGO_SERVICIOS.map(([clave, nombre]) => {
