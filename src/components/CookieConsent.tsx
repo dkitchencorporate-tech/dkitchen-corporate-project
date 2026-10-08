@@ -37,7 +37,7 @@ export default function CookieConsent() {
     <div className="pointer-events-none fixed inset-x-3 bottom-3 z-[9998] flex justify-center sm:inset-x-6 sm:bottom-6">
       <div role="dialog" aria-label="Cookies" className="pointer-events-auto w-full max-w-xl rounded-2xl border border-white/10 bg-tinta/95 p-4 text-white shadow-2xl backdrop-blur-xl sm:p-5">
         <p className="text-[13px] leading-relaxed text-white/70">
-          Usamos cookies propias y, si aceptas, de Google Analytics para saber qué partes de la web se usan y mejorarlas. <a href="/privacy" className="text-white underline">Más información</a>
+          Usamos cookies propias y, si aceptas, de Google Analytics y Meta para medir la web y mostrarte anuncios útiles. <a href="/privacy" className="text-white underline">Más información</a>
         </p>
         <div className="mt-3 flex gap-2">
           <button onClick={rejectNonEssential} className="flex-1 rounded-full border border-white/15 px-4 py-2.5 text-sm font-semibold hover:border-white/40">Solo esenciales</button>
