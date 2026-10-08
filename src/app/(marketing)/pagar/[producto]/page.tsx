@@ -30,7 +30,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ producto: string }> }): Promise<Metadata> {
   const p = PRODUCTOS_PAGO[(await params).producto];
-  return { title: p ? `Contratar ${p.nombre} · DKitchen` : 'DKitchen', robots: { index: false, follow: true } };
+  return { title: p ? `Contratar ${p.nombre} · DKitchen Corporate` : 'DKitchen', robots: { index: false, follow: true } };
 }
 
 export default async function Pagar({ params, searchParams }: { params: Promise<{ producto: string }>; searchParams: Promise<{ modelo?: string }> }) {

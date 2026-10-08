@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     'Carta QR para bares y restaurantes: cambia precios, platos, fotos y alérgenos desde el móvil sin reimprimir. Reservas incluidas. Primer mes por 1 €.',
   alternates: { canonical: 'https://dkitchencorporate.es/qr' },
   openGraph: {
-    title: 'Tu carta cambia. Tu QR, nunca. · DKitchen',
+    title: 'Tu carta cambia. Tu QR, nunca. · DKitchen Corporate',
     description: 'Carta digital QR para hostelería. Primer mes por 1 €, sin permanencia.',
     url: 'https://dkitchencorporate.es/qr',
     type: 'website',

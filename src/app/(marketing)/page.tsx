@@ -14,7 +14,7 @@ import ComparativaQr from '@/components/qr-landing/ComparativaQr';
  * invitación entre hosteleros y llamada a partners comerciales.
  */
 export const metadata: Metadata = {
-  title: 'Carta digital QR y app propia para restaurantes · DKitchen',
+  title: { absolute: 'DKitchen Corporate · Carta digital QR y app propia para restaurantes' },
   description: 'Carta digital QR desde 9 €/mes, tu propia app de pedidos sin comisiones con Signature, eventos llave en mano y dark kitchen multimarca.',
   alternates: { canonical: 'https://dkitchencorporate.es' },
 };

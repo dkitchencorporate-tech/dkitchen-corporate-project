@@ -7,7 +7,7 @@ import { MARCAS } from '@/lib/marcas-data';
 
 /** Catálogo de marcas virtuales — rediseño 29/09/2026. Palabra clave: marcas virtuales para restaurantes. */
 export const metadata: Metadata = {
-  title: 'Marcas virtuales para tu cocina, ya probadas · DKitchen',
+  title: 'Marcas virtuales para tu cocina, ya probadas · DKitchen Corporate',
   description: 'Seis marcas virtuales que ya operaron en una dark kitchen real en Madrid, con carta, precios y procesos probados. Súmalas a tu cocina.',
   alternates: { canonical: 'https://dkitchencorporate.es/marcas' },
 };

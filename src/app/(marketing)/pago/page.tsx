@@ -7,7 +7,7 @@ import PasosPago from '@/components/pago/PasosPago';
 import { IVA_PORCENTAJE, leerRefPago, modoPruebaStripe, resumenPago } from '@/lib/payments/stripe';
 import { TERMINOS_VERSION } from '@/lib/terminos';
 
-export const metadata: Metadata = { title: 'Pago seguro · DKitchen', robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: 'Pago seguro · DKitchen Corporate', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
 const euros = (c: number) => (c / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });

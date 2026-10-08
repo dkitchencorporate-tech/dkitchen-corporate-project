@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Política de privacidad · DKitchen',
+  title: 'Política de privacidad · DKitchen Corporate',
   description: 'Qué datos tratamos en DKitchen, para qué, con qué proveedores, cuánto tiempo y cómo ejercer tus derechos.',
   alternates: { canonical: 'https://dkitchencorporate.es/privacy' },
 };

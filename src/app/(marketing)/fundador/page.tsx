@@ -6,7 +6,7 @@ import ContadorFundador from '@/components/fundador/ContadorFundador';
 import ActivarPlanBoton from '@/components/sections/ActivarPlanBoton';
 
 export const metadata: Metadata = {
-  title: 'Fundador · DKitchen',
+  title: 'Fundador · DKitchen Corporate',
   description: `Plan ${QR_MENU.planes.sala.nombre} al 40 % de por vida para los primeros ${FUNDADOR.plazas} locales.`,
   robots: { index: false, follow: false },
 };

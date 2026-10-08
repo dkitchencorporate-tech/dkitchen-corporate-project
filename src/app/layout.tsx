@@ -8,10 +8,10 @@ import CapturaVendedor from "@/components/CapturaVendedor";
 
 export const metadata = {
   metadataBase: new URL("https://dkitchencorporate.es"),
-  title: "DKitchen | Carta digital QR y digitalización para hostelería",
+  title: "DKitchen Corporate | Carta digital QR y digitalización para hostelería",
   description: "Carta digital con QR que no tienes que reimprimir nunca, eventos gastronómicos llave en mano y dark kitchen multimarca. Sin comisiones sobre tus ventas y sin tocar tu dinero.",
   keywords: ["carta digital qr restaurante", "menú qr", "app propia restaurante sin comisiones", "digitalización restaurantes", "eventos para restaurantes", "dark kitchen multimarca", "marcas virtuales", "alérgenos carta"],
-  authors: [{ name: "DKitchen" }],
+  authors: [{ name: "DKitchen Corporate" }],
   alternates: { canonical: "/" },
   robots: {
     index: true,
@@ -56,8 +56,8 @@ const jsonLdOrganizacion = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "@id": "https://dkitchencorporate.es/#organizacion",
-  name: "DKitchen",
-  alternateName: "DKitchen Corporate",
+  name: "DKitchen Corporate",
+  alternateName: "DKitchen",
   url: "https://dkitchencorporate.es",
   logo: "https://dkitchencorporate.es/icon-512.png",
   image: "https://dkitchencorporate.es/icon-512.png",
@@ -88,7 +88,7 @@ const jsonLdWeb = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   "@id": "https://dkitchencorporate.es/#web",
-  name: "DKitchen",
+  name: "DKitchen Corporate",
   url: "https://dkitchencorporate.es",
   inLanguage: "es-ES",
   publisher: { "@id": "https://dkitchencorporate.es/#organizacion" },

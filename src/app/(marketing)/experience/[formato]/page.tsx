@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ formato: 
   if (!f) return {};
   const url = `https://dkitchencorporate.es/experience/${f.slug}`;
   return {
-    title: `${f.nombre} para restaurantes · DKitchen`,
+    title: `${f.nombre} para restaurantes · DKitchen Corporate`,
     description: `Desde ${EXPERIENCE.tarifas.primeraVez.precio} € + IVA. ${f.frase} Concepto, web de entradas y campaña en 3 semanas, sin comisión de DKitchen.`.slice(0, 155),
     alternates: { canonical: url },
     openGraph: { url, title: `${f.nombre} · DKitchen Experience`, description: f.frase, ...(f.imagen ? { images: [{ url: rutaImagen(f.slug, '16x9'), alt: f.imagen.alt }] } : {}) },

@@ -8,7 +8,7 @@ import { FondoVivo } from '@/components/dk/Movimiento';
 
 /** Casos de éxito — rediseño 29/09/2026. Solo lo que cada cliente ha autorizado mostrar. */
 export const metadata: Metadata = {
-  title: 'Casos de éxito: restaurantes con app propia · DKitchen',
+  title: 'Casos de éxito: restaurantes con app propia · DKitchen Corporate',
   description: 'Negocios reales que ya venden con su propia app, sin comisiones de plataforma: pedido, catálogo y club de fidelización con su marca.',
   alternates: { canonical: 'https://dkitchencorporate.es/casos-de-exito' },
 };

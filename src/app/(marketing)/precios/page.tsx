@@ -22,7 +22,7 @@ const URL_PRECIOS = 'https://dkitchencorporate.es/precios';
 const eur = (n: number) => formatPrecio(n) as string;
 
 export const metadata: Metadata = {
-  title: 'Precios: carta QR y app propia para restaurantes · DKitchen',
+  title: 'Precios: carta QR y app propia para restaurantes · DKitchen Corporate',
   description: `Carta QR desde ${QR_MENU.planes.basico.mensual} €/mes; plan ${QR_MENU.planes.ampliado.nombre} con el primer mes a ${QR_MENU.primerMes} €. App propia desde ${BASE_OPERATIVA.pagoUnico} €. Módulos de sala y eventos. Sin comisiones. Precios + IVA.`,
   alternates: { canonical: URL_PRECIOS },
 };

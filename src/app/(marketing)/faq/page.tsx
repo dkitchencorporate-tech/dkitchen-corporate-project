@@ -5,7 +5,7 @@ import Aparecer from '@/components/qr-landing/Aparecer';
 
 /** Preguntas frecuentes — rediseño 29/09/2026, agrupadas por producto y con datos estructurados. */
 export const metadata: Metadata = {
-  title: 'Preguntas frecuentes sobre carta QR y app propia · DKitchen',
+  title: 'Preguntas frecuentes sobre carta QR y app propia · DKitchen Corporate',
   description: 'Precios, permanencia, propiedad de tus datos, comisiones y cómo trabajamos. Todas las dudas antes de empezar con DKitchen.',
   alternates: { canonical: 'https://dkitchencorporate.es/faq' },
 };

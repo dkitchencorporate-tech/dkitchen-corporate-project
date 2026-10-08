@@ -5,7 +5,7 @@ const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: Nu
 const { basico: C, ampliado: L, sala: S } = QR_MENU.planes;
 
 export const metadata: Metadata = {
-  title: 'Condiciones del servicio · DKitchen',
+  title: 'Condiciones del servicio · DKitchen Corporate',
   description: 'Cómo contratas, pagas, cancelas y qué pasa con tu carta y tus datos en DKitchen: sin permanencia, precios claros y tus datos siempre tuyos.',
   alternates: { canonical: 'https://dkitchencorporate.es/terms' },
 };

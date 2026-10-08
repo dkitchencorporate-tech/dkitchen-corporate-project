@@ -11,7 +11,7 @@ const { primeraVez, nuevoEvento, reuso, reusoFidelizado, primeraParaClienteQr } 
 
 /** DKitchen Experience — rediseño 29/09/2026. Palabra clave: eventos para restaurantes llave en mano. */
 export const metadata: Metadata = {
-  title: 'Eventos para restaurantes llave en mano · DKitchen',
+  title: 'Eventos para restaurantes llave en mano · DKitchen Corporate',
   description: `Evento completo para tu restaurante: concepto, marketing, anuncios y web de entradas. Sin comisión de DKitchen sobre la taquilla. Desde ${primeraVez.precio} € + IVA.`,
   alternates: { canonical: 'https://dkitchencorporate.es/experience' },
 };

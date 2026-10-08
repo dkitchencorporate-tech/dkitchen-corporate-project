@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!a) return { title: 'Artículo no encontrado' };
   return {
     // Google corta hacia los 60 caracteres: la marca solo se añade si cabe.
-    title: a.titulo.length > 49 ? a.titulo : `${a.titulo} · DKitchen`,
+    title: a.titulo.length > 41 ? a.titulo : `${a.titulo} · DKitchen Corporate`,
     description: a.descripcion,
     alternates: { canonical: `https://dkitchencorporate.es/blog/${a.slug}` },
     openGraph: { title: a.titulo, description: a.descripcion, type: 'article', publishedTime: a.fecha },

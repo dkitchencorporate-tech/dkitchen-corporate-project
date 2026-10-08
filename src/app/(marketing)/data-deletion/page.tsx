@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const metadata = {
-  title: "Instrucciones de Eliminación de Datos | DKitchen",
+  title: "Instrucciones de Eliminación de Datos | DKitchen Corporate",
   description: "Protocolo oficial para la solicitud de borrado permanente de datos personales en el ecosistema DKitchen, conforme al RGPD y políticas de Meta.",
   alternates: { canonical: 'https://dkitchencorporate.es/data-deletion' }
 };

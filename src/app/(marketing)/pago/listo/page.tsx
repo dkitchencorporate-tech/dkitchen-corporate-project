@@ -5,7 +5,7 @@ import PasosPago from '@/components/pago/PasosPago';
 import Reconsultar from '@/components/pago/Reconsultar';
 import { leerRefPago, resumenPago } from '@/lib/payments/stripe';
 
-export const metadata: Metadata = { title: 'Confirmando el pago · DKitchen', robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: 'Confirmando el pago · DKitchen Corporate', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
 /**
