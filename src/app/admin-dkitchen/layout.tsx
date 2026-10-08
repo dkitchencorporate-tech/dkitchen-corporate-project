@@ -1,5 +1,6 @@
 import React from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import AvisarFallo from '@/components/admin/AvisarFallo';
 import { exigirAdmin } from '@/lib/guard-admin';
 
 export const metadata = {
@@ -28,6 +29,7 @@ export default async function AdminLayout({
              {children}
           </div>
         </main>
+        <AvisarFallo />
       </div>
     </>
   );

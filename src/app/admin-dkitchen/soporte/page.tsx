@@ -3,6 +3,7 @@ import { exigirAdmin } from '@/lib/guard-admin';
 import { bandejaSoporte, solicitudesQrAdmin } from '@/lib/admin-clientes';
 import { responderTicketAction, estadoSolicitudAction } from '../qr/actions';
 import PanelN2 from '@/components/admin/PanelN2';
+import GuiaZona from '@/components/admin/GuiaZona';
 import { diagnosticar, sugerir, borrador, datosTickets, metricasSoporte, CATEGORIAS, type Categoria } from '@/lib/soporte-n2';
 
 export const dynamic = 'force-dynamic';
@@ -22,6 +23,7 @@ const AVISOS: Record<string, string> = {
 const ERRORES: Record<string, string> = {
   datos: 'Datos del formulario no válidos.', diagnostico: 'No se pudo leer el estado del local.', sin_correo: 'El local no tiene cuenta de dueño con correo.',
   miembro: 'Ese miembro del equipo no está activo o no se pudo regenerar.', sin_fallidos: 'No hay envíos al TPV fallidos en 7 días.', categoria: 'Elige categoría y nivel.',
+  hueco: 'No se ha enviado: la respuesta aún tiene un hueco por rellenar ([Respuesta] o [pasos]). Escribe la respuesta real y vuelve a pulsar «Responder».',
 };
 
 export default async function SoporteQr({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -53,6 +55,10 @@ export default async function SoporteQr({ searchParams }: { searchParams: Promis
           {abiertos} ticket{abiertos === 1 ? '' : 's'} sin responder · {pendientes} pedido{pendientes === 1 ? '' : 's'} de QR físico en curso
         </p>
       </div>
+
+      <GuiaZona titulo="Soporte" ancla="soporte"
+        que="Las consultas de los clientes (tickets) y los pedidos de QR impresos."
+        pasos={['Lee el diagnóstico y la respuesta propuesta de cada ticket.', 'Cambia los huecos entre corchetes ([Respuesta], [pasos]) por la respuesta real: si quedan, no se envía.', 'Usa los botones de arreglo si hace falta, marca «Cerrar el ticket» si está resuelto y pulsa «Responder».', 'Pedidos de QR físico: cambia el estado según avanza.']} ojo={['Al cliente le llega la respuesta por correo y en su panel.']} />
 
       {metricas && (
         <div className="rounded-2xl border border-linea bg-white p-4 text-sm">

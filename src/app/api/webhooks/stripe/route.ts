@@ -143,8 +143,19 @@ async function procesar(evento: ObjetoStripe, o: ObjetoStripe, origen: string): 
     case 'customer.subscription.deleted': {
       // Sustituida al aplicar un código promocional en /pago: no es una baja.
       if (o.metadata?.sustituida_por) return ok({ ignorado: 'sustituida' });
+      // 0061: si el local tenía la baja programada (panel o Central), hoy se ejecuta: carta fuera,
+      // panel cerrado y arranca el borrado a 60 días. Sin baja programada solo se avisa (decide karc0).
+      let suspendidos: { nombre: string }[] = [];
+      try {
+        suspendidos = (await comoAprovisionamiento((c) => c.query<{ nombre: string }>('SELECT * FROM dk.baja_por_stripe($1)', [String(o.customer ?? '')]))).rows;
+      } catch (e) {
+        console.error('Baja: no se pudo suspender el local', e);
+        return fallo('No se pudo ejecutar la baja');
+      }
       await enviarCorreoInterno(`SUSCRIPCIÓN TERMINADA en Stripe: ${o.metadata?.restauranteNombre ?? o.metadata?.concepto ?? o.id}`,
-        `<p>La suscripción ya no está activa (baja al final del periodo, prueba sin tarjeta o impago agotado).</p>${filasCorreo([
+        `<p>La suscripción ya no está activa (baja al final del periodo, prueba sin tarjeta o impago agotado).</p>${suspendidos.length
+          ? `<p><strong>Baja ejecutada:</strong> ${suspendidos.map((s) => escaparHtml(s.nombre)).join(', ')} pasa a suspendido (carta fuera; se borra a los 60 días).</p>`
+          : '<p>No había una baja programada para este cliente: si debe darse de baja, hazlo desde su ficha en Central.</p>'}${filasCorreo([
           ['Concepto', o.metadata?.concepto], ['Restaurante', o.metadata?.restauranteNombre], ['Correo', o.metadata?.email], ['Suscripción', o.id], ['Motivo', o.cancellation_details?.reason]])}`).catch(() => {});
       return ok();
     }
@@ -301,10 +312,12 @@ async function alta(ctx: Contexto) {
     }
 
     case 'qr-menu':
-      return altaQr(ctx);
-
-    case 'fundador':
-      return altaFundador(ctx);
+    case 'fundador': {
+      // Embudo (0032, fallo 9): /qr y /fundador también cuentan sus pagos.
+      const r = meta.producto === 'fundador' ? await altaFundador(ctx) : await altaQr(ctx);
+      if (r.status < 300) await comoAprovisionamiento((c) => c.query('SELECT dk.embudo_pagado($1)', [meta.producto === 'fundador' ? 'fundador' : 'qr'])).catch((e) => console.error('Embudo: no se pudo anotar el pago', e));
+      return r;
+    }
 
     default:
       console.warn(`Webhook de Stripe: cobro ${ctx.idPago} sin producto conocido (${meta.producto ?? '¿?'}).`);

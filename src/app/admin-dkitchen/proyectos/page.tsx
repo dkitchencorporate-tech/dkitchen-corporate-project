@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { listarProyectos, nombreFase, PRODUCTOS_PROYECTO, FASES, type ProductoProyecto, type ProyectoFila } from '@/lib/proyectos';
 import { crearProyectoAction } from './actions';
+import GuiaZona from '@/components/admin/GuiaZona';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +40,7 @@ function Fila({ p }: { p: ProyectoFila }) {
           )}
         </span>
         <span className="shrink-0 text-right text-xs text-ceniza">
-          {p.importe_centimos ? <span className="block font-semibold tabular-nums text-carbon">{(p.importe_centimos / 100).toLocaleString('es-ES')} €</span> : null}
+          {p.importe_centimos ? <span className="block font-semibold tabular-nums text-carbon">{(p.importe_centimos / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</span> : null}
           {dia(p.creado_en)}
         </span>
       </Link>
@@ -67,6 +68,10 @@ export default async function Proyectos({ searchParams }: { searchParams: Promis
         <h1 className="font-display mt-2 text-3xl font-semibold md:text-4xl">Proyectos</h1>
         <p className="mt-1 text-sm text-niebla">Signature, Experience, Auditoría, Dark Kitchen y QR físico: de la solicitud o el pago al cierre. Se crean solos con cada pago y cada solicitud de la web.</p>
       </header>
+
+      <GuiaZona titulo="Proyectos" ancla="proyectos"
+        que="Signature, Experience, Auditoría, Dark Kitchen y QR físico: de la solicitud a la entrega. Nacen solos al pagar o al pedir información en la web; también se crean a mano."
+        pasos={['Filtra por producto, fase o «toca hoy».', 'Abre un proyecto para avanzarlo de fase (con correo opcional al cliente) y apuntar llamadas y el siguiente paso.', '«Nuevo proyecto» abajo: para un cliente que llega por teléfono o en persona.']} />
 
       {q.e && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{ERRORES[q.e] ?? 'No se pudo hacer.'}</p>}
 

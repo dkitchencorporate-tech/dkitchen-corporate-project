@@ -483,6 +483,22 @@ export async function cancelarTodoAlFinalDelPeriodo(cliente: string): Promise<{ 
   }
 }
 
+/**
+ * Anular una baja (Central, 0061): vuelve a activar la renovación de las
+ * suscripciones que tenían la cancelación programada. Nunca lanza.
+ */
+export async function reanudarTodo(cliente: string): Promise<{ ok: true; n: number } | { ok: false; error: string }> {
+  try {
+    if (!cliente.startsWith('cus_')) return { ok: true, n: 0 };
+    const l = await stripe('GET', '/subscriptions', { customer: cliente, status: 'all', limit: 20 });
+    const pendientes = (l.data as ObjetoStripe[]).filter((x) => ['active', 'trialing', 'past_due'].includes(x.status) && x.cancel_at_period_end);
+    for (const s of pendientes) await stripe('POST', `/subscriptions/${encodeURIComponent(s.id)}`, { cancel_at_period_end: false });
+    return { ok: true, n: pendientes.length };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 /** Portal de cliente de Stripe: cambiar la tarjeta y descargar las facturas. */
 export async function urlPortalCliente(cliente: string, volver: string): Promise<string> {
   return (await stripe('POST', '/billing_portal/sessions', { customer: cliente, return_url: volver, locale: 'es' })).url as string;

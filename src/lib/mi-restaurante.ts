@@ -32,12 +32,15 @@ export interface MiRestaurante {
   estiloLetra: string;
   /** Lo abre su socio en modo puesta a punto (0052): sin plan, pagos ni operativa del dueño. */
   puestaAPunto?: boolean;
+  /** Lo abre DKitchen desde Central en modo soporte (0061): mismo alcance que la puesta a punto. */
+  soporte?: boolean;
 }
 
 /**
  * El restaurante del cliente que ha iniciado sesión — nunca de otro. Si la
  * sesión es de un socio con la puesta a punto abierta (cookie de /socio), el
  * de ese cliente: la base solo lo devuelve si dk.gestiona() lo permite (0052).
+ * El super admin con 2FA entra igual desde Central («Entrar en su panel», 0061).
  */
 export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante | null> {
   const puesta = (await cookies()).get(COOKIE_PUESTA)?.value ?? null;
@@ -69,14 +72,16 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       estilo_fondo: string;
       estilo_letra: string;
       puesta: boolean;
+      soporte: boolean;
     }>(
       `SELECT id, slug, nombre, logo_url, plan, (fundador_desde IS NOT NULL AND fundador_perdido_en IS NULL) AS fundador, activo, color_marca, estado_acceso,
               descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en, estilo_fondo, estilo_letra, portada_url, portada_con_nombre,
-              propietario IS DISTINCT FROM dk.identidad_actual() AS puesta
+              propietario IS DISTINCT FROM dk.identidad_actual() AS puesta,
+              (propietario IS DISTINCT FROM dk.identidad_actual() AND coalesce(dk.es_admin(), false)) AS soporte
          FROM restaurantes
         WHERE propietario = dk.identidad_actual()
-           OR (id = $1 AND socio_id = dk.identidad_actual() AND dk.gestiona(id))
-        ORDER BY (propietario = dk.identidad_actual()) DESC NULLS LAST
+           OR (id = $1 AND ((socio_id = dk.identidad_actual() AND dk.gestiona(id)) OR coalesce(dk.es_admin(), false)))
+        ORDER BY (id = $1) DESC NULLS LAST, (propietario = dk.identidad_actual()) DESC NULLS LAST
         LIMIT 1`,
       [idPuesta]
     );
@@ -108,6 +113,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       estiloFondo: fila.estilo_fondo,
       estiloLetra: fila.estilo_letra,
       puestaAPunto: fila.puesta === true,
+      soporte: fila.soporte === true,
     };
   });
 }

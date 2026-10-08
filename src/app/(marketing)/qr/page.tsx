@@ -14,6 +14,7 @@ import { CartasAutorDemo } from '@/components/dk/Modelos';
 import { Titulo, BandaFoto } from '@/components/dk/Bloques';
 import { FondoVivo } from '@/components/dk/Movimiento';
 import { QR_MENU, PLANES_QR } from '@/lib/pricing-config';
+import EmbudoVista from '@/components/EmbudoVista';
 
 export const metadata: Metadata = {
   title: 'Carta digital QR para restaurantes · 1 € el primer mes',
@@ -61,6 +62,7 @@ export default function PaginaQr() {
   return (
     <div className="bg-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datosEstructurados) }} />
+      <EmbudoVista producto="qr" />
       <LineaServicio />
       <HeroQr />
       <Marquesina oscura items={['Tu carta cambia, tu QR nunca', 'Alérgenos según la UE', 'Cuatro estilos propios', 'Reservas y llamada al camarero', 'Primer mes por 1 €', 'Sin permanencia']} />

@@ -5,6 +5,7 @@ import { estadoFundador } from '@/lib/fundador';
 import { FUNDADOR, nombrePlan } from '@/lib/pricing-config';
 import ContadorFundador from '@/components/fundador/ContadorFundador';
 import { abrirFundadorAction } from './actions';
+import GuiaZona from '@/components/admin/GuiaZona';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +32,10 @@ export default async function FundadorCentral() {
         <h1 className="font-display mt-2 text-3xl font-semibold md:text-4xl">Programa Fundador</h1>
         <p className="mt-1 text-sm text-niebla">Plan Sala al 40 % ({FUNDADOR.trimestre.toLocaleString('es-ES')} € + IVA por trimestre). {FUNDADOR.plazas} plazas o {FUNDADOR.dias} días desde la apertura, lo primero.</p>
       </div>
+
+      <GuiaZona titulo="Fundador" ancla="fundador"
+        que="Los primeros locales con el plan Sala al 40 % de por vida, pagando por trimestre."
+        pasos={['Mira cuántas plazas quedan y quién las tiene.', 'Si un fundador deja de pagar, pierde el precio y queda registrado.']} />
 
       <div className="grid gap-4 md:grid-cols-[1fr_auto]">
         <section className={tarjeta}>

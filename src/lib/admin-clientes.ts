@@ -17,6 +17,30 @@ export interface ClienteQr {
   escaneosTotal: number;
   ticketsAbiertos: number;
   solicitudesQrPendientes: number;
+  // 0061: pestañas, baja programada y cuota real
+  escaneos14d: number;
+  pruebaHasta: string | null;
+  demoInterna: boolean;
+  archivadoEn: string | null;
+  bajaProgramadaEn: string | null;
+  bajaDesde: string | null;
+  pagoFallidoDesde: string | null;
+  /** Lo que de verdad paga al mes, en euros sin IVA (0 en prueba, demo, cortesía, archivado o suspendido). */
+  cuota: number;
+  tutorialPaso: number;
+  tutorialCompletado: boolean;
+}
+
+/** Pestaña de Clientes en la que cae cada cuenta (0061). */
+export type Pestana = 'activos' | 'prueba' | 'riesgo' | 'bajas' | 'archivados' | 'demo';
+const dia = (v: unknown) => (v ? new Date(v as string).toISOString().slice(0, 10) : null);
+export function pestanaDe(c: ClienteQr, hoy = new Date().toISOString().slice(0, 10)): Pestana {
+  if (c.archivadoEn) return 'archivados';
+  if (c.demoInterna) return 'demo';
+  if (c.estadoAcceso === 'suspendido') return 'bajas';
+  if (c.bajaProgramadaEn || c.estadoAcceso === 'gracia' || c.estadoAcceso === 'solo_lectura') return 'riesgo';
+  if (c.pruebaHasta && c.pruebaHasta >= hoy) return 'prueba';
+  return 'activos';
 }
 
 export async function listarClientesQr(jwt: string): Promise<ClienteQr[]> {
@@ -38,6 +62,16 @@ export async function listarClientesQr(jwt: string): Promise<ClienteQr[]> {
       escaneosTotal: Number(r.escaneos_total),
       ticketsAbiertos: Number(r.tickets_abiertos),
       solicitudesQrPendientes: Number(r.solicitudes_qr_pendientes),
+      escaneos14d: Number(r.escaneos_14d),
+      pruebaHasta: dia(r.prueba_hasta),
+      demoInterna: r.demo_interna === true,
+      archivadoEn: r.archivado_en ? new Date(r.archivado_en).toISOString() : null,
+      bajaProgramadaEn: dia(r.baja_programada_en),
+      bajaDesde: dia(r.baja_desde),
+      pagoFallidoDesde: r.pago_fallido_desde ? new Date(r.pago_fallido_desde).toISOString() : null,
+      cuota: Number(r.cuota_centimos ?? 0) / 100,
+      tutorialPaso: Number(r.tutorial_paso ?? 0),
+      tutorialCompletado: r.tutorial_completado === true,
     }));
   });
 }
@@ -54,6 +88,8 @@ export interface FichaCliente {
     descripcion: string | null; telefono: string | null; direccion: string | null; horario: string | null;
     instagram: string | null; url_resenas: string | null;
     plantilla?: string; nivel_diseno?: string;
+    demo_interna?: boolean; archivado_en?: string | null; baja_programada_en?: string | null; baja_motivo?: string | null; baja_por?: string | null; baja_desde?: string | null;
+    prueba_hasta?: string | null; propietario?: string;
   };
   email: string | null;
   contacto: string | null;
@@ -216,4 +252,49 @@ export async function anularEnlace(jwt: string, enlaceId: string) {
 
 export async function catalogoPrecios(jwt: string): Promise<{ servicio: string; nombre: string; tipo: string; precio: number }[]> {
   return comoCliente(jwt, async (c) => (await c.query('SELECT servicio, nombre, tipo, dk.precio_servicio(servicio) AS precio FROM catalogo_servicios ORDER BY precio_centimos')).rows);
+}
+
+// ---------------------------------------------------------------------------
+// Bloque 1b (0061): baja programada, archivo, demo interna y avisos de fallo
+// ---------------------------------------------------------------------------
+export async function archivarCliente(jwt: string, restauranteId: string, archivar: boolean) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_archivar($1, $2)', [restauranteId, archivar]));
+}
+
+export async function marcarDemo(jwt: string, restauranteId: string, demo: boolean) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_demo($1, $2)', [restauranteId, demo]));
+}
+
+/** Fecha AAAA-MM-DD en la que deja de estar activo. Hoy = baja inmediata. */
+export async function programarBaja(jwt: string, restauranteId: string, fecha: string, motivo: string): Promise<{ email: string | null; contacto: string | null; nombre: string; inmediata: boolean }> {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT * FROM dk.admin_programar_baja($1, $2::date, $3)', [restauranteId, fecha, motivo])).rows[0]);
+}
+
+export async function anularBaja(jwt: string, restauranteId: string) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_anular_baja($1)', [restauranteId]));
+}
+
+/** Cliente de Stripe del local (solo admin; la ficha no lo expone). */
+export async function clienteStripeAdmin(jwt: string, restauranteId: string): Promise<string | null> {
+  return comoCliente(jwt, async (c) => {
+    const v = (await c.query<{ c: string | null }>('SELECT stripe_customer_id AS c FROM restaurantes WHERE id = $1', [restauranteId])).rows[0]?.c ?? null;
+    return v?.startsWith('cus_') ? v : null;
+  });
+}
+
+export interface AvisoFallo { id: string; pantalla: string; mensaje: string; estado: 'nuevo' | 'en_curso' | 'resuelto'; nota: string | null; creadoEn: string; resueltoEn: string | null }
+
+export async function avisarFallo(jwt: string, pantalla: string, mensaje: string): Promise<string> {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT dk.admin_avisar_fallo($1, $2) AS id', [pantalla, mensaje])).rows[0].id);
+}
+
+export async function avisosFallo(jwt: string, limite = 100): Promise<AvisoFallo[]> {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT * FROM dk.admin_avisos_fallo($1)', [limite])).rows.map((r) => ({
+    id: r.id, pantalla: r.pantalla, mensaje: r.mensaje, estado: r.estado, nota: r.nota,
+    creadoEn: new Date(r.creado_en).toISOString(), resueltoEn: r.resuelto_en ? new Date(r.resuelto_en).toISOString() : null,
+  })));
+}
+
+export async function cambiarEstadoAviso(jwt: string, id: string, estado: AvisoFallo['estado'], nota: string) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_aviso_estado($1, $2, $3)', [id, estado, nota]));
 }

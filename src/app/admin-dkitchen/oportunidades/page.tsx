@@ -3,6 +3,9 @@ import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
 import { nombrePlan } from '@/lib/pricing-config';
 import { atenderLeadAction } from './actions';
+import { crearProyectoAction } from '../proyectos/actions';
+import { listarClientesQr } from '@/lib/admin-clientes';
+import GuiaZona from '@/components/admin/GuiaZona';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +21,7 @@ const fecha = (s: string) => new Date(s).toLocaleString('es-ES', { timeZone: 'Eu
 export default async function Oportunidades() {
   const jwt = await exigirAdmin();
   const leads = await comoCliente(jwt, async (c) => (await c.query<Lead>('SELECT * FROM dk.admin_leads_signature()')).rows).catch(() => null);
+  const clientes = new Map((await listarClientesQr(jwt).catch(() => [])).map((c) => [c.restauranteId, c]));
   const abiertos = leads?.filter((l) => !l.atendido_en) ?? [];
   const atendidos = leads?.filter((l) => l.atendido_en) ?? [];
   return (
@@ -27,6 +31,11 @@ export default async function Oportunidades() {
         <h1 className="font-display mt-2 text-3xl font-semibold md:text-4xl">Oportunidades</h1>
         <p className="mt-1 text-sm text-niebla">Locales con tracción que han pedido una llamada para Signature desde su panel (≥600 escaneos, ≥40 reservas o ≥300 llamadas al camarero en 30 días). Si no se atienden en 48 h, el parte lo marca como urgente.</p>
       </div>
+      <GuiaZona titulo="Oportunidades" ancla="oportunidades"
+        que="Locales de carta QR que piden que les llamemos para dar el salto a Signature (su propia web y sistema)."
+        pasos={['Llama al local (teléfono en el correo «LEAD SIGNATURE» o en su ficha).', 'Si hay interés, pulsa «Crear proyecto Signature»: se abre su proyecto con sus datos y lo sigues en Proyectos.', 'Escribe cómo fue la llamada y pulsa «Marcar atendido».']}
+        ojo={['Si no se atiende en 48 h, el parte diario lo marca como urgente.']} />
+
       {leads === null ? <p className={`${tarjeta} text-sm font-semibold text-vino`}>No se pudieron leer las oportunidades.</p> : (
         <>
           <section className="space-y-3">
@@ -40,6 +49,15 @@ export default async function Oportunidades() {
                 </div>
                 <p className="mt-1 text-sm text-niebla">Plan {nombrePlan(l.plan)}{l.datos.fundador ? ' · Fundador' : ''} · {l.datos.escaneos ?? 0} escaneos, {l.datos.reservas ?? 0} reservas y {l.datos.llamadas ?? 0} llamadas en 30 días</p>
                 <p className="mt-1 text-xs text-ceniza">El teléfono que dejó está en el correo «LEAD SIGNATURE»; el del local, en su ficha.</p>
+                {clientes.get(l.restaurante_id)?.email && (
+                  <form action={crearProyectoAction} className="mt-3">
+                    <input type="hidden" name="producto" value="signature" />
+                    <input type="hidden" name="email" value={clientes.get(l.restaurante_id)!.email!} />
+                    <input type="hidden" name="nombre" value={clientes.get(l.restaurante_id)!.contacto ?? ''} />
+                    <input type="hidden" name="negocio" value={l.nombre} />
+                    <button className="rounded-full border border-linea-fuerte px-4 py-2 text-sm font-semibold hover:border-vino">Crear proyecto Signature →</button>
+                  </form>
+                )}
                 <form action={atenderLeadAction} className="mt-4 flex flex-col gap-2 sm:flex-row">
                   <input type="hidden" name="lead" value={l.id} />
                   <input name="nota" maxLength={500} placeholder="Cómo fue la llamada (opcional)" className="min-w-0 flex-1 rounded-full border border-linea px-4 py-2.5 text-sm focus:border-vino focus:outline-none" />

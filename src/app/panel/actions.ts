@@ -616,6 +616,14 @@ export async function solicitarBajaAction(motivo: string) {
     cancelada = { ok: false, error: `No se pudo leer el cliente de Stripe: ${e instanceof Error ? e.message : String(e)}` };
   }
   const fin = cancelada.ok && cancelada.finPeriodo ? new Date(cancelada.finPeriodo * 1000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Madrid' }) : null;
+  // 0061: deja la fecha de fin en la base; ese día el webhook (o el cron) suspende el local.
+  // Si Stripe no dio fecha, la baja queda para gestionarla a mano desde Central (aviso interno).
+  if (cancelada.ok && cancelada.finPeriodo) {
+    const { comoCliente } = await import('@/lib/db');
+    const dia = new Date(cancelada.finPeriodo * 1000).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+    await comoCliente(jwt, (c) => c.query('SELECT dk.panel_programar_baja($1, $2::date, $3)', [restaurante.id, dia, texto]))
+      .catch((e) => console.error('Baja: no se pudo guardar la fecha de fin', e));
+  }
   await enviarCorreoInterno(`BAJA: ${restaurante.nombre}${cancelada.ok ? ' (Stripe cancelado)' : ' (CANCELAR EN STRIPE A MANO)'}`,
     `<p><strong>${escaparHtml(restaurante.nombre)}</strong> (${escaparHtml(identidad.email)}) ha pedido la baja desde su panel.</p>
      ${cancelada.ok

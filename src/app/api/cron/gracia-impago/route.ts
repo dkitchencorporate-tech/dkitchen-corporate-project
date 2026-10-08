@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { avanzarGraciaConAvisos } from '@/lib/avisos-impago';
 import { avanzarPruebas, purgarBajas } from '@/lib/prueba';
+import { comoAprovisionamiento } from '@/lib/db';
 
 export const runtime = 'nodejs';
 
@@ -40,10 +41,12 @@ export async function GET(request: Request) {
     const cambiados = await avanzarGraciaConAvisos();
     // Pruebas «todo incluido» (0034): vencidas → solo lectura, y avisos a 3 días y 1 día.
     const pruebasVencidas = await avanzarPruebas();
+    // Bajas programadas (0061): respaldo del webhook de Stripe; las que vencen hoy pasan a suspendido.
+    const bajasEjecutadas = await comoAprovisionamiento(async (c) => (await c.query<{ n: number }>('SELECT dk.ejecutar_bajas_vencidas() AS n')).rows[0]?.n ?? 0);
     // Bajas (0041): aviso 7 días antes y borrado a los 60 días.
     const borrados = await purgarBajas();
-    console.log(`Cron gracia/impago: ${cambiados} restaurante(s) cambiaron de fase; ${pruebasVencidas} prueba(s) vencida(s); ${borrados} baja(s) borrada(s).`);
-    return NextResponse.json({ ok: true, cambiados, pruebasVencidas, borrados });
+    console.log(`Cron gracia/impago: ${cambiados} restaurante(s) cambiaron de fase; ${pruebasVencidas} prueba(s) vencida(s); ${bajasEjecutadas} baja(s) ejecutada(s); ${borrados} baja(s) borrada(s).`);
+    return NextResponse.json({ ok: true, cambiados, pruebasVencidas, bajasEjecutadas, borrados });
   } catch (error) {
     console.error('Cron gracia/impago falló:', error);
     return NextResponse.json({ error: 'Fallo avanzando el calendario' }, { status: 500 });

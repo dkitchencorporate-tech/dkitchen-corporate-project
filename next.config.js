@@ -140,6 +140,9 @@ const nextConfig = {
       { source: '/admin-dkitchen/clients', destination: '/admin-dkitchen/qr', permanent: true },
       { source: '/admin-dkitchen/pipeline', destination: '/admin-dkitchen/prospeccion', permanent: true },
       { source: '/onboarding', destination: '/admin-dkitchen/inicio', permanent: true },
+      // Bloque 1b (0061): los manuales antiguos se sustituyen por el Manual de Central.
+      { source: '/manuals', destination: '/admin-dkitchen/manual', permanent: true },
+      { source: '/manuals/:ruta*', destination: '/admin-dkitchen/manual', permanent: true },
     ];
   },
 

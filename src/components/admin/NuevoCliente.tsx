@@ -9,17 +9,18 @@ import { QR_MENU, nombrePlan } from '@/lib/pricing-config';
  * Alta manual de un cliente QR desde Central, en 3 pasos con instrucciones
  * (rediseño 29/09/2026): 1. Datos · 2. Qué recibe · 3. Revisar y crear.
  */
-type Modo = 'pago' | 'gratis' | 'solo';
+type Modo = 'pago' | 'gratis' | 'demo' | 'solo';
 const MODOS: { id: Modo; titulo: string; texto: string }[] = [
   { id: 'pago', titulo: 'Preparar un enlace de pago', texto: 'Creas la cuenta y a continuación le preparas un enlace con el precio que acordéis (plan, módulos, descuento).' },
-  { id: 'gratis', titulo: 'Prueba con todo incluido', texto: 'Plan Sala (plano de mesas, app de sala, TPV, Comandero Pro e idiomas) sin coste durante el tiempo que elijas. El cliente elige su plantilla y colores; la Carta de Autor se paga aparte. Al acabar, se le invita a quedarse; si no paga, su panel pasa a solo lectura.' },
+  { id: 'gratis', titulo: 'Prueba con todo incluido', texto: 'Plan Sala (plano de mesas, app de sala, TPV, Comandero Pro e idiomas) sin coste durante el tiempo que elijas. El cliente elige su plantilla y colores; la Carta de Autor se paga aparte. Al acabar, se le invita a quedarse; si no paga, su panel pasa a solo lectura. Siempre con fecha de fin: no hay regalos sin fecha.' },
+  { id: 'demo', titulo: 'Cuenta demo interna', texto: 'Para enseñar el producto o grabar vídeos (tus propias demos). Todo incluido sin fecha, pero NO cuenta en ingresos, en el parte ni en las alertas. Sale en la pestaña «Demo» de Clientes.' },
   { id: 'solo', titulo: 'Solo crear la cuenta', texto: 'Cuenta con el plan elegido y nada más. Podrás añadir servicios o un enlace de pago desde su ficha.' },
 ];
 
 export default function NuevoCliente() {
   const [abierto, setAbierto] = useState(false);
   const [paso, setPaso] = useState(1);
-  const [d, setD] = useState({ local: '', contacto: '', email: '', plan: 'ampliado', modo: 'pago' as Modo, demo: false, dias: '15' });
+  const [d, setD] = useState({ local: '', contacto: '', email: '', plan: 'ampliado', modo: 'pago' as Modo, cartaEjemplo: false, dias: '15' });
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function NuevoCliente() {
   function crear() {
     setError(null);
     iniciar(async () => {
-      const r = await crearClienteAction({ email: d.email, contacto: d.contacto, local: d.local, plan: d.plan, todo: d.modo === 'gratis', dias: d.dias === 'sin' ? null : Number(d.dias), demo: d.demo });
+      const r = await crearClienteAction({ email: d.email, contacto: d.contacto, local: d.local, plan: d.plan, todo: d.modo === 'gratis', dias: Number(d.dias), demoInterna: d.modo === 'demo', cartaEjemplo: d.cartaEjemplo });
       if (r.error) setError(r.error); else if (r.id) router.push('/admin-dkitchen/qr/' + r.id + (d.modo === 'pago' ? '#enlace' : ''));
     });
   }
@@ -50,7 +51,7 @@ export default function NuevoCliente() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="font-display text-xl font-semibold tracking-tight">Nuevo cliente</h2>
-          <p className="mt-1 text-sm text-niebla">Para demos, cortesías o ventas cerradas en persona. El cliente recibe un correo para crear su contraseña.</p>
+          <p className="mt-1 text-sm text-niebla">Para ventas cerradas en persona, pruebas con fecha o tus demos internas. El cliente recibe un correo para crear su contraseña.</p>
         </div>
         <button onClick={() => { setAbierto(false); setPaso(1); }} className="text-sm text-niebla">Cancelar</button>
       </div>
@@ -88,13 +89,13 @@ export default function NuevoCliente() {
           {d.modo === 'gratis' && (
             <label className="block rounded-2xl bg-crema p-4 text-sm font-medium">Duración de la prueba
               <select value={d.dias} onChange={(e) => setD({ ...d, dias: e.target.value })} className={campo}>
-                <option value="15">15 días</option><option value="30">30 días</option><option value="sin">Sin fecha de fin (cortesía)</option>
+                <option value="7">7 días</option><option value="15">15 días</option><option value="30">30 días</option>
               </select>
               <span className="mt-1 block text-xs text-ceniza">Si paga antes de que acabe, no paga nada hasta el día 12 siguiente al final de la prueba.</span>
             </label>
           )}
           <label className="flex cursor-pointer gap-3 rounded-2xl border border-dashed border-linea-fuerte p-4">
-            <input type="checkbox" checked={d.demo} onChange={(e) => setD({ ...d, demo: e.target.checked })} className="mt-1" />
+            <input type="checkbox" checked={d.cartaEjemplo} onChange={(e) => setD({ ...d, cartaEjemplo: e.target.checked })} className="mt-1" />
             <span><span className="block font-semibold">Cargar una carta de ejemplo</span><span className="mt-0.5 block text-sm text-niebla">4 secciones y 14 platos con alérgenos, para enseñar el producto desde el primer minuto.</span></span>
           </label>
         </div>
@@ -104,7 +105,7 @@ export default function NuevoCliente() {
         <dl className="mt-6 divide-y divide-linea rounded-2xl border border-linea text-sm">
           {([
             ['Local', d.local], ['Contacto', d.contacto], ['Correo', d.email], ['Plan', nombrePlan(d.plan)],
-            ['Qué recibe', MODOS.find((m) => m.id === d.modo)!.titulo + (d.modo === 'gratis' ? (d.dias === 'sin' ? ' · sin fecha de fin' : ` · ${d.dias} días`) : '')], ['Carta de ejemplo', d.demo ? 'Sí' : 'No'],
+            ['Qué recibe', MODOS.find((m) => m.id === d.modo)!.titulo + (d.modo === 'gratis' ? ` · ${d.dias} días` : '')], ['Carta de ejemplo', d.cartaEjemplo ? 'Sí' : 'No'],
           ] as const).map(([k, v]) => (
             <div key={k} className="flex justify-between gap-4 px-4 py-3"><dt className="text-niebla">{k}</dt><dd className="text-right font-medium">{v}</dd></div>
           ))}

@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { QR_MENU, FUNDADOR, type PlanQr } from '@/lib/pricing-config';
 import { codigoDeLaUrl, codigoGuardado } from '@/components/CapturaVendedor';
+import { anotarEmbudo } from '@/components/EmbudoVista';
 
 /**
  * Alta de QR Menú: pide local, nombre y correo y abre el checkout nativo (/pago).
@@ -71,6 +72,10 @@ export default function ActivarPlanBoton({
       });
       const datos = await respuesta.json();
       if (!respuesta.ok || !datos.url) throw new Error(datos?.error ?? 'No se pudo iniciar el pago.');
+      // Embudo (0032): va al pago; al salir de la página ya no cuenta como «se fue sin pagar».
+      const producto = plan === 'fundador' ? 'fundador' : 'qr';
+      anotarEmbudo(producto, 'checkout');
+      try { sessionStorage.setItem('dk-embudo-pago', producto); } catch {}
       window.location.href = datos.url;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo iniciar el pago.');
@@ -82,7 +87,7 @@ export default function ActivarPlanBoton({
 
   return (
     <>
-      <button type="button" onClick={() => setAbierto(true)} className={className}>{etiqueta}</button>
+      <button type="button" onClick={() => { setAbierto(true); anotarEmbudo(plan === 'fundador' ? 'fundador' : 'qr', 'interes'); }} className={className}>{etiqueta}</button>
       {montado && createPortal(
         <AnimatePresence>
           {abierto && (

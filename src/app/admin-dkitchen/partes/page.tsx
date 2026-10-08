@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
 import { NOMBRE_ALERTA, enlaceAlerta, type DatosMando } from '@/lib/mando';
+import GuiaZona from '@/components/admin/GuiaZona';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,9 @@ export default async function PartesCentral() {
         <h1 className="font-display mt-2 text-3xl font-semibold md:text-4xl">Partes diarios</h1>
         <p className="mt-1 text-sm text-niebla">Cada mañana a las 08:30 (07:30 en horario de invierno) se genera el parte con lo que necesita a una persona y te llega por correo. El panel en vivo está en <Link href="/admin-dkitchen/inicio" className="text-vino underline">Inicio</Link>.</p>
       </div>
+      <GuiaZona titulo="Partes diarios" ancla="partes"
+        que="El resumen que llega por correo cada mañana, guardado día a día."
+        pasos={['Abre el del día (sale abierto).', 'Pulsa cada aviso para ir a donde se resuelve.']} />
       {partes === null ? <p className={`${tarjeta} text-sm font-semibold text-vino`}>No se pudieron leer los partes.</p>
         : partes.length === 0 ? <p className={`${tarjeta} text-sm text-ceniza`}>Todavía no hay partes. El primero sale mañana por la mañana.</p>
         : (
@@ -30,7 +34,7 @@ export default async function PartesCentral() {
               <li key={fecha}>
                 <details className={`${tarjeta} group`} open={i === 0}>
                   <summary className="flex cursor-pointer list-none flex-wrap items-baseline justify-between gap-2">
-                    <span className="font-semibold capitalize">{new Date(fecha + 'T12:00:00Z').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                    <span className="font-semibold">{new Date(fecha + 'T12:00:00Z').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, (x) => x.toUpperCase())}</span>
                     <span className="flex items-center gap-2 text-xs">
                       <span className={`rounded-full px-2.5 py-0.5 font-semibold ${d.urgentes ? 'bg-vino/10 text-vino' : d.necesita_humano ? 'bg-amber-500/15 text-amber-700' : 'bg-exito/15 text-exito'}`}>
                         {d.necesita_humano === 0 ? 'Todo en orden' : `${d.necesita_humano} pendiente${d.necesita_humano > 1 ? 's' : ''}${d.urgentes ? ` · ${d.urgentes} urgente${d.urgentes > 1 ? 's' : ''}` : ''}`}
@@ -39,7 +43,7 @@ export default async function PartesCentral() {
                     </span>
                   </summary>
                   <dl className="mt-4 grid grid-cols-3 gap-2 text-center text-xs sm:grid-cols-6">
-                    {([['Altas', d.altas.hoy], ['A pago', d.pasos_pago.hoy], ['Bajas', d.bajas.hoy], ['Activos', d.activos], ['Tickets', d.tickets.abiertos], ['Cobrado', `${(d.cobrado_centimos.hoy / 100).toLocaleString('es-ES')} €`]] as const).map(([k, v]) => (
+                    {([['Altas', d.altas.hoy], ['A pago', d.pasos_pago.hoy], ['Bajas', d.bajas.hoy], ['Activos', d.activos], ['Tickets', d.tickets.abiertos], ['Cobrado', `${(d.cobrado_centimos.hoy / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`]] as const).map(([k, v]) => (
                       <div key={k} className="rounded-xl bg-papel py-2"><dt className="text-ceniza">{k}</dt><dd className="mt-0.5 text-base font-semibold tabular-nums">{v}</dd></div>
                     ))}
                   </dl>

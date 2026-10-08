@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
+import { QR_MENU } from '@/lib/pricing-config';
+import GuiaZona from '@/components/admin/GuiaZona';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +23,13 @@ export default async function Embudo({ searchParams }: { searchParams: Promise<{
     filas: (await c.query<Fila>('SELECT * FROM dk.admin_embudo($1)', [dias])).rows,
     diario: (await c.query<Dia>('SELECT * FROM dk.admin_embudo_diario($1)', [Math.min(dias, 90)])).rows,
   }));
-  const datos = Object.values(PRODUCTOS_PAGO).map((p) => {
+  // Fallo 9: además de /pagar, el alta de carta QR (/qr, primer mes) y Fundador.
+  const productos = [
+    { id: 'qr', nombre: 'Carta QR (/qr)', precio: QR_MENU.primerMes, pagina: '/qr' },
+    { id: 'fundador', nombre: 'Fundador', precio: 0, pagina: '/fundador' },
+    ...Object.values(PRODUCTOS_PAGO).map((p) => ({ id: p.id, nombre: p.nombre, precio: p.precio, pagina: `/pagar/${p.id}` })),
+  ];
+  const datos = productos.map((p) => {
     const f = filas.find((x) => x.producto === p.id);
     const n = (k: keyof Fila) => Number(f?.[k] ?? 0);
     return { p, visitas: n('visitas'), interes: n('interes'), checkout: n('checkout'), salidas: n('salidas'), pagados: n('pagados'), seg: f?.segundos_medios ?? 0 };
@@ -34,12 +42,16 @@ export default async function Embudo({ searchParams }: { searchParams: Promise<{
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Embudo de pago</h1>
-          <p className="text-sm text-niebla">Páginas /pagar: quién entra, quién se va y quién paga. Anónimo, datos reales.</p>
+          <p className="text-sm text-niebla">/qr, /fundador y páginas /pagar: quién entra, quién abre el formulario, quién va a pagar y quién paga. Anónimo, datos reales (la medición de /qr empieza el 08/10).</p>
         </div>
         <div className="flex gap-1 rounded-full bg-white p-1 ring-1 ring-linea">
           {RANGOS.map((r) => <Link key={r} href={`?dias=${r}`} className={`rounded-full px-4 py-1.5 text-sm font-semibold ${r === dias ? 'bg-tinta text-white' : 'text-niebla'}`}>{r} días</Link>)}
         </div>
       </div>
+
+      <GuiaZona titulo="Embudo" ancla="embudo"
+        que="Cuánta gente entra en las páginas donde se paga y en qué paso se queda. Sirve para saber si un anuncio, un flyer o un cambio de la web funciona."
+        pasos={['Elige 7, 30 o 90 días arriba a la derecha.', 'En cada producto: Entran → Rellenan (abren el formulario) → Van a pagar → Pagan.', 'Si muchos «van a pagar» pero pocos pagan, el problema está en el pago; si pocos «rellenan», en la página.']} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[['Visitas a páginas de pago', tot.visitas], ['Fueron a pagar', tot.checkout], ['Pagos confirmados', tot.pagados], ['Ingresos por pago directo', `${tot.ingresos.toLocaleString('es-ES')} €`]].map(([t, v]) => (
@@ -66,9 +78,9 @@ export default async function Embudo({ searchParams }: { searchParams: Promise<{
             <div key={d.p.id} className="rounded-2xl border border-linea bg-white p-5">
               <div className="flex items-baseline justify-between gap-2">
                 <p className="font-display text-xl font-semibold">{d.p.nombre}</p>
-                <a href={`/pagar/${d.p.id}`} target="_blank" className="text-xs text-niebla underline">ver página</a>
+                <a href={d.p.pagina} target="_blank" className="text-xs text-niebla underline">ver página</a>
               </div>
-              <p className="text-sm text-niebla">{d.p.precio} € · conversión {pct(d.pagados, d.visitas)} %</p>
+              <p className="text-sm text-niebla">{d.p.precio ? `${d.p.precio} € · ` : ''}conversión {pct(d.pagados, d.visitas)} %</p>
               <div className="mt-5 space-y-3">
                 {pasos.map(([t, v]) => (
                   <div key={t}>

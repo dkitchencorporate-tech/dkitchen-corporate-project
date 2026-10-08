@@ -9,8 +9,13 @@ import { crearCheckoutEnlaceAdmin } from '@/lib/payments/cobros';
 import { exigirAdmin } from '@/lib/guard-admin';
 import {
   cambiarEstadoCliente, cambiarPlanCliente, regalarTodo, cargarCartaDemo, crearEnlace, fijarUrlEnlace, anularEnlace, fichaCliente, responderTicket, cambiarEstadoSolicitudQr, asignarDiseno, adminServicio, adminConexionTpv,
+  archivarCliente, marcarDemo, programarBaja, anularBaja, clienteStripeAdmin,
 } from '@/lib/admin-clientes';
-import { enviarCorreoCliente, escaparHtml, escaparTexto } from '@/lib/email';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { COOKIE_PUESTA } from '@/lib/socio-codigo';
+import { cancelarTodoAlFinalDelPeriodo, reanudarTodo } from '@/lib/payments/stripe';
+import { enviarCorreoCliente, enviarCorreoInterno, escaparHtml, escaparTexto } from '@/lib/email';
 import { cifrar } from '@/lib/cifrado';
 import { guardarTraducciones, type Traduccion } from '@/lib/idiomas';
 import { esPlanQr, nombrePlan } from '@/lib/pricing-config';
@@ -56,6 +61,8 @@ export async function responderTicketAction(formulario: FormData) {
   const id = uuid(formulario.get('ticketId'));
   const respuesta = String(formulario.get('respuesta') ?? '').trim();
   if (!respuesta || respuesta.length > 4000) throw new Error('La respuesta debe tener entre 1 y 4000 caracteres.');
+  // Fallo 4 del recorrido 114: el borrador N2 trae huecos que hay que rellenar antes de enviar.
+  if (/\[(respuesta|pasos)\]/i.test(respuesta)) redirect('/admin-dkitchen/soporte?e=hueco');
   const cerrar = formulario.get('cerrar') === 'on';
 
   const destino = await responderTicket(jwt, id, respuesta, cerrar);
@@ -108,7 +115,8 @@ export async function servicioAdminAction(formulario: FormData) {
   const id = uuid(formulario.get('restauranteId'));
   const servicio = String(formulario.get('servicio'));
   const accion = String(formulario.get('accion'));
-  if (!SERVICIOS_ADMIN.includes(servicio) || !['demo', 'regalar', 'cancelar', 'entregado'].includes(accion)) throw new Error('Acción no válida.');
+  // Fuera regalos (0061): un módulo se activa pagando (enlace de pago) o con la prueba con fecha.
+  if (!SERVICIOS_ADMIN.includes(servicio) || !['cancelar', 'entregado'].includes(accion)) throw new Error('Acción no válida.');
   await adminServicio(jwt, id, servicio, accion);
   revalidatePath(`/admin-dkitchen/qr/${id}`);
 }
@@ -160,7 +168,7 @@ const slugBase = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '
  * cobro que seguir, nunca entra en gracia). El cliente recibe el correo para
  * fijar su contraseña. Opcional: regalarle todo y cargar una carta de ejemplo.
  */
-export async function crearClienteAction(datos: { email: string; contacto: string; local: string; plan: string; todo: boolean; dias?: number | null; demo: boolean }): Promise<{ id?: string; error?: string }> {
+export async function crearClienteAction(datos: { email: string; contacto: string; local: string; plan: string; todo: boolean; dias?: number | null; demoInterna: boolean; cartaEjemplo: boolean }): Promise<{ id?: string; error?: string }> {
   const jwt = await exigirAdmin();
   const email = String(datos.email ?? '').trim().toLowerCase();
   const contacto = String(datos.contacto ?? '').trim().slice(0, 80);
@@ -179,10 +187,12 @@ export async function crearClienteAction(datos: { email: string; contacto: strin
       [ref, identidad, email, contacto, plan, local, slugBase(local), ref, ref]));
   const id = rows[0]?.restaurante_id;
   if (!id) return { error: 'No se pudo crear el restaurante.' };
-  const dias = datos.dias == null ? null : Math.round(Number(datos.dias));
-  if (dias !== null && (!Number.isFinite(dias) || dias < 1 || dias > 120)) return { error: 'La prueba debe durar entre 1 y 120 días.' };
-  if (datos.todo) await regalarTodo(jwt, id, dias);
-  if (datos.demo) await cargarCartaDemo(jwt, id).catch(() => 0);
+  // Sin regalos (0061): la prueba siempre tiene fecha; «todo sin fecha» solo en una cuenta demo interna.
+  const dias = Math.round(Number(datos.dias ?? 15));
+  if (datos.todo && (!Number.isFinite(dias) || dias < 1 || dias > 120)) return { error: 'La prueba debe durar entre 1 y 120 días.' };
+  if (datos.demoInterna) { await marcarDemo(jwt, id, true); await regalarTodo(jwt, id, null); }
+  else if (datos.todo) await regalarTodo(jwt, id, dias);
+  if (datos.cartaEjemplo) await cargarCartaDemo(jwt, id).catch(() => 0);
   await enviarEnlaceDeContrasena(email).catch((e) => console.error('Alta manual: no se pudo enviar el enlace de contraseña', e));
   await enviarBienvenidaQr(email, contacto, local, plan).catch((e) => console.error('Alta manual: bienvenida no enviada', e));
   revalidatePath('/admin-dkitchen/qr');
@@ -274,4 +284,99 @@ export async function anularEnlaceAction(formulario: FormData) {
   const rest = uuid(formulario.get('restauranteId'));
   await anularEnlace(jwt, id);
   revalidatePath(`/admin-dkitchen/qr/${rest}`);
+}
+
+// ---------------------------------------------------------------------------
+// Bloque 1b (0061): baja al final del periodo, archivo, demo interna y modo soporte
+// ---------------------------------------------------------------------------
+const MOTIVOS_BAJA = ['Lo pide el cliente', 'Impago', 'Cierra el local', 'Se va a otra solución', 'Prueba sin pagar', 'Duplicado o error', 'Otro'];
+const fechaLarga = (iso: string) => new Date(iso + 'T12:00:00Z').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Madrid' });
+const hoyMadrid = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+
+/**
+ * Dar de baja desde Central: cancela en Stripe TODAS sus suscripciones al
+ * final del periodo pagado (sin reembolsos) y deja la fecha en la base. Ese
+ * día el webhook (o el cron, de respaldo) suspende el local: carta pública
+ * fuera, panel cerrado y arranca el borrado a 60 días. Sin suscripción viva
+ * (prueba, cortesía antigua), la baja es inmediata. Correo al cliente si se pide.
+ */
+export async function darDeBajaAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  const motivoLista = String(formulario.get('motivo') ?? '');
+  const detalle = String(formulario.get('detalle') ?? '').trim().slice(0, 600);
+  if (!MOTIVOS_BAJA.includes(motivoLista)) throw new Error('Elige el motivo de la baja.');
+  if (formulario.get('confirmo') !== 'on') throw new Error('Marca la casilla de confirmación.');
+  const avisar = formulario.get('avisar') === 'on';
+
+  let fecha = hoyMadrid();
+  let stripeTxt = 'Sin suscripción en Stripe: baja inmediata.';
+  const cliente = await clienteStripeAdmin(jwt, id);
+  if (cliente) {
+    const r = await cancelarTodoAlFinalDelPeriodo(cliente);
+    if (r.ok && r.finPeriodo) {
+      fecha = new Date(r.finPeriodo * 1000).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+      stripeTxt = `Stripe: ${r.n} suscripción(es) cancelada(s) al final del periodo.`;
+    } else if (!r.ok && !/no tiene suscripciones activas/.test(r.error)) {
+      // No se toca la base si Stripe falla: así no queda una baja a medias.
+      throw new Error(`Stripe no respondió y no se ha dado de baja: ${r.error}`);
+    }
+  }
+  const motivo = detalle ? `${motivoLista}: ${detalle}` : motivoLista;
+  const b = await programarBaja(jwt, id, fecha, motivo);
+  await enviarCorreoInterno(`BAJA desde Central: ${b.nombre}`,
+    `<p><strong>${escaparHtml(b.nombre)}</strong>: ${b.inmediata ? 'baja inmediata' : `deja de estar activo el ${escaparHtml(fechaLarga(fecha))}`}.</p><p>${escaparHtml(stripeTxt)}</p><p>Motivo: ${escaparHtml(motivo)}</p>`).catch(() => {});
+  if (avisar && b.email) {
+    await enviarCorreoCliente(b.email, `Baja confirmada · ${b.nombre}`,
+      `<p>Hola${b.contacto ? ' ' + escaparHtml(b.contacto) : ''},</p>
+       <p>Te confirmamos la baja de la carta digital de <strong>${escaparHtml(b.nombre)}</strong>.${cliente ? ' Ya no se te volverá a cobrar.' : ''}</p>
+       <p>${b.inmediata ? 'La carta deja de estar disponible hoy.' : `Tu carta y tu panel siguen activos hasta el <strong>${escaparHtml(fechaLarga(fecha))}</strong>, el final del periodo que ya pagaste.`} Después, tu QR mostrará una página informativa (nunca un error) y guardaremos tu carta 60 días por si quieres volver o pedirnos una copia.</p>
+       <p>Si ha sido un error o quieres contarnos algo, responde a este correo.</p>`, { titulo: 'Baja confirmada' }).catch((e) => console.error('Baja: correo al cliente no enviado', e));
+  }
+  if (b.inmediata) revalidatePath('/m/[slug]', 'page');
+  revalidatePath('/admin-dkitchen/qr');
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
+/** Anular una baja que aún no ha llegado: vuelve a activar la renovación en Stripe y borra la fecha. */
+export async function anularBajaAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  const cliente = await clienteStripeAdmin(jwt, id);
+  if (cliente) {
+    const r = await reanudarTodo(cliente);
+    if (!r.ok) throw new Error(`Stripe no respondió y la baja sigue programada: ${r.error}`);
+  }
+  await anularBaja(jwt, id);
+  revalidatePath('/admin-dkitchen/qr');
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
+export async function archivarAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  await archivarCliente(jwt, id, formulario.get('archivar') === '1');
+  revalidatePath('/admin-dkitchen/qr');
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
+export async function demoInternaAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  await marcarDemo(jwt, id, formulario.get('demo') === '1');
+  revalidatePath('/admin-dkitchen/qr');
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
+/**
+ * «Entrar en su panel» (modo soporte): el panel normal pasa a mostrar ESE
+ * local, como la puesta a punto del socio (cookie de 12 h). La base solo lo
+ * permite al super admin con 2FA (dk.gestiona, 0061) y cada cambio queda en
+ * el historial como «DKitchen». El cobro sigue gestionándose en la ficha.
+ */
+export async function entrarSoporteAction(formulario: FormData) {
+  await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  (await cookies()).set(COOKIE_PUESTA, id, { path: '/', maxAge: 12 * 3600, httpOnly: true, secure: true, sameSite: 'lax' });
+  redirect('/panel');
 }

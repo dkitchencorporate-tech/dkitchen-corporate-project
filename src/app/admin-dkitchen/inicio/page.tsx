@@ -3,9 +3,9 @@ import { exigirAdmin } from '@/lib/guard-admin';
 import { listarClientesQr, type ClienteQr } from '@/lib/admin-clientes';
 import { comoCliente } from '@/lib/db';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
-import { QR_MENU } from '@/lib/pricing-config';
 import { NOMBRE_ALERTA, enlaceAlerta, type DatosMando, type Ventana } from '@/lib/mando';
 import { resumenProyectos } from '@/lib/proyectos';
+import GuiaZona from '@/components/admin/GuiaZona';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +14,6 @@ export const dynamic = 'force-dynamic';
  * lista de a quién atender hoy. Todo sale de la base en cada visita.
  * Umbrales de subida según DKITCHEN_ESTRATEGIA_PRECIOS_ESCALERA (§7).
  */
-const PRECIO: Record<string, number> = { basico: QR_MENU.planes.basico.mensual, ampliado: QR_MENU.planes.ampliado.mensual, sala: QR_MENU.planes.sala.mensual };
 type Capacidad = { bytes_base: string; conexiones: number; max_conexiones: number; restaurantes: string; platos: string; escaneos_30d: string; escaneos_total: string };
 
 /** Límites del plan actual de Neon (Free: 0,5 GB y 0,25 CU fijo). Si cambias de plan, actualiza aquí. */
@@ -150,16 +149,21 @@ export default async function CentralInicio() {
   ]);
   const avisos = evaluarCapacidad(capacidad);
   const hace30 = Date.now() - 30 * 864e5;
-  const activos = clientes.filter((c) => c.activo && c.estadoAcceso === 'activo');
-  const mrr = activos.reduce((s, c) => s + (PRECIO[c.plan] ?? 0), 0);
-  const altas = clientes.filter((c) => new Date(c.creadoEn).getTime() > hace30);
-  const riesgo = clientes.filter((c) => ['gracia', 'solo_lectura', 'suspendido'].includes(c.estadoAcceso));
-  const atender = clientes
+  // 0061: las cuentas demo internas y las archivadas no cuentan en nada de esta portada.
+  const reales = clientes.filter((c) => !c.demoInterna && !c.archivadoEn);
+  const activos = reales.filter((c) => c.activo && c.estadoAcceso === 'activo');
+  const mrr = reales.reduce((s, c) => s + c.cuota, 0);
+  const pagan = reales.filter((c) => c.cuota > 0).length;
+  const altas = reales.filter((c) => new Date(c.creadoEn).getTime() > hace30);
+  const riesgo = reales.filter((c) => ['gracia', 'solo_lectura'].includes(c.estadoAcceso) || (c.bajaProgramadaEn && c.estadoAcceso !== 'suspendido'));
+  const atender = reales
     .filter((c) => c.ticketsAbiertos + c.solicitudesQrPendientes > 0)
     .map((c) => ({ c, d: [c.ticketsAbiertos && `${c.ticketsAbiertos} ticket${c.ticketsAbiertos > 1 ? 's' : ''}`, c.solicitudesQrPendientes && `${c.solicitudesQrPendientes} QR físico`].filter(Boolean).join(' · ') }));
   const signature = activos.filter((c) => c.escaneosMes >= 600).map((c) => ({ c, d: `${c.escaneosMes} escaneos/mes` }));
   const ampliado = activos.filter((c) => c.plan === 'basico' && c.escaneosMes >= 150).map((c) => ({ c, d: `${c.escaneosMes} escaneos/mes` }));
-  const dormidos = activos.filter((c) => c.escaneosMes === 0 && new Date(c.creadoEn).getTime() < Date.now() - 14 * 864e5).map((c) => ({ c, d: 'sin escaneos este mes' }));
+  // Sin escaneos en 14 días (o desde el alta, si tiene más de 3 días): antes solo contaba a partir de 14 días de vida.
+  const dormidos = activos.filter((c) => c.escaneos14d === 0 && new Date(c.creadoEn).getTime() < Date.now() - 3 * 864e5)
+    .map((c) => ({ c, d: c.escaneosTotal === 0 ? 'nunca han escaneado su QR' : 'sin escaneos en 14 días' }));
   const visitas = embudo.reduce((s, e) => s + Number(e.visitas), 0);
   const pagos = embudo.reduce((s, e) => s + Number(e.pagados), 0);
   const ingresos = embudo.reduce((s, e) => s + Number(e.pagados) * (PRODUCTOS_PAGO[e.producto]?.precio ?? 0), 0);
@@ -167,9 +171,9 @@ export default async function CentralInicio() {
   const saludo = Number(hora) < 13 ? 'Buenos días' : Number(hora) < 20 ? 'Buenas tardes' : 'Buenas noches';
 
   const kpis: [string, string, string][] = [
-    ['Ingreso mensual recurrente', `${mrr.toLocaleString('es-ES')} €`, 'cuotas QR activas, + IVA'],
+    ['Ingreso mensual real', `${mrr.toLocaleString('es-ES', { maximumFractionDigits: 2 })} €`, `${pagan} cliente${pagan === 1 ? '' : 's'} que paga${pagan === 1 ? '' : 'n'} · sin IVA, sin pruebas ni demos`],
     ['Clientes activos', String(activos.length), `${altas.length} altas en 30 días`],
-    ['En riesgo', String(riesgo.length), 'impago, solo lectura o suspendidos'],
+    ['En riesgo', String(riesgo.length), 'impago, solo lectura o baja programada'],
     ['Por atender', String(atender.length), 'tickets y QR físicos'],
   ];
 
@@ -179,6 +183,10 @@ export default async function CentralInicio() {
         <p className="text-sm text-niebla">{saludo}</p>
         <h1 className="font-display mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">Central</h1>
       </header>
+
+      <GuiaZona titulo="Inicio" ancla="inicio"
+        que="El estado del negocio de un vistazo y lo que necesita a una persona hoy. Las cuentas demo internas y las archivadas no cuentan aquí."
+        pasos={['Empieza por «Necesita a una persona»: pulsa «Abrir» en cada aviso y resuélvelo.', '«Proyectos que tocan hoy»: los proyectos con el siguiente paso para hoy o atrasado.', '«Sin actividad»: locales sin escaneos en 14 días; llámales.', 'Cada mañana a las 08:30 te llega este mismo resumen por correo (Más → Partes diarios).']} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {kpis.map(([t, v, d], i) => (
@@ -214,11 +222,11 @@ export default async function CentralInicio() {
       <div className="grid gap-3 lg:grid-cols-3">
         <Lista titulo="Listos para Signature" vacio="Ningún cliente supera 600 escaneos al mes todavía." filas={signature} accion="Umbral de la escalera: 600 escaneos/mes sostenidos." />
         <Lista titulo="Listos para Local" vacio="Ningún Carta supera 150 escaneos al mes." filas={ampliado} />
-        <Lista titulo="Sin actividad" vacio="Todos los clientes tienen escaneos este mes." filas={dormidos} accion="Clientes con más de 14 días y 0 escaneos: escríbeles antes de que se vayan." />
+        <Lista titulo="Sin actividad" vacio="Todos los clientes activos tienen escaneos en los últimos 14 días." filas={dormidos} accion="Sin escaneos en 14 días: llámales o escríbeles antes de que se vayan (¿han puesto el QR en las mesas?)." />
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2">
-        <Lista titulo="En riesgo de baja" vacio="Ningún cliente en impago ni suspendido." filas={riesgo.map((c) => ({ c, d: c.estadoAcceso.replace('_', ' ') }))} />
+        <Lista titulo="En riesgo de baja" vacio="Ningún cliente en impago ni con baja programada." filas={riesgo.map((c) => ({ c, d: c.bajaProgramadaEn ? `baja el ${new Date(c.bajaProgramadaEn + 'T12:00:00Z').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}` : c.estadoAcceso === 'gracia' ? 'cobro fallido' : 'solo lectura' }))} />
         <Lista titulo="Altas recientes" vacio="Sin altas en los últimos 30 días." filas={altas.map((c) => ({ c, d: new Date(c.creadoEn).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) }))} />
       </div>
       <section className={`${tarjeta} ${avisos.nivel === 'urgente' ? 'border-vino' : ''}`}>

@@ -1,6 +1,8 @@
 import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
+import Link from 'next/link';
 import { altaSocioAction, activoSocioAction, atribuirLocalAction } from './actions';
+import GuiaZona from '@/components/admin/GuiaZona';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +25,9 @@ export default async function SociosCentral({ searchParams }: { searchParams: Pr
   const jwt = await exigirAdmin();
   const q = await searchParams;
   const filas = await comoCliente(jwt, async (c) => (await c.query<Fila>('SELECT * FROM dk.admin_socios()')).rows);
+  // Ficha de socio (fallo 10): sus locales, con enlace a cada ficha de cliente.
+  const locales = filas.length ? await comoCliente(jwt, async (c) => (await c.query<{ id: string; nombre: string; slug: string; estado_acceso: string; socio_id: string; socio_puede_editar: boolean }>(
+    'SELECT id, nombre, slug, estado_acceso, socio_id, socio_puede_editar FROM restaurantes WHERE socio_id = ANY($1::uuid[]) ORDER BY creado_en DESC', [filas.map((f) => f.id)])).rows).catch(() => []) : [];
   const totales = filas.reduce((t, f) => ({ altas: t.altas + f.altas, pago: t.pago + f.de_pago, mensual: t.mensual + f.mensual_centimos }), { altas: 0, pago: 0, mensual: 0 });
   const aviso = q.ok === 'alta'
     ? `Socio dado de alta${q.cuenta === 'nueva' ? ' con cuenta nueva' : ' (ya tenía cuenta)'}. ${q.correo === 'si' ? 'Le hemos enviado el correo para fijar su contraseña.' : 'No se pudo enviar el correo de contraseña: reenvíalo desde «¿Olvidaste tu contraseña?».'} Al entrar, configurará su app de autenticación.`
@@ -37,6 +42,11 @@ export default async function SociosCentral({ searchParams }: { searchParams: Pr
         <h1 className="font-display mt-2 text-3xl font-semibold md:text-4xl">Socios y código de vendedor</h1>
         <p className="mt-1 text-sm text-niebla">Cada socio vende con su enlace o QR (<code>?v=CÓDIGO</code>) y pone a punto la carta de sus clientes desde <code>/socio</code>, con el mismo 2FA que Central. Nunca ve pagos, planes ni clientes de otros.</p>
       </div>
+
+      <GuiaZona titulo="Socios" ancla="socios"
+        que="Los socios venden DKitchen con su código y ponen a punto la carta de sus clientes desde /socio. Aquí los das de alta, ves qué han vendido y corriges atribuciones."
+        pasos={['Dar de alta: nombre, correo (que no sea de ningún local) y un código corto (PEPE1). Le llega un correo para su contraseña y configura su 2FA al entrar.', 'Su enlace de venta es dkitchencorporate.es/qr?v=CÓDIGO: las altas que entren por él quedan a su nombre.', 'Pulsa «Ver ficha» en un socio para ver sus locales y abrir cada uno.', 'Si un alta entró sin código, corrígela en «Corregir la atribución de un local».']}
+        ojo={['«Desactivar» le quita el acceso al momento y su código deja de valer.']} />
 
       {aviso && <p className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{aviso}</p>}
       {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
@@ -55,10 +65,26 @@ export default async function SociosCentral({ searchParams }: { searchParams: Pr
           <ul className="mt-3 divide-y divide-linea text-sm">
             {filas.map((f) => (
               <li key={f.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <div className="min-w-0">
-                  <p className="font-semibold">{f.nombre} <span className="ml-1 rounded-full bg-papel px-2 py-0.5 font-mono text-xs">{f.codigo}</span></p>
-                  <p className="truncate text-xs text-niebla">{f.email} · {f.altas} altas · {f.de_pago} de pago · {eur(f.mensual_centimos)}/mes</p>
-                </div>
+                <details className="min-w-0 flex-1">
+                  <summary className="cursor-pointer list-none">
+                    <p className="font-semibold">{f.nombre} <span className="ml-1 rounded-full bg-papel px-2 py-0.5 font-mono text-xs">{f.codigo}</span> <span className="ml-1 text-xs font-normal text-vino underline">Ver ficha</span></p>
+                    <p className="truncate text-xs text-niebla">{f.email} · {f.altas} altas · {f.de_pago} de pago · {eur(f.mensual_centimos)}/mes</p>
+                  </summary>
+                  <div className="mt-3 space-y-2 rounded-2xl bg-papel p-4 text-sm">
+                    <p><a href={`mailto:${f.email}`} className="text-vino underline">{f.email}</a> · alta {new Date(f.creado_en).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    <p className="text-xs text-niebla">Enlace de venta: <span className="font-mono">dkitchencorporate.es/qr?v={f.codigo}</span></p>
+                    {locales.filter((l) => l.socio_id === f.id).length === 0 ? <p className="text-xs text-ceniza">Todavía sin locales.</p> : (
+                      <ul className="divide-y divide-linea">
+                        {locales.filter((l) => l.socio_id === f.id).map((l) => (
+                          <li key={l.id} className="flex flex-wrap justify-between gap-2 py-2">
+                            <Link href={`/admin-dkitchen/qr/${l.id}`} className="font-medium text-vino underline">{l.nombre}</Link>
+                            <span className="text-xs text-niebla">{l.estado_acceso === 'activo' ? 'activo' : l.estado_acceso.replace('_', ' ')}{l.socio_puede_editar ? ' · puede editar su carta' : ' · sin permiso de edición'}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </details>
                 <form action={activoSocioAction} className="flex items-center gap-2">
                   <input type="hidden" name="id" value={f.id} />
                   <input type="hidden" name="activo" value={f.activo ? 'no' : 'si'} />

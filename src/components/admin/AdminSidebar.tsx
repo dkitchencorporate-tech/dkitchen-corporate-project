@@ -24,7 +24,8 @@ const MAS = [
   { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' },
   { nombre: 'Fundador', href: '/admin-dkitchen/fundador' },
   { nombre: 'Socios', href: '/admin-dkitchen/socios' },
-  { nombre: 'Manuales', href: '/manuals' },
+  { nombre: 'Avisos de fallo', href: '/admin-dkitchen/avisos' },
+  { nombre: 'Manual de Central', href: '/admin-dkitchen/manual' },
 ];
 
 export default function AdminSidebar() {

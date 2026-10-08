@@ -7,8 +7,11 @@ import { resumenCobro, euros, fechaLarga, diasHasta } from '@/lib/prueba';
 import { obtenerCarta } from '@/lib/menu';
 import { listarTraducciones } from '@/lib/idiomas';
 import TraductorCarta from '@/components/admin/TraductorCarta';
-import { anularEnlaceAction, regalarTodoAction, cartaDemoAction, reenviarAccesoAction, cambiarEstadoAction, cambiarPlanAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction } from '../actions';
+import { anularEnlaceAction, regalarTodoAction, cartaDemoAction, reenviarAccesoAction, cambiarEstadoAction, cambiarPlanAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction,
+  darDeBajaAction, anularBajaAction, archivarAction, demoInternaAction, entrarSoporteAction } from '../actions';
 import { QR_MENU, PLANES_QR, esPlanQr, nombrePlan } from '@/lib/pricing-config';
+import GuiaZona from '@/components/admin/GuiaZona';
+import { listarProyectos, nombreFase, PRODUCTOS_PROYECTO } from '@/lib/proyectos';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,7 +44,15 @@ const ACCION: Record<string, string> = {
   'admin.responder_ticket': 'DKitchen respondió un ticket',
   'admin.estado_solicitud_qr': 'DKitchen actualizó un pedido de QR físico',
   aprovisionamiento_stripe: 'Alta tras el pago',
-  'admin.regalar_todo': 'DKitchen le regaló todo',
+  'admin.regalar_todo': 'DKitchen activó la prueba con todo incluido',
+  'admin.archivar': 'DKitchen archivó la cuenta',
+  'admin.desarchivar': 'DKitchen sacó la cuenta del archivo',
+  'admin.demo': 'DKitchen cambió la marca de cuenta demo interna',
+  'admin.programar_baja': 'DKitchen programó la baja',
+  'admin.anular_baja': 'DKitchen anuló la baja programada',
+  'panel.programar_baja': 'Pidió la baja desde su panel',
+  'sistema.baja_ejecutada': 'Baja ejecutada: carta fuera y panel cerrado',
+  'sistema.borrado_60_dias': 'Borrado a los 60 días de la baja',
   'admin.carta_demo': 'DKitchen cargó la carta de ejemplo',
   'admin.enlace_pago': 'DKitchen preparó un enlace de pago',
   'pago.enlace_admin': 'Pagó un enlace preparado por DKitchen',
@@ -49,10 +60,34 @@ const ACCION: Record<string, string> = {
   'prueba.vencida': 'Terminó su prueba sin pagar (pasa a solo lectura)',
 };
 
+/** Historial legible (fallo 6 del recorrido 114): nada de «mesas.update» ni nombres de columna. */
+const TABLA: Record<string, string> = {
+  restaurantes: 'los datos del local', menu_items: 'un plato', menu_secciones: 'una sección', mesas: 'una mesa', elementos_plano: 'el plano de mesas',
+  promociones: 'una promoción', menu_combo_items: 'un combo', traducciones: 'una traducción', camareros: 'un camarero', reservas: 'una reserva',
+  tickets_soporte: 'un ticket de soporte', codigos_qr: 'el código QR', servicios_contratados: 'un servicio', equipo: 'su equipo',
+};
+const OPERACION: Record<string, string> = { insert: 'Añadió', update: 'Editó', delete: 'Eliminó' };
+const CAMPO: Record<string, string> = {
+  nombre: 'Nombre', descripcion: 'Descripción', precio: 'Precio', precio_promo: 'Precio de promoción', disponible: 'Disponible', alergenos: 'Alérgenos',
+  foto_url: 'Foto', imagen_url: 'Foto', orden: 'Orden', seccion_id: 'Sección', telefono: 'Teléfono', direccion: 'Dirección', horario: 'Horario',
+  instagram: 'Instagram', url_resenas: 'Enlace de reseñas', whatsapp: 'WhatsApp', color_marca: 'Color', logo_url: 'Logo', portada_url: 'Portada',
+  plantilla: 'Plantilla', estilo_fondo: 'Fondo', estilo_letra: 'Letra', etiqueta: 'Etiqueta', capacidad: 'Plazas', x: 'Posición', y: 'Posición',
+  zona: 'Zona', numero: 'Número', activo: 'Activo', idiomas: 'Idiomas', estado: 'Estado', plan: 'Plan',
+};
+function nombreAccion(accion: string): string {
+  if (ACCION[accion]) return ACCION[accion];
+  const [tabla, op] = accion.split('.');
+  if (TABLA[tabla] && OPERACION[op]) return `${OPERACION[op]} ${TABLA[tabla]}`;
+  return accion.replace(/[._]/g, ' ').replace(/^\w/, (x) => x.toUpperCase());
+}
+const nombreCampo = (k: string) => CAMPO[k] ?? k.replace(/_/g, ' ').replace(/^\w/, (x) => x.toUpperCase());
+
 function valor(v: unknown): string {
   if (v === null || v === undefined || v === '') return '—';
+  if (v === true) return 'sí';
+  if (v === false) return 'no';
   if (Array.isArray(v)) return v.join(', ') || '—';
-  if (typeof v === 'object') return JSON.stringify(v);
+  if (typeof v === 'object') return 'cambiado';
   const s = String(v);
   return s.length > 60 ? `${s.slice(0, 57)}…` : s;
 }
@@ -66,7 +101,7 @@ function Cambios({ e }: { e: EntradaHistorial }) {
       <ul className="mt-1 space-y-0.5 text-xs text-niebla">
         {lineas.map(([k, d]) => (
           <li key={k}>
-            <span className="text-grafito">{k}</span>: {valor(d?.antes)} → <span className="text-grafito">{valor(d?.despues)}</span>
+            <span className="text-grafito">{nombreCampo(k)}</span>: {valor(d?.antes)} → <span className="text-grafito">{valor(d?.despues)}</span>
           </li>
         ))}
       </ul>
@@ -84,6 +119,8 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
   if (!ficha?.restaurante) notFound();
 
   const r = ficha.restaurante;
+  // Enlace cliente ↔ proyectos (fallo 10): Signature, Experience, Auditoría… del mismo correo.
+  const proyectos = ficha.email ? (await listarProyectos(jwt, {}).catch(() => [])).filter((p) => p.email.toLowerCase() === ficha.email!.toLowerCase()) : [];
   // Pack de idiomas: DKitchen traduce aquí la carta del cliente (0028).
   const conIdiomas = servicios.some((x) => x.servicio === 'idiomas');
   const [cartaCliente, traducciones] = conIdiomas
@@ -91,8 +128,12 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
     : [null, []];
   const maxDia = Math.max(1, ...ficha.escaneos_30d.map((d) => d.n));
   const total30 = ficha.escaneos_30d.reduce((s, d) => s + d.n, 0);
+  const bajaPendiente = r.baja_programada_en && r.estado_acceso !== 'suspendido' ? r.baja_programada_en.slice(0, 10) : null;
   const pago =
-    cobro?.prueba_hasta && r.estado_acceso === 'activo' ? `Prueba · quedan ${Math.max(0, diasHasta(cobro.prueba_hasta))} días`
+    r.demo_interna ? 'Demo interna (no paga)'
+    : r.estado_acceso === 'suspendido' ? `De baja${r.baja_desde ? ` desde ${fecha.format(new Date(r.baja_desde.slice(0, 10) + 'T12:00:00Z'))}` : ''}`
+    : bajaPendiente ? `Baja el ${fecha.format(new Date(bajaPendiente + 'T12:00:00Z'))}`
+    : cobro?.prueba_hasta && r.estado_acceso === 'activo' ? `Prueba · quedan ${Math.max(0, diasHasta(cobro.prueba_hasta))} días`
     : cobro?.prueba_hasta && r.estado_acceso === 'solo_lectura' ? 'Prueba vencida'
     : r.estado_acceso === 'activo' ? 'Al día'
     : r.pago_fallido_desde ? `Pago fallido desde ${fecha.format(new Date(r.pago_fallido_desde))}`
@@ -109,13 +150,44 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             {ficha.ultimo_acceso ? fechaHora.format(new Date(ficha.ultimo_acceso)) : 'nunca'}
           </p>
         </div>
-        <a href={`/m/${r.slug}`} target="_blank" rel="noopener" className="rounded-lg border border-linea-fuerte px-4 py-2 text-sm font-semibold hover:border-vino">
-          Ver su carta ↗
-        </a>
+        <div className="flex flex-wrap gap-2">
+          {r.estado_acceso !== 'suspendido' && (
+            <form action={entrarSoporteAction}>
+              <input type="hidden" name="restauranteId" value={r.id} />
+              <button className="rounded-full bg-vino px-4 py-2 text-sm font-semibold text-white hover:bg-vino-hondo" title="Abre su panel tal y como lo ve el cliente (modo soporte)">Entrar en su panel</button>
+            </form>
+          )}
+          <a href={`/m/${r.slug}`} target="_blank" rel="noopener" className="rounded-full border border-linea-fuerte px-4 py-2 text-sm font-semibold hover:border-vino">
+            Ver su carta ↗
+          </a>
+        </div>
       </div>
 
+      {(r.demo_interna || r.archivado_en || bajaPendiente) && (
+        <div className="flex flex-wrap gap-2 text-xs font-semibold">
+          {r.demo_interna && <span className="rounded-full bg-papel px-3 py-1 text-niebla">Cuenta demo interna · fuera de ingresos y del parte</span>}
+          {r.archivado_en && <span className="rounded-full bg-papel px-3 py-1 text-niebla">Archivado el {fecha.format(new Date(r.archivado_en))}</span>}
+          {bajaPendiente && <span className="rounded-full bg-vino/10 px-3 py-1 text-vino">Baja programada: deja de estar activo el {fecha.format(new Date(bajaPendiente + 'T12:00:00Z'))}{r.baja_por === 'cliente' ? ' (la pidió el cliente)' : ''}</span>}
+        </div>
+      )}
+
+      {proyectos.length > 0 && (
+        <p className="rounded-2xl bg-papel px-4 py-3 text-sm">Proyectos de este cliente: {proyectos.map((p, i) => <span key={p.id}>{i ? ' · ' : ''}<Link href={`/admin-dkitchen/proyectos/${p.id}`} className="font-semibold text-vino underline">{PRODUCTOS_PROYECTO[p.producto]} ({nombreFase(p.producto, p.fase)})</Link></span>)}</p>
+      )}
+
+      <GuiaZona titulo="Ficha del cliente" ancla="ficha"
+        que="Todo lo de este local en una pantalla. Lo que se hace aquí queda en su historial con «por DKitchen»."
+        pasos={[
+          '«Entrar en su panel» abre su panel tal y como lo ve el cliente (modo soporte): carta, secciones, datos del local, plano, QR, traducciones, promociones y combos. Para salir, «Salir y volver a su ficha» en la franja de arriba.',
+          'Cobrar: prepara un enlace de pago (1 €, Fundador o a medida) y, si quieres, se lo enviamos por correo.',
+          'Prueba con todo incluido: siempre con fecha de fin. Al acabar sin pago, su panel pasa a solo lectura.',
+          'Gestión de la cuenta: dar de baja (al final del periodo pagado), archivar o marcar como demo interna.',
+          'Historial (al final): cada cambio, quién lo hizo y cuándo.',
+        ]}
+        ojo={['Dar de baja cancela su cuota en Stripe sin reembolso. Ese día su carta deja de verse y a los 60 días se borra todo.', 'Mientras la baja no haya llegado se puede anular; después, solo «Reactivar cuenta».']} />
+
       <nav aria-label="Secciones de la ficha" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
-        {[['#acciones', 'Acciones'], ['#enlace', 'Cobrar'], ['#servicios', 'Servicios'], ['#diseno', 'Diseño'], ['#historial', 'Historial']].map(([h, t]) => (
+        {[['#acciones', 'Acciones'], ['#enlace', 'Cobrar'], ['#cuenta', 'Baja y archivo'], ['#servicios', 'Servicios'], ['#diseno', 'Diseño'], ['#historial', 'Historial']].map(([h, t]) => (
           <a key={h} href={h} className="shrink-0 rounded-full border border-linea bg-white px-4 py-2 text-sm font-medium hover:border-tinta">{t}</a>
         ))}
       </nav>
@@ -152,7 +224,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             <div className="rounded-2xl bg-papel p-4">
               <p className="text-xs text-niebla">{cobro.proximo_cobro ? 'Próximo cobro' : cobro.prueba_hasta ? 'Si paga hoy, primer cobro' : 'Cobro'}</p>
               <p className="mt-1 text-lg font-black">
-                {cobro.proximo_cobro ? fechaLarga(cobro.proximo_cobro) : cobro.prueba_hasta ? fechaLarga(cobro.cobro_si_paga_hoy) : cobro.paga_mensual ? '—' : 'Cortesía sin fecha'}
+                {r.demo_interna ? 'Demo interna' : cobro.proximo_cobro ? fechaLarga(cobro.proximo_cobro) : cobro.prueba_hasta ? fechaLarga(cobro.cobro_si_paga_hoy) : cobro.paga_mensual ? '—' : 'Sin cobro activo'}
               </p>
             </div>
           </div>
@@ -168,7 +240,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             <li className="flex justify-between gap-3 py-2"><span>Plan {nombrePlan(cobro.plan)}{cobro.fundador ? ' · Fundador' : ''}</span><span className="text-niebla">{euros(cobro.precio_plan)}/mes</span></li>
             {cobro.items.map((i) => (
               <li key={i.servicio} className="flex justify-between gap-3 py-2">
-                <span>{i.nombre} <span className="text-xs text-niebla">· {i.origen === 'pago' ? 'pagado' : i.origen === 'regalo' ? 'regalo' : i.origen === 'plan' ? 'incluido en el plan' : 'demo'}</span></span>
+                <span>{i.nombre} <span className="text-xs text-niebla">· {i.origen === 'pago' ? 'pagado' : i.origen === 'regalo' ? 'regalo (antiguo)' : i.origen === 'plan' ? 'incluido en el plan' : 'demo (antiguo)'}</span></span>
                 <span className="shrink-0 text-niebla">{euros(i.precio)}{i.tipo === 'mensual' ? '/mes' : ' una vez'}</span>
               </li>
             ))}
@@ -205,19 +277,21 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         <h2 className="font-display text-xl font-semibold tracking-tight">Acciones</h2>
         <p className="text-xs text-niebla">Cada acción queda registrada en el historial.</p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <form action={regalarTodoAction} className="flex w-full flex-wrap items-center gap-2 rounded-2xl bg-papel p-3">
-            <input type="hidden" name="restauranteId" value={r.id} />
-            <label className="text-sm font-semibold" htmlFor="dias-prueba">Todo incluido gratis</label>
-            <select id="dias-prueba" name="dias" defaultValue="15" className="rounded-lg border border-acero bg-white px-3 py-2 text-sm">
-              <option value="15">15 días</option>
-              <option value="30">30 días</option>
-              <option value="fecha">Hasta una fecha…</option>
-              <option value="sin">Sin fecha de fin (cortesía)</option>
-            </select>
-            <input type="date" name="hasta" aria-label="Fecha de fin de la prueba" className="rounded-lg border border-acero bg-white px-3 py-2 text-sm" />
-            <button className="rounded-full bg-vino px-4 py-2 text-sm font-bold hover:bg-vino-hondo">Activar</button>
-            <p className="w-full text-xs text-niebla">La fecha solo cuenta con «Hasta una fecha…». Si la prueba termina sin pago, el panel pasa a solo lectura y la carta sigue visible.</p>
-          </form>
+          {!r.demo_interna && r.estado_acceso !== 'suspendido' && (
+            <form action={regalarTodoAction} className="flex w-full flex-wrap items-center gap-2 rounded-2xl bg-papel p-3">
+              <input type="hidden" name="restauranteId" value={r.id} />
+              <label className="text-sm font-semibold" htmlFor="dias-prueba">Prueba con todo incluido</label>
+              <select id="dias-prueba" name="dias" defaultValue="15" className="rounded-lg border border-acero bg-white px-3 py-2 text-sm">
+                <option value="7">7 días</option>
+                <option value="15">15 días</option>
+                <option value="30">30 días</option>
+                <option value="fecha">Hasta una fecha…</option>
+              </select>
+              <input type="date" name="hasta" aria-label="Fecha de fin de la prueba" className="rounded-lg border border-acero bg-white px-3 py-2 text-sm" />
+              <button className="rounded-full bg-vino px-4 py-2 text-sm font-bold text-white hover:bg-vino-hondo">Activar prueba</button>
+              <p className="w-full text-xs text-niebla">Siempre con fecha de fin (no hay regalos sin fecha). La fecha solo cuenta con «Hasta una fecha…». Si termina sin pago, el panel pasa a solo lectura y la carta sigue visible.</p>
+            </form>
+          )}
           {ficha.platos === 0 && (
             <form action={cartaDemoAction}>
               <input type="hidden" name="restauranteId" value={r.id} />
@@ -230,13 +304,6 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
               <button className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Reenviar enlace de acceso</button>
             </form>
           )}
-          <form action={cambiarEstadoAction}>
-            <input type="hidden" name="restauranteId" value={r.id} />
-            <input type="hidden" name="estado" value={r.activo ? 'suspendido' : 'activo'} />
-            <button className={`rounded-lg px-4 py-2 text-sm font-semibold ${r.activo ? 'bg-red-500/15 text-red-600 hover:bg-red-500/25' : 'bg-green-500/15 text-green-700 hover:bg-green-500/25'}`}>
-              {r.activo ? 'Suspender cuenta' : 'Reactivar cuenta'}
-            </button>
-          </form>
           {PLANES_QR.filter((p) => p !== r.plan).map((p) => (
             <form key={p} action={cambiarPlanAction}>
               <input type="hidden" name="restauranteId" value={r.id} />
@@ -286,10 +353,74 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         )}
       </section>
 
+      <section id="cuenta" className="scroll-mt-20 space-y-4 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
+        <div>
+          <h2 className="font-display text-xl font-semibold tracking-tight">Baja, archivo y demo</h2>
+          <p className="text-xs text-niebla">Nada de esto borra datos al momento. La baja sí arranca el borrado a 60 días desde el día en que se hace efectiva.</p>
+        </div>
+
+        {r.estado_acceso === 'suspendido' ? (
+          <div className="rounded-2xl bg-red-500/[0.07] p-4 text-sm">
+            <p className="font-semibold text-red-700">De baja{r.baja_desde ? ` desde el ${fecha.format(new Date(r.baja_desde.slice(0, 10) + 'T12:00:00Z'))}` : ''}: carta fuera y panel cerrado.</p>
+            {r.baja_desde && <p className="mt-1 text-niebla">Se borra todo el {fecha.format(new Date(new Date(r.baja_desde.slice(0, 10) + 'T12:00:00Z').getTime() + 60 * 864e5))} si no vuelve antes.</p>}
+            {r.baja_motivo && <p className="mt-1 text-niebla">Motivo: {r.baja_motivo}</p>}
+            <form action={cambiarEstadoAction} className="mt-3">
+              <input type="hidden" name="restauranteId" value={r.id} />
+              <input type="hidden" name="estado" value="activo" />
+              <button className="rounded-full bg-green-500/15 px-4 py-2 text-sm font-semibold text-green-700 hover:bg-green-500/25">Reactivar cuenta</button>
+              <p className="mt-1 text-xs text-ceniza">Reactivar vuelve a publicar su carta y abre su panel. Si tiene que pagar, prepárale antes un enlace en «Cobrar».</p>
+            </form>
+          </div>
+        ) : bajaPendiente ? (
+          <div className="rounded-2xl bg-vino/[0.06] p-4 text-sm">
+            <p className="font-semibold text-vino">Baja programada para el {fecha.format(new Date(bajaPendiente + 'T12:00:00Z'))}{r.baja_por === 'cliente' ? ' (la pidió el cliente desde su panel)' : ''}.</p>
+            <p className="mt-1 text-niebla">Hasta ese día todo sigue funcionando. Ese día su carta deja de verse y su panel se cierra.{r.baja_motivo ? ` Motivo: ${r.baja_motivo}` : ''}</p>
+            <form action={anularBajaAction} className="mt-3">
+              <input type="hidden" name="restauranteId" value={r.id} />
+              <button className="rounded-full border border-linea-fuerte bg-white px-4 py-2 text-sm font-semibold hover:border-vino">Anular la baja (sigue como cliente)</button>
+              <p className="mt-1 text-xs text-ceniza">Vuelve a activar la renovación en Stripe: el siguiente cobro se hará con normalidad.</p>
+            </form>
+          </div>
+        ) : (
+          <details className="rounded-2xl border border-linea p-4 text-sm">
+            <summary className="cursor-pointer list-none font-semibold text-red-700">Dar de baja…</summary>
+            <form action={darDeBajaAction} className="mt-3 space-y-3">
+              <input type="hidden" name="restauranteId" value={r.id} />
+              <p className="text-niebla">Cancela su cuota en Stripe <strong>al final del periodo que ya pagó</strong> (sin reembolso). Hasta ese día sigue todo igual; ese día su carta deja de verse y su panel se cierra. Si no tiene cuota en Stripe (prueba o cuenta sin pago), la baja es <strong>inmediata</strong>.</p>
+              <label className="block">
+                <span className="text-xs text-niebla">Motivo</span>
+                <select name="motivo" required defaultValue="" className="mt-1 w-full rounded-lg border border-acero bg-white px-3 py-2">
+                  <option value="" disabled>Elige un motivo…</option>
+                  {['Lo pide el cliente', 'Impago', 'Cierra el local', 'Se va a otra solución', 'Prueba sin pagar', 'Duplicado o error', 'Otro'].map((m) => <option key={m}>{m}</option>)}
+                </select>
+              </label>
+              <input name="detalle" maxLength={600} placeholder="Detalle (opcional)" className="w-full rounded-lg border border-acero bg-white px-3 py-2" />
+              <label className="flex items-center gap-2"><input type="checkbox" name="avisar" defaultChecked className="accent-vino" /> Enviarle un correo con la fecha de la baja</label>
+              <label className="flex items-center gap-2"><input type="checkbox" name="confirmo" required className="accent-vino" /> Confirmo la baja de {r.nombre}</label>
+              <button className="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Dar de baja</button>
+            </form>
+          </details>
+        )}
+
+        <div className="flex flex-wrap gap-3">
+          <form action={archivarAction}>
+            <input type="hidden" name="restauranteId" value={r.id} />
+            <input type="hidden" name="archivar" value={r.archivado_en ? '0' : '1'} />
+            <button className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">{r.archivado_en ? 'Sacar del archivo' : 'Archivar'}</button>
+          </form>
+          <form action={demoInternaAction}>
+            <input type="hidden" name="restauranteId" value={r.id} />
+            <input type="hidden" name="demo" value={r.demo_interna ? '0' : '1'} />
+            <button className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">{r.demo_interna ? 'Quitar marca de demo interna' : 'Marcar como demo interna'}</button>
+          </form>
+        </div>
+        <p className="text-xs text-ceniza">Archivar = sacarlo de la lista principal sin tocar nada (duplicados, pruebas que no siguieron, bajas antiguas). Demo interna = tus cuentas para enseñar o grabar: todo incluido sin fecha y fuera de ingresos, del parte y de las alertas.</p>
+      </section>
+
       <section id="servicios" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6 space-y-4">
         <div>
           <h2 className="font-display text-xl font-semibold tracking-tight">Servicios y módulos</h2>
-          <p className="text-xs text-niebla">"Demo" activa sin cobro (para enseñar o grabar vídeos). "Regalar" = cortesía comercial. Todo queda en el historial.</p>
+          <p className="text-xs text-niebla">Para activar un módulo que no tiene, prepárale un enlace de pago en «Cobrar» (o una prueba con fecha). Aquí se marca la entrega o se cancela. Todo queda en el historial.</p>
         </div>
         <ul className="divide-y divide-linea text-sm">
           {CATALOGO_SERVICIOS.map(([clave, nombre]) => {
@@ -308,7 +439,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
                      : <span className="ml-2 text-xs text-ceniza">no contratado</span>}
                 </span>
                 <span className="flex gap-2">
-                  {(s ? ['entregado', 'cancelar'] : ['demo', 'regalar']).map((accion) => (
+                  {(s ? ['entregado', 'cancelar'] : []).map((accion) => (
                     <form key={accion} action={servicioAdminAction}>
                       <input type="hidden" name="restauranteId" value={r.id} />
                       <input type="hidden" name="servicio" value={clave} />
@@ -339,14 +470,15 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         ))}
 
         {servicios.some((x) => x.servicio === 'conexion_tpv' || x.servicio === 'pack_sala') && (
-          <form action={conexionTpvAction} className="space-y-2 rounded-xl bg-white p-4 text-sm">
+          <form action={conexionTpvAction} autoComplete="off" className="space-y-2 rounded-xl bg-white p-4 text-sm">
             <input type="hidden" name="restauranteId" value={r.id} />
             <p className="font-bold">Conexión con el TPV</p>
+            {/* Sin type="password": así Chrome no rellena el correo y la contraseña de DKitchen (fallo 3 del recorrido 114) */}
             <div className="grid gap-2 sm:grid-cols-2">
-              <input name="proveedor" required placeholder="TPV (Revo, Ágora, Last.app…)" className="rounded-lg border border-acero bg-white px-3 py-2" />
-              <input name="endpoint" required type="url" placeholder="https://… (endpoint del fabricante)" className="rounded-lg border border-acero bg-white px-3 py-2" />
+              <input name="proveedor" required autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="TPV (Revo, Ágora, Last.app…)" className="rounded-lg border border-acero bg-white px-3 py-2" />
+              <input name="endpoint" required type="url" inputMode="url" autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="https://… (endpoint del fabricante)" className="rounded-lg border border-acero bg-white px-3 py-2" />
             </div>
-            <input name="credencial" type="password" autoComplete="off" placeholder="Cabecera Authorization (p. ej. Bearer xxx). Vacío = mantener" className="w-full rounded-lg border border-acero bg-white px-3 py-2" />
+            <input name="credencial" type="text" autoComplete="off" spellCheck={false} data-1p-ignore data-lpignore="true" placeholder="Cabecera Authorization (p. ej. Bearer xxx). Vacío = mantener" className="w-full rounded-lg border border-acero bg-white px-3 py-2 font-mono [-webkit-text-security:disc]" />
             <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="activa" defaultChecked className="accent-vino" /> Activa</label>
             <p className="text-[11px] text-ceniza">La credencial se cifra (AES-256-GCM) antes de guardarse; nadie puede volver a leerla desde el panel.</p>
             <button className="rounded-md bg-vino px-3 py-1.5 text-xs font-bold">Guardar conexión</button>
@@ -407,8 +539,9 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
               <li key={i} className="border-l-2 border-linea pl-4">
                 <p className="text-sm">
                   <span className={e.quien === 'DKitchen' ? 'text-vino' : e.quien === 'sistema' ? 'text-niebla' : 'text-carbon'}>
-                    {ACCION[e.accion] ?? e.accion}
+                    {nombreAccion(e.accion)}
                   </span>
+                  <span className="ml-2 text-xs text-ceniza">{e.quien === 'DKitchen' ? 'por DKitchen' : e.quien === 'sistema' ? 'automático' : 'por el cliente'}</span>
                   <span className="ml-2 text-xs text-ceniza">{fechaHora.format(new Date(e.ocurridoEn))}</span>
                 </p>
                 <Cambios e={e} />

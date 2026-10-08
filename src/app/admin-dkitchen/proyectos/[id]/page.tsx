@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { fichaProyecto, nombreFase, textoFaseCliente, PRODUCTOS_PROYECTO } from '@/lib/proyectos';
 import { avanzarFaseAction, anotarAction, guardarDatosAction } from '../actions';
+import { listarClientesQr } from '@/lib/admin-clientes';
+import GuiaZona from '@/components/admin/GuiaZona';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,16 +23,42 @@ const AVISOS: Record<string, string> = { fase: 'Fase actualizada.', fase_aviso: 
 const ERRORES: Record<string, string> = { fase: 'Esa fase no vale para este producto.', correo: 'La fase se guardó, pero el correo al cliente no salió.', anotar: 'No se pudo guardar el apunte.', datos: 'No se pudieron guardar los datos (revisa el correo).' };
 const STRIPE = 'https://dashboard.stripe.com';
 
+/** Lo que nos contó, legible (fallo 5 del recorrido 114): sin claves crudas ni fechas ISO. */
+const CLAVE: Record<string, string> = {
+  pagina: 'Página desde la que escribió', interes: 'Le interesa', mensaje: 'Mensaje', negocio: 'Negocio', ciudad: 'Ciudad', locales: 'Locales',
+  presupuesto: 'Presupuesto', plazo: 'Plazo', formato: 'Formato', fecha: 'Fecha', fecha_evento: 'Fecha del evento', personas: 'Personas',
+  aforo: 'Aforo', horario: 'Horario', web: 'Web actual', instagram: 'Instagram', comercial: 'Comercial', origen: 'Origen', utm_source: 'Campaña (origen)',
+  utm_medium: 'Campaña (medio)', utm_campaign: 'Campaña', telefono: 'Teléfono', nombre: 'Nombre', email: 'Correo', tipo: 'Tipo', canal: 'Canal',
+};
+const nombreClave = (k: string) => CLAVE[k] ?? k.replace(/_/g, ' ').replace(/^./, (x) => x.toUpperCase());
+function legible(v: unknown): string {
+  const t = String(v);
+  if (/^\d{4}-\d{2}-\d{2}(T[\d:.]+(Z|[+-]\d{2}:?\d{2})?)?$/.test(t)) {
+    const d = new Date(t.length === 10 ? t + 'T12:00:00Z' : t);
+    return t.length === 10 ? d.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric' })
+      : d.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  if (v === true) return 'Sí';
+  if (v === false) return 'No';
+  return t;
+}
+const planos = (o: unknown): [string, unknown][] => (o && typeof o === 'object' && !Array.isArray(o) ? Object.entries(o as Record<string, unknown>) : [])
+  .filter(([, v]) => v !== null && v !== '' && v !== undefined)
+  .map(([k, v]): [string, unknown] => [k, Array.isArray(v) ? v.join(', ') : typeof v === 'object' ? planos(v).map(([a, b]) => `${nombreClave(a)}: ${legible(b)}`).join(' · ') : v]);
+
 export default async function FichaProyecto({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAdmin();
   const [{ id }, q] = await Promise.all([params, searchParams]);
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const p = await fichaProyecto(jwt, id);
   if (!p) notFound();
+  // Enlace proyecto ↔ cliente (fallo 10): sus locales con carta QR, por correo.
+  const susLocales = (await listarClientesQr(jwt).catch(() => [])).filter((c) => c.email && c.email.toLowerCase() === p.email.toLowerCase());
   const indice = p.fases.indexOf(p.fase);
   const siguiente = p.fases[indice + 1] && p.fases[indice + 1] !== 'descartado' ? p.fases[indice + 1] : null;
   const fiscales: Record<string, string> = p.datos_fiscales ?? {};
-  const extra = Object.entries(p.datos ?? {}).filter(([, v]) => v !== null && v !== '' && typeof v !== 'object');
+  const extra = planos(p.datos);
+  const intake = planos(p.intake);
   const enlaces: [string, string | null][] = [
     ['Cliente de Stripe', p.stripe_cliente && `${STRIPE}/customers/${p.stripe_cliente}`],
     ['Factura', p.stripe_factura && `${STRIPE}/invoices/${p.stripe_factura}`],
@@ -51,12 +79,20 @@ export default async function FichaProyecto({ params, searchParams }: { params: 
         </p>
       </header>
 
+      {susLocales.length > 0 && (
+        <p className="rounded-2xl bg-papel px-4 py-3 text-sm">También es cliente de carta QR: {susLocales.map((c, i) => <span key={c.restauranteId}>{i ? ', ' : ''}<Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="font-semibold text-vino underline">{c.nombre}</Link></span>)}</p>
+      )}
+
+      <GuiaZona titulo="Ficha de proyecto" ancla="proyectos"
+        que="Un proyecto es todo lo que no es carta QR: Signature, Experience, Auditoría, Dark Kitchen y QR físico. Aquí se sigue de la solicitud a la entrega."
+        pasos={['Mira la fase actual (en vino) y el siguiente paso.', 'Cuando avance, elige la fase en «Pasar a», añade una nota si quieres y marca «Avisar al cliente» para que le llegue el correo con el texto de esa fase.', 'Tras cada llamada o correo, guarda un apunte y pon el siguiente paso con fecha: así sale en «Proyectos que tocan hoy» de Inicio.', 'Datos fiscales y contrato: rellénalos antes de facturar o enviar el contrato.']} />
+
       {q.ok && <p className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{AVISOS[q.ok] ?? 'Hecho.'}</p>}
       {q.e && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{ERRORES[q.e] ?? 'No se pudo hacer.'}</p>}
 
       <section className={tarjeta}>
         <p className="text-sm font-semibold">Fase</p>
-        <ol className="mt-3 flex gap-1.5 overflow-x-auto pb-1" aria-label="Fases">
+        <ol className="mt-3 flex flex-wrap gap-1.5" aria-label="Fases">
           {p.fases.filter((f) => f !== 'descartado' || p.fase === 'descartado').map((f, i) => (
             <li key={f} aria-current={f === p.fase ? 'step' : undefined}
               className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${f === p.fase ? (f === 'descartado' ? 'bg-acero text-white' : 'bg-vino text-white') : i < indice ? 'bg-vino/10 text-vino' : 'bg-papel text-ceniza'}`}>
@@ -135,13 +171,12 @@ export default async function FichaProyecto({ params, searchParams }: { params: 
               {enlaces.filter(([, h]) => h).map(([t, h]) => <li key={t}><a href={h!} target="_blank" rel="noreferrer" className="text-vino underline">{t}</a></li>)}
             </ul>
           </section>
-          {(extra.length > 0 || p.intake) && (
+          {(extra.length > 0 || intake.length > 0) && (
             <section className={tarjeta}>
               <p className="text-sm font-semibold">Lo que nos contó</p>
               <dl className="mt-3 space-y-2 text-sm">
-                {extra.map(([k, v]) => <div key={k}><dt className="text-xs text-niebla">{k}</dt><dd className="whitespace-pre-wrap break-words">{String(v)}</dd></div>)}
+                {[...extra, ...intake].map(([k, v], i) => <div key={k + i}><dt className="text-xs text-niebla">{nombreClave(k)}</dt><dd className="whitespace-pre-wrap break-words">{legible(v)}</dd></div>)}
               </dl>
-              {p.intake && <pre className="mt-3 max-h-64 overflow-auto rounded-lg bg-papel p-3 text-xs">{JSON.stringify(p.intake, null, 2)}</pre>}
             </section>
           )}
         </div>
@@ -154,7 +189,7 @@ export default async function FichaProyecto({ params, searchParams }: { params: 
             <li key={i} className="flex gap-3 text-sm">
               <span className="w-24 shrink-0 text-xs text-ceniza">{fechaHora(e.creado_en)}</span>
               <span className="min-w-0 flex-1 break-words">
-                <strong>{TIPO[e.tipo] ?? e.tipo}</strong>{e.fase ? ` → ${nombreFase(p.producto, e.fase)}` : ''}{e.texto ? <span className="text-grafito">: {e.texto}</span> : null}
+                <strong>{TIPO[e.tipo] ?? e.tipo}</strong>{e.fase && nombreFase(p.producto, e.fase) !== (TIPO[e.tipo] ?? e.tipo) ? ` → ${nombreFase(p.producto, e.fase)}` : ''}{e.texto ? <span className="text-grafito">: {e.texto}</span> : null}
                 {e.autor && <span className="text-xs text-ceniza"> · {e.autor}</span>}
               </span>
             </li>

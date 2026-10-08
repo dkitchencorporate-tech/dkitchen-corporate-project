@@ -10,7 +10,7 @@ import { enviarCorreoInterno, escaparHtml } from '@/lib/email';
  */
 export type Ventana = { hoy: number; d7: number; d30: number };
 export type Alerta = {
-  tipo: 'pago' | 'prueba' | 'reembolso' | 'disputa' | 'montaje' | 'dormido' | 'ticket' | 'signature' | 'ia' | 'neon' | 'webhook';
+  tipo: 'pago' | 'prueba' | 'baja' | 'reembolso' | 'disputa' | 'montaje' | 'dormido' | 'ticket' | 'signature' | 'ia' | 'neon' | 'webhook';
   gravedad: 'urgente' | 'aviso';
   texto: string;
   nombre?: string | null;
@@ -24,6 +24,8 @@ export type DatosMando = {
   pasos_pago: Ventana;
   bajas: Ventana;
   activos: number;
+  /** Cuotas que de verdad se cobran (0061: sin prueba, demo, cortesía ni archivados), céntimos sin IVA. */
+  ingreso_mensual_centimos?: number;
   en_prueba: number;
   fundadores: number;
   por_plan: Record<string, number>;
@@ -40,7 +42,7 @@ export type DatosMando = {
 };
 
 export const NOMBRE_ALERTA: Record<Alerta['tipo'], string> = {
-  pago: 'Pagos', prueba: 'Pagos', reembolso: 'Pagos', disputa: 'Pagos',
+  pago: 'Pagos', prueba: 'Pagos', baja: 'Pagos', reembolso: 'Pagos', disputa: 'Pagos',
   montaje: 'Locales atascados', dormido: 'Locales atascados',
   ticket: 'Tickets', signature: 'Oportunidades', ia: 'Topes técnicos', neon: 'Topes técnicos', webhook: 'Topes técnicos',
 };

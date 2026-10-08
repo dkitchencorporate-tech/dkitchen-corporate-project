@@ -172,6 +172,7 @@ export default function PanelShell({
   }, []);
 
   const salir = async () => {
+    if (restaurante.soporte) { window.location.href = `/admin-dkitchen/salir-soporte?id=${restaurante.id}`; return; }
     if (restaurante.puestaAPunto) { window.location.href = '/socio/salir'; return; }
     await authClient.signOut(); window.location.href = '/panel/iniciar-sesion';
   };
@@ -214,7 +215,13 @@ export default function PanelShell({
         {/* Alarma de llamadas de mesa en todo el panel (B1, 07/10): suena en bucle hasta que se atienden */}
         {!demo && !delegado && <AlarmaLlamadas enLlamadas={pestana === 'camarero'} irALlamadas={() => setPestana('camarero')} />}
         {montaje && tut && <TutorialMontaje demo={demo} inicial={tut} pestana={pestana} irA={irATutorial} onBloqueo={alBloquear} avisoBloqueo={avisoBloqueo} onCompletado={(t) => { bloqueo.current = null; setTut(t); setPestana('inicio'); }} />}
-        {delegado && (
+        {restaurante.soporte && (
+          <div className="bg-vino px-4 py-2.5 text-center text-[13px] text-white sm:px-6">
+            <span className="font-semibold text-oro">Modo soporte</span> · estás en el panel de {restaurante.nombre} como DKitchen. Cada cambio queda en su historial; el cobro y el plan se gestionan en su ficha de Central.{' '}
+            <a href={`/admin-dkitchen/salir-soporte?id=${restaurante.id}`} className="font-semibold underline underline-offset-2">Salir y volver a su ficha</a>
+          </div>
+        )}
+        {delegado && !restaurante.soporte && (
           <div className="bg-tinta px-4 py-2.5 text-center text-[13px] text-white sm:px-6">
             <span className="font-semibold text-oro">Puesta a punto</span> · estás editando la carta de {restaurante.nombre} como su asesor. Cada cambio queda registrado a tu nombre.{' '}
             <a href="/socio/salir" className="font-semibold underline underline-offset-2">Volver a mis clientes</a>
