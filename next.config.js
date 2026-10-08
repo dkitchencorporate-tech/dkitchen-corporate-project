@@ -128,12 +128,18 @@ const nextConfig = {
   serverExternalPackages: ['@neondatabase/serverless', 'ws', 'bufferutil', 'utf-8-validate'],
 
   // SEO bloque 2 (05/10): Signature vive en /signature. Solo la ruta exacta:
-  // /base-operativa/bienvenida sigue siendo la vuelta de Whop tras pagar.
+  // /base-operativa/bienvenida sigue siendo la vuelta tras pagar Signature.
   async redirects() {
     return [
       { source: '/base-operativa', destination: '/signature', permanent: true },
       // La demo del panel enlaza a la carta del restaurante "demo", que vive en /demo/carta.
       { source: '/m/demo', destination: '/demo/carta', permanent: false },
+      // Cáscaras de plantilla retiradas el 08/10 (Central real: inicio, qr, prospección).
+      { source: '/admin-dkitchen/overview', destination: '/admin-dkitchen/inicio', permanent: true },
+      { source: '/admin-dkitchen/events-master', destination: '/admin-dkitchen/inicio', permanent: true },
+      { source: '/admin-dkitchen/clients', destination: '/admin-dkitchen/qr', permanent: true },
+      { source: '/admin-dkitchen/pipeline', destination: '/admin-dkitchen/prospeccion', permanent: true },
+      { source: '/onboarding', destination: '/admin-dkitchen/inicio', permanent: true },
     ];
   },
 

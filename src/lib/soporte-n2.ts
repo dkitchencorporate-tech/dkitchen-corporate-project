@@ -89,7 +89,7 @@ export function borrador(categoria: Categoria, acciones: AccionHecha[], d: Diagn
   const hechas = new Set(acciones.map((a) => a.accion));
   const l: string[] = ['Hola:'];
   if (hechas.has('reenviar_bienvenida') || hechas.has('reenviar_acceso'))
-    l.push(`Te acabamos de enviar ${hechas.has('reenviar_bienvenida') ? 'de nuevo el correo de bienvenida y ' : ''}un correo para crear tu contraseña. Llega en inglés, con el asunto «Reset your password»; si no lo ves en unos minutos, mira en spam. Después entras en dkitchencorporate.es/panel con tu correo${d?.acceso?.email ? ` (${d.acceso.email})` : ''} y esa contraseña.`);
+    l.push(`Te acabamos de enviar ${hechas.has('reenviar_bienvenida') ? 'de nuevo el correo de bienvenida y ' : ''}un correo para crear tu contraseña. Llega con el asunto «Crea tu contraseña de DKitchen»; si no lo ves en unos minutos, mira en spam. Después entras en dkitchencorporate.es/panel con tu correo${d?.acceso?.email ? ` (${d.acceso.email})` : ''} y esa contraseña.`);
   if (hechas.has('regenerar_enlace')) {
     const nombres = acciones.filter((a) => a.accion === 'regenerar_enlace').map((a) => String(a.detalle?.nombre ?? '')).filter(Boolean);
     l.push(`Hemos creado un enlace nuevo para ${nombres.join(' y ') || 'tu equipo'} y te lo hemos enviado por correo. Ábrelo en su móvil y guárdalo en la pantalla de inicio. El enlace anterior ya no funciona.`);

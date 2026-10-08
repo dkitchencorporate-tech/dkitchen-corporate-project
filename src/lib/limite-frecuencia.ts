@@ -89,3 +89,17 @@ export async function algunLimiteSuperado(
     return rows[0]?.superado ?? false;
   });
 }
+
+/**
+ * Freno de las altas de pago (H32, 08/10). Visitante anónimo: 5 cada 10 min por IP.
+ * Si la petición trae un código de comercial VÁLIDO (enlace ?v= o escrito en el formulario), se cuenta
+ * por comercial + IP y sube a 30 cada 10 min: el socio da varias altas seguidas desde el mismo wifi
+ * (una charla, un local) y no se le puede cortar en la 6.ª. Sigue habiendo techo: estas rutas solo
+ * crean la sesión de Stripe, nunca escriben en la base.
+ */
+export async function frenoDeAltas(peticion: Request, prefijo: string, codigoVendedor: string | null): Promise<boolean> {
+  const ip = ipDeLaPeticion(peticion);
+  return codigoVendedor
+    ? limiteSuperado(claveDeLimite(`${prefijo}-v-${codigoVendedor}`, ip), 30, 10 * 60)
+    : limiteSuperado(claveDeLimite(prefijo, ip), 5, 10 * 60);
+}

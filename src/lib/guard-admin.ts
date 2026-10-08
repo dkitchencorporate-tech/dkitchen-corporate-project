@@ -36,7 +36,7 @@ export async function estadoAdmin(jwt: string): Promise<EstadoAdmin> {
 }
 
 /**
- * Puerta de las zonas internas (/admin-dkitchen, /manuals, /onboarding,
+ * Puerta de las zonas internas (/admin-dkitchen, /manuals,
  * /dashboard). La decisión la toma Postgres: dk.es_admin() exige rol admin
  * (solo dkitchen@dkitchencorporate.es) Y segundo factor superado en esta
  * sesión en las últimas 12 h. Sin 2FA → /acceso-seguro; sin rol → /panel.

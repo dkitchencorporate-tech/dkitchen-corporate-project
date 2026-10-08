@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
-import { avanzarCalendarioGracia } from '@/lib/payments/aprovisionar';
+import { avanzarGraciaConAvisos } from '@/lib/avisos-impago';
 import { avanzarPruebas, purgarBajas } from '@/lib/prueba';
 
 export const runtime = 'nodejs';
@@ -36,7 +36,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const cambiados = await avanzarCalendarioGracia();
+    // Calendario de impago + correos al cliente (H16, 0059): solo lectura, suspensión y recordatorios.
+    const cambiados = await avanzarGraciaConAvisos();
     // Pruebas «todo incluido» (0034): vencidas → solo lectura, y avisos a 3 días y 1 día.
     const pruebasVencidas = await avanzarPruebas();
     // Bajas (0041): aviso 7 días antes y borrado a los 60 días.

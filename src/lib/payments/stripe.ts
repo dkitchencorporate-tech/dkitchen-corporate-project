@@ -2,8 +2,8 @@ import 'server-only';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 /**
- * Stripe (08/10/2026, migración desde Whop; decisión de karc0 del 07/10).
- * API REST con fetch, sin SDK, igual que hacía whop.ts. Versión fijada:
+ * Stripe (08/10/2026, único proveedor de pago; decisión de karc0 del 07/10).
+ * API REST con fetch, sin SDK. Versión fijada:
  * 2026-09-30.endive (docs.stripe.com/changelog, comprobado el 08/10).
  *
  * Reglas:

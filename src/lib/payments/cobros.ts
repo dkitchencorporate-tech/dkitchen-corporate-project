@@ -13,13 +13,11 @@ import {
 } from './stripe';
 
 /**
- * Cobros de DKitchen sobre Stripe (08/10/2026). Mismas funciones y firmas que
- * tenía whop.ts, para que las rutas solo cambien el import. Cada una crea el
+ * Cobros de DKitchen sobre Stripe (08/10/2026). Cada función crea el
  * cobro en Stripe (factura o suscripción) y devuelve la URL de nuestra página
  * /pago, donde el cliente paga con el Payment Element.
  *
- * `metadata.producto` es lo que entiende /api/webhooks/stripe (los mismos
- * valores que usaba el webhook de Whop) y `metadata.destino` es la página de
+ * `metadata.producto` es lo que entiende /api/webhooks/stripe y `metadata.destino` es la página de
  * bienvenida del paso 3.
  */
 

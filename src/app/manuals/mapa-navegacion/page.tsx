@@ -37,7 +37,6 @@ export default function MapaNavegacionManual() {
           <li><strong>Redirector de QR:</strong> <code>/r/[codigo]</code> <br/>No tiene interfaz: registra el escaneo y redirige a <code>/m/[slug]</code>. Ver <code>MOTOR_QR_ANALISIS_PROFESIONAL_Y_PLAN.md</code>.</li>
           <li><strong>Carta no disponible:</strong> <code>/carta-no-disponible</code> <br/>Lo que ve quien escanea un QR que ya no resuelve.</li>
           <li><strong>Legal:</strong> <code>/privacy</code>, <code>/terms</code>, <code>/data-deletion</code>.</li>
-          <li><strong>Onboarding comercial:</strong> <code>/onboarding</code> <br/>Sin backend real todavía (ver <code>ESTADO_FRONT.md</code>).</li>
         </ul>
 
         <h2>Área de autenticación</h2>
@@ -56,7 +55,7 @@ export default function MapaNavegacionManual() {
         <p>Renderizan interfaz, pero <code>data-source.ts</code> devuelve listas vacías: no hay datos reales que mostrar todavía.</p>
         <ul>
           <li><strong>Panel del cliente:</strong> <code>/panel</code></li>
-          <li><strong>Panel de administración:</strong> <code>/admin-dkitchen</code>, <code>/admin-dkitchen/clients</code>, <code>/admin-dkitchen/overview</code>, <code>/admin-dkitchen/prospeccion</code>, <code>/admin-dkitchen/events-master</code></li>
+          <li><strong>Panel de administración:</strong> <code>/admin-dkitchen/inicio</code>, <code>/admin-dkitchen/qr</code>, <code>/admin-dkitchen/prospeccion</code>, <code>/admin-dkitchen/soporte</code>, <code>/admin-dkitchen/embudo</code></li>
         </ul>
         <p><strong>Ya no existe:</strong> <code>/creative-factory</code> y todas sus rutas de API — se eliminó junto con Gemini (Fase 2c).</p>
 

@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server';
 import { crearCheckoutQr } from '@/lib/payments/cobros';
 import { esPlanQr } from '@/lib/pricing-config';
-import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
-import { vendedorDeLaPeticion } from '@/lib/socio';
+import { frenoDeAltas } from '@/lib/limite-frecuencia';
+import { vendedorDeLaPeticion, type Vendedor } from '@/lib/socio';
 
 export const runtime = 'nodejs';
-
-const LIMITE_POR_IP = 5;
-const VENTANA_SEGUNDOS = 10 * 60;
 
 const CORREO_VALIDO = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
@@ -26,14 +23,28 @@ function normalizarSlug(nombre: string): string {
 /**
  * Crea el cobro de Stripe para activar QR Menú (Parte 6, Sección 3) y
  * devuelve la URL de nuestro checkout nativo /pago. Stripe es el único
- * proveedor de pago (08/10/2026, sustituye a Whop). `/api/webhooks/stripe`
+ * proveedor de pago (08/10/2026). `/api/webhooks/stripe`
  * es quien aprovisiona de verdad tras el pago — esta ruta nunca toca la
  * base de datos.
  */
 export async function POST(request: Request) {
+  let body: unknown;
   try {
-    const clave = claveDeLimite('checkout-qr', ipDeLaPeticion(request));
-    if (await limiteSuperado(clave, LIMITE_POR_IP, VENTANA_SEGUNDOS)) {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Cuerpo de la petición inválido.' }, { status: 400 });
+  }
+
+  // El código de comercial se resuelve ANTES del freno: con código válido el límite es más alto (H32).
+  let vendedor: Vendedor | null = null;
+  try {
+    vendedor = await vendedorDeLaPeticion((body as { vendedor?: unknown })?.vendedor, (body as { vendedorDelEnlace?: unknown })?.vendedorDelEnlace);
+  } catch (error) {
+    console.error('No se pudo comprobar el código de comercial:', error);
+  }
+
+  try {
+    if (await frenoDeAltas(request, 'checkout-qr', vendedor?.codigo ?? null)) {
       return NextResponse.json(
         { error: 'Demasiadas solicitudes seguidas. Inténtalo en unos minutos.' },
         { status: 429 }
@@ -41,13 +52,6 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error('No se pudo comprobar el freno de frecuencia:', error);
-  }
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Cuerpo de la petición inválido.' }, { status: 400 });
   }
 
   const plan = (body as { plan?: unknown })?.plan;
@@ -79,7 +83,7 @@ export async function POST(request: Request) {
       email,
       slugBase,
       origen,
-      vendedor: await vendedorDeLaPeticion((body as { vendedor?: unknown })?.vendedor, (body as { vendedorDelEnlace?: unknown })?.vendedorDelEnlace),
+      vendedor,
     });
     return NextResponse.json({ url });
   } catch (error) {

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { crearCheckoutFundador } from '@/lib/payments/cobros';
 import { estadoFundador } from '@/lib/fundador';
-import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
-import { vendedorDeLaPeticion } from '@/lib/socio';
+import { frenoDeAltas } from '@/lib/limite-frecuencia';
+import { vendedorDeLaPeticion, type Vendedor } from '@/lib/socio';
 
 export const runtime = 'nodejs';
 
@@ -26,14 +26,6 @@ function normalizarSlug(nombre: string): string {
  * esta ruta nunca toca la base para escribir: aprovisiona el webhook tras el pago.
  */
 export async function POST(request: Request) {
-  try {
-    if (await limiteSuperado(claveDeLimite('checkout-fundador', ipDeLaPeticion(request)), 5, 10 * 60)) {
-      return NextResponse.json({ error: 'Demasiadas solicitudes seguidas. Inténtalo en unos minutos.' }, { status: 429 });
-    }
-  } catch (error) {
-    console.error('No se pudo comprobar el freno de frecuencia:', error);
-  }
-
   const estado = await estadoFundador();
   if (!estado?.abierto) {
     return NextResponse.json({ error: 'La oferta Fundador está cerrada.' }, { status: 409 });
@@ -44,6 +36,20 @@ export async function POST(request: Request) {
     body = (await request.json()) as Record<string, unknown>;
   } catch {
     return NextResponse.json({ error: 'Cuerpo de la petición inválido.' }, { status: 400 });
+  }
+  // Código de comercial antes del freno: con código válido el límite es más alto (H32).
+  let vendedor: Vendedor | null = null;
+  try {
+    vendedor = await vendedorDeLaPeticion(body?.vendedor, body?.vendedorDelEnlace);
+  } catch (error) {
+    console.error('No se pudo comprobar el código de comercial:', error);
+  }
+  try {
+    if (await frenoDeAltas(request, 'checkout-fundador', vendedor?.codigo ?? null)) {
+      return NextResponse.json({ error: 'Demasiadas solicitudes seguidas. Inténtalo en unos minutos.' }, { status: 429 });
+    }
+  } catch (error) {
+    console.error('No se pudo comprobar el freno de frecuencia:', error);
   }
   const restauranteNombre = String(body?.restauranteNombre ?? '').trim();
   const nombreContacto = String(body?.nombreContacto ?? '').trim();
@@ -63,7 +69,7 @@ export async function POST(request: Request) {
       restauranteNombre, nombreContacto, email,
       slugBase: normalizarSlug(restauranteNombre),
       origen: new URL(request.url).origin,
-      vendedor: await vendedorDeLaPeticion(body?.vendedor, body?.vendedorDelEnlace),
+      vendedor,
     });
     return NextResponse.json({ url });
   } catch (error) {

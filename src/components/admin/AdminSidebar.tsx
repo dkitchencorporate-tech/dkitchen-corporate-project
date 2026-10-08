@@ -23,9 +23,6 @@ const MAS = [
   { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' },
   { nombre: 'Fundador', href: '/admin-dkitchen/fundador' },
   { nombre: 'Socios', href: '/admin-dkitchen/socios' },
-  { nombre: 'Resumen general', href: '/admin-dkitchen/overview' },
-  { nombre: 'Directorio de clientes', href: '/admin-dkitchen/clients' },
-  { nombre: 'Eventos', href: '/admin-dkitchen/events-master' },
   { nombre: 'Manuales', href: '/manuals' },
 ];
 

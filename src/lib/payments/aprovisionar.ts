@@ -34,10 +34,10 @@ export async function avisarAltaQr(
 }
 
 /**
- * Lógica de aprovisionamiento común a cualquier pasarela de pago (Stripe,
- * Whop, o la que venga después). Cada webhook de proveedor solo tiene que:
+ * Lógica de aprovisionamiento común a cualquier pasarela de pago (hoy Stripe,
+ * o la que venga después). Cada webhook de proveedor solo tiene que:
  * verificar su propia firma, extraer estos mismos campos de su propio evento,
- * y llamar aquí. Nada de esto es específico de Stripe ni de Whop.
+ * y llamar aquí. Nada de esto es específico de Stripe.
  */
 export interface DatosPagoQr {
   /** Id único del evento en el proveedor — la clave de idempotencia real. */
@@ -47,7 +47,7 @@ export interface DatosPagoQr {
   plan: import('@/lib/pricing-config').PlanQr;
   restauranteNombre: string;
   slugBase: string;
-  /** Id del cliente en el proveedor (customer_id en Stripe, member_id en Whop). */
+  /** Id del cliente en el proveedor (customer_id en Stripe). */
   referenciaCliente: string;
   /** Id de la suscripción/membresía en el proveedor. */
   referenciaSuscripcion: string;

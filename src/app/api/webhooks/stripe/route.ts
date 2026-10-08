@@ -14,11 +14,12 @@ import { dispararTuberiaPostPago } from '@/lib/tuberia-nivel-b';
 import { BASE_OPERATIVA, esPlanQr, nombrePlan } from '@/lib/pricing-config';
 import { firmaWebhookValida, stripe, type ObjetoStripe } from '@/lib/payments/stripe';
 import { pasarSignatureAMantenimiento } from '@/lib/payments/cobros';
+import { avisarCobroFallido } from '@/lib/avisos-impago';
 
 export const runtime = 'nodejs';
 
 /**
- * Webhook de Stripe (08/10/2026, sustituye a /api/webhooks/whop). Eventos:
+ * Webhook de Stripe (08/10/2026, único proveedor de pago). Eventos:
  * - invoice.paid: alta (primera factura) o renovación de cada producto.
  * - setup_intent.succeeded: alta sin cobro hoy (solo se guarda la tarjeta).
  * - invoice.payment_failed: abre el ciclo de gracia propio (0012).
@@ -126,6 +127,8 @@ async function procesar(evento: ObjetoStripe, o: ObjetoStripe, origen: string): 
         await enviarCorreoInterno(`COBRO FALLIDO: ${o.customer_name ?? o.customer_email ?? o.customer}`,
           `<p>Stripe no ha podido cobrar una renovación. Se abre el periodo de gracia (0012) y Stripe reintentará según su configuración.</p>${filasCorreo([
             ['Cliente', o.customer_name], ['Correo', o.customer_email], ['Importe', euros(Number(o.amount_due ?? 0))], ['Factura', o.id]])}`).catch(() => {});
+        // H16: el cliente también se entera (antes solo el aviso interno).
+        await avisarCobroFallido({ email: o.customer_email, nombre: o.customer_name, importe: euros(Number(o.amount_due ?? 0)), urlFactura: o.hosted_invoice_url });
       }
       return ok();
     }

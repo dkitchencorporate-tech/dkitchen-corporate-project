@@ -24,7 +24,7 @@ Migraciones en `db/migrations/`, aplicadas con `node db/migrate.mjs <entorno-pro
 
 ## Pagos
 
-El checkout de QR Menú corre sobre Whop (`src/lib/payments/`), único proveedor de pago del proyecto — decisión explícita, no hay Stripe ni selector. Necesita `WHOP_API_KEY`, `WHOP_COMPANY_ID` y `WHOP_WEBHOOK_SECRET` en el entorno.
+Todos los cobros corren sobre Stripe (`src/lib/payments/stripe.ts` y `cobros.ts`), único proveedor de pago, con checkout nativo en `/pago` y webhook en `/api/webhooks/stripe`. Necesita `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` y `STRIPE_PUBLISHABLE_KEY` en el entorno.
 
 ## Buenas prácticas de despliegue (Vercel)
 
