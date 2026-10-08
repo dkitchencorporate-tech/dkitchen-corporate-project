@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { exigirSocio } from '@/lib/guard-admin';
-import SalirSocio from '@/components/socio/SalirSocio';
+import MenuSocio from '@/components/socio/MenuSocio';
+import { identidadActual } from '@/lib/sesion';
 
 export const metadata = { title: 'DKitchen · Socio', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
@@ -12,6 +13,7 @@ export const dynamic = 'force-dynamic';
  */
 export default async function SocioLayout({ children }: { children: React.ReactNode }) {
   await exigirSocio();
+  const yo = await identidadActual().catch(() => null);
   return (
     <div className="min-h-screen bg-crema text-carbon">
       <header className="sticky top-0 z-30 border-b border-linea bg-crema/90 backdrop-blur-xl">
@@ -21,7 +23,7 @@ export default async function SocioLayout({ children }: { children: React.ReactN
             <Link href="/socio" className="rounded-full px-3 py-2 font-medium hover:bg-papel">Mis clientes</Link>
             <Link href="/socio/prospeccion" className="rounded-full px-3 py-2 font-medium hover:bg-papel">Prospección</Link>
             <Link href="/socio/kit" className="rounded-full px-3 py-2 font-medium hover:bg-papel">Kit de venta</Link>
-            <SalirSocio />
+            <MenuSocio cuenta={{ nombre: yo?.nombre || 'Socio', email: yo?.email ?? '' }} />
           </nav>
         </div>
       </header>

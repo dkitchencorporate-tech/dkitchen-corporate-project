@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Icono } from '@/components/panel/Iconos';
+import MenuCuenta, { OpcionesCuenta, type Cuenta } from '@/components/admin/MenuCuenta';
 
 /**
  * Navegación de Central (29/09/2026): mismo modelo que el panel del cliente.
@@ -28,11 +29,11 @@ const MAS = [
   { nombre: 'Manual de Central', href: '/admin-dkitchen/manual' },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ cuenta }: { cuenta: Cuenta }) {
   const [mas, setMas] = useState(false);
   const ruta = usePathname();
   const activo = (href: string) => ruta === href || ruta.startsWith(href + '/');
-  const enMas = MAS.some((m) => activo(m.href));
+  const enMas = MAS.some((m) => activo(m.href)) || activo('/admin-dkitchen/administradores') || activo('/admin-dkitchen/buzon');
 
   return (
     <>
@@ -54,7 +55,7 @@ export default function AdminSidebar() {
             <span className="text-lg leading-5">···</span>Más
           </button>
         </nav>
-        <p className="text-[9px] uppercase tracking-[0.2em] text-white/25">Central</p>
+        <MenuCuenta cuenta={cuenta} />
       </aside>
 
       <nav aria-label="Central" className="fixed inset-x-3 bottom-3 z-40 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
@@ -80,7 +81,12 @@ export default function AdminSidebar() {
       {mas && (
         <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Más herramientas">
           <button aria-label="Cerrar" onClick={() => setMas(false)} className="absolute inset-0 bg-black/50" />
-          <div className="absolute bottom-3 left-3 right-3 rounded-[28px] bg-white p-5 shadow-2xl md:bottom-6 md:left-[100px] md:right-auto md:w-80">
+          <div className="absolute bottom-3 left-3 right-3 max-h-[calc(100dvh-24px)] overflow-y-auto rounded-[28px] bg-white p-5 shadow-2xl md:bottom-6 md:left-[100px] md:right-auto md:w-80">
+            <div className="md:hidden">
+              <p className="text-xs text-niebla">Tu cuenta</p>
+              <div className="mt-3"><OpcionesCuenta cuenta={cuenta} alElegir={() => setMas(false)} /></div>
+              <hr className="my-4 border-linea" />
+            </div>
             <p className="text-xs text-niebla">Otras herramientas</p>
             <ul className="mt-3 grid gap-1.5">
               {MAS.map((m) => (
