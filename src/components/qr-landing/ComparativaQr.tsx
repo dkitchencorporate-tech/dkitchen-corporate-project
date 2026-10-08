@@ -31,8 +31,8 @@ const GRUPOS: { g: string; filas: Fila[] }[] = [
     { t: 'Ventas sugeridas al pedir (sube el ticket medio)', qr: false, sig: true },
   ] },
   { g: 'Tu local', filas: [
-    { t: 'Kiosko de autoservicio y TPV propio', qr: false, sig: true },
-    { t: 'Comandas impresas en cocina (impresora térmica)', qr: false, sig: true },
+    { t: 'Kiosko de autoservicio y TPV propio', qr: 'Usa el tuyo', sig: true },
+    { t: 'Comandas impresas en cocina (impresora térmica)', qr: 'Por tu TPV', sig: true },
   ] },
   { g: 'Tu negocio', filas: [
     { t: 'Panel de ventas: pedidos, historial y analítica', qr: 'Solo visitas', sig: true },

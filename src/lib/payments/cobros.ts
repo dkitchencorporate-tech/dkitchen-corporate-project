@@ -218,6 +218,8 @@ export async function crearCheckoutServicio(datos: {
   const meta = {
     producto: 'servicio-qr',
     servicio: datos.servicio,
+    // Importe sin IVA fijado aquí (servidor): Central anota lo cobrado de verdad (0066).
+    precio_centimos: String(Math.round(datos.precioCentimos)),
     restauranteId: datos.restauranteId,
     restauranteNombre: datos.restauranteNombre,
     email: datos.email,

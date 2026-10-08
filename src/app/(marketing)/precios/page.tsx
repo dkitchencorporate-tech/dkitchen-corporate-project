@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { FondoVivo, TextoRevelado, BotonMagnetico } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
+import { PREGUNTAS_SIN_CAMBIAR } from '@/lib/preguntas-sin-cambiar';
 import { Titulo } from '@/components/dk/Bloques';
 import {
   QR_MENU, QR_FISICOS, SERVICIOS_QR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES, DARK_KITCHEN, FUNDADOR, formatPrecio,
@@ -76,7 +77,8 @@ const OTROS = [
 const PREGUNTAS: [string, string][] = [
   ['¿Los precios llevan IVA?', 'No. Todos los precios de esta página son sin IVA; el 21 % se suma al pagar.'],
   ['¿Cobráis comisión por pedido o por entrada?', 'No. DKitchen nunca cobra comisión ni toca el dinero de tus ventas: pagas tu cuota y lo que vendes es tuyo.'],
-  ['¿Cómo funciona el primer mes a 1 €?', `Eliges tu plan de carta QR, registras la tarjeta y pagas ${eur(QR_MENU.primerMes)} el primer mes. Después pagas la cuota del plan que hayas elegido. El alta (${eur(QR_MENU.setup.precio)}) va incluida.`],
+  ['¿Cómo funciona el primer mes a 1 €?', `Es del plan ${QR_MENU.planes.ampliado.nombre}: registras la tarjeta y pagas ${eur(QR_MENU.primerMes)} el primer mes. Después, ${eur(QR_MENU.planes.ampliado.mensual)} + IVA al mes, sin permanencia. El alta (${eur(QR_MENU.setup.precio)}) va incluida.`],
+  ...PREGUNTAS_SIN_CAMBIAR,
   ['¿Puedo empezar con la carta QR y pasar a Signature más adelante?', 'Sí. Tu carta y tus datos pasan a Signature, y lo que llevas pagado en módulos de sala se descuenta en parte de la entrada durante los primeros meses.'],
 ];
 

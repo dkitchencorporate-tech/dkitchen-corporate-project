@@ -13,9 +13,9 @@ const INCLUYE = [
   'Montamos tu carta completa: secciones, platos, precios y alérgenos.',
   'Fotos de tus platos generadas con IA cuando no tengas las tuyas.',
   'Configuramos tu panel: horarios, datos del local, estilo y QR listo para imprimir.',
-  'Conectamos con tu TPV o POS actual: no tienes que cambiar de sistema.',
-  'Dejamos funcionando tus impresoras térmicas de tickets, también en remoto.',
-  'Soporte 24/7 mientras arrancas.',
+  'No cambias de sistema: revisamos tu TPV o POS y tus impresoras térmicas de tickets en remoto, sin visitas.',
+  `Incluye ${SERVICIOS_QR.mesesTpvConPuesta} meses de Conexión TPV: si tu TPV acepta pedidos externos, las comandas llegan solas y salen por tus impresoras de siempre.`,
+  'Asistente con IA en tu panel las 24 h, los 7 días, y una persona por WhatsApp el mismo día del arranque.',
 ];
 
 export default function OfertaPuestaAPunto({ r }: { r: string }) {

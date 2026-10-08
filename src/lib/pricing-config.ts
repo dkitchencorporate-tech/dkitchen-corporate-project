@@ -354,4 +354,6 @@ export const SERVICIOS_QR = {
   idiomas: 29,
   /** Conexión con tu TPV: extra de Local (19 € + IVA al mes; 0050), incluida en Sala. Plano y app de sala van incluidos en Local. */
   conexionTpv: 19,
+  /** Meses de Conexión TPV que regala la puesta a punto (08/10, karc0; 0066). Después, conexionTpv al mes en Local. */
+  mesesTpvConPuesta: 3,
 } as const;

@@ -262,7 +262,7 @@ async function alta(ctx: Contexto) {
 
     case 'servicio-qr': {
       try {
-        const r = await comoAprovisionamiento(async (c) => (await c.query<{ r: string }>('SELECT dk.registrar_pago_servicio($1, $2, $3) AS r', [meta.restauranteId, meta.servicio, ctx.idPago])).rows[0]?.r);
+        const r = await comoAprovisionamiento(async (c) => (await c.query<{ r: string }>('SELECT dk.registrar_pago_servicio($1, $2, $3, $4) AS r', [meta.restauranteId, meta.servicio, ctx.idPago, Number(meta.precio_centimos) || null])).rows[0]?.r);
         if (r === 'ok') {
           await enviarCorreoInterno(`NUEVO SERVICIO: ${meta.servicio} · ${meta.restauranteNombre}`,
             `<p><strong>${escaparHtml(meta.restauranteNombre)}</strong> (${escaparHtml(meta.email)}) ha contratado <strong>${escaparHtml(meta.servicio)}</strong>. Revisa la entrega en Central: ficha del cliente → Servicios.</p>${filasCorreo([['Factura (Stripe)', ctx.idPago]])}`).catch(() => {});

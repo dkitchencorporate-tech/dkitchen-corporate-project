@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import { PREGUNTAS_SIN_CAMBIAR, DESPUES_PRIMER_MES } from '@/lib/preguntas-sin-cambiar';
 
 export const PREGUNTAS: [string, string][] = [
-  ['¿Qué pasa después del primer mes a 1 €?', 'Se cobra tu plan (9 € o 25 € al mes) a la misma tarjeta. Si no quieres seguir, lo cancelas antes desde tu panel.'],
+  ['¿Qué pasa después del primer mes a 1 €?', DESPUES_PRIMER_MES],
+  ...PREGUNTAS_SIN_CAMBIAR,
   ['¿Mis clientes pueden pedir desde la carta?', 'No. La carta QR es para mirar: tus clientes piden a tu equipo como siempre y tu TPV sigue cobrando. Si quieres que pidan y paguen solos, eso es DKitchen Signature.'],
   ['¿Tengo que reimprimir el QR si cambio la carta?', 'Nunca. El QR apunta siempre a tu carta; los cambios se ven al momento.'],
   ['¿Puedo cambiar de plan?', 'Sí, cuando quieras y desde tu panel, sin perder tu carta ni tu QR.'],

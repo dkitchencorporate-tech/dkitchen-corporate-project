@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { FondoVivo, TextoRevelado } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
+import { PREGUNTAS_SIN_CAMBIAR, DESPUES_PRIMER_MES } from '@/lib/preguntas-sin-cambiar';
 
 /** Preguntas frecuentes — rediseño 29/09/2026, agrupadas por producto y con datos estructurados. */
 export const metadata: Metadata = {
@@ -18,7 +19,8 @@ const GRUPOS: { t: string; href: string; p: [string, string][] }[] = [
     ['¿Cómo nos comunicamos?', 'Por un canal directo contigo, sin intermediarios, y con soporte en español.'],
   ] },
   { t: 'Carta QR', href: '/qr', p: [
-    ['¿Qué pasa después del primer mes a 1 €?', 'Se cobra tu plan (9 € o 25 € al mes). Puedes cancelar antes desde tu panel, sin permanencia.'],
+    ['¿Qué pasa después del primer mes a 1 €?', DESPUES_PRIMER_MES],
+    ...PREGUNTAS_SIN_CAMBIAR,
     ['¿Pierdo la carta de papel?', 'No tiene por qué. Muchos locales combinan las dos: la digital para cambiar al momento y la física como apoyo en mesa.'],
     ['¿Y si me voy?', 'Te llevas tu carta y tus datos. No los retenemos.'],
   ] },
