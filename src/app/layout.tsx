@@ -49,28 +49,49 @@ const inter = Inter({ subsets: ["latin"] });
 const display = Bricolage_Grotesque({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--fuente-display", display: "swap" });
 const serifWeb = Cormorant_Garamond({ subsets: ["latin"], weight: ["500", "600"], style: ["normal", "italic"], variable: "--fuente-serif-web", display: "swap" });
 
+// NAP coherente con Google Business (08/10/2026): empresa de área de servicio en
+// toda España, sin calle publicada. `sameAs` enlaza los perfiles oficiales para
+// que Google una la web, la ficha y las redes en una sola entidad.
 const jsonLdOrganizacion = {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": "https://dkitchencorporate.es/#organizacion",
   name: "DKitchen",
-  legalName: "DKitchen",
+  alternateName: "DKitchen Corporate",
   url: "https://dkitchencorporate.es",
-  logo: "https://dkitchencorporate.es/icon.svg",
-  description: "Digitalización para hostelería: carta digital con QR, eventos gastronómicos llave en mano y dark kitchen multimarca.",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "Calle La Granja 1",
-    addressLocality: "Alcobendas",
-    postalCode: "28108",
-    addressCountry: "ES",
-  },
+  logo: "https://dkitchencorporate.es/icon-512.png",
+  image: "https://dkitchencorporate.es/icon-512.png",
+  description: "Digitalización para hostelería sin comisiones: carta digital con QR, app de pedidos propia, eventos gastronómicos llave en mano y dark kitchen multimarca.",
+  foundingDate: "2020",
+  email: "dkitchen@dkitchencorporate.es",
+  telephone: "+34622652659",
+  address: { "@type": "PostalAddress", addressCountry: "ES" },
+  areaServed: { "@type": "Country", name: "España" },
+  sameAs: [
+    "https://www.instagram.com/dkitchen_es/",
+    "https://www.facebook.com/dkitchencorporate",
+    "https://www.tiktok.com/@dkitchencorporate",
+    "https://x.com/dkitchen_es",
+    "https://www.linkedin.com/company/dkitchencorporate/",
+  ],
   contactPoint: {
     "@type": "ContactPoint",
-    telephone: "+34-622-65-26-59",
+    telephone: "+34622652659",
+    email: "dkitchen@dkitchencorporate.es",
     contactType: "customer service",
     areaServed: "ES",
     availableLanguage: "Spanish",
   },
+};
+
+const jsonLdWeb = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://dkitchencorporate.es/#web",
+  name: "DKitchen",
+  url: "https://dkitchencorporate.es",
+  inLanguage: "es-ES",
+  publisher: { "@id": "https://dkitchencorporate.es/#organizacion" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -80,7 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrganizacion) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([jsonLdOrganizacion, jsonLdWeb]) }}
         />
         <AnalyticsPixel />
         {children}

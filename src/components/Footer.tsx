@@ -9,6 +9,15 @@ const COLUMNAS: [string, [string, string][]][] = [
   ['Legal', [['/privacy', 'Privacidad'], ['/terms', 'Términos']]],
 ];
 
+/** Perfiles oficiales; los mismos que el `sameAs` del JSON-LD de layout.tsx. */
+const REDES: [string, string][] = [
+  ['https://www.instagram.com/dkitchen_es/', 'Instagram'],
+  ['https://www.facebook.com/dkitchencorporate', 'Facebook'],
+  ['https://www.tiktok.com/@dkitchencorporate', 'TikTok'],
+  ['https://x.com/dkitchen_es', 'X'],
+  ['https://www.linkedin.com/company/dkitchencorporate/', 'LinkedIn'],
+];
+
 export default function Footer() {
   return (
     <footer className="bg-tinta text-white">
@@ -31,8 +40,8 @@ export default function Footer() {
           ))}
         </div>
         <div className="mt-14 flex flex-col justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/40 sm:flex-row">
-          <p>© {new Date().getFullYear()} DKitchen · Alcobendas, Madrid · Precios sin IVA (21 %)</p>
-          <p>Hecho con cariño para la hostelería</p>
+          <p>© {new Date().getFullYear()} DKitchen · España · <a href="mailto:dkitchen@dkitchencorporate.es" className="hover:text-white">dkitchen@dkitchencorporate.es</a> · <a href="tel:+34622652659" className="hover:text-white">622 652 659</a> · Precios sin IVA (21 %)</p>
+          <nav aria-label="Redes sociales" className="flex flex-wrap gap-x-4 gap-y-1">{REDES.map(([h, n]) => <a key={h} href={h} target="_blank" rel="noopener" className="hover:text-white">{n}</a>)}</nav>
         </div>
       </div>
     </footer>
