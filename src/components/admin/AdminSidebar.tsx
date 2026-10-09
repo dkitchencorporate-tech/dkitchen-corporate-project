@@ -20,6 +20,7 @@ const ESPACIOS = [
   { nombre: 'Soporte', href: '/admin-dkitchen/soporte', icono: 'ayuda' },
 ];
 const MAS = [
+  { nombre: 'Entradas', href: '/admin-dkitchen/entradas' },
   { nombre: 'Embudo', href: '/admin-dkitchen/embudo' },
   { nombre: 'Oportunidades', href: '/admin-dkitchen/oportunidades' },
   { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' },

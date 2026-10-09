@@ -59,7 +59,9 @@ export async function stripe(
   metodo: 'GET' | 'POST' | 'DELETE',
   ruta: string,
   params: Record<string, Valor> = {},
-  idempotencia?: string
+  idempotencia?: string,
+  /** Cuenta conectada (Connect): la operación se hace en la cuenta del local (entradas de Experience). */
+  cuenta?: string
 ): Promise<ObjetoStripe> {
   const cuerpo = codificar(params);
   const url = metodo === 'GET' && cuerpo ? `${BASE}${ruta}?${cuerpo}` : `${BASE}${ruta}`;
@@ -70,6 +72,7 @@ export async function stripe(
       'Stripe-Version': VERSION_API_STRIPE,
       ...(metodo === 'GET' ? {} : { 'Content-Type': 'application/x-www-form-urlencoded' }),
       ...(idempotencia ? { 'Idempotency-Key': idempotencia } : {}),
+      ...(cuenta ? { 'Stripe-Account': cuenta } : {}),
     },
     body: metodo === 'GET' ? undefined : cuerpo,
     signal: AbortSignal.timeout(15000),
