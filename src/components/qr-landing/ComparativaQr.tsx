@@ -63,7 +63,7 @@ export default function ComparativaQr({ variante = 'qr' }: { variante?: 'qr' | '
         <TextoRevelado texto={titulo} className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] text-tinta md:text-6xl" />
         <p className="mt-5 max-w-2xl text-lg text-niebla">
           La carta QR es tu carta digital. <strong className="text-tinta">Signature es tu propio negocio digital:</strong> tu app, tus pedidos, tus clientes y tus datos, sin comisiones.
-          {!compacta && <> Aunque contrates la carta QR con todo (plan Sala a {QR_MENU.planes.sala.mensual} € + IVA, con idiomas, TPV y Comandero Pro), Signature sigue estando en otra liga.</>}
+          {!compacta && <> Aunque contrates la carta QR con todo (plan Sala a {QR_MENU.planes.sala.mensual} € + IVA, con TPV, comandero y el máximo de cada cosa), Signature sigue estando en otra liga.</>}
         </p>
 
         <div className="mt-12 overflow-hidden rounded-[28px] border border-linea bg-white">

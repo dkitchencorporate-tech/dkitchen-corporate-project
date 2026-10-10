@@ -9,6 +9,7 @@ import type { EstadoServicios } from '@/lib/servicios';
 import { registrarOfertaAction } from '@/app/panel/actions';
 import { TEXTOS_OFERTA } from './OfertaFranja';
 import TarjetaSignature from './TarjetaSignature';
+import OfertaPuestaAPunto from '@/components/pago/OfertaPuestaAPunto';
 import { Contador } from '@/components/dk/Movimiento';
 import { Icono } from './Iconos';
 import { QR_MENU, nombrePlan } from '@/lib/pricing-config';
@@ -70,6 +71,8 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
         <p className="text-sm text-niebla" suppressHydrationWarning>{saludo}</p>
         <h1 className="font-display mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">{restaurante.nombre}</h1>
       </header>
+      {/* Puesta a punto a precio de bienvenida (0068): solo hasta que el dueño empieza a montar su carta. */}
+      {servicios.puestaBienvenida && <OfertaPuestaAPunto />}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <motion.button {...entra(0)} onClick={() => ir('escaneos')} className={`${tarjeta} col-span-2 text-left lg:col-span-2`}>

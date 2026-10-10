@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { SERVICIOS_QR, formatPrecio } from '@/lib/pricing-config';
 
 /**
- * Upsell de la puesta a punto en «Pago confirmado» (08/10, karc0): precio de
- * bienvenida SOLO aquí (en el panel vale el precio normal). Va por encima de la
+ * Upsell de la puesta a punto a precio de bienvenida (08/10 y 10/10, karc0; 0068):
+ * se ve en «Pago confirmado» (con `r`) y en el panel (sin `r`) MIENTRAS el local no
+ * haya empezado a montar su carta; la base decide si sigue disponible. Va por encima de la
  * Auditoría. La lista dice todo lo que hacemos, incluido lo que más frena a un
  * bar: que funcione con su TPV y sus impresoras de tickets de siempre.
  */
@@ -14,18 +15,18 @@ const INCLUYE = [
   'Fotos de tus platos generadas con IA cuando no tengas las tuyas.',
   'Configuramos tu panel: horarios, datos del local, estilo y QR listo para imprimir.',
   'No cambias de sistema: revisamos tu TPV o POS y tus impresoras térmicas de tickets en remoto, sin visitas.',
-  `Incluye ${SERVICIOS_QR.mesesTpvConPuesta} meses de Conexión TPV: si tu TPV acepta pedidos externos, las comandas llegan solas y salen por tus impresoras de siempre.`,
+  'Conectamos tu TPV si acepta pedidos externos: las comandas llegan solas y salen por tus impresoras de siempre.',
   'Asistente con IA en tu panel las 24 h, los 7 días, y una persona por WhatsApp el mismo día del arranque.',
 ];
 
-export default function OfertaPuestaAPunto({ r }: { r: string }) {
+export default function OfertaPuestaAPunto({ r }: { r?: string }) {
   const [estado, setEstado] = useState<'visible' | 'cargando' | 'descartado'>('visible');
   const [error, setError] = useState('');
   if (estado === 'descartado') return null;
 
   async function contratar() {
     setEstado('cargando'); setError('');
-    const res = await fetch('/api/checkout/puesta-a-punto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ r }) }).catch(() => null);
+    const res = await fetch('/api/checkout/puesta-a-punto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(r ? { r } : { panel: true }) }).catch(() => null);
     const j = (await res?.json().catch(() => ({}))) as { url?: string; error?: string } | undefined;
     if (res?.ok && j?.url) { window.location.href = j.url; return; }
     setError(j?.error ?? 'No se pudo abrir el pago. Inténtalo de nuevo.');
@@ -34,7 +35,7 @@ export default function OfertaPuestaAPunto({ r }: { r: string }) {
 
   return (
     <div className="mt-4 rounded-[24px] border-2 border-vino bg-white p-6 text-left shadow-lg md:p-8">
-      <p className="text-xs font-semibold uppercase tracking-widest text-vino">Solo ahora, al darte de alta</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-vino">{r ? 'Solo ahora, al darte de alta' : 'Oferta de bienvenida · antes de montar tu carta'}</p>
       <h2 className="font-display mt-2 text-2xl font-semibold text-tinta">Te lo dejamos todo funcionando</h2>
       <p className="mt-2 text-[15px] text-pizarra">
         Puesta a punto completa por{' '}
@@ -59,7 +60,7 @@ export default function OfertaPuestaAPunto({ r }: { r: string }) {
           Prefiero montarla yo
         </button>
       </div>
-      <p className="mt-3 text-xs text-pizarra">Después, en el panel, la puesta a punto vale {formatPrecio(SERVICIOS_QR.puestaAPunto)} + IVA.</p>
+      <p className="mt-3 text-xs text-pizarra">La oferta se mantiene hasta que empieces a montar tu carta. Después, la puesta a punto vale {formatPrecio(SERVICIOS_QR.puestaAPunto)} + IVA.</p>
       {error && <p role="alert" className="mt-3 text-sm text-vino">{error}</p>}
     </div>
   );

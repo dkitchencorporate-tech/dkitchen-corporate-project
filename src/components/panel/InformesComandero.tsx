@@ -178,10 +178,10 @@ export default function InformesComandero({ camareros, mesas }: { camareros: { i
           ) : (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-vino/40 bg-vino/5 p-4">
               <div className="text-sm">
-                <p className="font-bold">Comandero Pro · 12 € + IVA al mes</p>
-                <p className="text-niebla">Histórico por fechas, mesa y camarero, descarga en Excel y CSV, informe de anulaciones y ranking de camareros.</p>
+                <p className="font-bold">Historial del comandero</p>
+                <p className="text-niebla">Tu plan guarda un número de días de historial. Si necesitas más, sube de plan.</p>
               </div>
-              <a href="/panel?pestana=modulos" className="rounded-full bg-vino px-4 py-2 text-sm font-bold text-white">Activar</a>
+              <a href="/panel?pestana=plan" className="rounded-full bg-vino px-4 py-2 text-sm font-bold text-white">Ver planes</a>
             </div>
           )}
         </>

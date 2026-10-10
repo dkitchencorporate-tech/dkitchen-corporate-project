@@ -10,13 +10,13 @@ import { QR_MENU, SERVICIOS_QR } from '@/lib/pricing-config';
  */
 const { ampliado: L, sala: S } = QR_MENU.planes;
 const PIEZAS: { t: string; d: string; precio: string }[] = [
-  { t: 'Puesta a punto', d: 'Cargamos tu carta entera (secciones, platos, precios y alérgenos), configuramos horarios, datos y estilo y te dejamos el QR listo para imprimir.', precio: `${SERVICIOS_QR.puestaAPunto} € · ${SERVICIOS_QR.puestaAPuntoBienvenida} € al darte de alta` },
-  { t: 'Conexión con tu TPV', d: `No cambias de sistema: la carta va al lado de tu TPV o POS. Si acepta pedidos externos, lo que anota el camarero llega solo, sin teclear dos veces.`, precio: `${SERVICIOS_QR.mesesTpvConPuesta} meses gratis con la puesta a punto · incluida en ${S.nombre}` },
+  { t: 'Puesta a punto', d: 'Cargamos tu carta entera (secciones, platos, precios y alérgenos), configuramos horarios, datos y estilo y te dejamos el QR listo para imprimir.', precio: `${SERVICIOS_QR.puestaAPunto} € · ${SERVICIOS_QR.puestaAPuntoBienvenida} € si la pides al darte de alta` },
+  { t: 'Conexión con tu TPV', d: `No cambias de sistema: la carta va al lado de tu TPV o POS. Si acepta pedidos externos, lo que anota el camarero llega solo, sin teclear dos veces.`, precio: 'Incluida en todos los planes, con comandas al mes según el plan' },
   { t: 'Tus impresoras de tickets', d: 'Las comandas salen por las impresoras térmicas que ya usa tu TPV. Lo revisamos y lo configuramos en remoto, sin visitas.', precio: 'Con la conexión TPV' },
   { t: 'Formación de tu equipo', d: 'Una videollamada para ti y tus camareros, y una guía paso a paso dentro del panel. En una tarde lo manejáis.', precio: 'Con la puesta a punto' },
   { t: 'Fotos de tus platos con IA', d: '¿No tienes fotos? Las creamos a partir del nombre y la descripción de cada plato. Empiezas con imágenes gratis.', precio: `Más: ${SERVICIOS_QR.imagenesBonoIa} por ${SERVICIOS_QR.bonoIa} €, sin caducidad` },
   { t: 'Botón de reseñas de Google', d: 'Tus clientes dejan su reseña desde la carta, cuando mejor lo han pasado. Más estrellas y más visitas en Google Maps.', precio: `Incluido en ${L.nombre} y ${S.nombre}` },
-  { t: 'Carta en otros idiomas', d: 'Hasta 3 idiomas traducidos por nosotros, para que el turista pida sin señalar con el dedo.', precio: `${SERVICIOS_QR.idiomas} € una vez · incluido en ${S.nombre}` },
+  { t: 'Carta en otros idiomas', d: 'Español e inglés incluidos en todos los planes. ¿Más? Traducimos cada idioma por ti, para que el turista pida sin señalar con el dedo.', precio: `${SERVICIOS_QR.idiomaExtra} € por idioma extra, una vez` },
   { t: 'Asistente 24/7 y una persona', d: 'El asistente con IA de tu panel responde a cualquier hora con los datos de tu local. Y una persona te atiende por WhatsApp.', precio: 'Incluido en todos los planes' },
 ];
 

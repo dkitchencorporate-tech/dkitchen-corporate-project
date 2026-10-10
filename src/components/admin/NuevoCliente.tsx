@@ -12,7 +12,7 @@ import { QR_MENU, nombrePlan } from '@/lib/pricing-config';
 type Modo = 'pago' | 'gratis' | 'demo' | 'solo';
 const MODOS: { id: Modo; titulo: string; texto: string }[] = [
   { id: 'pago', titulo: 'Preparar un enlace de pago', texto: 'Creas la cuenta y a continuación le preparas un enlace con el precio que acordéis (plan, módulos, descuento).' },
-  { id: 'gratis', titulo: 'Prueba con todo incluido', texto: 'Plan Sala (plano de mesas, app de sala, TPV, Comandero Pro e idiomas) sin coste durante el tiempo que elijas. El cliente elige su plantilla y colores; la Carta de Autor se paga aparte. Al acabar, se le invita a quedarse; si no paga, su panel pasa a solo lectura. Siempre con fecha de fin: no hay regalos sin fecha.' },
+  { id: 'gratis', titulo: 'Prueba con todo incluido', texto: 'Plan Sala (el máximo de platos, mesas, equipo y comandas al TPV) sin coste durante el tiempo que elijas. El cliente elige su plantilla y colores; la Carta de Autor se paga aparte. Al acabar, se le invita a quedarse; si no paga, su panel pasa a solo lectura. Siempre con fecha de fin: no hay regalos sin fecha.' },
   { id: 'demo', titulo: 'Cuenta demo interna', texto: 'Para enseñar el producto o grabar vídeos (tus propias demos). Todo incluido sin fecha, pero NO cuenta en ingresos, en el parte ni en las alertas. Sale en la pestaña «Demo» de Clientes.' },
   { id: 'solo', titulo: 'Solo crear la cuenta', texto: 'Cuenta con el plan elegido y nada más. Podrás añadir servicios o un enlace de pago desde su ficha.' },
 ];

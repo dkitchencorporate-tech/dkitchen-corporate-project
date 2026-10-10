@@ -4,17 +4,17 @@ import { mensajeError } from '@/lib/mensaje-error';
 import { useState, useTransition } from 'react';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import type { EstadoServicios } from '@/lib/servicios';
-import { QR_MENU, FUNDADOR, PLANES_QR, esPlanQr, type PlanQr } from '@/lib/pricing-config';
+import { QR_MENU, FUNDADOR, PLANES_QR, esPlanQr, puntosPlanQr, type PlanQr } from '@/lib/pricing-config';
 import SaltoSignature from './SaltoSignature';
 import { iniciarCambioPlanAction, solicitarBajaAction } from '@/app/panel/actions';
 
-/** Qué trae cada plan (0050). Cifras de pricing-config; los topes reales los aplica la base. */
+/** Qué trae cada plan (0068). Cifras de pricing-config; los topes reales los aplica la base. */
 const FUNCIONES: Record<PlanQr, string[]> = (() => {
-  const { basico: c, ampliado: l, sala: s } = QR_MENU.planes;
+  const { ampliado: l, sala: s } = QR_MENU.planes;
   return {
-    basico: [`Hasta ${c.topes.productos} productos y ${c.topes.mesas} mesas`, `${c.topes.reservasMes} reservas al mes`, 'Aviso del camarero en tu panel', '1 banner en la carta'],
-    ampliado: [`Hasta ${l.topes.productos} productos y ${l.topes.mesas} mesas con plano`, `${l.topes.camareros} camareros con app de sala`, `${l.topes.reservasMes} reservas al mes`, '3 banners y promociones programadas', 'Botón de reseñas de Google'],
-    sala: [`Hasta ${s.topes.productos} productos y ${s.topes.mesas} mesas`, `${s.topes.camareros} personas en el equipo (con encargados)`, `${s.topes.reservasMes} reservas al mes`, 'Conexión con tu TPV y Comandero Pro', 'Carta en hasta 3 idiomas'],
+    basico: [...puntosPlanQr('basico'), '1 banner en la carta'],
+    ampliado: [...puntosPlanQr('ampliado'), `${l.topes.banners} banners y promociones programadas`, 'Botón de reseñas de Google'],
+    sala: [...puntosPlanQr('sala'), 'Encargados en el equipo', `${s.topes.banners} banners y promociones programadas`, 'Botón de reseñas de Google'],
   };
 })();
 
@@ -117,7 +117,8 @@ const eur = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', c
 const QUE_ES: Record<string, string> = {
   setup_esencial: 'Revisión y configuración de tu carta por un experto',
   setup_experto: 'Diseño de autor de tu carta, flyers, QR físicos y formación',
-  idiomas: 'Tu carta traducida por DKitchen a hasta 3 idiomas',
+  idiomas: 'Pack de idiomas (antiguo): 3 idiomas traducidos por DKitchen',
+  idioma_extra: 'Un idioma más, traducido por DKitchen',
   plano_mesas: 'Plano de tu local con zonas y mesas por camarero',
   app_sala: 'Tus camareros con sus mesas y comandas en el móvil',
   conexion_tpv: 'Lo que anota el camarero llega solo a tu TPV',

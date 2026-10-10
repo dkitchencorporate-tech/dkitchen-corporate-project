@@ -1,16 +1,17 @@
 import ActivarPlanBoton from '@/components/sections/ActivarPlanBoton';
 import { TextoRevelado } from '@/components/dk/Movimiento';
-import { QR_MENU, SERVICIOS_QR } from '@/lib/pricing-config';
+import { QR_MENU, SERVICIOS_QR, puntosPlanQr } from '@/lib/pricing-config';
 
 /**
  * Precios de /qr. Planes por cantidades (decisión A de karc0, 07/10; 0050):
  * Carta 9 €, Local 29 € (el que se impulsa, único con el primer mes a 1 €)
- * y Sala 69 € con todo incluido. Cifras de pricing-config; topes, de la base.
+ * y Sala 69 €; todos con TPV, comandero y español + inglés por cantidades (0068).
  */
 const { basico: C, ampliado: L, sala: S } = QR_MENU.planes;
-const CARTA = [`Hasta ${C.topes.productos} productos`, 'Fotos, precios y alérgenos', `${C.topes.reservasMes} reservas al mes desde la carta`, `Aviso del camarero en tu panel (${C.topes.mesas} mesas)`, '1 banner de promoción', 'QR que nunca reimprimes', 'Fotos de platos con IA', 'Asistente con IA 24/7 + WhatsApp', `Idiomas: ${SERVICIOS_QR.idiomas} € una vez`];
-const LOCAL = [`Hasta ${L.topes.productos} productos`, `Plano con ${L.topes.mesas} mesas`, `App de sala para ${L.topes.camareros} camareros`, `${L.topes.reservasMes} reservas al mes con aviso`, 'Llamada al camarero y petición de la cuenta', '3 banners programables', 'Botón de reseñas de Google', 'Fotos de platos con IA', 'Asistente con IA 24/7 + WhatsApp', `Conexión TPV: ${SERVICIOS_QR.conexionTpv} €/mes (${SERVICIOS_QR.mesesTpvConPuesta} meses gratis con la puesta a punto)`, `Comandero Pro: ${SERVICIOS_QR.comanderoPro} €/mes`];
-const SALA = [`Hasta ${S.topes.productos} productos y ${S.topes.mesas} mesas`, `${S.topes.camareros} personas en el equipo, con encargados`, `${S.topes.reservasMes} reservas al mes`, 'Conexión con tu TPV incluida', 'Comandero Pro incluido', 'Carta en hasta 3 idiomas', 'Botón de reseñas de Google', 'Fotos de platos con IA', 'Asistente con IA 24/7 + WhatsApp'];
+const EXTRAS = ['Fotos de platos con IA', 'Asistente con IA 24/7 + WhatsApp'];
+const CARTA = [...puntosPlanQr('basico'), '1 banner de promoción', 'QR que nunca reimprimes', ...EXTRAS];
+const LOCAL = [...puntosPlanQr('ampliado'), 'Llamada al camarero y petición de la cuenta', `${L.topes.banners} banners programables`, 'Botón de reseñas de Google', ...EXTRAS];
+const SALA = [...puntosPlanQr('sala'), 'Encargados en el equipo', `${S.topes.banners} banners programables`, 'Botón de reseñas de Google', ...EXTRAS];
 const GARANTIAS = ['Local: primer mes por 1 €', 'Sin permanencia', 'Cancelas desde tu panel', 'Alérgenos según el Reglamento UE', 'Soporte en español', 'Sin cambiar tu TPV'];
 
 const Check = ({ className = '' }: { className?: string }) => (
@@ -56,14 +57,14 @@ export default function PlanesQr() {
               className="relative mt-10 w-full rounded-full bg-vino py-5 text-base font-semibold text-white transition hover:bg-vino-hondo" />
           </article>
 
-          <div className="order-3"><Lateral id="sala" nombre={S.nombre} lema="Todo incluido para una sala con equipo." mensual={S.mensual} funciones={SALA} /></div>
+          <div className="order-3"><Lateral id="sala" nombre={S.nombre} lema="El máximo de cada cosa para una sala con volumen." mensual={S.mensual} funciones={SALA} /></div>
         </div>
 
         <ul className="mt-16 flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-grafito">
           {GARANTIAS.map((g) => <li key={g} className="flex items-center gap-2"><Check className="text-exito" />{g}</li>)}
         </ul>
         <p className="mt-6 text-center text-sm text-ceniza">Si te quedas corto, el panel te avisa antes de llegar al límite (te dejamos un 10 % de margen) y subes de plan en un minuto. La llamada al camarero nunca se corta.</p>
-        <p className="mt-3 text-center text-sm text-grafito">Con cualquier plan puedes añadir la <a href="#todo-incluido" className="font-semibold text-vino underline underline-offset-4">puesta a punto</a>: carta cargada, conexión con tu TPV, formación de tu equipo y fotos con IA. {SERVICIOS_QR.puestaAPunto} € (o {SERVICIOS_QR.puestaAPuntoBienvenida} € al darte de alta).</p>
+        <p className="mt-3 text-center text-sm text-grafito">Con cualquier plan puedes añadir la <a href="#todo-incluido" className="font-semibold text-vino underline underline-offset-4">puesta a punto</a>: carta cargada, conexión con tu TPV, formación de tu equipo y fotos con IA. {SERVICIOS_QR.puestaAPunto} € (o {SERVICIOS_QR.puestaAPuntoBienvenida} € si la pides al darte de alta). Idioma extra: {SERVICIOS_QR.idiomaExtra} € por idioma, una vez.</p>
       </div>
     </section>
   );

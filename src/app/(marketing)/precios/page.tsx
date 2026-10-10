@@ -6,7 +6,7 @@ import TodoIncluidoQr from '@/components/qr-landing/TodoIncluidoQr';
 import { PREGUNTAS_SIN_CAMBIAR } from '@/lib/preguntas-sin-cambiar';
 import { Titulo } from '@/components/dk/Bloques';
 import {
-  QR_MENU, QR_FISICOS, SERVICIOS_QR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES, DARK_KITCHEN, FUNDADOR, formatPrecio,
+  QR_MENU, QR_FISICOS, SERVICIOS_QR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES, DARK_KITCHEN, FUNDADOR, formatPrecio, puntosPlanQr,
 } from '@/lib/pricing-config';
 import { estadoFundador } from '@/lib/fundador';
 import ContadorFundador from '@/components/fundador/ContadorFundador';
@@ -33,19 +33,19 @@ type Linea = { nombre: string; detalle: string; precio: string; ancla?: string; 
 
 const { basico: PC, ampliado: PL, sala: PS } = QR_MENU.planes;
 const QR_PLANES = [
-  { id: PC.id, nombre: PC.nombre, mensual: PC.mensual, unEuro: false, puntos: [`Hasta ${PC.topes.productos} platos y ${PC.topes.mesas} mesas`, `${PC.topes.reservasMes} reservas al mes`, 'Aviso del camarero en tu panel', 'Fotos, precios y alérgenos'] },
-  { id: PL.id, nombre: PL.nombre, mensual: PL.mensual, unEuro: true, destacado: true, puntos: [`Hasta ${PL.topes.productos} platos y ${PL.topes.mesas} mesas con plano`, `App de sala para ${PL.topes.camareros} camareros`, `${PL.topes.reservasMes} reservas al mes`, 'Banners programables y reseñas de Google'] },
-  { id: PS.id, nombre: PS.nombre, mensual: PS.mensual, unEuro: false, puntos: [`Hasta ${PS.topes.productos} platos y ${PS.topes.mesas} mesas`, `${PS.topes.camareros} personas en el equipo`, `${PS.topes.reservasMes} reservas al mes`, 'TPV, Comandero Pro e idiomas incluidos'] },
+  { id: PC.id, nombre: PC.nombre, mensual: PC.mensual, unEuro: false, puntos: puntosPlanQr('basico') },
+  { id: PL.id, nombre: PL.nombre, mensual: PL.mensual, unEuro: true, destacado: true, puntos: puntosPlanQr('ampliado') },
+  { id: PS.id, nombre: PS.nombre, mensual: PS.mensual, unEuro: false, puntos: puntosPlanQr('sala') },
 ];
 
+/** Sin cuotas sueltas (0068): todo plan trae TPV, comandero y español + inglés por cantidades. */
 const MODULOS: Linea[] = [
-  { nombre: 'Conexión con tu TPV', detalle: 'Las comandas entran solas en el TPV que ya usas', precio: `${eur(SERVICIOS_QR.conexionTpv)}/mes`, mensual: SERVICIOS_QR.conexionTpv },
-  { nombre: 'Comandero Pro', detalle: 'Histórico con filtros, Excel y CSV, anulaciones y ranking de camareros', precio: `${eur(SERVICIOS_QR.comanderoPro)}/mes`, mensual: SERVICIOS_QR.comanderoPro },
+  { nombre: 'Plan personalizado', detalle: `Si tu local supera los topes de ${PS.nombre} (${PS.topes.productos} platos, ${PS.topes.mesas} mesas o ${PS.topes.comandasTpvMes.toLocaleString('es-ES')} comandas al mes) o tienes varios locales`, precio: 'A medida' },
 ];
 const SERVICIOS: Linea[] = [
-  { nombre: 'Puesta a punto', detalle: `Carta cargada, conexión con tu TPV (${SERVICIOS_QR.mesesTpvConPuesta} meses gratis), formación de tu equipo y fotos con IA · ${eur(SERVICIOS_QR.puestaAPuntoBienvenida)} al darte de alta`, precio: eur(SERVICIOS_QR.puestaAPunto) },
+  { nombre: 'Puesta a punto', detalle: `Carta cargada, conexión con tu TPV, formación de tu equipo y fotos con IA · ${eur(SERVICIOS_QR.puestaAPuntoBienvenida)} si la pides al darte de alta, antes de montar tu carta`, precio: eur(SERVICIOS_QR.puestaAPunto) },
   { nombre: 'Carta de Autor', detalle: 'Diseño de carta a medida, con tu identidad', precio: eur(SERVICIOS_QR.cartaDeAutor) },
-  { nombre: 'Idiomas', detalle: 'Hasta 3 idiomas, traducidos por DKitchen', precio: eur(SERVICIOS_QR.idiomas) },
+  { nombre: 'Idioma extra', detalle: `Español e inglés ya van incluidos; cada idioma más, traducido por DKitchen`, precio: `${eur(SERVICIOS_QR.idiomaExtra)} por idioma` },
   { nombre: 'Bono de imágenes con IA', detalle: `${SERVICIOS_QR.imagenesBonoIa} fotos de plato (${SERVICIOS_QR.imagenesGratisIa} gratis siempre)`, precio: eur(SERVICIOS_QR.bonoIa) },
   { nombre: 'Etiquetas QR para mesas', detalle: `Desde ${QR_FISICOS.etiquetas.tandas[0].unidades} unidades`, precio: `desde ${eur(QR_FISICOS.etiquetas.tandas[0].precio)}` },
 ];
@@ -110,7 +110,6 @@ export default async function PaginaPrecios() {
   const ld = [
     { '@context': 'https://schema.org', '@type': 'OfferCatalog', name: 'Precios DKitchen', url: URL_PRECIOS, itemListElement: [
       ...QR_PLANES.map((p) => producto(`Carta digital QR · Plan ${p.nombre}`, 'https://dkitchencorporate.es/qr#planes', { price: String(p.mensual), priceSpecification: mensual(p.mensual) })),
-      ...MODULOS.map((m) => producto(m.nombre, URL_PRECIOS, { price: String(m.mensual), priceSpecification: mensual(m.mensual as number) })),
       producto('DKitchen Signature', 'https://dkitchencorporate.es/signature', { price: String(BASE_OPERATIVA.pagoUnico), priceSpecification: [
         { '@type': 'UnitPriceSpecification', name: 'Entrada (pago único)', price: BASE_OPERATIVA.pagoUnico, priceCurrency: 'EUR', valueAddedTaxIncluded: false },
         { ...mensual(BASE_OPERATIVA.mantenimiento.mensual), name: `Mantenimiento desde el mes ${BASE_OPERATIVA.mantenimiento.empiezaEnMes}` },
@@ -183,11 +182,11 @@ export default async function PaginaPrecios() {
           )}
 
           <div id="modulos" className="scroll-mt-20 mt-24 border-t border-linea pt-16">
-            <p className="etiqueta-dk text-vino">02 · Módulos y extras de la carta QR</p>
-            <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl">Suma solo lo que tu sala necesita.</h2>
+            <p className="etiqueta-dk text-vino">02 · Extras de la carta QR</p>
+            <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl">Sin módulos sueltos. Solo extras de un pago.</h2>
           </div>
           <div className="mt-12 grid gap-14 md:grid-cols-2">
-            <Tabla titulo="Extras del plan Local" sub={`Mensuales · incluidos en el plan ${PS.nombre} · se activan desde tu panel`} filas={MODULOS} />
+            <Tabla titulo="¿Más grande que Sala?" sub="Sin cuotas sueltas: cada plan ya trae TPV, comandero y español + inglés" filas={MODULOS} />
             <Tabla titulo="Servicios y extras" sub="Pago único · sin suscripción" filas={SERVICIOS} />
           </div>
         </div>

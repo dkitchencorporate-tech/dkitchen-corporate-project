@@ -132,7 +132,7 @@ export default function PanelShell({
     delegado && ['pedidos', 'reservas', 'camarero', 'equipo', 'escaneos', 'plan', 'modulos'].includes(id) ? false
     : id === 'sala' ? modulos.plano || modulos.app || modulos.tpv
     : id === 'pedidos' || id === 'equipo' ? modulos.app
-    : id === 'idiomas' ? tieneServ('idiomas')
+    : id === 'idiomas' ? true
     : true;
   const [pestana, setPestanaBase] = useState<Pestana>('inicio');
   const [menu, setMenu] = useState(false);
@@ -282,7 +282,7 @@ export default function PanelShell({
         {pestana === 'promociones' && <Promociones promociones={promociones} secciones={carta.secciones} plan={restaurante.plan} platos={carta.platos.map((p) => ({ id: p.id, nombre: p.nombre }))} />}
         {(pestana === 'diseno' || pestana === 'modulos') && <Mejoras key={pestana} restaurante={restaurante} servicios={servicios} vista={pestana} fotos={carta.platos.map((p) => p.fotoUrl).filter((u): u is string => !!u).slice(0, 3)} />}
         {pestana === 'sala' && <Sala mesas={sala.mesas} elementos={sala.elementos} camareros={sala.camareros} tpv={sala.tpv} modulos={modulos} />}
-        {pestana === 'idiomas' && <Idiomas activos={restaurante.idiomas ?? []} secciones={carta.secciones} platos={carta.platos} traducciones={traducciones} />}
+        {pestana === 'idiomas' && <Idiomas maximo={servicios.idiomasPermitidos ?? 1} activos={restaurante.idiomas ?? []} secciones={carta.secciones} platos={carta.platos} traducciones={traducciones} />}
         {pestana === 'reservas' && <Reservas reservas={reservasVivas} whatsapp={restaurante.whatsapp} abrirId={reservaAbrir} onAbierta={() => setReservaAbrir(null)} />}
         {pestana === 'pedidos' && <Pedidos demo={demo} />}
         {pestana === 'equipo' && <Equipo informe={sala.informe} demo={demo} />}

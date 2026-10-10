@@ -30,10 +30,13 @@ export const QR_MENU = {
   /** Primer mes simbólico, con tarjeta registrada desde la compra. No es gratis. */
   primerMes: 1,
   /**
-   * Planes por cantidades (decisión A de karc0, 07/10; 0050). Ids internos
-   * históricos: basico = Carta, ampliado = Local. Cada plan trae «de todo un
-   * poco» con topes; la base deja un 10 % de cortesía antes de bloquear
-   * (dk.plan_tope_max) y la llamada al camarero nunca se corta.
+   * Planes por cantidades (karc0, 10/10; 0068, sustituye a la decisión A del
+   * 07/10). Ids internos históricos: basico = Carta, ampliado = Local. TODOS los
+   * planes traen «un poco de cada cosa» (plano, app de sala, Conexión TPV,
+   * Comandero, reservas, español + inglés) limitado por CANTIDAD; no hay cuotas
+   * mensuales sueltas. La base deja un 10 % de cortesía antes de bloquear
+   * (dk.plan_tope_max) y la llamada al camarero nunca se corta. Quien supere los
+   * topes pasa a un plan personalizado (QR a medida). Máximo global: 120 platos.
    * Espejo de dk.precio_plan y dk.plan_tope: si cambias aquí, cambia allí.
    */
   planes: {
@@ -43,13 +46,13 @@ export const QR_MENU = {
       mensual: 9,
       /** Sin 1 € el primer mes: se paga la cuota desde el primer día. */
       primerMesSimbolico: false,
-      topeProductos: 50,
-      topes: { productos: 50, mesas: 4, camareros: 0, reservasMes: 10, banners: 1 },
+      topeProductos: 40,
+      topes: { productos: 40, mesas: 6, camareros: 1, reservasMes: 30, banners: 1, comandasTpvMes: 150, historialDias: 7 },
       plantillas: 3,
       personalizacionQr: false,
       promocionesVisibles: true,
       llamarCamarero: true,
-      resumen: 'Carta digital con QR, reservas y aviso del camarero, ajustado a un local pequeño.',
+      resumen: 'Un poco de todo, a la medida de un local pequeño: carta, reservas, camarero, TPV y comandero.',
     },
     ampliado: {
       id: 'ampliado',
@@ -57,8 +60,8 @@ export const QR_MENU = {
       mensual: 29,
       /** El único con el primer mes a 1 € + IVA. */
       primerMesSimbolico: true,
-      topeProductos: 150,
-      topes: { productos: 150, mesas: 15, camareros: 3, reservasMes: 150, banners: 3 },
+      topeProductos: 80,
+      topes: { productos: 80, mesas: 15, camareros: 3, reservasMes: 120, banners: 2, comandasTpvMes: 600, historialDias: 30 },
       plantillas: 3,
       personalizacionQr: true,
       promocionesVisibles: true,
@@ -66,15 +69,15 @@ export const QR_MENU = {
       sincronizacionGoogleBusiness: true,
       motorReservasIncluido: true,
       botonResenas: true,
-      resumen: 'Carta, reservas, plano de mesas y app de sala para hasta 3 camareros.',
+      resumen: 'Para el bar o restaurante de barrio: más platos, mesas, camareros y comandas al TPV.',
     },
     sala: {
       id: 'sala',
       nombre: 'Sala',
       mensual: 69,
       primerMesSimbolico: false,
-      topeProductos: 300,
-      topes: { productos: 300, mesas: 40, camareros: 10, reservasMes: 500, banners: 3 },
+      topeProductos: 120,
+      topes: { productos: 120, mesas: 30, camareros: 6, reservasMes: 350, banners: 3, comandasTpvMes: 1800, historialDias: 90 },
       plantillas: 3,
       personalizacionQr: true,
       promocionesVisibles: true,
@@ -82,7 +85,7 @@ export const QR_MENU = {
       sincronizacionGoogleBusiness: true,
       motorReservasIncluido: true,
       botonResenas: true,
-      resumen: 'Todo incluido: TPV, Comandero Pro e idiomas, hasta 10 personas en el equipo.',
+      resumen: 'Para la sala con volumen: el máximo de platos, mesas, equipo y comandas al TPV.',
     },
   },
   /**
@@ -96,6 +99,22 @@ export const QR_MENU = {
     retirado: true,
   },
 } as const;
+
+/**
+ * Lista única de lo que trae cada plan QR (0068). Todos los textos de planes
+ * (web, panel, kit del socio, ayuda) salen de aquí para no contradecirse.
+ */
+export function puntosPlanQr(id: 'basico' | 'ampliado' | 'sala'): string[] {
+  const t = QR_MENU.planes[id].topes;
+  return [
+    `Hasta ${t.productos} platos y ${t.mesas} mesas`,
+    t.camareros === 1 ? 'App de sala para 1 camarero' : `App de sala para ${t.camareros} camareros`,
+    `${t.reservasMes} reservas al mes`,
+    `Conexión con tu TPV: ${t.comandasTpvMes.toLocaleString('es-ES')} comandas al mes`,
+    `Comandero con ${t.historialDias} días de historial`,
+    'Carta en español e inglés',
+  ];
+}
 
 /**
  * Fundador (decisiones de karc0 del 07/10; 0051): 40 % sobre Sala, cobrado por
@@ -348,12 +367,7 @@ export const SERVICIOS_QR = {
   bonoIa: 9,
   imagenesBonoIa: 50,
   imagenesGratisIa: 3,
-  /** Comandero Pro (0045): histórico, descargas, anulaciones y ranking. Extra de Local (9 € + IVA al mes; 0050), incluido en Sala. Espejo de catalogo_servicios. */
-  comanderoPro: 9,
-  /** Idiomas (hasta 3, traducidos por DKitchen): pago único. Espejo de catalogo_servicios (05/10). */
-  idiomas: 29,
-  /** Conexión con tu TPV: extra de Local (19 € + IVA al mes; 0050), incluida en Sala. Plano y app de sala van incluidos en Local. */
-  conexionTpv: 19,
-  /** Meses de Conexión TPV que regala la puesta a punto (08/10, karc0; 0066). Después, conexionTpv al mes en Local. */
-  mesesTpvConPuesta: 3,
+  /** Idiomas (0068): español + inglés incluidos en todos los planes; cada idioma más, pago único por idioma. Espejo de catalogo_servicios (idioma_extra). */
+  idiomaExtra: 15,
+  idiomasIncluidos: 'español e inglés',
 } as const;

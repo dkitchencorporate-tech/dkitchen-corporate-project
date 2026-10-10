@@ -245,7 +245,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     respuesta: [
       'En Servicio → Sala colocas las mesas y elementos arrastrándolos. En el móvil puedes hacer zoom y cambiar el tamaño de cada mesa con − y +.',
       'El botón «?» del editor muestra la ayuda paso a paso.',
-      'El plano y la app de sala vienen con el plan Local. La conexión con el TPV y el Comandero Pro van incluidos en Sala o como extras de Local.',
+      'El plano, la app de sala, la conexión con el TPV y el comandero vienen en todos los planes. Lo que cambia es la cantidad: mesas, camareros, comandas al TPV al mes y días de historial.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'sala', texto: 'Ir a Sala' }],
     siguientes: ['modulos'], ofrecerPuesta: true,
@@ -255,7 +255,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     claves: ['banner', 'promocion', 'oferta', 'menu del dia', 'anuncio', 'destacar'],
     respuesta: [
       'En Carta → Banners creas un aviso con imagen o texto y un botón que lleva a una sección de tu carta.',
-      'El plan Carta incluye 1 banner activo. Con Local o Sala puedes tener hasta 3 y programarlos por días y horas (por ejemplo, el menú del día de lunes a viernes de 12 a 16 h).',
+      'El plan Carta incluye 1 banner activo, Local 2 y Sala 3, y puedes programarlos por días y horas (por ejemplo, el menú del día de lunes a viernes de 12 a 16 h).',
       'En «Botón del banner» eliges qué pasa al tocarlo: nada (sin botón), bajar a una sección, abrir un plato concreto o abrir la reserva.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'promociones', texto: 'Ir a Banners' }],
@@ -265,7 +265,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     id: 'idiomas', pregunta: 'Cómo pongo mi carta en otros idiomas', secciones: ['idiomas', 'modulos'],
     claves: ['idioma', 'ingles', 'frances', 'aleman', 'traducir', 'traduccion', 'turistas', 'extranjeros'],
     respuesta: [
-      'Con el módulo de Idiomas eliges hasta 3 idiomas y nosotros traducimos tu carta. Tus clientes ven un selector de idioma.',
+      'Español e inglés vienen en todos los planes. Cada idioma más se añade en Negocio → Mejoras por un pago único y nosotros traducimos tu carta. Tus clientes ven un selector de idioma.',
       'En el plan Sala viene incluido. Con Carta o Local es un pago único, sin cuota. Si ya lo tienes, lo gestionas en Carta → Idiomas; si no, está en Negocio → Mejoras.',
       'Cuando cambies o añadas platos, avísanos y traducimos lo nuevo.',
     ],
@@ -297,7 +297,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     id: 'prueba', pregunta: 'Qué pasa cuando termina la prueba', secciones: ['plan', 'inicio'],
     claves: ['prueba', 'gratis', 'termina', 'caduca', 'todo incluido', 'quedarme', 'dias'],
     respuesta: [
-      'Durante la prueba tienes todo incluido: el plan Sala, con plano, app de sala, TPV, Comandero Pro e idiomas. Arriba de cada pantalla ves los días que quedan.',
+      'Durante la prueba tienes el plan Sala completo: el máximo de platos, mesas, equipo y comandas al TPV. Arriba de cada pantalla ves los días que quedan.',
       'Si pulsas «Quedarme con todo», sigues con lo mismo y el primer cobro es el día 12 después del fin de la prueba.',
       'Si no haces nada, al terminar tu panel pasa a solo lectura, pero tu carta pública sigue visible. Te avisamos por correo 3 días y 1 día antes.',
     ],
@@ -308,10 +308,10 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     id: 'plan-ampliado', pregunta: 'Qué diferencia hay entre Carta, Local y Sala', secciones: ['plan', 'modulos'],
     claves: ['ampliado', 'basico', 'carta', 'local', 'sala', 'diferencia', 'subir de plan', 'mejorar plan', 'cambiar plan', 'limite', 'tope'],
     respuesta: [
-      `Carta (${BASICO} € + IVA al mes): hasta ${T.c.productos} productos y ${T.c.mesas} mesas, ${T.c.reservasMes} reservas al mes, aviso del camarero en tu panel y 1 banner.`,
-      `Local (${AMPLIADO} € + IVA al mes; primer mes a 1 €): hasta ${T.l.productos} productos y ${T.l.mesas} mesas con plano, app de sala para ${T.l.camareros} camareros, ${T.l.reservasMes} reservas al mes, 3 banners programables y reseñas de Google.`,
-      `Sala (${SALA} € + IVA al mes): hasta ${T.s.productos} productos, ${T.s.mesas} mesas, ${T.s.camareros} personas en el equipo y ${T.s.reservasMes} reservas al mes, con TPV, Comandero Pro e idiomas incluidos.`,
-      'Tienes un 10 % de margen sobre cada límite; al llegar, el panel te avisa y subes de plan desde Mi plan. La llamada al camarero nunca se corta.',
+      `Carta (${BASICO} € + IVA al mes): hasta ${T.c.productos} productos y ${T.c.mesas} mesas, ${T.c.camareros} camarero, ${T.c.reservasMes} reservas al mes, ${T.c.comandasTpvMes} comandas al TPV al mes, ${T.c.historialDias} días de historial y 1 banner.`,
+      `Local (${AMPLIADO} € + IVA al mes; primer mes a 1 €): hasta ${T.l.productos} productos y ${T.l.mesas} mesas con plano, app de sala para ${T.l.camareros} camareros, ${T.l.reservasMes} reservas al mes, ${T.l.comandasTpvMes} comandas al TPV al mes, ${T.l.historialDias} días de historial, ${T.l.banners} banners programables y reseñas de Google.`,
+      `Sala (${SALA} € + IVA al mes): hasta ${T.s.productos} productos, ${T.s.mesas} mesas, ${T.s.camareros} personas en el equipo, ${T.s.reservasMes} reservas al mes, ${T.s.comandasTpvMes} comandas al TPV al mes y ${T.s.historialDias} días de historial. Todos los planes traen español e inglés.`,
+      'Tienes un 10 % de margen sobre cada límite; al llegar, el panel te avisa y subes de plan desde Mi plan (si superas Sala, te preparamos un plan personalizado). La llamada al camarero nunca se corta.',
       'Puedes subir de plan desde Negocio → Mi plan.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'plan', texto: 'Ir a Mi plan' }],
@@ -321,7 +321,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     id: 'modulos', pregunta: 'Qué módulos puedo añadir', secciones: ['modulos', 'sala'],
     claves: ['modulo', 'mejora', 'pack sala', 'tpv', 'app sala', 'extra', 'anadir servicio'],
     respuesta: [
-      'En Negocio → Mejoras tienes: Idiomas (pago único) y, con el plan Local, la Conexión con tu TPV y el Comandero Pro como extras. En Sala ya vienen incluidos.',
+      'En Negocio → Mejoras tienes extras de pago único: idiomas además del español y el inglés, la puesta a punto, la Carta de Autor y bonos de imágenes con IA. No hay módulos con cuota aparte.',
       'Cada módulo muestra su precio antes de pagar y se activa al momento.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'modulos', texto: 'Ver Mejoras' }],
@@ -397,7 +397,7 @@ export const TEMAS_WEB: TemaAyuda[] = [
     claves: ['incluye', 'funciones', 'que tiene', 'alergenos', 'fotos', 'reservas', 'camarero', 'idiomas'],
     respuesta: [
       'Carta con fotos, precios y alérgenos según el Reglamento UE, que cambias desde el móvil al momento; cuatro estilos de diseño; un QR que nunca reimprimes y estadísticas de visitas.',
-      'Con Local, además: plano de mesas, app de sala para tus camareros, banners programados y reseñas de Google. Con Sala, también TPV, Comandero Pro e idiomas.',
+      'Todos los planes traen plano de mesas, app de sala, conexión con tu TPV, comandero y español + inglés; Local y Sala suben las cantidades y añaden más banners y reseñas de Google.',
     ],
     acciones: [{ tipo: 'enlace', href: '/qr', texto: 'Ver cómo funciona' }],
     siguientes: ['precio-qr', 'puesta-web'],

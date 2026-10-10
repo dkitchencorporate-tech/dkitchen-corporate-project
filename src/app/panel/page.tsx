@@ -83,7 +83,7 @@ export default async function Panel() {
       (hayApp || hayPlano) && !puesta ? listarCamareros(jwt, restaurante.id) : Promise.resolve([]),
       hayTpv && !puesta ? estadoConexionTpv(jwt) : Promise.resolve(null),
       hayPlano && !puesta ? llamadasPendientes(jwt, restaurante.id).then((l) => l.map((x) => x.mesa)) : Promise.resolve([] as string[]),
-      tiene(c, 'idiomas') ? listarTraducciones(jwt, restaurante.id) : Promise.resolve([]),
+      listarTraducciones(jwt, restaurante.id),
       hayApp && !puesta ? informeCamareros(jwt, 30) : Promise.resolve([]),
     ]);
 
