@@ -9,11 +9,11 @@ const DISPONIBLES: Record<string, string> = { en: '🇬🇧 Inglés', fr: '🇫�
 type T = { entidad: 'plato' | 'seccion'; entidadId: string; idioma: string; campo: 'nombre' | 'descripcion'; texto: string };
 
 /**
- * Pack de idiomas: el cliente elige hasta 3 idiomas y DKitchen traduce su carta
+ * Idiomas (0068): español + inglés incluidos; cada idioma más se compra en Mejoras (pago único). DKitchen traduce su carta
  * (servicio hecho por nosotros, 0028). Aquí solo ve el progreso.
  */
-export default function Idiomas({ activos, platos, traducciones }: {
-  activos: string[]; secciones: SeccionPropia[]; platos: PlatoPropio[]; traducciones: T[];
+export default function Idiomas({ maximo, activos, platos, traducciones }: {
+  maximo: number; activos: string[]; secciones: SeccionPropia[]; platos: PlatoPropio[]; traducciones: T[];
 }) {
   const [pendiente, iniciar] = useTransition();
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
@@ -32,7 +32,7 @@ export default function Idiomas({ activos, platos, traducciones }: {
     <div className="space-y-6">
       <header>
         <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Idiomas de tu carta</h2>
-        <p className="text-sm text-niebla">Elige hasta 3 idiomas. <strong className="text-grafito">Nosotros traducimos tu carta</strong> (nombres, descripciones y secciones) y tus clientes verán un selector de idioma. Si cambias un plato, lo actualizamos.</p>
+        <p className="text-sm text-niebla">Tu plan incluye {maximo === 1 ? '1 idioma' : `${maximo} idiomas`} además del español (el inglés, o el que prefieras). Cada idioma más se añade en Negocio → Mejoras. <strong className="text-grafito">Nosotros traducimos tu carta</strong> (nombres, descripciones y secciones) y tus clientes verán un selector de idioma. Si cambias un plato, lo actualizamos.</p>
         {aviso && <p className={`mt-2 text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</p>}
       </header>
 
@@ -41,13 +41,13 @@ export default function Idiomas({ activos, platos, traducciones }: {
           {Object.entries(DISPONIBLES).map(([c, n]) => {
             const on = idiomas.includes(c);
             return (
-              <button key={c} type="button" aria-pressed={on} disabled={!on && idiomas.length >= 3}
+              <button key={c} type="button" aria-pressed={on} disabled={!on && idiomas.length >= maximo}
                 onClick={() => setIdiomas((l) => (on ? l.filter((x) => x !== c) : [...l, c]))}
                 className={`rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-30 ${on ? 'bg-vino' : 'bg-papel'}`}>{n}</button>
             );
           })}
         </div>
-        <button disabled={pendiente} onClick={guardar} className="rounded-lg bg-papel px-4 py-2 text-sm font-bold hover:bg-linea">Guardar idiomas ({idiomas.length}/3)</button>
+        <button disabled={pendiente} onClick={guardar} className="rounded-lg bg-papel px-4 py-2 text-sm font-bold hover:bg-linea">Guardar idiomas ({idiomas.length}/{maximo})</button>
       </section>
 
       {activos.length > 0 && (

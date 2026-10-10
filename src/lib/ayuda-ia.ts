@@ -2,7 +2,7 @@ import 'server-only';
 import { headers } from 'next/headers';
 import { comoCliente } from '@/lib/db';
 import { TEMAS_PANEL } from '@/lib/ayuda';
-import { QR_MENU, esPlanQr, nombrePlan } from '@/lib/pricing-config';
+import { QR_MENU, SERVICIOS_QR, esPlanQr, nombrePlan } from '@/lib/pricing-config';
 import { listarMiCarta } from '@/lib/menu-propietario';
 import { resumenCobro } from '@/lib/prueba';
 import { tutorialEstado } from '@/lib/tutorial';
@@ -67,7 +67,7 @@ async function resumenLocal(jwt: string, r: MiRestaurante): Promise<string> {
   const lineas = [
     `Local: ${r.nombre} (carta pública /m/${r.slug}).`,
     `Plan: ${nombrePlan(r.plan)}${r.fundador ? ' (precio Fundador)' : ''}. Estado de acceso: ${r.estadoAcceso}.`,
-    topes ? `Topes del plan: ${topes.productos} platos, ${topes.mesas} mesas, ${topes.camareros} camareros, ${topes.reservasMes} reservas al mes, ${topes.banners} banners.` : '',
+    topes ? `Topes del plan: ${topes.productos} platos, ${topes.mesas} mesas, ${topes.camareros} camareros, ${topes.reservasMes} reservas al mes, ${topes.banners} banners, ${topes.comandasTpvMes} comandas al TPV al mes, ${topes.historialDias} días de historial del comandero, español + inglés (cada idioma más: ${SERVICIOS_QR.idiomaExtra} € una vez). Si los supera de forma habitual, se le ofrece subir de plan o un plan personalizado.` : '',
     uso.length ? `Uso actual: ${uso.map((u) => `${u.que} ${u.usados}/${u.tope}`).join(', ')}.` : `Platos en la carta: ${p.length}.`,
     `Carta: ${carta.secciones.length} secciones, ${p.length} platos; sin foto ${p.filter((x) => !x.fotoUrl).length}; sin precio ${p.filter((x) => !Number(x.precio)).length}; sin alérgenos marcados ${p.filter((x) => !x.alergenos?.length).length}; ocultos (agotados) ${p.filter((x) => !x.disponible).length}.`,
     `Ficha: logo ${si(!!r.logoUrl)}, foto de portada ${si(!!r.portadaUrl)}, dirección ${si(!!r.direccion)}, horario ${si(!!r.horario)}, teléfono ${si(!!r.telefono)}, WhatsApp ${si(!!r.whatsapp)}, enlace de reseñas ${si(!!r.urlResenas)}, idiomas activos: ${r.idiomas.length ? r.idiomas.join(', ') : 'ninguno'}.`,

@@ -22,8 +22,9 @@ const INCLUYE = [
   `Plano con ${S.topes.mesas} mesas y llamada al camarero`,
   `App de sala para ${S.topes.camareros} personas, con encargados`,
   `${S.topes.reservasMes} reservas al mes con aviso al momento`,
-  'Conexión con tu TPV y Comandero Pro',
-  'Carta en hasta 3 idiomas',
+  `Conexión con tu TPV: ${S.topes.comandasTpvMes.toLocaleString('es-ES')} comandas al mes`,
+  `Comandero con ${S.topes.historialDias} días de historial`,
+  'Carta en español e inglés',
 ];
 const REGLAS = [
   'El precio se mantiene de por vida mientras sigas activo en el plan Sala y sin impagos.',

@@ -7,7 +7,7 @@ import { comoCliente, comoVisitante } from '@/lib/db';
  * Estrategia: DKITCHEN_ESTRATEGIA_PRECIOS_ESCALERA_Y_RETENCION_2026-09-28.md
  */
 
-export type Servicio = 'setup_esencial' | 'setup_experto' | 'idiomas' | 'plano_mesas' | 'app_sala' | 'conexion_tpv' | 'pack_sala' | 'bono_ia' | 'comandero_pro';
+export type Servicio = 'setup_esencial' | 'setup_experto' | 'idiomas' | 'idioma_extra' | 'plano_mesas' | 'app_sala' | 'conexion_tpv' | 'pack_sala' | 'bono_ia' | 'comandero_pro';
 export const SERVICIOS: Servicio[] = ['setup_esencial', 'setup_experto', 'idiomas', 'plano_mesas', 'app_sala', 'conexion_tpv', 'pack_sala', 'comandero_pro'];
 export const MODULOS_SALA: Servicio[] = ['plano_mesas', 'app_sala', 'conexion_tpv'];
 /** Lo que un plan puede traer incluido (dk.tiene_servicio, 0050). */
@@ -25,7 +25,7 @@ export interface ItemCatalogo {
 export interface ServicioContratado {
   servicio: Servicio;
   estado: 'activo' | 'entregado' | 'cancelado';
-  /** 'plan': incluido en el plan (0050: Local trae plano y app; Sala, además TPV, Comandero Pro e idiomas). */
+  /** 'plan': incluido en el plan (0068: todos los planes traen plano, app de sala, TPV y Comandero, por cantidades). */
   origen: 'pago' | 'regalo' | 'demo' | 'plan';
   contratadoEn: string;
   checklist: Record<string, boolean>;
@@ -41,6 +41,10 @@ export interface EstadoServicios {
   comanderoPro?: boolean;
   /** Señal de Signature (0057): tracción de 30 días y si se muestra la tarjeta en Inicio. */
   signature?: SenalSignature | null;
+  /** Upsell de la puesta a punto a precio de bienvenida (0068): solo antes de que el dueño monte su carta. */
+  puestaBienvenida?: boolean;
+  /** Idiomas además del español que puede activar (0068): 1 incluido + extras pagados. */
+  idiomasPermitidos?: number;
 }
 
 export interface SenalSignature {
@@ -53,7 +57,7 @@ export interface SenalSignature {
 
 export async function estadoServicios(jwt: string, restauranteId: string): Promise<EstadoServicios> {
   return comoCliente(jwt, async (c) => {
-    const [cat, con, plazas, oferta, credito, pro, inc, senal] = await Promise.all([
+    const [cat, con, plazas, oferta, credito, pro, inc, senal, bienvenida, idiomas] = await Promise.all([
       c.query('SELECT servicio, nombre, tipo, dk.precio_servicio(servicio) AS precio, precio_ancla_centimos, requiere_ampliado FROM catalogo_servicios WHERE en_venta ORDER BY precio_centimos'),
       c.query(`SELECT servicio, estado, origen, contratado_en, checklist FROM servicios_contratados
                 WHERE restaurante_id = $1 AND estado <> 'cancelado'`, [restauranteId]),
@@ -63,6 +67,8 @@ export async function estadoServicios(jwt: string, restauranteId: string): Promi
       c.query("SELECT dk.tiene_servicio($1, 'comandero_pro') AS si", [restauranteId]),
       c.query('SELECT s FROM unnest($2::text[]) s WHERE dk.tiene_servicio($1, s)', [restauranteId, INCLUIBLES]),
       c.query('SELECT dk.senal_signature() AS s'),
+      c.query('SELECT dk.puesta_bienvenida_mia() AS si'),
+      c.query("SELECT tope FROM dk.mi_uso_plan() WHERE que = 'idiomas'"),
     ]);
     const contratados: ServicioContratado[] = con.rows.map((r) => ({
       servicio: r.servicio, estado: r.estado, origen: r.origen, contratadoEn: new Date(r.contratado_en).toISOString(), checklist: r.checklist ?? {},
@@ -81,6 +87,8 @@ export async function estadoServicios(jwt: string, restauranteId: string): Promi
       credito: credito.rows[0] ? { centimos: Number(credito.rows[0].centimos), venceEn: new Date(credito.rows[0].vence_en).toISOString() } : null,
       comanderoPro: pro.rows[0]?.si === true,
       signature: (senal.rows[0]?.s as SenalSignature | undefined) ?? null,
+      puestaBienvenida: bienvenida.rows[0]?.si === true,
+      idiomasPermitidos: Number(idiomas.rows[0]?.tope ?? 1),
     };
   });
 }

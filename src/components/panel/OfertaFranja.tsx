@@ -5,13 +5,13 @@ import { registrarOfertaAction } from '@/app/panel/actions';
 
 export const TEXTOS_OFERTA: Record<string, string> = {
   plan_ampliado: 'Tu carta ya tiene movimiento: con el plan Local tienes plano de mesas, app para 3 camareros y 150 reservas al mes.',
-  plan_sala: 'Tu local va lanzado: el plan Sala lo incluye todo (TPV, Comandero Pro, idiomas y hasta 10 personas en el equipo).',
-  comandero_pro: 'Comandero Pro: histórico, anulaciones y ranking de tus camareros por 9 € al mes.',
+  plan_sala: 'Tu local va lanzado: el plan Sala trae el máximo de platos, mesas, equipo y comandas al TPV.',
+  comandero_pro: 'Tu comandero ya está incluido: con un plan mayor guardas más días de historial.',
   setup_experto: 'Dale a tu carta el diseño que merece tu cocina: Carta de Autor a precio de lanzamiento.',
-  idiomas: '¿Recibes turistas? Traducimos tu carta a 3 idiomas por un pago único.',
+  idiomas: '¿Recibes turistas? Español e inglés ya van en tu plan; añade cada idioma más por un pago único.',
   plano_mesas: 'Tu sala crece: ve todas tus mesas y quién llama en un solo plano.',
   app_sala: 'Elimina las comandas en papel: tus camareros con sus mesas en el móvil.',
-  conexion_tpv: 'Que lo que anotan tus camareros llegue solo a tu TPV, por 19 € al mes.',
+  conexion_tpv: 'Tu plan ya incluye la conexión con tu TPV: actívala en Sala y las comandas llegarán solas.',
   nucleo: 'Tu volumen ya pide un sistema propio: descubre DKitchen Signature.',
 };
 

@@ -107,7 +107,7 @@ export async function asignarDisenoAction(formulario: FormData) {
   revalidatePath(`/admin-dkitchen/qr/${id}`);
 }
 
-const SERVICIOS_ADMIN = ['setup_esencial', 'setup_experto', 'idiomas', 'plano_mesas', 'app_sala', 'conexion_tpv', 'pack_sala'];
+const SERVICIOS_ADMIN = ['setup_esencial', 'setup_experto', 'idiomas', 'idioma_extra', 'plano_mesas', 'app_sala', 'conexion_tpv', 'pack_sala'];
 const PUNTOS_SETUP = ['carta', 'imagenes', 'banner', 'google', 'redes', 'material', 'soporte', 'formacion'];
 
 export async function servicioAdminAction(formulario: FormData) {
@@ -235,7 +235,7 @@ export async function reenviarAccesoAction(formulario: FormData) {
 // Enlaces de pago a medida (0030): el super admin decide qué y cuánto
 // ---------------------------------------------------------------------------
 const NOMBRES: Record<string, string> = {
-  setup_esencial: 'Puesta a punto', setup_experto: 'Carta de Autor', idiomas: 'Idiomas', plano_mesas: 'Plano de mesas',
+  setup_esencial: 'Puesta a punto', setup_experto: 'Carta de Autor', idiomas: 'Idiomas (antiguo)', idioma_extra: 'Idioma extra', plano_mesas: 'Plano de mesas',
   app_sala: 'App de sala', conexion_tpv: 'Conexión TPV', pack_sala: 'Pack Sala',
 };
 

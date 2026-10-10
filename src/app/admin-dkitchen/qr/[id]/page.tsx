@@ -16,7 +16,7 @@ import { listarProyectos, nombreFase, PRODUCTOS_PROYECTO } from '@/lib/proyectos
 export const dynamic = 'force-dynamic';
 
 const CATALOGO_SERVICIOS: [string, string][] = [
-  ['setup_esencial', 'Setup Esencial'], ['setup_experto', 'Setup Experto · Carta de Autor'], ['idiomas', 'Pack de idiomas'],
+  ['setup_esencial', 'Setup Esencial'], ['setup_experto', 'Setup Experto · Carta de Autor'], ['idiomas', 'Pack de idiomas (antiguo)'], ['idioma_extra', 'Idioma extra'],
 ];
 // 08/10 (karc0): plano de mesas, app de sala, TPV y Pack Sala ya no son módulos sueltos: van
 // incluidos según el plan (Carta/Local/Sala, 0050). La ficha solo enseña los extras de pago único.

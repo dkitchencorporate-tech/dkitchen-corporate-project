@@ -465,7 +465,7 @@ export async function cambiarEstadoReservaAction(
 // Servicios, ofertas, Sala e idiomas (0027)
 // ---------------------------------------------------------------------------
 
-const SERVICIOS_VALIDOS: Servicio[] = ['setup_esencial', 'setup_experto', 'idiomas', 'plano_mesas', 'app_sala', 'conexion_tpv', 'pack_sala', 'bono_ia', 'comandero_pro'];
+const SERVICIOS_VALIDOS: Servicio[] = ['setup_esencial', 'setup_experto', 'idioma_extra', 'bono_ia'];
 
 /** Pago de un servicio: el precio lo decide la base; aquí solo se valida la elección. */
 export async function comprarServicioAction(servicio: Servicio): Promise<{ url: string }> {
@@ -474,7 +474,7 @@ export async function comprarServicioAction(servicio: Servicio): Promise<{ url: 
   const estado = await estadoServicios(jwt, restaurante.id);
   const item = estado.catalogo.find((c) => c.servicio === servicio);
   if (!item) throw new Error('Servicio no disponible.');
-  if (tiene(estado.contratados, servicio) || (servicio === 'comandero_pro' && estado.comanderoPro)) throw new Error('Ya tienes este servicio.');
+  if (servicio !== 'idioma_extra' && tiene(estado.contratados, servicio)) throw new Error('Ya tienes este servicio.');
   if (item.requiereAmpliado && restaurante.plan === 'basico') throw new Error('Este extra requiere el plan Local.');
   const origen = process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es';
   await dbRegistrarOferta(jwt, servicio, 'aceptada').catch(() => {});
@@ -529,7 +529,7 @@ export async function fijarIdiomasAction(idiomas: string[]) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   await fijarIdiomas(jwt, lista).catch((e: unknown) => {
     const m = e instanceof Error ? e.message : '';
-    throw new Error(/Pack de idiomas/.test(m) ? m : 'No se pudieron guardar los idiomas.');
+    throw new Error(/idioma/.test(m) ? m : 'No se pudieron guardar los idiomas.');
   });
   revalidatePath('/panel');
   refrescarCartas();
@@ -881,7 +881,7 @@ async function comandero<T>(fn: (jwt: string) => Promise<T>): Promise<Res<T>> {
     return { ok: true, datos: await fn(jwt) };
   } catch (e) {
     const m = e instanceof Error ? e.message : '';
-    const propio = /Comandero Pro|App de sala|motivo|Rango de fechas|histórico|no válid|Cantidad/i.test(m);
+    const propio = /Comandero Pro|App de sala|motivo|Rango de fechas|histórico|historial|no válid|Cantidad/i.test(m);
     if (!propio) console.error('Comandero:', m);
     return { ok: false, error: propio ? m : 'No se pudo completar. Inténtalo de nuevo.' };
   }

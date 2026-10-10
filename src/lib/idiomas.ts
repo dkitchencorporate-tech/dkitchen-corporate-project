@@ -2,7 +2,7 @@ import 'server-only';
 import { comoCliente, comoVisitante } from '@/lib/db';
 import type { Carta } from '@/lib/menu';
 
-/** Pack de idiomas (0027): hasta 3 idiomas, pago único. */
+/** Idiomas (0068): español + inglés incluidos en todos los planes; cada idioma más, pago único (idioma_extra). */
 export const IDIOMAS: Record<string, { nombre: string; bandera: string }> = {
   en: { nombre: 'English', bandera: '🇬🇧' },
   fr: { nombre: 'Français', bandera: '🇫🇷' },

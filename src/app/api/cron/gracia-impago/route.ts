@@ -49,7 +49,7 @@ export async function GET(request: Request) {
     const porVencer = await comoAprovisionamiento(async (c) => (await c.query<{ restaurante: string; email: string | null; servicio: string; hasta: string }>('SELECT restaurante, email, servicio, hasta::text FROM dk.regalos_por_vencer(7)')).rows);
     if (porVencer.length) {
       await enviarCorreoInterno(`REGALOS QUE VENCEN EN 7 DÍAS: ${porVencer.length}`,
-        `<p>Llama o escribe para ofrecer quedarse el módulo (Conexión TPV: 19 € + IVA al mes en Local, incluido en Sala).</p><ul>${porVencer.map((r) => `<li><strong>${escaparHtml(r.restaurante)}</strong> (${escaparHtml(r.email ?? 'sin correo')}) · ${escaparHtml(r.servicio)} hasta el ${escaparHtml(r.hasta)}</li>`).join('')}</ul>`).catch(() => {});
+        `<p>Regalo antiguo que vence (desde la 0068 la Conexión TPV va incluida en todos los planes por cantidades: no hay que cobrar nada).</p><ul>${porVencer.map((r) => `<li><strong>${escaparHtml(r.restaurante)}</strong> (${escaparHtml(r.email ?? 'sin correo')}) · ${escaparHtml(r.servicio)} hasta el ${escaparHtml(r.hasta)}</li>`).join('')}</ul>`).catch(() => {});
     }
     // Bajas (0041): aviso 7 días antes y borrado a los 60 días.
     const borrados = await purgarBajas();
