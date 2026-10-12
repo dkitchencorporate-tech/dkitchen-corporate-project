@@ -13,7 +13,7 @@ const PASOS = [
 ];
 
 const CRECE = [
-  ['Diseño', 'Tu carta empieza con un diseño limpio incluido. Si quieres que tenga tu sello, DKitchen la convierte en una Carta de Autor, o te la deja a punto sin cambiar el diseño.'],
+  ['Diseño', '5 estilos incluidos, también el Premium: portada a pantalla completa, buscador y «Los que más salen». Tu logo, tu color y fotos con IA desde tu panel.'],
   ['Idiomas', 'Español e inglés incluidos en todos los planes. ¿Más? Traducimos cada idioma por ti. Tus clientes cambian de idioma con un toque.'],
   ['Sala', 'Plano de tu local con zonas por camarero, app de sala en el móvil de tu equipo con informe por camarero y conexión con tu TPV.'],
 ];

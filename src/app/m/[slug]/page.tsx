@@ -8,6 +8,7 @@ import { nombreAlergeno } from '@/lib/alergenos';
 import BotonesMesa from '@/components/carta/BotonesMesa';
 import CarruselBanners from '@/components/carta/CarruselBanners';
 import CartaAutor from '@/components/carta/CartaAutor';
+import CartaPremium from '@/components/carta/CartaPremium';
 import FichaPlato from '@/components/carta/FichaPlato';
 import { EtiquetaPlato, PrecioAnterior, ComboPlato } from '@/components/carta/ExtrasPlato';
 import Reservar from '@/components/carta/Reservar';
@@ -97,7 +98,7 @@ export default async function CartaPublica({
     return <>{selector}<CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} legal={legal} /></>;
   }
 
-  const plantilla = ['visual', 'express', 'editorial'].includes(carta.plantilla ?? '') ? (carta.plantilla as string) : 'clasica';
+  const plantilla = ['visual', 'express', 'editorial', 'premium'].includes(carta.plantilla ?? '') ? (carta.plantilla as string) : 'clasica';
   const fondo = FONDO[carta.estiloFondo ?? 'papel'] ?? FONDO.papel;
   const letra = carta.estiloLetra === 'serif' || plantilla === 'editorial' ? `carta-serif ${serifCarta.variable}` : '';
   const color = carta.colorMarca || '#6E0C2B';
@@ -113,6 +114,43 @@ export default async function CartaPublica({
   const fotoPortada = carta.portadaUrl || grupos.flatMap((g) => g.platos).find((p) => p.fotoUrl)?.fotoUrl || null;
   const ancho = plantilla === 'visual' ? 'max-w-5xl' : 'max-w-2xl';
   const reservar = <Reservar slug={carta.slug} color={color} nombreLocal={carta.nombre} />;
+
+  // Carta Premium (12/10, karc0): estilo incluido en todos los planes; sustituye a la Carta de Autor de pago.
+  if (plantilla === 'premium') {
+    const oscuro = carta.estiloFondo !== 'papel' && carta.estiloFondo !== 'blanco';
+    return (
+      <main className={`min-h-screen ${serifCarta.variable}`} style={{ background: oscuro ? '#0B0A09' : '#F8F3EA' }}>
+        <CartaPremium
+          carta={carta} grupos={grupos} nombres={nombres} color={color} oscuro={oscuro}
+          serifClase={serifCarta.className} accion={reservar} portadaFallback={fotoPortada}
+          tras={<>
+            {desdeRespaldo && <p className="bg-amber-50 px-5 py-2 text-center text-xs text-amber-800">Puede que esta carta no refleje los últimos cambios en los próximos minutos.</p>}
+            {selector}
+            <CarruselBanners banners={banners} color={color} />
+          </>}
+        />
+        <div className={`mx-auto max-w-3xl px-5 pb-28 ${oscuro ? 'text-white' : ''}`}>
+          {alergenosEnCarta.length > 0 && (
+            <section className={`rounded-[24px] p-6 ring-1 ${oscuro ? 'bg-white/[0.04] ring-white/10' : 'bg-white ring-black/[0.05]'}`}>
+              <h2 className="text-sm font-semibold">Alérgenos</h2>
+              <p className="mt-1 text-xs leading-relaxed opacity-60">Información facilitada conforme al Reglamento (UE) 1169/2011. Si tienes una alergia o intolerancia, consúltalo con el personal antes de pedir: en cocina pueden existir trazas que no figuran en la carta.</p>
+              <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+                {alergenosEnCarta.map((codigo) => <li key={codigo} className="text-xs opacity-70"><span className="font-semibold">{codigo}</span> {nombres[codigo]}</li>)}
+              </ul>
+            </section>
+          )}
+          {ampliado && carta.urlResenas && (
+            <a href={carta.urlResenas} target="_blank" rel="noopener" className={`mt-6 block rounded-2xl border p-4 text-center text-sm font-semibold ${oscuro ? 'border-white/15' : 'border-black/10 bg-white'}`}>¿Te ha gustado? Déjanos tu reseña en Google</a>
+          )}
+          <footer className="mt-8 text-center text-[11px] opacity-40">
+            {legal && <span className="mb-1 block"><a href={`/m/${carta.slug}/legal#aviso`} className="hover:underline">Aviso legal</a> · <a href={`/m/${carta.slug}/legal#privacidad`} className="hover:underline">Privacidad</a></span>}
+            Carta digital de {carta.nombre} · Tecnología de <a href="https://dkitchencorporate.es/qr" className="hover:underline">DKitchen</a>
+          </footer>
+        </div>
+        <BotonesMesa slug={carta.slug} color={color} />
+      </main>
+    );
+  }
 
   return (
     <main className={`min-h-screen ${fondo} ${letra}`} style={{ '--marca': color } as CSSProperties}>

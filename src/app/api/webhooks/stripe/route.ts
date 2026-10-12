@@ -412,6 +412,12 @@ async function altaQr(ctx: Contexto) {
       .catch((e) => console.error('Datos del local no guardados:', e));
   }
   // Marca para distinguir un reenvío de Stripe de un segundo local con el mismo correo.
-  await stripe('POST', `/subscriptions/${ctx.suscripcion}`, { metadata: { alta_hecha: 'si' } }).catch(() => {});
+  const sub = await stripe('POST', `/subscriptions/${ctx.suscripcion}`, { metadata: { alta_hecha: 'si' } }).catch(() => null);
+  // Fecha del primer cobro (fin de la prueba) para el panel del cliente (0072). Nunca tumba el alta.
+  const finPrueba = Number(sub?.trial_end ?? 0);
+  if (finPrueba > 0) {
+    await comoAprovisionamiento((c) => c.query('SELECT dk.fijar_primer_cobro($1, $2::date)', [ctx.cliente, new Date(finPrueba * 1000).toISOString().slice(0, 10)]))
+      .catch((e) => console.error('Primer cobro no guardado:', e));
+  }
   return ok({ aprovisionado: true });
 }

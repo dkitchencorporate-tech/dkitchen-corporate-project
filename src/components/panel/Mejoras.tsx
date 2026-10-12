@@ -54,7 +54,6 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
       </button>
     );
 
-  const experto = precio('setup_experto');
   const esencial = precio('setup_esencial');
   const credito = servicios.credito;
   const diasCredito = credito ? Math.max(0, Math.ceil((new Date(credito.venceEn).getTime() - Date.now()) / 86400000)) : 0;
@@ -77,28 +76,16 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-vino">Niveles de diseño</p>
           <h3 className="font-display mt-1 text-2xl font-semibold tracking-tight">Tu carta es tu escaparate. Que se vea a la altura de tu cocina.</h3>
-          <p className="mt-1 text-sm text-niebla">Tú gestionas platos, precios y fotos. El diseño lo prepara un experto de DKitchen, una vez, bien hecho.</p>
+          <p className="mt-1 text-sm text-niebla">Tú gestionas platos, precios y fotos. El estilo Premium va incluido en tu plan; Signature es tu propia app.</p>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
           <NivelCard titulo="Esencial" subtitulo="Incluida en tu plan" actual={restaurante.nivelDiseno === 'esencial'}
             puntos={['Carta clara por categorías', 'Tu logo y un color de la paleta', 'Fotos pequeñas por plato']}
             maqueta={<MaquetaEsencial />} />
-          <NivelCard titulo="Carta de Autor" subtitulo="Diseño de autor hecho por DKitchen" destacada actual={restaurante.nivelDiseno === 'autor'}
-            puntos={['Portada editorial con tu mejor foto', 'Personalización: tus colores exactos, tipografía y estilo', 'Categorías en tarjetas con imagen', 'Te cargamos toda la carta y optimizamos tus fotos', 'Flyers de mesa y QR físicos con tu diseño', 'Sesión de formación para ti y tu equipo']}
+          <NivelCard titulo="Premium" subtitulo="Incluida en tu plan · sin coste" destacada actual={restaurante.nivelDiseno === 'autor' || restaurante.plantilla === 'premium'}
+            puntos={['Portada a pantalla completa con tu mejor foto', 'Buscador y «Sorpréndeme» para tus clientes', '«Los que más salen» y categorías fijas al bajar', 'Fichas grandes con foto y alérgenos', 'Modo Noir con fondo Oscuro']}
             maqueta={<MaquetaAutor />}
-            pie={
-              <div className="space-y-2">
-                {experto && (
-                  <p className="text-center">
-                    {experto.precioAnclaCentimos && servicios.plazasExperto > 0 && <span className="mr-2 text-sm text-niebla line-through">{euros(experto.precioAnclaCentimos)}</span>}
-                    <span className="text-2xl font-black">{euros(experto.precioCentimos)}</span> <span className="text-xs text-niebla">pago único</span>
-                  </p>
-                )}
-                {servicios.plazasExperto > 0 && <p className="text-center text-xs font-semibold text-vino">Precio de lanzamiento · quedan {servicios.plazasExperto} de 20 plazas</p>}
-                <a href="/panel/vista-previa" target="_blank" rel="noopener" className="block rounded-xl border border-linea-fuerte py-2.5 text-center text-sm font-semibold hover:border-linea-fuerte">Ver mi carta con este diseño</a>
-                <Boton s="setup_experto" texto="Quiero mi Carta de Autor" />
-              </div>
-            } />
+            pie={<a href="/panel?pestana=diseno" className="block rounded-xl bg-vino py-2.5 text-center text-sm font-semibold text-white">Activar en Carta → Diseño</a>} />
           <NivelCard titulo="DKitchen Signature" subtitulo="Tu propia app, con tu marca y en propiedad" actual={restaurante.nivelDiseno === 'signature'}
             puntos={['App instalable (PWA) con tu marca y tu dominio', 'Tus clientes piden y pagan: en mesa, recogida y domicilio', 'Comandas a cocina, TPV propio e historial de ventas', 'El código de tu app es tuyo: entrada única y desde 99 €/mes según tus ventas']}
             maqueta={<MaquetaSignature />}

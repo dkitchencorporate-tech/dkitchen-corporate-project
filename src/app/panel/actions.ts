@@ -580,7 +580,7 @@ export async function asignarMesasAction(camareroId: string | null, mesaIds: str
 
 /** Estilo de la carta elegido por el cliente (0031). Lista blanca aquí y en la base. */
 export async function guardarEstiloAction(e: { plantilla: string; fondo: string; letra: string; color: string }) {
-  if (!['clasica', 'editorial', 'visual', 'express'].includes(e?.plantilla) || !['papel', 'blanco', 'oscuro'].includes(e?.fondo)
+  if (!['premium', 'clasica', 'editorial', 'visual', 'express'].includes(e?.plantilla) || !['papel', 'blanco', 'oscuro'].includes(e?.fondo)
       || !['sans', 'serif'].includes(e?.letra) || !/^#[0-9a-f]{6}$/i.test(e?.color ?? '')) throw new Error('Estilo no válido.');
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   await guardarEstilo(jwt, restaurante.id, { ...e, color: e.color.toUpperCase() }).catch((err: unknown) => {

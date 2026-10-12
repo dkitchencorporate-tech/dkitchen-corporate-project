@@ -56,7 +56,6 @@ const MODULOS: Linea[] = [
 ];
 const SERVICIOS: Linea[] = [
   { nombre: 'Puesta a punto', detalle: `Carta cargada, conexión con tu TPV, formación de tu equipo y fotos con IA · ${eur(SERVICIOS_QR.puestaAPuntoBienvenida)} si la pides al darte de alta, antes de montar tu carta`, precio: eur(SERVICIOS_QR.puestaAPunto) },
-  { nombre: 'Carta de Autor', detalle: 'Diseño de carta a medida, con tu identidad', precio: eur(SERVICIOS_QR.cartaDeAutor) },
   { nombre: 'Idioma extra', detalle: `Español e inglés ya van incluidos; cada idioma más, traducido por DKitchen`, precio: `${eur(SERVICIOS_QR.idiomaExtra)} por idioma` },
   { nombre: 'Bono de imágenes con IA', detalle: `${SERVICIOS_QR.imagenesBonoIa} fotos de plato (${SERVICIOS_QR.imagenesGratisIa} gratis siempre)`, precio: eur(SERVICIOS_QR.bonoIa) },
   { nombre: 'Etiquetas QR para mesas', detalle: `Desde ${QR_FISICOS.etiquetas.tandas[0].unidades} unidades`, precio: `desde ${eur(QR_FISICOS.etiquetas.tandas[0].precio)}` },

@@ -7,9 +7,10 @@ import { guardarEstiloAction } from '@/app/panel/actions';
 /**
  * Selectores de estilo de la carta (0031): estilo, fondo, letra y color de
  * una paleta curada. Vista previa en vivo antes de guardar. Solo nivel
- * Esencial: en Carta de Autor el diseño es de DKitchen.
+ * Esencial. «Premium» (12/10) sustituye a la Carta de Autor de pago y va incluido en todos los planes.
  */
 export const ESTILOS = [
+  { id: 'premium', nombre: 'Premium', para: 'El más completo, incluido en tu plan. Portada a pantalla completa, buscador, «Los que más salen» y fichas grandes. Con fondo Oscuro queda en modo Noir.', muestra: ['Portada a sangre con tu foto', 'Buscador y «Sorpréndeme»', 'Categorías fijas al bajar', 'Fichas grandes con foto'] },
   { id: 'clasica', nombre: 'Clásico', para: 'Restaurante y menú del día. Lista ordenada, fácil de leer.', muestra: ['Foto pequeña junto al plato', 'Banners arriba'] },
   { id: 'editorial', nombre: 'Editorial', para: 'Cocina de autor y vinos. Tipografía protagonista, precios con línea de puntos.', muestra: ['Sin fotos en la lista (se ven al abrir el plato)', 'Banners arriba'] },
   { id: 'visual', nombre: 'Visual', para: 'Brunch, hamburguesas, gastro. La foto de cada plato vende.', muestra: ['Foto grande de portada', 'Foto grande en cada plato', 'Banners arriba'] },
@@ -33,7 +34,7 @@ const FOTOS_EJEMPLO = ['/images/demo/s5.png', '/images/demo/s18.png', '/images/d
 
 function Vista({ e, nombre, fotos, portada = null, portadaConNombre = false, logo = null }: { e: Estilo; nombre: string; fotos: string[]; portada?: string | null; portadaConNombre?: boolean; logo?: string | null }) {
   const img = (i: number) => fotos.length ? fotos[i % fotos.length] : FOTOS_EJEMPLO[i];
-  const conFoto = e.plantilla === 'visual' || e.plantilla === 'clasica';
+  const conFoto = e.plantilla === 'visual' || e.plantilla === 'clasica' || e.plantilla === 'premium';
   const f = FONDOS.find((x) => x.id === e.fondo) ?? FONDOS[0];
   const serif = e.letra === 'serif' ? 'Georgia, "Times New Roman", serif' : 'inherit';
   const suave = f.id === 'oscuro' ? 'rgba(243,241,236,.55)' : 'rgba(0,0,0,.5)';

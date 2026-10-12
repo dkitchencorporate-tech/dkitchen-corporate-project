@@ -158,20 +158,20 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     claves: ['diseno', 'color', 'colores', 'letra', 'fuente', 'estilo', 'plantilla', 'fondo', 'bonita', 'aspecto', 'logo'],
     respuesta: [
       'En Carta → Diseño eliges plantilla, colores y tipo de letra, y ves el resultado al momento.',
-      'Si tienes la Carta de Autor o Signature, el diseño lo lleva DKitchen: pide el cambio a una persona y lo hacemos contigo.',
-      'Si quieres una carta diseñada a medida, desde cero, eso es la Carta de Autor.',
+      'El estilo Premium va incluido en tu plan: portada a pantalla completa, buscador, «Los que más salen» y fichas grandes. Con fondo Oscuro queda en modo Noir.',
+      'Si tienes Signature, el diseño lo lleva DKitchen: pide el cambio a una persona y lo hacemos contigo.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'diseno', texto: 'Ir a Diseño' }],
     siguientes: ['carta-autor'], ofrecerPuesta: true,
   },
   {
-    id: 'carta-autor', pregunta: 'Qué es la Carta de Autor', secciones: ['diseno'],
-    claves: ['carta de autor', 'autor', 'a medida', 'disenador', 'personalizada', 'experto'],
+    id: 'carta-autor', pregunta: 'Qué es el estilo Premium', secciones: ['diseno'],
+    claves: ['carta de autor', 'autor', 'premium', 'a medida', 'disenador', 'personalizada', 'experto'],
     respuesta: [
-      `Es un diseño único para tu local, hecho por DKitchen desde cero: identidad, fotos y estructura. Pago único de ${SERVICIOS_QR.cartaDeAutor} € + IVA.`,
-      'No entra en la prueba gratuita. Lo tienes en Carta → Diseño.',
+      'Es el estilo más completo de la carta y va incluido en todos los planes, sin pagar nada más: portada a pantalla completa con tu foto, buscador, «Sorpréndeme», categorías fijas y fichas grandes.',
+      'La Carta de Autor de pago ya no existe: su nivel de diseño ahora es el estilo Premium. Lo activas en Carta → Diseño.',
     ],
-    acciones: [{ tipo: 'ir', pestana: 'diseno', texto: 'Ver la Carta de Autor' }],
+    acciones: [{ tipo: 'ir', pestana: 'diseno', texto: 'Activar el estilo Premium' }],
     siguientes: ['diseno'],
   },
   {
@@ -321,7 +321,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     id: 'modulos', pregunta: 'Qué módulos puedo añadir', secciones: ['modulos', 'sala'],
     claves: ['modulo', 'mejora', 'pack sala', 'tpv', 'app sala', 'extra', 'anadir servicio'],
     respuesta: [
-      'En Negocio → Mejoras tienes extras de pago único: idiomas además del español y el inglés, la puesta a punto, la Carta de Autor y bonos de imágenes con IA. No hay módulos con cuota aparte.',
+      'En Negocio → Mejoras tienes extras de pago único: idiomas además del español y el inglés, la puesta a punto y bonos de imágenes con IA. No hay módulos con cuota aparte.',
       'Cada módulo muestra su precio antes de pagar y se activa al momento.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'modulos', texto: 'Ver Mejoras' }],
@@ -417,7 +417,6 @@ export const TEMAS_WEB: TemaAyuda[] = [
     claves: ['no tengo tiempo', 'no se', 'montar', 'configurar', 'ayuda', 'hacerlo por mi', 'puesta a punto', 'setup'],
     respuesta: [
       `Te la dejamos lista nosotros con la Puesta a punto: ${SERVICIOS_QR.puestaAPunto} € + IVA, pago único. Un experto de DKitchen sube tu carta, textos, alérgenos, fotos, horarios y tu ficha de Google.`,
-      `Si quieres un diseño único hecho desde cero para tu local, está la Carta de Autor (${SERVICIOS_QR.cartaDeAutor} € + IVA).`,
     ],
     acciones: [{ tipo: 'solicitud', interes: 'dudas', texto: 'Quiero que me la montéis' }],
     siguientes: ['precio-qr'],
