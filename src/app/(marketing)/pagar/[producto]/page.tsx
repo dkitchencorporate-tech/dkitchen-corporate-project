@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
-import { BASE_OPERATIVA } from '@/lib/pricing-config';
+import { BASE_OPERATIVA, FUNDADOR } from '@/lib/pricing-config';
+import { estadoFundador } from '@/lib/fundador';
 import PagoDirecto from '@/components/pago/PagoDirecto';
 import { FondoVivo, TextoRevelado } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
@@ -24,6 +25,9 @@ function modeloLegible(producto: string, modelo: string) {
   return [formato?.nombre, dia, aforo].filter(Boolean).join(' · ');
 }
 
+// La oferta Fundador depende del estado vivo de la base (0070).
+export const revalidate = 300;
+
 export function generateStaticParams() {
   return Object.keys(PRODUCTOS_PAGO).map((producto) => ({ producto }));
 }
@@ -37,6 +41,7 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
   const p = PRODUCTOS_PAGO[(await params).producto];
   if (!p) notFound();
   const modelo = String((await searchParams).modelo ?? '').replace(/[^a-z0-9 áéíóúñ-]/gi, '').slice(0, 40);
+  const fundador = p.id === 'signature' ? await estadoFundador() : null;
 
   return (
     <div className="bg-crema text-tinta">
@@ -47,6 +52,13 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
           <p className="etiqueta-dk mt-8 text-oro">{p.registro ? 'Solicitar' : 'Contratar'} {p.nombre}{modelo && modeloLegible(p.id, modelo) ? ` · ${modeloLegible(p.id, modelo)}` : ''}</p>
           <TextoRevelado como="h1" texto={p.titular} className="font-display mt-4 max-w-3xl text-[42px] font-semibold leading-[1.02] sm:text-6xl" />
           <Aparecer retraso={0.2}><p className="mt-6 max-w-2xl text-lg text-white/70">{p.resumen}</p></Aparecer>
+          {fundador?.abierto && (
+            <Link href="/pagar/signature-fundador" className="mt-8 block max-w-2xl rounded-2xl border border-oro/50 bg-oro/10 p-5 transition hover:bg-oro/15">
+              <span className="etiqueta-dk text-oro">Oferta de lanzamiento · precio de fundador · quedan {fundador.quedan} de {fundador.plazas} plazas</span>
+              <span className="mt-2 block text-xl font-semibold">Entrada {FUNDADOR.signature.entrada} € en lugar de {BASE_OPERATIVA.pagoUnico} € y {FUNDADOR.signature.mensual} €/mes el primer año →</span>
+              <span className="mt-1 block text-sm text-white/60">Pago único, sin cuotas · precios + IVA · contratar con el precio de fundador</span>
+            </Link>
+          )}
         </div>
       </section>
 
