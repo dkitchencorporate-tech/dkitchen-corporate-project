@@ -9,6 +9,7 @@ import {
   QR_MENU, QR_FISICOS, SERVICIOS_QR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES, DARK_KITCHEN, FUNDADOR, formatPrecio, puntosPlanQr,
 } from '@/lib/pricing-config';
 import { estadoFundador } from '@/lib/fundador';
+import { WHATSAPP_DEMO } from '@/lib/whatsapp';
 import ContadorFundador from '@/components/fundador/ContadorFundador';
 
 // El contador Fundador sale de la base: la página se regenera cada 5 minutos.
@@ -23,9 +24,20 @@ export const revalidate = 300;
 const URL_PRECIOS = 'https://dkitchencorporate.es/precios';
 const eur = (n: number) => formatPrecio(n) as string;
 
+/** Comparativa por categorías (sin nombrar marcas de terceros). */
+const COMPARATIVA: [string, string, string, string][] = [
+  ['Carta digital con el diseño de tu local', 'Plantilla igual para todos', 'Sí, a precio de proyecto', 'Sí, con tu estilo desde el plan Carta'],
+  ['App propia con tu marca y pedidos sin comisión', 'No', 'A medida y cara', `Signature: entrada ${BASE_OPERATIVA.pagoUnico} € + IVA`],
+  ['Eventos para llenar los días flojos', 'No', 'No', `Experience: desde ${EXPERIENCE.tarifas.primeraVez.precio} € + IVA`],
+  ['Google Maps, redes y carta que vende', 'No', 'A veces, aparte', 'Incluido en el arranque de Signature'],
+  ['Comandas, mesas y reservas', 'Sí', 'No', 'Sí, en todos los planes QR'],
+  ['Ticket fiscal (VeriFactu)', 'Sí', 'No', 'Lo hace tu TPV; nos conectamos a él. Si no tienes, te ayudamos a montar uno'],
+  ['Alguien que viene a tu local', 'Soporte a distancia', 'Reuniones', 'Sí: estamos en la calle, en tu zona'],
+];
+
 export const metadata: Metadata = {
   title: 'Precios: carta QR y app propia para restaurantes · DKitchen Corporate',
-  description: `Carta QR desde ${QR_MENU.planes.basico.mensual} €/mes; plan ${QR_MENU.planes.ampliado.nombre} con el primer mes a ${QR_MENU.primerMes} €. App propia desde ${BASE_OPERATIVA.pagoUnico} €. Módulos de sala y eventos. Sin comisiones. Precios + IVA.`,
+  description: `Carta QR desde ${QR_MENU.planes.basico.mensual} €/mes; plan ${QR_MENU.planes.ampliado.nombre} con el primer mes a ${QR_MENU.primerMes} €. App propia desde ${BASE_OPERATIVA.pagoUnico} €. Sala con TPV y comandero incluidos, y eventos. Sin comisiones. Precios + IVA.`,
   alternates: { canonical: URL_PRECIOS },
 };
 
@@ -133,7 +145,7 @@ export default async function PaginaPrecios() {
         <div className="relative mx-auto max-w-6xl px-6 md:px-8">
           <Aparecer><p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/80"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-vino" /> Precios · todo + IVA</p></Aparecer>
           <TextoRevelado como="h1" texto="Precios claros. Cero comisiones." className="font-display mt-6 max-w-4xl text-[46px] font-semibold leading-[0.98] sm:text-7xl lg:text-[84px]" />
-          <Aparecer retraso={0.3}><p className="mt-7 max-w-2xl text-lg leading-relaxed text-white/70">Lo que cuesta cada cosa, sin letra pequeña. Empieza con la carta QR por {eur(QR_MENU.primerMes)} el primer mes y suma solo lo que tu sala necesite.</p></Aparecer>
+          <Aparecer retraso={0.3}><p className="mt-7 max-w-2xl text-lg leading-relaxed text-white/70">Lo que cuesta cada cosa, sin letra pequeña. Empieza con la carta QR por {eur(QR_MENU.primerMes)} el primer mes o ve directo a tu propia app. Cada plan lo trae todo; solo cambian las cantidades.</p></Aparecer>
           <Aparecer retraso={0.4} className="mt-9 flex flex-col gap-3 sm:flex-row">
             <BotonMagnetico href="/qr#planes" className="inline-flex items-center justify-center rounded-full bg-vino px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(163,24,74,.45)]">Empezar por {eur(QR_MENU.primerMes)} →</BotonMagnetico>
             <BotonMagnetico href="#signature" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-8 py-4 text-[15px] font-semibold">Ver tu app propia</BotonMagnetico>
@@ -233,6 +245,40 @@ export default async function PaginaPrecios() {
           </div>
         </section>
       ))}
+
+      <section className="border-t border-linea bg-white py-24 md:py-32">
+        <div className="mx-auto max-w-5xl px-6 md:px-8">
+          <Titulo etiqueta="Antes de comparar" texto="Un TPV cobra. Una marca vende." centrado />
+          <p className="mx-auto mt-5 max-w-2xl text-center text-niebla">Un TPV te deja la caja en orden y una agencia te hace una web. DKitchen te da la marca, la app y los eventos, y se conecta con el TPV que ya tienes.</p>
+          <div className="mt-12 overflow-x-auto">
+            <table className="w-full min-w-[620px] border-collapse text-left text-[15px]">
+              <thead>
+                <tr className="border-b-2 border-tinta">
+                  <th className="py-4 pr-4 font-semibold">Lo que necesitas</th>
+                  <th className="px-3 py-4 font-semibold text-niebla">TPV de cuota mensual</th>
+                  <th className="px-3 py-4 font-semibold text-niebla">Agencia web</th>
+                  <th className="px-3 py-4 font-semibold text-vino">DKitchen</th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARATIVA.map(([q, tpv, agencia, dk]) => (
+                  <tr key={q} className="border-b border-linea align-top">
+                    <td className="py-4 pr-4 font-semibold">{q}</td>
+                    <td className="px-3 py-4 text-niebla">{tpv}</td>
+                    <td className="px-3 py-4 text-niebla">{agencia}</td>
+                    <td className="px-3 py-4 font-semibold">{dk}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-4 text-xs text-niebla">Comparativa orientativa con soluciones habituales del mercado; cada proveedor tiene sus condiciones.</p>
+          <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link href="/signature" className="inline-flex justify-center rounded-full bg-vino px-7 py-3.5 text-[15px] font-semibold text-white">Ver Signature →</Link>
+            <a href={WHATSAPP_DEMO} target="_blank" rel="noopener noreferrer" className="inline-flex justify-center rounded-full border border-tinta px-7 py-3.5 text-[15px] font-semibold">Pedir demo por WhatsApp</a>
+          </div>
+        </div>
+      </section>
 
       <section className="bg-crema py-24 md:py-32">
         <div className="mx-auto max-w-3xl px-6 md:px-8">

@@ -1,6 +1,7 @@
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
 import ChatWeb from '@/components/ChatWeb';
+import FloatingWhatsApp from '@/components/FloatingWhatsApp';
 import ExitIntent from '@/components/ExitIntent';
 import LenisProvider from '@/components/motion/LenisProvider';
 import PageTransition from '@/components/motion/PageTransition';
@@ -34,6 +35,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         <PageTransition>{children}</PageTransition>
       </main>
       <Footer />
+      <FloatingWhatsApp />
       <ChatWeb />
     </>
   );

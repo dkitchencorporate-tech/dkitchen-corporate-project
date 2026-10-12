@@ -366,18 +366,18 @@ export const TEMAS_WEB: TemaAyuda[] = [
     id: 'que-es', pregunta: 'Qué hace DKitchen',
     claves: ['que es', 'que haceis', 'dkitchen', 'servicio', 'quienes'],
     respuesta: [
-      'Ayudamos a restaurantes a vender más con su propia tecnología: carta digital QR, app con tu marca (Signature), eventos (Experience) y marcas virtuales para tu cocina.',
-      `Lo más rápido para empezar es la carta digital QR: primer mes por ${PRIMER_MES} € + IVA.`,
+      'Ayudamos a restaurantes a vender más con su propia marca: app con tu marca y pedidos sin comisiones (Signature), eventos para los días flojos (Experience), carta digital QR y marcas virtuales para tu cocina.',
+      `Lo más rápido para empezar es la carta digital QR: con el plan Local, el primer mes cuesta ${PRIMER_MES} € + IVA.`,
     ],
-    acciones: [{ tipo: 'enlace', href: '/qr', texto: 'Ver la carta QR' }],
-    siguientes: ['precio-qr', 'signature'],
+    acciones: [{ tipo: 'enlace', href: '/signature', texto: 'Ver Signature' }, { tipo: 'enlace', href: '/qr', texto: 'Ver la carta QR' }],
+    siguientes: ['signature', 'precio-qr', 'tpv-web'],
   },
   {
     id: 'precio-qr', pregunta: 'Cuánto cuesta la carta QR',
     claves: ['precio', 'cuesta', 'cuanto', 'tarifa', 'coste', 'mes', 'mensual', 'barato', 'qr', 'carta'],
     respuesta: [
       `Plan Carta: ${BASICO} € + IVA al mes. Plan Local: ${AMPLIADO} € + IVA al mes (el primer mes, 1 €). Plan Sala: ${SALA} € + IVA al mes, todo incluido.`,
-      `El primer mes cuesta ${PRIMER_MES} € + IVA en cualquiera de los dos. Sin permanencia: cancelas desde tu panel.`,
+      `La oferta de ${PRIMER_MES} € + IVA el primer mes es del plan Local. Sin permanencia: cancelas desde tu panel.`,
     ],
     acciones: [{ tipo: 'enlace', href: '/qr#planes', texto: 'Ver planes' }],
     siguientes: ['prueba-web', 'incluye', 'puesta-web'],
@@ -386,7 +386,7 @@ export const TEMAS_WEB: TemaAyuda[] = [
     id: 'prueba-web', pregunta: 'Hay prueba o permanencia',
     claves: ['prueba', 'gratis', 'permanencia', 'contrato', 'cancelar', 'compromiso', '1 euro'],
     respuesta: [
-      `El primer mes cuesta ${PRIMER_MES} € + IVA. Después se cobra tu plan cada mes y puedes cancelar cuando quieras desde el panel.`,
+      `En el plan Local el primer mes cuesta ${PRIMER_MES} € + IVA. Después se cobra tu plan cada mes y puedes cancelar cuando quieras desde el panel.`,
       'No hay permanencia ni letra pequeña.',
     ],
     acciones: [{ tipo: 'enlace', href: '/qr#planes', texto: `Empezar por ${PRIMER_MES} €` }],
@@ -400,7 +400,17 @@ export const TEMAS_WEB: TemaAyuda[] = [
       'Todos los planes traen plano de mesas, app de sala, conexión con tu TPV, comandero y español + inglés; Local y Sala suben las cantidades y añaden más banners y reseñas de Google.',
     ],
     acciones: [{ tipo: 'enlace', href: '/qr', texto: 'Ver cómo funciona' }],
-    siguientes: ['precio-qr', 'puesta-web'],
+    siguientes: ['precio-qr', 'tpv-web', 'puesta-web'],
+  },
+  {
+    id: 'tpv-web', pregunta: 'Funciona con mi TPV',
+    claves: ['tpv', 'caja', 'caja registradora', 'verifactu', 'ticketbai', 'factura', 'ticket', 'sumup', 'datafono'],
+    respuesta: [
+      'Sí. DKitchen no sustituye tu TPV: tu carta, tus mesas y tu comandero envían las comandas al TPV que ya tienes, y el ticket fiscal (VeriFactu) lo sigue haciendo él.',
+      'Si todavía no tienes TPV, te ayudamos a elegir uno y a montarlo, por ejemplo SumUp, que ya usamos como pasarela de pago.',
+    ],
+    acciones: [{ tipo: 'enlace', href: '/qr', texto: 'Ver la carta QR' }, { tipo: 'solicitud', interes: 'dudas', texto: 'Cuéntanos tu caso' }],
+    siguientes: ['incluye', 'signature'],
   },
   {
     id: 'puesta-web', pregunta: 'No tengo tiempo de montarla yo',
