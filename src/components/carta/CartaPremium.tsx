@@ -16,13 +16,13 @@ import { EtiquetaPlato, PrecioAnterior, ComboPlato } from '@/components/carta/Ex
  * con el color de la marca como acento.
  */
 
-type Tema = { fondo: string; superficie: string; tinta: string; suave: string; linea: string; vidrio: string };
+type Tema = { fondo: string; superficie: string; tinta: string; suave: string; linea: string; vidrio: string; precio: string };
 const TEMAS: Record<'noir' | 'crema', Tema> = {
-  noir: { fondo: '#0B0A09', superficie: '#16140F', tinta: '#F4EEE4', suave: 'rgba(244,238,228,.62)', linea: 'rgba(255,255,255,.09)', vidrio: 'rgba(22,20,15,.72)' },
-  crema: { fondo: '#F8F3EA', superficie: '#FFFFFF', tinta: '#1F1A15', suave: 'rgba(31,26,21,.6)', linea: 'rgba(31,26,21,.1)', vidrio: 'rgba(255,253,248,.82)' },
+  noir: { fondo: '#0B0A09', superficie: '#16140F', tinta: '#F4EEE4', suave: 'rgba(244,238,228,.62)', linea: 'rgba(255,255,255,.09)', vidrio: 'rgba(22,20,15,.72)', precio: '#F2C14E' },
+  crema: { fondo: '#F8F3EA', superficie: '#FFFFFF', tinta: '#1F1A15', suave: 'rgba(31,26,21,.6)', linea: 'rgba(31,26,21,.1)', vidrio: 'rgba(255,253,248,.82)', precio: '#5C0820' },
 };
 
-const euros = (p: string) => `${Number(p).toLocaleString('es-ES', { minimumFractionDigits: Number(p) % 1 ? 2 : 0, maximumFractionDigits: 2 })} €`;
+const euros = (p: string) => `${Number(p).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 const normal = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 export default function CartaPremium({
@@ -87,8 +87,10 @@ export default function CartaPremium({
   return (
     <div style={vars} className="min-h-screen">
       {/* Portada a sangre */}
-      <header className="relative h-[68vh] min-h-[440px] max-h-[720px] w-full overflow-hidden" style={{ background: '#15120f' }}>
-        {portada && <img src={portada} alt="" className="absolute inset-0 h-full w-full object-cover" />}
+      <header className={`relative w-full overflow-hidden ${carta.portadaConNombre ? 'aspect-[4/3] min-h-[360px] max-h-[640px]' : 'h-[68vh] min-h-[440px] max-h-[720px]'}`} style={{ background: '#15120f' }}>
+        {/* Si la portada ya lleva el nombre escrito (cartel, rótulo), se ve entera: contain sobre la misma foto desenfocada. */}
+        {portada && carta.portadaConNombre && <img src={portada} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-xl" />}
+        {portada && <img src={portada} alt="" className={`absolute inset-0 h-full w-full ${carta.portadaConNombre ? 'object-contain object-top' : 'object-cover'}`} />}
         <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.05) 35%, rgba(0,0,0,.25) 60%, ${t.fondo} 100%)` }} />
         <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3 p-5">
           {carta.logoUrl ? (
@@ -246,7 +248,7 @@ function Fila({ plato, t, color, serif, nombres, brillo }: { plato: PlatoCarta; 
             {plato.descripcion && <span className="mt-1 line-clamp-2 text-[14px] leading-snug" style={{ color: t.suave }}>{plato.descripcion}</span>}
             <ComboPlato plato={plato} />
             <span className="mt-auto flex items-end justify-between gap-2 pt-2">
-              <span className="font-mono text-[17px]" style={{ color }}><PrecioAnterior plato={plato} />{euros(plato.precio)}</span>
+              <span className="font-mono text-[17px] font-semibold" style={{ color: t.precio }}><PrecioAnterior plato={plato} />{euros(plato.precio)}</span>
               {plato.alergenos.length > 0 && (
                 <span className="flex flex-wrap justify-end gap-1">
                   {plato.alergenos.slice(0, 5).map((a) => (
