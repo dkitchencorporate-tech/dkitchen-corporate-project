@@ -5,6 +5,7 @@ import {
   asegurarCliente,
   crearFacturaUnica,
   crearSuscripcion,
+  asegurarCupon,
   finPruebaQr,
   prepararCatalogo,
   stripe,
@@ -94,8 +95,18 @@ const NOMBRE_MANTENIMIENTO = `DKitchen Signature · Mantenimiento tramo Arranque
 async function crearSignature(d: {
   email: string; nombreContacto: string; restauranteNombre: string; telefono?: string; origen: string;
   enCuotas: boolean; extra?: Record<string, string>; destino: string;
+  /** Signature Fundador (0070): entrada de 500 € en pago único y 69 €/mes el primer año. Nunca en cuotas. */
+  fundador?: boolean;
 }): Promise<{ url: string }> {
-  const cliente = await asegurarCliente({ email: d.email, nombre: d.nombreContacto, negocio: d.restauranteNombre, telefono: d.telefono });
+  const fs = FUNDADOR.signature;
+  const [cliente, cupon] = await Promise.all([
+    asegurarCliente({ email: d.email, nombre: d.nombreContacto, negocio: d.restauranteNombre, telefono: d.telefono }),
+    d.fundador
+      ? asegurarCupon(`dk_fundador_signature_${BASE_OPERATIVA.mantenimiento.mensual - fs.mensual}x${fs.meses}`, {
+          nombre: `Fundador Signature ${fs.mensual} €/mes`, centimos: (BASE_OPERATIVA.mantenimiento.mensual - fs.mensual) * 100, meses: fs.meses,
+        })
+      : Promise.resolve(undefined),
+  ]);
   const meta = {
     producto: 'nucleo-operativo',
     email: d.email,
@@ -107,7 +118,7 @@ async function crearSignature(d: {
     ...d.extra,
   };
   const { cuotas, importeCuota } = BASE_OPERATIVA.fraccionado;
-  const id = d.enCuotas
+  const id = d.enCuotas && !d.fundador
     ? await crearSuscripcion({
         cliente,
         cuota: { producto: 'dk_signature_entrada_cuota', nombre: `DKitchen Signature · Entrada en ${cuotas} cuotas`, centimos: importeCuota * 100 },
@@ -116,9 +127,12 @@ async function crearSignature(d: {
     : await crearSuscripcion({
         cliente,
         cuota: { producto: PRODUCTO_MANTENIMIENTO, nombre: NOMBRE_MANTENIMIENTO, centimos: BASE_OPERATIVA.mantenimiento.mensual * 100 },
-        hoy: [{ producto: 'dk_signature_entrada', nombre: 'DKitchen Signature · Entrada (pago único)', centimos: BASE_OPERATIVA.pagoUnico * 100 }],
+        hoy: d.fundador
+          ? [{ producto: 'dk_signature_entrada_fundador', nombre: 'DKitchen Signature · Entrada Fundador (pago único)', centimos: fs.entrada * 100 }]
+          : [{ producto: 'dk_signature_entrada', nombre: 'DKitchen Signature · Entrada (pago único)', centimos: BASE_OPERATIVA.pagoUnico * 100 }],
         finPrueba: dentroDeMeses(BASE_OPERATIVA.mantenimiento.mesesGratis),
-        metadata: { ...meta, fase: 'mantenimiento' },
+        cupon,
+        metadata: { ...meta, fase: 'mantenimiento', ...(d.fundador ? { fundador: 'signature', concepto: `DKitchen Signature Fundador · mantenimiento a ${fs.mensual} €/mes el primer año` } : {}) },
       });
   return { url: urlPago(d.origen, id) };
 }
@@ -179,7 +193,7 @@ export async function crearCheckoutProductoDirecto(datos: {
   if (datos.metadataPago === 'nucleo-operativo') {
     return crearSignature({
       email: datos.email, nombreContacto: datos.nombreContacto, restauranteNombre: datos.restauranteNombre, telefono: datos.telefono,
-      origen: datos.origen, enCuotas: Boolean(datos.fraccionado), destino,
+      origen: datos.origen, enCuotas: Boolean(datos.fraccionado), destino, fundador: datos.id === 'signature-fundador',
       extra: datos.fraccionado ? { ...extra, fraccionado: String(datos.fraccionado.cuotas), ref: datos.fraccionado.ref } : extra,
     });
   }

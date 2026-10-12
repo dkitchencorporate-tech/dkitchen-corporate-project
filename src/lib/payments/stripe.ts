@@ -263,6 +263,26 @@ export interface DatosSuscripcion {
   metadata: Metadata;
   /** Código promocional ya validado (promo_…). */
   promocion?: string;
+  /** Cupón fijo del producto (Signature Fundador). Con cupón, el cobro no admite códigos promocionales. */
+  cupon?: string;
+}
+
+/**
+ * Cupón de importe fijo, creado una sola vez en Stripe con un id estable.
+ * `meses`: cuántos meses se aplica desde que empieza la suscripción (incluida la prueba).
+ */
+export async function asegurarCupon(id: string, d: { nombre: string; centimos: number; meses: number }): Promise<string> {
+  try {
+    await stripe('GET', `/coupons/${id}`);
+  } catch (e) {
+    if (!(e instanceof ErrorStripe) || e.estado !== 404) throw e;
+    try {
+      await stripe('POST', '/coupons', { id, name: d.nombre.slice(0, 40), amount_off: d.centimos, currency: 'eur', duration: 'repeating', duration_in_months: d.meses });
+    } catch (e2) {
+      if (!(e2 instanceof ErrorStripe) || e2.codigo !== 'resource_already_exists') throw e2;
+    }
+  }
+  return id;
 }
 
 /**
@@ -285,8 +305,8 @@ export async function crearSuscripcion(d: DatosSuscripcion): Promise<string> {
     trial_settings: d.finPrueba ? { end_behavior: { missing_payment_method: 'cancel' } } : undefined,
     payment_behavior: 'default_incomplete',
     payment_settings: { save_default_payment_method: 'on_subscription' },
-    discounts: descuentos(d.promocion),
-    metadata: limpiar({ ...d.metadata, [RECETA]: receta({ c: d.cuota, h: d.hoy ?? [], t: d.finPrueba ?? null, m: d.intervaloMeses ?? 1 }) }),
+    discounts: d.cupon ? [{ coupon: d.cupon }] : descuentos(d.promocion),
+    metadata: limpiar({ ...d.metadata, [RECETA]: d.cupon ? undefined : receta({ c: d.cuota, h: d.hoy ?? [], t: d.finPrueba ?? null, m: d.intervaloMeses ?? 1 }) }),
     expand: ['latest_invoice'],
   });
   // Hoy no se cobra nada (upgrade en prueba, enlace sin primer cobro): la

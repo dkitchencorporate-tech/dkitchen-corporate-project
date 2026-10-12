@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { QR_MENU, FUNDADOR } from '@/lib/pricing-config';
+import { QR_MENU, FUNDADOR, BASE_OPERATIVA } from '@/lib/pricing-config';
 import { estadoFundador } from '@/lib/fundador';
 import ContadorFundador from '@/components/fundador/ContadorFundador';
 import ActivarPlanBoton from '@/components/sections/ActivarPlanBoton';
@@ -75,6 +75,23 @@ export default async function Fundador() {
             )}
           </aside>
         </div>
+
+        <section className="mt-6 grid gap-6 rounded-[28px] border border-linea bg-white p-7 md:grid-cols-[1.3fr_1fr] md:items-center md:p-9">
+          <div>
+            <p className="etiqueta-dk text-vino">Signature Fundador · mismas {FUNDADOR.plazas} plazas</p>
+            <h2 className="font-display mt-3 text-3xl font-semibold leading-tight">Tu propia app de pedidos, a precio de fundador.</h2>
+            <p className="mt-3 text-[15px] text-niebla">
+              Entrada de <strong className="text-tinta">{eur(FUNDADOR.signature.entrada)}</strong> en lugar de {eur(BASE_OPERATIVA.pagoUnico)} (pago único),{' '}
+              {BASE_OPERATIVA.mantenimiento.mesesGratis} meses de mantenimiento incluidos y después <strong className="text-tinta">{eur(FUNDADOR.signature.mensual)}/mes</strong> hasta cumplir el primer año
+              (luego, desde {eur(BASE_OPERATIVA.mantenimiento.mensual)}/mes según tu tramo). Precios + IVA.
+            </p>
+          </div>
+          {abierto ? (
+            <Link href="/pagar/signature-fundador" className="block rounded-full bg-vino py-4 text-center text-base font-semibold text-white transition hover:bg-vino-hondo">Quiero Signature Fundador</Link>
+          ) : (
+            <Link href="/signature" className="block rounded-full border border-linea py-4 text-center text-base font-semibold">Ver Signature</Link>
+          )}
+        </section>
       </div>
     </div>
   );

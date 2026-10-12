@@ -134,6 +134,13 @@ export const FUNDADOR = {
   trimestre: 124.2,
   plazas: 100,
   dias: 90,
+  /**
+   * Signature Fundador (karc0, 12/10; 0070): entrada de 500 € + IVA solo en pago único
+   * y mantenimiento a 69 €/mes durante el primer año (cupón de Stripe de 30 € sobre
+   * el tramo Arranque, 12 meses desde el alta); después, la tarifa normal de su tramo.
+   * Comparte las 100 plazas y los 90 días con el Fundador del QR.
+   */
+  signature: { entrada: 500, mensual: 69, meses: 12 },
 } as const;
 
 /**

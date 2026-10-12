@@ -11,7 +11,7 @@ import { enviarCorreoInterno, enviarCorreoCliente, escaparHtml, filasCorreo } fr
 import { PRODUCTOS_PAGO, PRODUCTOS_WEBHOOK_GENERICO } from '@/lib/productos-pago';
 import { crearPedidoNivelB } from '@/lib/pedidos-nivel-b';
 import { dispararTuberiaPostPago } from '@/lib/tuberia-nivel-b';
-import { BASE_OPERATIVA, esPlanQr, nombrePlan } from '@/lib/pricing-config';
+import { BASE_OPERATIVA, FUNDADOR, esPlanQr, nombrePlan } from '@/lib/pricing-config';
 import { firmaWebhookValida, stripe, type ObjetoStripe } from '@/lib/payments/stripe';
 import { pasarSignatureAMantenimiento } from '@/lib/payments/cobros';
 import { avisarCobroFallido } from '@/lib/avisos-impago';
@@ -235,7 +235,20 @@ async function alta(ctx: Contexto) {
 
     case 'nucleo-operativo': {
       const enCuotas = meta.fase === 'cuotas';
-      const importeEntrada = (enCuotas ? BASE_OPERATIVA.fraccionado.cuotas * BASE_OPERATIVA.fraccionado.importeCuota : BASE_OPERATIVA.pagoUnico) * 100;
+      const esFundador = meta.fundador === 'signature';
+      const importeEntrada = (esFundador ? FUNDADOR.signature.entrada : enCuotas ? BASE_OPERATIVA.fraccionado.cuotas * BASE_OPERATIVA.fraccionado.importeCuota : BASE_OPERATIVA.pagoUnico) * 100;
+      if (esFundador && ctx.cliente) {
+        try {
+          const dentro = await comoAprovisionamiento(async (c) => (await c.query<{ ok: boolean }>('SELECT dk.fundador_signature_marcar($1, $2, $3) AS ok', [ctx.cliente, ctx.suscripcion ?? null, meta.email ?? null])).rows[0]?.ok === true);
+          if (!dentro) {
+            await enviarCorreoInterno(`FUNDADOR SIGNATURE FUERA DE PLAZO: ${meta.restauranteNombre || meta.email}`,
+              `<p>Ha pagado Signature Fundador con el programa ya cerrado (plazas o plazo). Se le ha respetado el precio. Revisa en Central.</p>${filasCorreo([['Correo', meta.email], ['Cliente de Stripe', ctx.cliente], ['Suscripción', ctx.suscripcion]])}`).catch(() => {});
+          }
+        } catch (e) {
+          console.error(`No se pudo ocupar la plaza de Fundador Signature (${ctx.idPago}):`, e);
+          return fallo('Fallo marcando Fundador Signature');
+        }
+      }
       try {
         const pedido = await crearPedidoNivelB({
           producto: 'nucleo-operativo',

@@ -6,7 +6,8 @@ import { MovilApp, CalculadoraComisiones, CapitulosSignature } from '@/component
 import { ModelosReales } from '@/components/dk/Modelos';
 import { Titulo } from '@/components/dk/Bloques';
 import ComparativaQr from '@/components/qr-landing/ComparativaQr';
-import { BASE_OPERATIVA } from '@/lib/pricing-config';
+import { BASE_OPERATIVA, FUNDADOR } from '@/lib/pricing-config';
+import { estadoFundador } from '@/lib/fundador';
 
 /**
  * DKitchen Signature (antes «Núcleo Operativo») — rediseño 29/09/2026.
@@ -41,7 +42,11 @@ const PREGUNTAS: [string, string][] = [
   ['¿Qué pasa con la carta QR si ya la tengo?', 'Tu carta y tus datos pasan a Signature, y lo que llevas pagado en módulos de sala se descuenta en parte de la entrada durante los primeros meses.'],
 ];
 
-export default function PaginaSignature() {
+// El bloque Fundador depende del estado vivo de la base (0070).
+export const revalidate = 300;
+
+export default async function PaginaSignature() {
+  const fundador = await estadoFundador();
   const ld = [
     // Precios leídos de pricing-config (SEO bloque 2, 05/10): entrada única + mantenimiento mensual, ambos + IVA.
     { '@context': 'https://schema.org', '@type': 'Product', name: 'DKitchen Signature', description: 'App propia de pedidos para restaurantes, con tu marca y sin comisiones de plataforma.', brand: { '@type': 'Brand', name: 'DKitchen' },
@@ -151,6 +156,13 @@ export default function PaginaSignature() {
             <ul className="mt-6 space-y-2 text-sm text-white/75">
               {['App con tu marca y dominio', 'Pedidos, cocina, fidelización y cierre fiscal', 'Pack de arranque incluido', 'Soporte en español'].map((x) => <li key={x} className="flex gap-2"><span className="text-vino">✓</span>{x}</li>)}
             </ul>
+            {fundador?.abierto && (
+              <Link href="/pagar/signature-fundador" className="mt-6 block rounded-2xl border border-oro/50 bg-oro/10 p-5 transition hover:bg-oro/15">
+                <span className="etiqueta-dk text-oro">Precio de fundador · quedan {fundador.quedan} de {fundador.plazas} plazas</span>
+                <span className="mt-2 block text-lg font-semibold">Entrada {FUNDADOR.signature.entrada} € y {FUNDADOR.signature.mensual} €/mes el primer año →</span>
+                <span className="mt-1 block text-sm text-white/60">Pago único, sin cuotas · + IVA</span>
+              </Link>
+            )}
             <div className="mt-8 space-y-3">
               <Link href="/pagar/signature" className="block text-center w-full rounded-full bg-vino py-4 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(163,24,74,.45)]">Contratar Signature · 700 € + IVA</Link>
               <a href="#solicitud-signature" className="block rounded-full border border-white/20 py-4 text-center text-[15px] font-semibold">Prefiero hablar antes</a>

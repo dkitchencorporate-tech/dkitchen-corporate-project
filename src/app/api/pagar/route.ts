@@ -3,6 +3,7 @@ import { BASE_OPERATIVA } from '@/lib/pricing-config';
 import { NextResponse } from 'next/server';
 import { crearCheckoutProductoDirecto } from '@/lib/payments/cobros';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
+import { estadoFundador } from '@/lib/fundador';
 import { claveDeLimite, ipDeLaPeticion, limiteSuperado } from '@/lib/limite-frecuencia';
 
 /**
@@ -28,6 +29,10 @@ export async function POST(request: Request) {
   const email = txt(b.email, 254), nombre = txt(b.nombre, 80), negocio = txt(b.negocio, 100);
   const telefono = txt(b.telefono, 20).replace(/[^0-9+ ]/g, '');
   if (!p) return NextResponse.json({ error: 'Producto no válido.' }, { status: 400 });
+  // Signature Fundador: el precio solo existe con el programa abierto (lo decide la base).
+  if (p.id === 'signature-fundador' && !(await estadoFundador())?.abierto) {
+    return NextResponse.json({ error: 'Las plazas de fundador están cerradas. Puedes contratar Signature a su precio normal.' }, { status: 409 });
+  }
   if (!nombre || !CORREO.test(email) || !negocio || telefono.replace(/\D/g, '').length < 9) {
     return NextResponse.json({ error: 'Revisa tu nombre, negocio, correo y teléfono.' }, { status: 400 });
   }
