@@ -1,5 +1,6 @@
 import 'server-only';
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { FUNDADOR } from '@/lib/pricing-config';
 
 /**
  * Stripe (08/10/2026, único proveedor de pago; decisión de karc0 del 07/10).
@@ -422,7 +423,8 @@ export async function resumenPago(id: string): Promise<ResumenPago | null> {
       estado: s.status === 'incomplete_expired' || s.status === 'canceled' ? 'caducado' : pagado ? 'pagado' : 'pendiente',
       lineas: f ? lineasDe(f) : [], ...(f ? totalesDe(f) : { baseCentimos: 0, ivaCentimos: 0, totalCentimos: 0 }),
       recurrente: {
-        cuotaCentimos: Number(item.price?.unit_amount ?? 0),
+        // Signature Fundador (0070): el cupón de la cuota la deja en el precio de fundador el primer año.
+        cuotaCentimos: s.metadata?.fundador === 'signature' ? FUNDADOR.signature.mensual * 100 : Number(item.price?.unit_amount ?? 0),
         meses: Number(item.price?.recurring?.interval_count ?? 1),
         desde: s.status === 'trialing' || s.status === 'incomplete' ? (s.trial_end ?? null) : (s.items?.data?.[0]?.current_period_end ?? null),
         nombre: String(s.metadata?.concepto ?? ''),
