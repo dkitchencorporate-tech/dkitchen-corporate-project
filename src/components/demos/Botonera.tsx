@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { FondoVivo } from '@/components/dk/Movimiento';
+import RastreoClics from '@/components/demos/RastreoClics';
 
 /**
  * Botoneras de demos (12/10, encargo flyer v3 §4): destino de los QR del flyer
@@ -18,10 +19,11 @@ export interface Boton {
 export const conOrigen = (href: string, origen: string) =>
   href.startsWith('/') ? `${href}${href.includes('?') ? '&' : '?'}utm_source=${encodeURIComponent(origen)}&utm_medium=qr` : href;
 
-export default function Botonera({ etiqueta, titulo, sub, botones, origen }: { etiqueta: string; titulo: string; sub: string; botones: Boton[]; origen: string }) {
+export default function Botonera({ etiqueta, titulo, sub, botones, origen, qr }: { etiqueta: string; titulo: string; sub: string; botones: Boton[]; origen: string; qr: string | null }) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-noche px-5 pb-24 pt-32 text-white md:pt-40">
       <FondoVivo />
+      <RastreoClics codigo={qr} />
       <div className="relative mx-auto max-w-2xl">
         <p className="etiqueta-dk text-oro">{etiqueta}</p>
         <h1 className="font-display mt-4 text-4xl font-semibold leading-[1.04] md:text-5xl">{titulo}</h1>
@@ -43,9 +45,9 @@ export default function Botonera({ etiqueta, titulo, sub, botones, origen }: { e
             return (
               <li key={b.titulo}>
                 {b.externo ? (
-                  <a href={b.href} target="_blank" rel="noopener" className={clase}>{dentro}</a>
+                  <a href={b.href} target="_blank" rel="noopener" className={clase} data-rastreo={b.titulo}>{dentro}</a>
                 ) : (
-                  <Link href={conOrigen(b.href, origen)} className={clase}>{dentro}</Link>
+                  <Link href={conOrigen(b.href, origen)} className={clase} data-rastreo={b.titulo}>{dentro}</Link>
                 )}
               </li>
             );

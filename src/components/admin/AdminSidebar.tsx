@@ -25,6 +25,7 @@ const MAS = [
   { nombre: 'Oportunidades', href: '/admin-dkitchen/oportunidades' },
   { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' },
   { nombre: 'Fundador', href: '/admin-dkitchen/fundador' },
+  { nombre: 'Campañas y QR', href: '/admin-dkitchen/campanas' },
   { nombre: 'Socios', href: '/admin-dkitchen/socios' },
   { nombre: 'Avisos de fallo', href: '/admin-dkitchen/avisos' },
   { nombre: 'Manual de Central', href: '/admin-dkitchen/manual' },
