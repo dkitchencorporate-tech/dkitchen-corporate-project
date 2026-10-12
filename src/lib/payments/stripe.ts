@@ -295,7 +295,8 @@ export async function crearSuscripcion(d: DatosSuscripcion): Promise<string> {
   const iva = await tipoIva();
   const sub = await stripe('POST', '/subscriptions', {
     customer: d.cliente,
-    items: [{ price_data: { currency: 'eur', product: d.cuota.producto, unit_amount: Math.round(d.cuota.centimos), recurring: { interval: 'month', interval_count: d.intervaloMeses ?? 1 } } }],
+    // El cupón va en la línea de la cuota: así nunca descuenta los cargos de hoy (la entrada).
+    items: [{ price_data: { currency: 'eur', product: d.cuota.producto, unit_amount: Math.round(d.cuota.centimos), recurring: { interval: 'month', interval_count: d.intervaloMeses ?? 1 } }, discounts: d.cupon ? [{ coupon: d.cupon }] : undefined }],
     add_invoice_items: (d.hoy ?? []).map((l) => ({
       price_data: { currency: 'eur', product: l.producto, unit_amount: Math.round(l.centimos) },
       tax_rates: [iva],
@@ -305,7 +306,7 @@ export async function crearSuscripcion(d: DatosSuscripcion): Promise<string> {
     trial_settings: d.finPrueba ? { end_behavior: { missing_payment_method: 'cancel' } } : undefined,
     payment_behavior: 'default_incomplete',
     payment_settings: { save_default_payment_method: 'on_subscription' },
-    discounts: d.cupon ? [{ coupon: d.cupon }] : descuentos(d.promocion),
+    discounts: d.cupon ? undefined : descuentos(d.promocion),
     metadata: limpiar({ ...d.metadata, [RECETA]: d.cupon ? undefined : receta({ c: d.cuota, h: d.hoy ?? [], t: d.finPrueba ?? null, m: d.intervaloMeses ?? 1 }) }),
     expand: ['latest_invoice'],
   });
