@@ -74,9 +74,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function CartaPublica({
   params, searchParams,
-}: { params: Promise<{ slug: string }>; searchParams: Promise<{ lang?: string }> }) {
+}: { params: Promise<{ slug: string }>; searchParams: Promise<{ lang?: string; vista?: string; tema?: string }> }) {
   const { slug } = await params;
-  const { lang } = await searchParams;
+  const { lang, vista, tema } = await searchParams;
   const resultado = await obtenerCartaConRespaldo(slug);
   if (!resultado) notFound();
   const { desdeRespaldo } = resultado;
@@ -94,11 +94,12 @@ export default async function CartaPublica({
   const legal = await obtenerLegalPublico(carta.slug).then(Boolean).catch(() => false);
 
   // Nivel 2 / 3 (asignado por DKitchen): Carta de Autor
-  if (carta.nivelDiseno === 'autor' || carta.nivelDiseno === 'signature') {
+  if (vista !== 'premium' && (carta.nivelDiseno === 'autor' || carta.nivelDiseno === 'signature')) {
     return <>{selector}<CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} legal={legal} /></>;
   }
 
-  const plantilla = ['visual', 'express', 'editorial', 'premium'].includes(carta.plantilla ?? '') ? (carta.plantilla as string) : 'clasica';
+  // ?vista=premium (12/10): vista previa del estilo Premium sobre la carta real, para enseñarlo en visitas y en el panel.
+  const plantilla = vista === 'premium' ? 'premium' : ['visual', 'express', 'editorial', 'premium'].includes(carta.plantilla ?? '') ? (carta.plantilla as string) : 'clasica';
   const fondo = FONDO[carta.estiloFondo ?? 'papel'] ?? FONDO.papel;
   const letra = carta.estiloLetra === 'serif' || plantilla === 'editorial' ? `carta-serif ${serifCarta.variable}` : '';
   const color = carta.colorMarca || '#6E0C2B';
@@ -117,7 +118,7 @@ export default async function CartaPublica({
 
   // Carta Premium (12/10, karc0): estilo incluido en todos los planes; sustituye a la Carta de Autor de pago.
   if (plantilla === 'premium') {
-    const oscuro = carta.estiloFondo !== 'papel' && carta.estiloFondo !== 'blanco';
+    const oscuro = tema === 'noir' ? true : tema === 'crema' ? false : carta.estiloFondo !== 'papel' && carta.estiloFondo !== 'blanco';
     return (
       <main className={`min-h-screen ${serifCarta.variable}`} style={{ background: oscuro ? '#0B0A09' : '#F8F3EA' }}>
         <CartaPremium
