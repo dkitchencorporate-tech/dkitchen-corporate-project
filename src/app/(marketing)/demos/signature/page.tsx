@@ -19,11 +19,11 @@ export default async function DemosSignature({ searchParams }: { searchParams: P
       titulo="Tu propia app de pedidos, con tu marca."
       sub="Ábrelas en tu móvil como lo haría tu cliente: carta, pedido, pago y puntos. Son apps reales en modo demo."
       botones={[
-        { titulo: 'Todo sobre Signature', texto: 'Qué incluye, cómo funciona y precio de fundador.', href: '/signature', destacado: true },
-        { titulo: 'Ver demo Seven Food Fries', texto: 'Comida rápida · app de pedidos con su marca.', href: 'https://sevenfood.dkitchencorporate.es/', externo: true },
-        { titulo: 'Ver demo Wing Boss', texto: 'Alitas y combos · app de pedidos con su marca.', href: 'https://wingboss.dkitchencorporate.es/', externo: true },
-        { titulo: 'Ver demo Bokadipan', texto: 'Bocadillería · app de pedidos con su marca.', href: 'https://bokadipan.dkitchencorporate.es/', externo: true },
-        { titulo: 'Hablar con DKitchen', texto: 'WhatsApp 622 652 659 · te enseñamos cómo quedaría la tuya.', href: `/contacto?i=signature${qr ? `&o=${qr}` : ''}` },
+        { titulo: 'Todo sobre Signature', texto: 'Qué incluye, cómo funciona y precio de fundador.', href: '/signature', destacado: true, imagen: '/demos/app-wingboss.png', etiqueta: 'Precio de fundador' },
+        { titulo: 'Ver demo Seven Food Fries', texto: 'Comida rápida · app de pedidos con su marca.', href: 'https://sevenfood.dkitchencorporate.es/', externo: true, imagen: '/demos/app-sevenfood.png', etiqueta: 'App real · modo demo' },
+        { titulo: 'Ver demo Wing Boss', texto: 'Alitas y combos · app de pedidos con su marca.', href: 'https://wingboss.dkitchencorporate.es/', externo: true, imagen: '/demos/app-wingboss.png', etiqueta: 'App real · modo demo' },
+        { titulo: 'Ver demo Bokadipan', texto: 'Bocadillería · app de pedidos con su marca.', href: 'https://bokadipan.dkitchencorporate.es/', externo: true, imagen: '/demos/app-bokadipan.png', etiqueta: 'App real · modo demo' },
+        { titulo: 'Hablar con DKitchen', contacto: true, texto: 'Cuéntanos tu caso en 30 segundos y te escribimos por WhatsApp.', href: `/contacto?i=signature${qr ? `&o=${qr}` : ''}` },
       ]}
     />
   );
