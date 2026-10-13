@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
+import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from 'react';
 import type { MesasEnVivo as Datos } from '@/lib/comandero';
 import type { ElementoPlano } from '@/lib/sala';
 import type { LlamadaCamarero } from '@/lib/llamadas-camarero';
@@ -22,10 +22,12 @@ type Estado = 'llama' | 'pedido' | 'abierta' | 'libre';
  * (lienzo 4:3 ajustado con container queries), carril «Ahora» y pantalla completa de servicio.
  */
 export default function PlanoVivo({
-  datos, elementos, camareros, onCambio, onVerCuenta, onPedido,
+  datos, elementos, camareros, onCambio, onVerCuenta, onPedido, children,
 }: {
   datos: Datos; elementos: ElementoPlano[]; camareros: { id: string; nombre: string; activo: boolean }[];
   onCambio: () => void; onVerCuenta: (cuentaId: string) => void; onPedido: (mesa: string) => void;
+  /** Modales de Pedidos (cuenta, nuevo pedido): se pintan dentro del escenario para que se vean también en pantalla completa. */
+  children?: ReactNode;
 }) {
   const [llamadas, setLlamadas] = useState<LlamadaCamarero[]>([]);
   const [sel, setSel] = useState<MesaViva | null>(null);
@@ -207,6 +209,7 @@ export default function PlanoVivo({
           onVerCuenta={(id) => { setSel(null); onVerCuenta(id); }}
           onPedido={() => { setSel(null); onPedido(sel.numero); }} />
       )}
+      {children}
     </section>
   );
 }

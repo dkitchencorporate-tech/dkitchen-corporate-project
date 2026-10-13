@@ -76,6 +76,16 @@ export default function Pedidos({ demo = false, elementos = [], camareros = [] }
   if (error && !datos) return <p className="rounded-2xl border border-linea bg-white p-5 text-sm text-red-600">{error}</p>;
   if (!datos) return <p className="rounded-2xl border border-linea bg-white p-5 text-sm text-niebla">Cargando pedidos…</p>;
 
+  const modales = (
+    <>
+      {abierta && !demo && <DetalleCuenta id={abierta} tpv={datos.tpv} pedirCarta={pedirCarta} onCerrar={() => { setAbierta(null); cargar(); }} />}
+        {nuevo !== false && !demo && (
+          <NuevoPedido mesaInicial={nuevo} mesas={datos.mesas.map((m) => m.numero)} abiertas={datos.cuentas.map((k) => k.mesa)} pedirCarta={pedirCarta}
+            onCerrar={(cuenta) => { setNuevo(false); cargar(); if (cuenta) setAbierta(cuenta); }} />
+        )}
+    </>
+  );
+
   const total = datos.cuentas.reduce((s, k) => s + Number(k.importe), 0);
   const porPasar = datos.rondas_entrantes;
 
@@ -104,7 +114,7 @@ export default function Pedidos({ demo = false, elementos = [], camareros = [] }
       </dl>
       )}
 
-      {!demo && <PlanoVivo datos={datos} elementos={elementos} camareros={camareros} onCambio={cargar} onVerCuenta={setAbierta} onPedido={(m) => { setNuevo(m); void pedirCarta(); }} />}
+      {!demo && <PlanoVivo datos={datos} elementos={elementos} camareros={camareros} onCambio={cargar} onVerCuenta={setAbierta} onPedido={(m) => { setNuevo(m); void pedirCarta(); }}>{datos.mesas.length > 0 && modales}</PlanoVivo>}
 
       <details className="group rounded-[24px] border border-linea bg-white p-4" open={demo || datos.mesas.length === 0}>
         <summary className="cursor-pointer list-none text-sm font-semibold text-tinta">Ver en lista <span className="text-niebla">· rondas por pasar y mesas abiertas</span></summary>
@@ -150,11 +160,7 @@ export default function Pedidos({ demo = false, elementos = [], camareros = [] }
         </div>
       </details>
 
-      {abierta && !demo && <DetalleCuenta id={abierta} tpv={datos.tpv} pedirCarta={pedirCarta} onCerrar={() => { setAbierta(null); cargar(); }} />}
-      {nuevo !== false && !demo && (
-        <NuevoPedido mesaInicial={nuevo} mesas={datos.mesas.map((m) => m.numero)} abiertas={datos.cuentas.map((k) => k.mesa)} pedirCarta={pedirCarta}
-          onCerrar={(cuenta) => { setNuevo(false); cargar(); if (cuenta) setAbierta(cuenta); }} />
-      )}
+      {(demo || datos.mesas.length === 0) && modales}
     </div>
   );
 }
