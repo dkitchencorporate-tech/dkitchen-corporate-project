@@ -10,11 +10,11 @@ import { guardarEstiloAction } from '@/app/panel/actions';
  * Esencial. «Premium» (12/10) sustituye a la Carta de Autor de pago y va incluido en todos los planes.
  */
 export const ESTILOS = [
-  { id: 'premium', nombre: 'Premium', para: 'El más completo, incluido en tu plan. Portada a pantalla completa, buscador, «Los que más salen» y fichas grandes. Con fondo Oscuro queda en modo Noir.', muestra: ['Portada a sangre con tu foto', 'Buscador y «Sorpréndeme»', 'Categorías fijas al bajar', 'Fichas grandes con foto'] },
-  { id: 'clasica', nombre: 'Clásico', para: 'Restaurante y menú del día. Lista ordenada, fácil de leer.', muestra: ['Foto pequeña junto al plato', 'Banners arriba'] },
-  { id: 'editorial', nombre: 'Editorial', para: 'Cocina de autor y vinos. Tipografía protagonista, precios con línea de puntos.', muestra: ['Sin fotos en la lista (se ven al abrir el plato)', 'Banners arriba'] },
-  { id: 'visual', nombre: 'Visual', para: 'Brunch, hamburguesas, gastro. La foto de cada plato vende.', muestra: ['Foto grande de portada', 'Foto grande en cada plato', 'Banners arriba'] },
-  { id: 'express', nombre: 'Express', para: 'Bar, cafetería y terraza. Compacta y rápida.', muestra: ['Sin fotos en la lista (se ven al abrir el plato)', 'Banners arriba'] },
+  { id: 'premium', nombre: 'Premium · Gran foto', para: 'Premium incluido en tu plan, con la foto como protagonista: portada a pantalla completa, foto grande en cada sección, buscador y «Sorpréndeme». Con fondo Oscuro queda en modo Noir.', muestra: ['Portada a sangre con tu foto', 'Buscador y «Sorpréndeme»', 'Secciones numeradas fijas al bajar', 'Foto grande por sección'] },
+  { id: 'clasica', nombre: 'Premium · Autor', para: 'Premium incluido en tu plan, como una carta impresa de autor: secciones numeradas, línea de puntos hasta el precio y una foto por sección.', muestra: ['Portada a sangre con tu foto', 'Buscador y «Sorpréndeme»', 'Línea de puntos hasta el precio', 'Una foto por sección'] },
+  { id: 'editorial', nombre: 'Premium · Autor (vinos)', para: 'Igual que Autor, con letra clásica en toda la carta. Ideal para cocina de autor y vinos.', muestra: ['Sin fotos en la lista (se ven al abrir el plato)', 'Banners arriba'] },
+  { id: 'visual', nombre: 'Premium · Gran foto (brunch)', para: 'Igual que Gran foto: la foto de cada plato vende. Brunch, hamburguesas, gastro.', muestra: ['Foto grande de portada', 'Foto grande en cada plato', 'Banners arriba'] },
+  { id: 'express', nombre: 'Premium · Autor (bar)', para: 'Igual que Autor. Bar, cafetería y terraza.', muestra: ['Sin fotos en la lista (se ven al abrir el plato)', 'Banners arriba'] },
 ] as const;
 export const FONDOS = [
   { id: 'papel', nombre: 'Papel', fondo: '#F7F3EA', tinta: '#221D17', tarjeta: '#FFFFFF' },

@@ -98,8 +98,11 @@ export default async function CartaPublica({
     return <>{selector}<CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} legal={legal} /></>;
   }
 
-  // ?vista=premium (12/10): vista previa del estilo Premium sobre la carta real, para enseñarlo en visitas y en el panel.
-  const plantilla = vista === 'premium' ? 'premium' : ['visual', 'express', 'editorial', 'premium'].includes(carta.plantilla ?? '') ? (carta.plantilla as string) : 'clasica';
+  // 13/10 (karc0): TODAS las cartas salen en Premium (nivel de autor). La plantilla guardada solo elige la
+  // composición: 'visual' y 'premium' → foto; el resto → autor. ?vista=antigua enseña el diseño anterior.
+  const guardada = ['visual', 'express', 'editorial', 'premium'].includes(carta.plantilla ?? '') ? (carta.plantilla as string) : 'clasica';
+  const plantilla = vista === 'antigua' ? (guardada === 'premium' ? 'clasica' : guardada) : 'premium';
+  const variante = vista === 'foto' ? 'foto' : vista === 'autor' ? 'autor' : guardada === 'visual' || guardada === 'premium' ? 'foto' : 'autor';
   const fondo = FONDO[carta.estiloFondo ?? 'papel'] ?? FONDO.papel;
   const letra = carta.estiloLetra === 'serif' || plantilla === 'editorial' ? `carta-serif ${serifCarta.variable}` : '';
   const color = carta.colorMarca || '#6E0C2B';
@@ -122,7 +125,7 @@ export default async function CartaPublica({
     return (
       <main className={`min-h-screen ${serifCarta.variable}`} style={{ background: oscuro ? '#0B0A09' : '#F8F3EA' }}>
         <CartaPremium
-          carta={carta} grupos={grupos} nombres={nombres} color={color} oscuro={oscuro}
+          carta={carta} grupos={grupos} nombres={nombres} color={color} oscuro={oscuro} variante={variante}
           serifClase={serifCarta.className} accion={reservar} portadaFallback={fotoPortada}
           tras={<>
             {desdeRespaldo && <p className="bg-amber-50 px-5 py-2 text-center text-xs text-amber-800">Puede que esta carta no refleje los últimos cambios en los próximos minutos.</p>}
@@ -130,22 +133,36 @@ export default async function CartaPublica({
             <CarruselBanners banners={banners} color={color} />
           </>}
         />
-        <div className={`mx-auto max-w-3xl px-5 pb-28 ${oscuro ? 'text-white' : ''}`}>
+        <div className="mx-auto max-w-2xl px-6 pb-32 text-center" style={{ color: oscuro ? '#F4EEE4' : '#221D17' }}>
           {alergenosEnCarta.length > 0 && (
-            <section className={`rounded-[24px] p-6 ring-1 ${oscuro ? 'bg-white/[0.04] ring-white/10' : 'bg-white ring-black/[0.05]'}`}>
-              <h2 className="text-sm font-semibold">Alérgenos</h2>
-              <p className="mt-1 text-xs leading-relaxed opacity-60">Información facilitada conforme al Reglamento (UE) 1169/2011. Si tienes una alergia o intolerancia, consúltalo con el personal antes de pedir: en cocina pueden existir trazas que no figuran en la carta.</p>
-              <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-                {alergenosEnCarta.map((codigo) => <li key={codigo} className="text-xs opacity-70"><span className="font-semibold">{codigo}</span> {nombres[codigo]}</li>)}
-              </ul>
+            <section className="mt-24 border-t pt-10" style={{ borderColor: oscuro ? 'rgba(244,238,228,.14)' : 'rgba(34,29,23,.15)' }}>
+              <p className="text-[11px] font-medium uppercase tracking-[0.28em] opacity-50">Alérgenos</p>
+              <p className="mx-auto mt-4 max-w-md text-[13px] leading-relaxed opacity-60">{alergenosEnCarta.map((c) => `${c} · ${nombres[c]}`).join('   ·   ')}</p>
+              <p className="mx-auto mt-4 max-w-md text-xs leading-relaxed opacity-50">Información conforme al Reglamento (UE) 1169/2011. Si tienes una alergia o intolerancia, consúltalo con nuestro equipo antes de pedir: en cocina pueden existir trazas que no figuran en la carta.</p>
             </section>
           )}
           {ampliado && carta.urlResenas && (
-            <a href={carta.urlResenas} target="_blank" rel="noopener" className={`mt-6 block rounded-2xl border p-4 text-center text-sm font-semibold ${oscuro ? 'border-white/15' : 'border-black/10 bg-white'}`}>¿Te ha gustado? Déjanos tu reseña en Google</a>
+            <section className="mt-16">
+              <p className={`${serifCarta.className} text-3xl italic`}>¿Te ha gustado?</p>
+              <a href={carta.urlResenas} target="_blank" rel="noopener" className="mt-5 inline-block border px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.28em]" style={{ borderColor: color, color: oscuro ? '#F4EEE4' : color }}>Déjanos tu opinión en Google</a>
+            </section>
           )}
-          <footer className="mt-8 text-center text-[11px] opacity-40">
-            {legal && <span className="mb-1 block"><a href={`/m/${carta.slug}/legal#aviso`} className="hover:underline">Aviso legal</a> · <a href={`/m/${carta.slug}/legal#privacidad`} className="hover:underline">Privacidad</a></span>}
-            Carta digital de {carta.nombre} · Tecnología de <a href="https://dkitchencorporate.es/qr" className="hover:underline">DKitchen</a>
+          {(carta.direccion || carta.horario || carta.telefono || carta.instagram) && (
+            <section className="mt-20 border-t pt-12" style={{ borderColor: oscuro ? 'rgba(244,238,228,.14)' : 'rgba(34,29,23,.15)' }}>
+              <p className="text-[11px] font-medium uppercase tracking-[0.28em] opacity-50">Dónde encontrarnos</p>
+              {carta.direccion && <p className={`${serifCarta.className} mx-auto mt-4 max-w-sm text-2xl leading-snug`}>{carta.direccion}</p>}
+              {carta.horario && <p className="mt-2 text-sm opacity-60">{carta.horario}</p>}
+              <p className="mt-7 flex flex-wrap justify-center gap-x-6 gap-y-3 text-[11px] font-medium uppercase tracking-[0.28em] opacity-75">
+                {carta.direccion && <a href={`https://maps.google.com/?q=${encodeURIComponent(carta.direccion)}`} target="_blank" rel="noopener" className="border-b border-current pb-0.5">Cómo llegar</a>}
+                {carta.telefono && <a href={`tel:${carta.telefono.replace(/\s/g, '')}`} className="border-b border-current pb-0.5">Llamar</a>}
+                {carta.instagram && <a href={`https://instagram.com/${carta.instagram.replace('@', '')}`} target="_blank" rel="noopener" className="border-b border-current pb-0.5">Instagram</a>}
+              </p>
+            </section>
+          )}
+          <footer className="mt-20">
+            {legal && <p className="mb-2 text-[11px] opacity-40"><a href={`/m/${carta.slug}/legal#aviso`} className="hover:underline">Aviso legal</a> · <a href={`/m/${carta.slug}/legal#privacidad`} className="hover:underline">Privacidad</a> · <a href={`/m/${carta.slug}/legal#cookies`} className="hover:underline">Cookies</a></p>}
+            <p className={`${serifCarta.className} text-2xl`}>{carta.nombre}</p>
+            <p className="mt-3 text-[10px] uppercase tracking-[0.2em] opacity-35">Carta digital · <a href="https://dkitchencorporate.es/qr" className="hover:opacity-80">DKitchen</a></p>
           </footer>
         </div>
         <BotonesMesa slug={carta.slug} color={color} />
