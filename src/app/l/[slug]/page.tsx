@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import type { CSSProperties } from 'react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Cormorant_Garamond } from 'next/font/google';
 
 import { obtenerCartaConRespaldo } from '@/lib/cache-resiliencia';
@@ -18,7 +18,7 @@ export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const r = await obtenerCartaConRespaldo(slug);
-  if (!r) return { title: 'Local no disponible', robots: { index: false } };
+  if (!r || r.carta.plan === 'basico') return { title: 'Local no disponible', robots: { index: false } };
   return metadatosCarta(r.carta, `/l/${slug}`, 'local');
 }
 
@@ -32,6 +32,8 @@ export default async function LandingLocal({ params }: { params: Promise<{ slug:
   const r = await obtenerCartaConRespaldo(slug);
   if (!r) notFound();
   const { carta } = r;
+  // La landing va en Local y Sala; el plan Carta (9 €) solo tiene la carta QR (13/10, karc0).
+  if (carta.plan === 'basico') redirect(`/m/${carta.slug}`);
   const color = carta.colorMarca || '#6E0C2B';
   const portada = imagenCarta(carta);
   const platos = [...carta.secciones.flatMap((s) => s.platos), ...carta.sueltos];

@@ -156,7 +156,7 @@ export default async function CartaPublica({
           <footer className="mt-20">
             {legal && <p className="mb-2 text-[11px] opacity-40"><a href={`/m/${carta.slug}/legal#aviso`} className="hover:underline">Aviso legal</a> · <a href={`/m/${carta.slug}/legal#privacidad`} className="hover:underline">Privacidad</a> · <a href={`/m/${carta.slug}/legal#cookies`} className="hover:underline">Cookies</a></p>}
             <p className={`${serifCarta.className} text-2xl`}>{carta.nombre}</p>
-            <a href={`/l/${carta.slug}`} className="mt-3 inline-block border-b border-current pb-0.5 text-[11px] font-medium uppercase tracking-[0.28em] opacity-70">Conoce el local</a>
+            {carta.plan !== 'basico' && <a href={`/l/${carta.slug}`} className="mt-3 inline-block border-b border-current pb-0.5 text-[11px] font-medium uppercase tracking-[0.28em] opacity-70">Conoce el local</a>}
             <p className="mt-3 text-[10px] uppercase tracking-[0.2em] opacity-35">Carta digital · <a href="https://dkitchencorporate.es/qr" className="hover:opacity-80">DKitchen</a></p>
           </footer>
         </div>
