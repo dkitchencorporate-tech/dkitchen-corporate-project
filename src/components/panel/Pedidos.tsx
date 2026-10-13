@@ -81,6 +81,7 @@ export default function Pedidos({ demo = false, elementos = [], camareros = [] }
 
   return (
     <div className="space-y-6">
+      {(demo || datos.mesas.length === 0) && (<>
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Pedidos</h2>
@@ -88,9 +89,11 @@ export default function Pedidos({ demo = false, elementos = [], camareros = [] }
         </div>
         <button onClick={() => { setNuevo(''); void pedirCarta(); }} className="rounded-full bg-vino px-5 py-3 text-sm font-bold text-white hover:bg-vino-hondo">+ Nuevo pedido</button>
       </header>
+      </>)}
       {error && <p className="text-sm text-red-600">{error}</p>}
       {demo && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Ejemplo de un servicio en marcha. En tu panel real, desde aquí añades productos, cambias cantidades, mueves o juntas mesas y las cierras.</p>}
 
+      {(demo || datos.mesas.length === 0) && (
       <dl className="grid grid-cols-3 gap-2 sm:gap-3">
         {([['Mesas abiertas', String(datos.cuentas.length)], ['En sala', euros(total)], [datos.tpv ? 'Sin llegar al TPV' : 'Por pasar', String(porPasar.length)]] as const).map(([k, v], i) => (
           <div key={k} className={`rounded-2xl border p-3 sm:p-4 ${i === 2 && porPasar.length > 0 ? 'border-vino bg-vino/10' : 'border-linea bg-white'}`}>
@@ -99,9 +102,13 @@ export default function Pedidos({ demo = false, elementos = [], camareros = [] }
           </div>
         ))}
       </dl>
+      )}
 
       {!demo && <PlanoVivo datos={datos} elementos={elementos} camareros={camareros} onCambio={cargar} onVerCuenta={setAbierta} onPedido={(m) => { setNuevo(m); void pedirCarta(); }} />}
 
+      <details className="group rounded-[24px] border border-linea bg-white p-4" open={demo || datos.mesas.length === 0}>
+        <summary className="cursor-pointer list-none text-sm font-semibold text-tinta">Ver en lista <span className="text-niebla">· rondas por pasar y mesas abiertas</span></summary>
+        <div className="mt-4 space-y-6">
       <section className="space-y-3">
         <h3 className="text-xs font-bold uppercase tracking-wider text-niebla">
           {datos.tpv ? 'Rondas que el TPV no recibió' : 'Rondas por pasar a cocina / TPV'} ({porPasar.length})
@@ -139,6 +146,9 @@ export default function Pedidos({ demo = false, elementos = [], camareros = [] }
         )}
         <p className="text-[11px] text-ceniza">Verde: menos de 45 min · ámbar: 45–90 min · rojo: más de 90 min. El cobro y el ticket se hacen siempre en tu TPV.</p>
       </section>
+
+        </div>
+      </details>
 
       {abierta && !demo && <DetalleCuenta id={abierta} tpv={datos.tpv} pedirCarta={pedirCarta} onCerrar={() => { setAbierta(null); cargar(); }} />}
       {nuevo !== false && !demo && (
