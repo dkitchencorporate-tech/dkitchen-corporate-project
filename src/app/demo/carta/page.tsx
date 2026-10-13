@@ -52,7 +52,7 @@ function EditorialSushiLayout({ menu, categories, lang, t, activeDiner, setActiv
               </button>
             ))}
           </div>
-          <div className="flex flex-wrap justify-center gap-2 bg-white/5 p-1 rounded-full border border-white/10 w-full sm:w-auto">
+          <div data-sig className="flex flex-wrap justify-center gap-2 bg-white/5 p-1 rounded-full border border-white/10 w-full sm:w-auto">
             {[1, 2, 3, 4].map(d => (
               <button key={d} onClick={() => setActiveDiner(d)} className={`px-3 sm:px-4 py-1.5 sm:py-2 text-[9px] sm:text-[10px] uppercase tracking-widest rounded-full transition-all ${activeDiner === d ? 'bg-amber-600 text-white' : 'text-gray-500'}`}>
                 {t.diner_prefix} {d}
@@ -115,10 +115,10 @@ function EditorialSushiLayout({ menu, categories, lang, t, activeDiner, setActiv
                         {item.description[lang]}
                       </p>
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start">
-                        <button onClick={() => onAdd(item)} className="px-6 py-3 border border-white/20 text-white text-[10px] tracking-[0.2em] uppercase hover:border-amber-500 hover:text-amber-500 transition-colors w-full sm:w-auto">
+                        <button data-sig onClick={() => onAdd(item)} className="px-6 py-3 border border-white/20 text-white text-[10px] tracking-[0.2em] uppercase hover:border-amber-500 hover:text-amber-500 transition-colors w-full sm:w-auto">
                           {t.add_to_order} ({activeDiner})
                         </button>
-                        <button onClick={() => onAsk(item.name[lang])} className="px-4 py-3 text-gray-500 text-[10px] tracking-[0.2em] uppercase hover:text-amber-500 transition-colors w-full sm:w-auto">
+                        <button data-sig onClick={() => onAsk(item.name[lang])} className="px-4 py-3 text-gray-500 text-[10px] tracking-[0.2em] uppercase hover:text-amber-500 transition-colors w-full sm:w-auto">
                           {t.ask_ai}
                         </button>
                       </div>
@@ -187,7 +187,7 @@ function ListTapasLayout({ menu, categories, lang, t, activeDiner, setActiveDine
             </div>
           </div>
           <div className="flex flex-col items-center gap-3">
-            <div className="flex bg-[#1e2a1f] p-1 rounded-md shadow-inner">
+            <div data-sig className="flex bg-[#1e2a1f] p-1 rounded-md shadow-inner">
               {[1, 2, 3, 4].map(d => (
                 <button key={d} onClick={() => setActiveDiner(d)} className={`px-3 py-1.5 text-xs font-bold uppercase rounded-sm transition-colors ${activeDiner === d ? 'bg-[#f4ecd8] text-[#2c3e2e]' : 'text-white/60'}`}>
                   {t.diner_prefix} {d}
@@ -262,10 +262,10 @@ function ListTapasLayout({ menu, categories, lang, t, activeDiner, setActiveDine
                         </p>
                       </div>
                       <div className="flex gap-2 mt-auto">
-                        <button onClick={() => onAdd(item)} className="flex-1 h-12 bg-[#2c3e2e] text-white px-4 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#1e2a1f] transition-colors active:scale-95 flex items-center justify-center gap-1.5">
+                        <button data-sig onClick={() => onAdd(item)} className="flex-1 h-12 bg-[#2c3e2e] text-white px-4 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#1e2a1f] transition-colors active:scale-95 flex items-center justify-center gap-1.5">
                           <span className="text-lg leading-none">+</span> {t.add_to_order}
                         </button>
-                        <button onClick={() => onAsk(item.name[lang])} className="w-12 h-12 shrink-0 bg-[#f4ecd8] text-[#2c3e2e] rounded-xl text-xl font-bold hover:bg-[#e8e4d9] transition-colors flex items-center justify-center" title={t.ask_ai}>
+                        <button data-sig onClick={() => onAsk(item.name[lang])} className="w-12 h-12 shrink-0 bg-[#f4ecd8] text-[#2c3e2e] rounded-xl text-xl font-bold hover:bg-[#e8e4d9] transition-colors flex items-center justify-center" title={t.ask_ai}>
                           🤖
                         </button>
                       </div>
@@ -486,7 +486,7 @@ function GridBurgerLayout({ menu, categories, lang, t, activeDiner, setActiveDin
                 </button>
               ))}
             </div>
-            <div className="flex bg-[#111] p-1 rounded-xl w-full sm:w-auto overflow-x-auto scrollbar-none flex-nowrap">
+            <div data-sig className="flex bg-[#111] p-1 rounded-xl w-full sm:w-auto overflow-x-auto scrollbar-none flex-nowrap">
               {[1, 2, 3, 4].map(d => (
                 <button key={d} onClick={() => setActiveDiner(d)} className={`flex-1 sm:flex-none px-4 py-2 text-[10px] font-black uppercase rounded-lg transition-all whitespace-nowrap ${activeDiner === d ? 'bg-[#ff003c] text-white shadow-[0_0_10px_rgba(255,0,60,0.4)]' : 'text-zinc-500'}`}>
                   {t.diner_prefix} {d}
@@ -555,10 +555,10 @@ function GridBurgerLayout({ menu, categories, lang, t, activeDiner, setActiveDin
                       </p>
                       
                       <div className="grid grid-cols-4 gap-2">
-                        <button onClick={() => onAsk(item.name[lang])} className="col-span-1 h-12 flex items-center justify-center rounded-2xl bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors" title={t.ask_ai}>
+                        <button data-sig onClick={() => onAsk(item.name[lang])} className="col-span-1 h-12 flex items-center justify-center rounded-2xl bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors" title={t.ask_ai}>
                           🤖
                         </button>
-                        <button onClick={() => onAdd(item)} className="col-span-3 h-12 flex items-center justify-center rounded-2xl bg-[#ff003c] text-white font-black uppercase tracking-widest text-xs hover:bg-[#ff3366] transition-colors active:scale-95">
+                        <button data-sig onClick={() => onAdd(item)} className="col-span-3 h-12 flex items-center justify-center rounded-2xl bg-[#ff003c] text-white font-black uppercase tracking-widest text-xs hover:bg-[#ff3366] transition-colors active:scale-95">
                           {t.add_to_order}
                         </button>
                       </div>
@@ -612,6 +612,8 @@ function CartaContent() {
   // ?plantilla=sushi|tapas|burger abre un diseño concreto; ?embed=1 oculta los controles de DKitchen (para incrustarla en la web)
   const plantillaParam = searchParams.get('plantilla');
   const incrustada = searchParams.get('embed') === '1';
+  // ?muestra=local (propuestas del CRM): sin comensales, carrito ni chat, que son de Signature
+  const muestraLocal = searchParams.get('muestra') === 'local';
   const [activeTemplate, setActiveTemplate] = useState<TemplateType>(plantillaParam === 'tapas' || plantillaParam === 'burger' ? plantillaParam : 'sushi');
   const [activeDiner, setActiveDiner] = useState<number>(1);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -704,7 +706,8 @@ function CartaContent() {
   };
 
   return (
-    <div className={`relative transition-colors duration-500 bg-black`}>
+    <div className={`relative transition-colors duration-500 bg-black ${muestraLocal ? 'modo-local' : ''}`}>
+      {muestraLocal && <style>{'.modo-local [data-sig]{display:none!important}'}</style>}
 
       {/* RENDER ACTIVE LAYOUT (HEADERS ARE INSIDE THEM NOW) */}
       {activeTemplate === 'sushi' && <EditorialSushiLayout menu={currentMenu} categories={currentCategories} lang={lang} t={t} activeDiner={activeDiner} setActiveDiner={setActiveDiner} tableParam={tableParam} setLang={setLang} onAdd={addToCart} onAsk={openContextualChat} onImageClick={setSelectedImageItem} />}
@@ -1052,7 +1055,7 @@ function CartaContent() {
                </div>
                <p className={`text-sm sm:text-base ${theme.textSec} leading-relaxed mt-2 font-medium`}>{selectedImageItem.description[lang]}</p>
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8">
-                 <button onClick={() => { addToCart(selectedImageItem); setSelectedImageItem(null); setIsCartOpen(true); }} className={`py-4 rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm ${theme.primary} ${theme.btnText} ${theme.primaryHover} shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 order-1 sm:order-2`}>
+                 <button data-sig onClick={() => { addToCart(selectedImageItem); setSelectedImageItem(null); setIsCartOpen(true); }} className={`py-4 rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm ${theme.primary} ${theme.btnText} ${theme.primaryHover} shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 order-1 sm:order-2`}>
                    {t.add_to_order_modal}
                  </button>
                  <button onClick={() => { openContextualChat(selectedImageItem.name[lang]); setSelectedImageItem(null); }} className={`py-4 rounded-2xl font-bold uppercase tracking-widest text-xs sm:text-sm ${theme.secondaryBtn} transition-colors flex items-center justify-center gap-2 order-2 sm:order-1`}>
