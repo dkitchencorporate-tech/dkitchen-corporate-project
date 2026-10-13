@@ -80,7 +80,7 @@ export default async function Panel() {
     const hayPlano = tiene(c, 'plano_mesas'), hayApp = tiene(c, 'app_sala'), hayTpv = tiene(c, 'conexion_tpv');
     const [plano, camareros, tpv, llamadas, traducciones, informe] = await Promise.all([
       hayPlano || hayApp ? cargarPlano(jwt, restaurante.id) : Promise.resolve({ mesas: [], elementos: [] }),
-      (hayApp || hayPlano) && !puesta ? listarCamareros(jwt, restaurante.id) : Promise.resolve([]),
+      (hayApp || hayPlano) && (!puesta || restaurante.soporte === true) ? listarCamareros(jwt, restaurante.id) : Promise.resolve([]),
       hayTpv && !puesta ? estadoConexionTpv(jwt) : Promise.resolve(null),
       hayPlano && !puesta ? llamadasPendientes(jwt, restaurante.id).then((l) => l.map((x) => x.mesa)) : Promise.resolve([] as string[]),
       listarTraducciones(jwt, restaurante.id),
