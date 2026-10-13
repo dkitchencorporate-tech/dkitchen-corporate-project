@@ -228,7 +228,7 @@ export default function CartaPremium({
                   )}
 
                   {destacado && variante === 'foto' && (
-                    <div id={`plato-${destacado.id}`} className="mt-10" {...anillo(destacado.id)}>
+                    <div id={`plato-${destacado.id}`} {...anillo(destacado.id)} className={`mt-10 ${anillo(destacado.id).className}`}>
                       <FichaPlato plato={destacado} nombresAlergenos={nombres} className="block">
                         <span className="relative block h-[440px] overflow-hidden rounded-[22px]">
                           <img src={destacado.fotoUrl!} alt={destacado.nombre} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-700 hover:scale-105" />
