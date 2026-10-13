@@ -29,7 +29,15 @@ export default function FichaPlato({
     document.addEventListener('keydown', cerrarConEsc);
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.removeEventListener('keydown', cerrarConEsc); document.body.style.overflow = overflow; };
+    // El botón «atrás» del móvil cierra la ficha en lugar de sacar al cliente de la carta.
+    history.pushState({ dkFicha: plato.id }, '');
+    const atras = () => setAbierta(false);
+    window.addEventListener('popstate', atras);
+    return () => {
+      document.removeEventListener('keydown', cerrarConEsc); document.body.style.overflow = overflow;
+      window.removeEventListener('popstate', atras);
+      if (history.state?.dkFicha === plato.id) history.back();
+    };
   }, [abierta]);
 
   return (
@@ -38,14 +46,16 @@ export default function FichaPlato({
         {children}
       </button>
       {abierta && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/50 sm:items-center sm:p-4" onClick={() => setAbierta(false)} role="presentation">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md motion-safe:animate-[dkfondo_.25s_ease-out]" onClick={() => setAbierta(false)} role="presentation">
+          <style>{'@keyframes dkfondo{from{opacity:0}}@keyframes dkficha{from{opacity:0;transform:translateY(24px) scale(.96)}}'}</style>
           <div
             role="dialog"
             aria-modal="true"
             aria-label={plato.nombre}
             onClick={(e) => e.stopPropagation()}
-            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white sm:rounded-3xl"
+            className="relative max-h-[86vh] w-full max-w-md overflow-y-auto rounded-[28px] bg-white shadow-[0_40px_100px_-20px_rgba(0,0,0,.7)] motion-safe:animate-[dkficha_.32s_cubic-bezier(.2,.8,.2,1)]"
           >
+            <button type="button" onClick={() => setAbierta(false)} aria-label="Cerrar" className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-black/55 text-lg text-white backdrop-blur">✕</button>
             {plato.fotoUrl && (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={plato.fotoUrl} alt={plato.nombre} className="aspect-[4/3] w-full object-cover" />

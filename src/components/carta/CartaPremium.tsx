@@ -107,9 +107,7 @@ export default function CartaPremium({
         <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3 px-5 py-4 sm:px-8">
           {carta.logoUrl ? (
             <img src={carta.logoUrl} alt={carta.nombre} className="h-12 w-12 rounded-full bg-black/30 object-cover ring-1 ring-white/40" />
-          ) : (
-            <span className={`${serifClase} grid h-12 w-12 place-items-center rounded-full text-2xl text-white ring-1 ring-white/40`}>{carta.nombre.charAt(0)}</span>
-          )}
+          ) : <span />}
           {carta.horario && (
             <span className="flex max-w-[62%] items-center gap-2 truncate rounded-full border border-white/20 bg-black/40 px-3.5 py-2 text-[12px] text-white/90 backdrop-blur">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />

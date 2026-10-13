@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import useAtrasCierra from './useAtrasCierra';
 
 const MESA = /^[A-Za-z0-9-]{1,12}$/;
 const CLAVE = 'dk-mesa';
@@ -16,7 +17,7 @@ const CLAVE = 'dk-mesa';
  * La mesa llega rellenada si el QR es de mesa (`?mesa=N`) y se puede cambiar
  * (mesas juntadas). Antirrepetición y límites: /api/camarero + dk.llamar_camarero.
  */
-export default function BotonesMesa({ slug, color }: { slug: string; color: string }) {
+export default function BotonesMesa({ slug, color, siempre = false, reservar = false }: { slug: string; color: string; siempre?: boolean; reservar?: boolean }) {
   const [desdeQr, setDesdeQr] = useState(false);
   const [abierto, setAbierto] = useState(false);
   const [mesa, setMesa] = useState('');
@@ -36,7 +37,10 @@ export default function BotonesMesa({ slug, color }: { slug: string; color: stri
     }
   }, [slug]);
 
-  if (!desdeQr) return null;
+  const cerrar = useCallback(() => setAbierto(false), []);
+  useAtrasCierra(abierto, cerrar, 'camarero');
+
+  if (!desdeQr && !siempre) return null;
 
   async function llamar(motivo: 'camarero' | 'cuenta') {
     const m = mesa.trim();
@@ -74,6 +78,21 @@ export default function BotonesMesa({ slug, color }: { slug: string; color: stri
 
   return (
     <>
+      {siempre ? (
+        // Carta Premium: barra fija con reservar y llamar al camarero, siempre a mano.
+        <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-[max(16px,env(safe-area-inset-bottom))]">
+          <div className="flex w-full max-w-md gap-2 rounded-full border border-white/15 bg-[#0B0A09]/85 p-1.5 shadow-[0_20px_50px_-15px_rgba(0,0,0,.8)] backdrop-blur-xl">
+            {reservar && (
+              <button onClick={() => window.dispatchEvent(new Event('dk:reservar'))} className="flex-1 rounded-full px-4 py-3 text-sm font-semibold text-white">
+                Reservar mesa
+              </button>
+            )}
+            <button onClick={() => { setAbierto(true); setEstado('idle'); }} className="flex-1 rounded-full px-4 py-3 text-sm font-bold text-white" style={{ backgroundColor: color }}>
+              Llamar al camarero{mesa ? ` · ${mesa}` : ''}
+            </button>
+          </div>
+        </div>
+      ) : (
       <button
         onClick={() => { setAbierto(true); setEstado('idle'); }}
         className="fixed bottom-5 right-5 z-20 flex items-center gap-2 rounded-full px-5 py-3.5 text-sm font-bold text-white shadow-lg"
@@ -81,10 +100,11 @@ export default function BotonesMesa({ slug, color }: { slug: string; color: stri
       >
         Llamar al camarero{mesa ? ` · Mesa ${mesa}` : ''}
       </button>
+      )}
 
       {abierto && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setAbierto(false)} role="presentation">
-          <div role="dialog" aria-modal="true" aria-labelledby="mesa-titulo" onClick={(e) => e.stopPropagation()} className="w-full max-w-sm space-y-4 rounded-t-3xl bg-white p-6 sm:rounded-3xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md" onClick={() => setAbierto(false)} role="presentation">
+          <div role="dialog" aria-modal="true" aria-labelledby="mesa-titulo" onClick={(e) => e.stopPropagation()} className="w-full max-w-sm space-y-4 rounded-[28px] bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between">
               <h2 id="mesa-titulo" className="text-lg font-semibold text-[#1a1a1a]">¿Qué necesitas?</h2>
               <button onClick={() => setAbierto(false)} aria-label="Cerrar" className="text-black/40">✕</button>

@@ -165,7 +165,7 @@ export default async function CartaPublica({
             <p className="mt-3 text-[10px] uppercase tracking-[0.2em] opacity-35">Carta digital · <a href="https://dkitchencorporate.es/qr" className="hover:opacity-80">DKitchen</a></p>
           </footer>
         </div>
-        <BotonesMesa slug={carta.slug} color={color} />
+        <BotonesMesa slug={carta.slug} color={color} siempre reservar />
       </main>
     );
   }

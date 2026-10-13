@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import useAtrasCierra from './useAtrasCierra';
+import { useCallback, useEffect, useState } from 'react';
 
 const MENSAJES: Record<string, string> = {
   fecha_invalida: 'Elige una fecha a partir de hoy (máximo 6 meses).',
@@ -15,6 +16,8 @@ const MENSAJES: Record<string, string> = {
 /** Botón "Reservar mesa" + formulario (plan Ampliado). */
 export default function Reservar({ slug, color, nombreLocal }: { slug: string; color: string; nombreLocal: string }) {
   const [abierto, setAbierto] = useState(false);
+  const cerrarReserva = useCallback(() => setAbierto(false), []);
+  useAtrasCierra(abierto, cerrarReserva, 'reserva');
 
   // Un banner con destino «Reservar» abre este formulario.
   useEffect(() => {
@@ -67,9 +70,9 @@ export default function Reservar({ slug, color, nombreLocal }: { slug: string; c
       </button>
 
       {abierto && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setAbierto(false)} role="presentation">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md" onClick={() => setAbierto(false)} role="presentation">
           <div role="dialog" aria-modal="true" aria-labelledby="reserva-titulo" onClick={(e) => e.stopPropagation()}
-               className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-white p-6 sm:rounded-2xl">
+               className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-[28px] bg-white p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 id="reserva-titulo" className="text-lg font-semibold text-[#1a1a1a]">Reservar en {nombreLocal}</h2>
               <button onClick={() => setAbierto(false)} aria-label="Cerrar" className="text-black/40">✕</button>
