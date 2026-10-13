@@ -36,9 +36,11 @@ function cargarGa() {
 
 function cargarMeta() {
   if (!/^d{6,20}$/.test(META_ID) || document.getElementById('dk-meta')) return;
-  const q: unknown[] = [];
-  const fbq = Object.assign((...a: unknown[]) => { if (fbq.callMethod) fbq.callMethod(...a); else q.push(a); }, { queue: q, loaded: true, version: '2.0' });
-  window.fbq = fbq; window._fbq = fbq; (fbq as unknown as { push: unknown }).push = fbq;
+  // Cola estándar de Meta: las llamadas se guardan hasta que carga fbevents.js, que la vacía.
+  type Fbq = ((...a: unknown[]) => void) & { queue: unknown[]; loaded: boolean; version: string; push: unknown; callMethod?: (...a: unknown[]) => void };
+  const fbq = ((...a: unknown[]) => { if (fbq.callMethod) fbq.callMethod(...a); else fbq.queue.push(a); }) as Fbq;
+  fbq.queue = []; fbq.loaded = true; fbq.version = '2.0'; fbq.push = fbq;
+  window.fbq = fbq; window._fbq = fbq;
   const s = document.createElement('script');
   s.id = 'dk-meta'; s.async = true; s.src = 'https://connect.facebook.net/en_US/fbevents.js';
   document.head.appendChild(s);
