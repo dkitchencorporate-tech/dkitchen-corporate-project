@@ -43,6 +43,13 @@ export async function POST(request: Request) {
     consulta: txt(b.consulta, 600),
     franja: (Object.keys(FRANJA).includes(String(b.franja)) ? b.franja : 'cuando_sea') as DatosContacto['franja'],
   };
+  // «Que me llamen» (13/10, página /carta-de-autor): teléfono obligatorio y sin WhatsApp; DKitchen llama.
+  const llamar = b.llamar === true;
+  const telefono = txt(b.telefono, 20).replace(/[^+0-9 ]/g, '');
+  if (llamar) {
+    if (!/^+?[0-9 ]{9,16}$/.test(telefono)) return NextResponse.json({ error: 'Escribe un teléfono válido para que te llamemos.' }, { status: 400 });
+    d.consulta = `QUE ME LLAMEN al ${telefono}${d.consulta ? ' · ' + d.consulta : ''}`.slice(0, 600);
+  }
   if (d.nombre.length < 2 || !TIPOS.includes(d.tipo) || d.consulta.length < 3) {
     return NextResponse.json({ error: 'Revisa tu nombre, el tipo de negocio y tu consulta.' }, { status: 400 });
   }
@@ -55,6 +62,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No se pudo enviar. Escríbenos directamente al 622 652 659.' }, { status: 500 });
   }
   const ref = id.slice(0, 6).toUpperCase();
+  if (llamar) {
+    await enviarCorreoInterno(`QUE ME LLAMEN · ${d.nombre} · ${d.negocio || d.tipo} · ${telefono}`,
+      `<p><strong>Ref. ${ref}</strong> · origen <strong>${escaparHtml(d.origen)}</strong>. Llámale hoy (mejor ${FRANJA[d.franja]}).</p><p>${escaparHtml(d.nombre)} · ${escaparHtml(d.negocio)} · ${escaparHtml(d.tipo)} · ${escaparHtml(d.localidad)}<br><strong>${escaparHtml(telefono)}</strong></p>`).catch(() => {});
+    return NextResponse.json({ ok: true, ref });
+  }
   await eventoQrCampana(d.origen, 'whatsapp', d.interes).catch(() => {});
 
   const mensaje = [

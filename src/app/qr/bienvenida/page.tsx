@@ -4,6 +4,7 @@ import OrdenBumpAuditoria from '@/components/OrdenBumpAuditoria';
 import PasosPago from '@/components/pago/PasosPago';
 import ReenviarAcceso from '@/components/pago/ReenviarAcceso';
 import OfertaPuestaAPunto from '@/components/pago/OfertaPuestaAPunto';
+import MetaEvento from '@/components/MetaEvento';
 
 export const metadata: Metadata = {
   title: 'Pago confirmado | DKitchen',
@@ -55,6 +56,7 @@ export default async function BienvenidaQr({
 
   return (
     <div className="bg-crema text-tinta">
+      <MetaEvento evento="CompleteRegistration" />
       <section className="mx-auto max-w-2xl px-4 pb-24 pt-12 sm:px-6 md:pt-16">
         <PasosPago actual={3} />
 

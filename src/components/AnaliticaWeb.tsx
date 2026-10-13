@@ -9,14 +9,17 @@ import { usePathname } from 'next/navigation';
  * - Vercel Web Analytics + Speed Insights: sin cookies ni datos personales, cuentan todas las visitas.
  * - Google Analytics 4: SOLO si el visitante pulsa «Aceptar» en el aviso de cookies
  *   (Consent Mode v2: todo denegado hasta entonces y el script de Google ni se descarga).
+ * - Píxel de Meta (13/10/2026): igual que GA4, SOLO tras «Aceptar» y solo si existe NEXT_PUBLIC_META_PIXEL_ID
+ *   (el ID del píxel es público; sin él no se carga nada). Eventos: PageView, Lead y Purchase con dkMeta().
  * Fuera de nuestra web: la carta pública de un restaurante (/m/…) es del cliente, y los
  * paneles privados no se miden.
  */
 const GA_ID = 'G-132VTP0EY7';
+const META_ID = (process.env.NEXT_PUBLIC_META_PIXEL_ID ?? '').trim();
 const SIN_MEDICION = ['/m/', '/admin-dkitchen', '/panel', '/sala', '/socio', '/r/'];
 
 declare global {
-  interface Window { dataLayer?: unknown[]; gtag?: (...a: unknown[]) => void; va?: (...a: unknown[]) => void; vaq?: unknown[]; si?: (...a: unknown[]) => void; siq?: unknown[] }
+  interface Window { fbq?: ((...a: unknown[]) => void) & { queue?: unknown[]; loaded?: boolean; version?: string; push?: unknown; callMethod?: (...a: unknown[]) => void }; _fbq?: unknown; dataLayer?: unknown[]; gtag?: (...a: unknown[]) => void; va?: (...a: unknown[]) => void; vaq?: unknown[]; si?: (...a: unknown[]) => void; siq?: unknown[] }
 }
 
 function cargarGa() {
@@ -31,17 +34,37 @@ function cargarGa() {
   document.head.appendChild(s);
 }
 
+function cargarMeta() {
+  if (!/^d{6,20}$/.test(META_ID) || document.getElementById('dk-meta')) return;
+  const q: unknown[] = [];
+  const fbq = Object.assign((...a: unknown[]) => { if (fbq.callMethod) fbq.callMethod(...a); else q.push(a); }, { queue: q, loaded: true, version: '2.0' });
+  window.fbq = fbq; window._fbq = fbq; (fbq as unknown as { push: unknown }).push = fbq;
+  const s = document.createElement('script');
+  s.id = 'dk-meta'; s.async = true; s.src = 'https://connect.facebook.net/en_US/fbevents.js';
+  document.head.appendChild(s);
+  window.fbq('init', META_ID);
+  window.fbq('track', 'PageView');
+}
+
+/** Evento de Meta (Lead, Purchase…). No hace nada si no hay consentimiento o no hay píxel. */
+export function dkMeta(evento: 'Lead' | 'Purchase' | 'InitiateCheckout' | 'CompleteRegistration', datos?: Record<string, unknown>) {
+  try { window.fbq?.('track', evento, datos ?? {}); } catch { /* sin píxel */ }
+}
+
 export default function AnaliticaWeb() {
   const ruta = usePathname() ?? '/';
   const medir = !SIN_MEDICION.some((p) => ruta.startsWith(p));
 
   useEffect(() => {
     if (!medir) return;
-    const comprobar = () => { try { if (localStorage.getItem('dkitchen_cookie_consent') === 'all') cargarGa(); } catch { /* sin almacenamiento */ } };
+    const comprobar = () => { try { if (localStorage.getItem('dkitchen_cookie_consent') === 'all') { cargarGa(); cargarMeta(); } } catch { /* sin almacenamiento */ } };
     comprobar();
     window.addEventListener('dk-consentimiento', comprobar);
     return () => window.removeEventListener('dk-consentimiento', comprobar);
   }, [medir]);
+
+  // Navegación interna: PageView en cada cambio de ruta (la primera la manda cargarMeta).
+  useEffect(() => { if (medir && document.getElementById('dk-meta')) window.fbq?.('track', 'PageView'); }, [ruta, medir]);
 
   if (!medir) return null;
   return (

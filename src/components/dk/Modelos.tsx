@@ -101,13 +101,13 @@ export function CartasAutorDemo() {
         <motion.div key={c.id} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.7, delay: i * 0.1, ease: CURVA }} className="text-center">
           <div className="mx-auto w-[250px]">
             <Marco>
-              {cargar ? <iframe src={`/demo/carta?plantilla=${c.id}&embed=1`} title={`Carta de autor: ${c.nombre}`} loading="lazy" style={{ width: 390, height: 845, transform: `scale(${226 / 390})`, transformOrigin: '0 0' }} className="absolute left-0 top-0 border-0" /> : <div className="absolute inset-0 animate-pulse bg-white/5" />}
+              {cargar ? <iframe src={`/demo/carta?plantilla=${c.id}&embed=1&muestra=local`} title={`Carta de autor: ${c.nombre}`} loading="lazy" style={{ width: 390, height: 845, transform: `scale(${226 / 390})`, transformOrigin: '0 0' }} className="absolute left-0 top-0 border-0" /> : <div className="absolute inset-0 animate-pulse bg-white/5" />}
             </Marco>
           </div>
           <p className="font-display mt-5 text-2xl font-semibold">{c.nombre}</p>
           <p className="mt-1 text-sm text-white/55">{c.d}</p>
           <div className="mt-4 flex justify-center gap-2">
-            <a href={`/demo/carta?plantilla=${c.id}`} className="rounded-full border border-white/20 px-4 py-2.5 text-sm font-semibold hover:border-white/50">Abrir en grande</a>
+            <a href={`/demo/carta?plantilla=${c.id}&muestra=local`} className="rounded-full border border-white/20 px-4 py-2.5 text-sm font-semibold hover:border-white/50">Abrir en grande</a>
             <a href="#planes" className="rounded-full bg-vino px-4 py-2.5 text-sm font-semibold">Quiero esta</a>
           </div>
         </motion.div>

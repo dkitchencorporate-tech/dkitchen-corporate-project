@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { dkMeta } from '@/components/AnaliticaWeb';
 
 /**
  * Formulario previo a WhatsApp (0071), en 4 pasos cortos para el móvil:
@@ -45,6 +46,7 @@ export default function FormularioContacto({ origen, interesInicial }: { origen:
       const r = await fetch('/api/contacto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...d, origen }) });
       const j = await r.json();
       if (!r.ok || !j.url) throw new Error(j.error || 'No se pudo enviar.');
+      dkMeta('Lead', { content_name: d.interes || 'no_se' });
       window.location.href = j.url;
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo enviar.');
