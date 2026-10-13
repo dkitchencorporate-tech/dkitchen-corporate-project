@@ -30,7 +30,7 @@ const tarjeta = 'rounded-[22px] border border-linea bg-white p-5 sm:p-6';
 const botonPrincipal = 'rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white hover:bg-vino-hondo disabled:opacity-40';
 
 export default function Estudio({
-  secciones, platos, extras, legal, restaurante, demo = false, irAPlatos,
+  secciones, platos, extras, legal, restaurante, demo = false, irAPlatos, sinLegal = false, soloLegal = false,
 }: {
   secciones: SeccionPropia[];
   platos: PlatoPropio[];
@@ -41,8 +41,13 @@ export default function Estudio({
   demo?: boolean;
   /** Lleva a Carta → Platos (fotos y alérgenos). */
   irAPlatos?: () => void;
+  /** Dentro del Estudio (Carta): sin páginas legales, que viven en Negocio → Legal. */
+  sinLegal?: boolean;
+  /** Negocio → Legal: solo las páginas legales. */
+  soloLegal?: boolean;
 }) {
-  const [zona, setZona] = useState<Zona>('categorias');
+  const [zona, setZona] = useState<Zona>(soloLegal ? 'legal' : 'categorias');
+  const zonas = ZONAS.filter((z) => (soloLegal ? z.id === 'legal' : !sinLegal || z.id !== 'legal'));
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
   const [pendiente, iniciar] = useTransition();
   const extra = useMemo(() => new Map(extras.map((e) => [e.id, e])), [extras]);
@@ -65,18 +70,18 @@ export default function Estudio({
   return (
     <div className="space-y-6">
       <header>
-        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Estudio de carta</h2>
-        <p className="mt-1 max-w-2xl text-sm text-niebla">Aquí construyes y organizas tu carta. Los cambios rápidos del día (precio, agotado, foto) siguen en <strong className="text-grafito">Platos</strong>.</p>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">{soloLegal ? 'Páginas legales' : 'Categorías y combos'}</h2>
+        <p className="mt-1 max-w-2xl text-sm text-niebla">{soloLegal ? 'Aviso legal, privacidad y cookies de tu negocio, generados con tus datos. Salen al pie de tu carta y de tu landing.' : <>Organiza tu carta: categorías, especiales y combos. Los cambios rápidos del día (precio, agotado, foto) están en <strong className="text-grafito">Platos</strong>.</>}</p>
       </header>
 
-      <nav className="flex gap-2 overflow-x-auto [scrollbar-width:none]" aria-label="Zonas del estudio">
-        {ZONAS.map((z) => (
+      {zonas.length > 1 && <nav className="flex gap-2 overflow-x-auto [scrollbar-width:none]" aria-label="Zonas del estudio">
+        {zonas.map((z) => (
           <button key={z.id} onClick={() => { setZona(z.id); setAviso(null); }} aria-pressed={zona === z.id}
             className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium ${zona === z.id ? 'border-vino bg-vino text-white' : 'border-linea bg-white text-grafito hover:border-linea-fuerte'}`}>
             {z.nombre}{z.id === 'combos' && combos.length > 0 ? ` · ${combos.length}` : ''}
           </button>
         ))}
-      </nav>
+      </nav>}
       <p className="-mt-2 text-sm text-niebla">{ZONAS.find((z) => z.id === zona)?.ayuda}</p>
 
       {aviso && <p role="status" className={`rounded-xl px-4 py-3 text-sm ${aviso.ok ? 'bg-exito/10 text-[#1F6B4F]' : 'bg-red-50 text-red-700'}`}>{aviso.texto}</p>}

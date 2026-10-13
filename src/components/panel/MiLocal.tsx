@@ -6,15 +6,9 @@ import { useState, useTransition } from 'react';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import { actualizarLocalAction } from '@/app/panel/actions';
 import SubirImagen from './SubirImagen';
+import { avisarEstudio } from './EstudioMarco';
 
 const campo = 'w-full rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza';
-
-const PLANTILLAS = [
-  { id: 'clasica', nombre: 'Clásica', para: 'Restaurante, menú del día, cartas largas' },
-  { id: 'editorial', nombre: 'Editorial', para: 'Cocina de autor y vinos' },
-  { id: 'visual', nombre: 'Visual', para: 'Gastro, brunch, hamburguesas: la foto vende' },
-  { id: 'express', nombre: 'Express', para: 'Bar, cafetería, terraza: rápida y compacta' },
-];
 
 /** Paleta curada del nivel Esencial: la misma lista blanca que dk.paleta_esencial() (0026). */
 const PALETA = [
@@ -27,65 +21,6 @@ const PALETA = [
   { hex: '#6B4E2E', nombre: 'Café' },
   { hex: '#1A1714', nombre: 'Carbón' },
 ];
-
-const NIVELES: Record<string, { nombre: string }> = {
-  esencial: { nombre: 'Esencial' },
-  autor: { nombre: 'Carta de Autor' },
-  signature: { nombre: 'Signature' },
-};
-
-/** Miniatura esquemática de cada plantilla, con el color de marca elegido. */
-function MiniPlantilla({ tipo, color }: { tipo: string; color: string }) {
-  const barra = 'h-1.5 rounded bg-white';
-  return (
-    <div className="h-24 overflow-hidden rounded-lg bg-crema p-2" aria-hidden="true">
-      {tipo === 'visual' ? (
-        <>
-          <div className="h-8 rounded" style={{ background: color }} />
-          <div className="mt-1.5 grid grid-cols-2 gap-1">
-            {[0, 1].map((i) => (
-              <div key={i} className="rounded bg-white p-1 shadow-sm">
-                <div className="h-5 rounded bg-white" />
-                <div className={`mt-1 ${barra}`} />
-              </div>
-            ))}
-          </div>
-        </>
-      ) : tipo === 'express' ? (
-        <>
-          <div className="flex items-center gap-1 border-t-2 pt-1" style={{ borderColor: color }}>
-            <div className="h-3 w-3 rounded-full bg-white" />
-            <div className={`w-10 ${barra}`} />
-          </div>
-          <div className="mt-1.5 space-y-1.5 rounded bg-white p-1">
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="flex justify-between">
-                <div className={`w-12 ${barra}`} />
-                <div className={`w-4 ${barra}`} />
-              </div>
-            ))}
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="mx-auto h-4 w-4 rounded-full" style={{ background: color }} />
-          <div className={`mx-auto mt-1 w-12 ${barra}`} />
-          <div className="mt-2 space-y-1.5">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="flex gap-1">
-                <div className="h-4 w-4 rounded bg-white" />
-                <div className="flex-1 space-y-0.5">
-                  <div className={barra} />
-                  <div className="h-1 w-3/4 rounded bg-white" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
 
 export default function MiLocal({ restaurante }: { restaurante: MiRestaurante }) {
   const [pendiente, iniciar] = useTransition();
@@ -102,8 +37,6 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
     urlResenas: restaurante.urlResenas ?? '',
     whatsapp: restaurante.whatsapp ?? '',
   });
-  const esencial = restaurante.nivelDiseno === 'esencial';
-  const plantillaActual = PLANTILLAS.find((p) => p.id === restaurante.plantilla) ?? PLANTILLAS[0];
   const ampliado = restaurante.plan !== 'basico';
   const urlCarta = `https://dkitchencorporate.es/m/${restaurante.slug}`;
   const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -114,7 +47,8 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
     iniciar(async () => {
       try {
         await actualizarLocalAction(d);
-        setAviso({ ok: true, texto: 'Guardado. Tu carta ya muestra los cambios.' });
+        setAviso({ ok: true, texto: 'Guardado. Tu carta y tu landing ya muestran los cambios.' });
+        avisarEstudio({ recargar: true });
       } catch (e) {
         setAviso({ ok: false, texto: mensajeError(e, 'No se pudo guardar.') });
       }
@@ -125,8 +59,8 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
     <div className="space-y-8">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Mi Local</h2>
-          <p className="text-sm text-niebla">Lo que tus clientes ven en la cabecera de la carta.</p>
+          <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Identidad</h2>
+          <p className="text-sm text-niebla">Nombre, logo, horario, dirección y contacto: salen en tu carta y en tu landing a la vez.</p>
         </div>
         <a
           href={`/m/${restaurante.slug}`}
@@ -138,30 +72,6 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
         </a>
       </div>
 
-      <section className="bg-white border border-linea rounded-2xl p-6 space-y-4">
-        <div className="flex items-start gap-4">
-          <div className="w-32 shrink-0"><MiniPlantilla tipo={plantillaActual.id} color={d.colorMarca} /></div>
-          <div className="min-w-0 space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-niebla">Tu diseño</p>
-            <h3 className="text-lg font-semibold">{NIVELES[restaurante.nivelDiseno]?.nombre ?? 'Esencial'} · {plantillaActual.nombre}</h3>
-            <p className="text-xs text-niebla">
-              El diseño de tu carta lo prepara DKitchen para que se vea profesional en cualquier móvil. Tú gestionas el contenido: platos,
-              fotos, precios, banners y datos del local.
-            </p>
-          </div>
-        </div>
-        {esencial ? (
-          <a
-            href="/panel?pestana=diseno"
-            className="block w-full rounded-full border border-vino/50 bg-vino/10 p-4 text-left hover:bg-vino/15"
-          >
-            <p className="font-semibold">Sube tu carta al diseño de autor</p>
-            <p className="text-xs text-niebla">Portada con tu imagen, categorías con foto, tipografía editorial… y te la dejamos cargada y optimizada. Ver niveles de diseño →</p>
-          </a>
-        ) : (
-          <p className="text-xs text-niebla">¿Quieres un cambio en el diseño? Pídelo en Soporte y lo revisamos contigo.</p>
-        )}
-      </section>
 
 
       <section className="bg-white border border-linea rounded-2xl p-6 space-y-5">

@@ -33,6 +33,10 @@ import Reservas from './Reservas';
 import Mejoras from './Mejoras';
 import Sala from './Sala';
 import Idiomas from './Idiomas';
+import EstudioMarco, { avisarEstudio } from './EstudioMarco';
+import EstiloPremium from './EstiloPremium';
+import LandingEstudio from './LandingEstudio';
+import PortadaCarta from './PortadaCarta';
 import type { EstadoServicios } from '@/lib/servicios';
 import type { MesaPlano, ElementoPlano, FilaInforme, Camarero as CamareroSala } from '@/lib/sala';
 import type { Promocion } from '@/lib/promociones';
@@ -43,7 +47,7 @@ import { TEMAS_PANEL } from '@/lib/ayuda';
 import { nombrePlan } from '@/lib/pricing-config';
 import { crearTicketAyudaAction, comprarServicioAction, preguntarAyudaIaAction } from '@/app/panel/actions';
 
-type Pestana = 'inicio' | 'pedidos' | 'carta' | 'estudio' | 'local' | 'promociones' | 'reservas' | 'equipo' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
+type Pestana = 'inicio' | 'pedidos' | 'carta' | 'estudio' | 'local' | 'landing' | 'legal' | 'promociones' | 'reservas' | 'equipo' | 'sala' | 'idiomas' | 'diseno' | 'modulos' | 'camarero' | 'qr' | 'escaneos' | 'plan' | 'soporte';
 
 /**
  * Navegación por espacios (29/09/2026): un raíl de iconos con 5 espacios y,
@@ -53,36 +57,40 @@ type Pestana = 'inicio' | 'pedidos' | 'carta' | 'estudio' | 'local' | 'promocion
 type Espacio = { id: string; nombre: string; icono: string; items: { id: Pestana; nombre: string }[] };
 const ESPACIOS: Espacio[] = [
   { id: 'inicio', nombre: 'Inicio', icono: 'inicio', items: [{ id: 'inicio', nombre: 'Inicio' }] },
-  { id: 'carta', nombre: 'Carta', icono: 'carta', items: [
-    { id: 'carta', nombre: 'Platos' }, { id: 'estudio', nombre: 'Estudio' }, { id: 'diseno', nombre: 'Diseño' }, { id: 'idiomas', nombre: 'Idiomas' },
-    { id: 'promociones', nombre: 'Banners' }, { id: 'qr', nombre: 'Mi QR' },
+  { id: 'estudio', nombre: 'Estudio', icono: 'carta', items: [
+    { id: 'local', nombre: 'Identidad' }, { id: 'carta', nombre: 'Carta' }, { id: 'diseno', nombre: 'Estilo' }, { id: 'landing', nombre: 'Landing' }, { id: 'qr', nombre: 'QR y kit' },
   ] },
   { id: 'servicio', nombre: 'Servicio', icono: 'servicio', items: [
     { id: 'pedidos', nombre: 'Pedidos' }, { id: 'reservas', nombre: 'Reservas' }, { id: 'camarero', nombre: 'Llamadas' }, { id: 'equipo', nombre: 'Equipo' }, { id: 'sala', nombre: 'Sala' },
   ] },
   { id: 'negocio', nombre: 'Negocio', icono: 'negocio', items: [
-    { id: 'escaneos', nombre: 'Escaneos' }, { id: 'local', nombre: 'Mi local' }, { id: 'plan', nombre: 'Mi plan' }, { id: 'modulos', nombre: 'Mejoras' },
+    { id: 'escaneos', nombre: 'Escaneos' }, { id: 'plan', nombre: 'Mi plan' }, { id: 'modulos', nombre: 'Mejoras' }, { id: 'legal', nombre: 'Legal' },
   ] },
   { id: 'ayuda', nombre: 'Ayuda', icono: 'ayuda', items: [{ id: 'soporte', nombre: 'Soporte' }] },
 ];
-const PESTANAS = ESPACIOS.flatMap((e) => e.items);
+/** Dentro de «Carta» del Estudio: segunda fila de píldoras (no son espacios propios). */
+const SUB_CARTA: { id: Pestana; nombre: string }[] = [
+  { id: 'carta', nombre: 'Platos' }, { id: 'estudio', nombre: 'Categorías y combos' }, { id: 'idiomas', nombre: 'Idiomas' }, { id: 'promociones', nombre: 'Banners' },
+];
+const ES_SUB_CARTA = (p: string) => SUB_CARTA.some((x) => x.id === p);
+const ESTUDIO_IDS = ['local', 'carta', 'estudio', 'idiomas', 'promociones', 'diseno', 'landing', 'qr'];
+const PESTANAS = [...ESPACIOS.flatMap((e) => e.items), ...SUB_CARTA.filter((x) => x.id !== 'carta')];
 const espacioDe = (id: string) => ESPACIOS.find((e) => e.id === id)!;
 /**
  * B5 (07/10/2026): dos modos. DÍA A DÍA (montaje completado): Servicio primero.
  * MONTAJE (primera vez): espacios numerados en el orden en que se monta un local.
  */
-const ESPACIOS_DIA: Espacio[] = ['inicio', 'servicio', 'carta', 'negocio', 'ayuda'].map(espacioDe);
+const ESPACIOS_DIA: Espacio[] = ['inicio', 'servicio', 'estudio', 'negocio', 'ayuda'].map(espacioDe);
 const ESPACIOS_MONTAJE: Espacio[] = [
   espacioDe('inicio'),
   { id: 'm-local', nombre: '1 Local', icono: 'local', items: [{ id: 'local', nombre: 'Mi local' }] },
   { id: 'm-carta', nombre: '2 Carta', icono: 'carta', items: [
-    { id: 'carta', nombre: 'Platos' }, { id: 'estudio', nombre: 'Estudio' }, { id: 'diseno', nombre: 'Diseño' }, { id: 'idiomas', nombre: 'Idiomas' },
-    { id: 'promociones', nombre: 'Banners' }, { id: 'qr', nombre: 'Mi QR' },
+    { id: 'carta', nombre: 'Carta' }, { id: 'diseno', nombre: 'Estilo' }, { id: 'landing', nombre: 'Landing' }, { id: 'qr', nombre: 'QR y kit' },
   ] },
   { id: 'm-sala', nombre: '3 Sala', icono: 'servicio', items: [
     { id: 'sala', nombre: 'Sala' }, { id: 'equipo', nombre: 'Equipo' }, { id: 'pedidos', nombre: 'Pedidos' }, { id: 'reservas', nombre: 'Reservas' }, { id: 'camarero', nombre: 'Llamadas' },
   ] },
-  { id: 'negocio', nombre: 'Negocio', icono: 'negocio', items: [{ id: 'escaneos', nombre: 'Escaneos' }, { id: 'plan', nombre: 'Mi plan' }, { id: 'modulos', nombre: 'Mejoras' }] },
+  { id: 'negocio', nombre: 'Negocio', icono: 'negocio', items: [{ id: 'escaneos', nombre: 'Escaneos' }, { id: 'plan', nombre: 'Mi plan' }, { id: 'modulos', nombre: 'Mejoras' }, { id: 'legal', nombre: 'Legal' }] },
   espacioDe('ayuda'),
 ];
 
@@ -127,7 +135,7 @@ export default function PanelShell({
   const tieneServ = (id: string) => servicios.contratados.some((c) => c.servicio === id || (c.servicio === 'pack_sala' && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(id)));
   const modulos = { plano: tieneServ('plano_mesas'), app: tieneServ('app_sala'), tpv: tieneServ('conexion_tpv') };
   // Puesta a punto del socio (0052): solo la carta y el local; nada de dinero ni operativa del dueño.
-  const delegado = restaurante.puestaAPunto === true;
+  const delegado = restaurante.puestaAPunto === true && restaurante.soporte !== true;
   const visible = (id: Pestana) =>
     delegado && ['pedidos', 'reservas', 'camarero', 'equipo', 'escaneos', 'plan', 'modulos'].includes(id) ? false
     : id === 'sala' ? modulos.plano || modulos.app || modulos.tpv
@@ -183,7 +191,8 @@ export default function PanelShell({
   setPestanaRef.current = setPestana;
   const irATutorial = useCallback((p: string) => setPestanaRef.current(p as Pestana), []);
   const alBloquear = useCallback((l: string[] | null) => { bloqueo.current = l; }, []);
-  const espacio = espacios.find((e) => e.items.some((p) => p.id === pestana)) ?? espacios[0];
+  const enEspacio = ES_SUB_CARTA(pestana) ? 'carta' : pestana;
+  const espacio = espacios.find((e) => e.items.some((p) => p.id === enEspacio)) ?? espacios[0];
   const titulo = PESTANAS.find((p) => p.id === pestana)?.nombre ?? '';
   const puesta = servicios.contratados.some((c) => c.servicio === 'setup_esencial' || c.servicio === 'setup_experto') ? null : servicios.catalogo.find((c) => c.servicio === 'setup_esencial') ?? null;
   const euros = (c: number) => `${(c / 100).toLocaleString('es-ES', { maximumFractionDigits: 2 })} €`;
@@ -244,9 +253,9 @@ export default function PanelShell({
             <div className="mx-auto max-w-6xl px-4 pb-3 sm:px-6 lg:px-10">
               <div className="flex gap-1 overflow-x-auto [scrollbar-width:none]" role="tablist" aria-label={espacio.nombre}>
                 {espacio.items.map((p) => (
-                  <button key={p.id} role="tab" aria-selected={pestana === p.id} onClick={() => setPestana(p.id)}
-                    className={`relative shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${pestana === p.id ? 'text-white' : 'text-niebla hover:text-carbon'}`}>
-                    {pestana === p.id && <motion.span layoutId="pildora-activa" className="absolute inset-0 rounded-full bg-tinta" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                  <button key={p.id} role="tab" aria-selected={enEspacio === p.id} onClick={() => setPestana(p.id)}
+                    className={`relative shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${enEspacio === p.id ? 'text-white' : 'text-niebla hover:text-carbon'}`}>
+                    {enEspacio === p.id && <motion.span layoutId="pildora-activa" className="absolute inset-0 rounded-full bg-tinta" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
                     <span className="relative">{p.nombre}</span>
                   </button>
                 ))}
@@ -276,20 +285,38 @@ export default function PanelShell({
         <AnimatePresence mode="wait">
         <motion.div key={pestana} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
         {pestana === 'inicio' && <Inicio restaurante={restaurante} qrPedido={solicitudesQr.length > 0} escaneosMes={escaneosMes} escaneos30d={escaneos30d} reservas={reservasVivas} platos={carta.platos} servicios={servicios} ir={(p) => setPestana(p)} />}
-        {pestana === 'carta' && <MiCarta carta={carta} />}
-        {pestana === 'estudio' && <Estudio secciones={carta.secciones} platos={carta.platos} extras={estudio.extras} legal={estudio.legal} restaurante={{ slug: restaurante.slug, nombre: restaurante.nombre, direccion: restaurante.direccion }} demo={identidad.id === 'demo'} irAPlatos={() => setPestana('carta')} />}
-        {pestana === 'local' && <MiLocal restaurante={restaurante} />}
-        {pestana === 'promociones' && <Promociones promociones={promociones} secciones={carta.secciones} plan={restaurante.plan} platos={carta.platos.map((p) => ({ id: p.id, nombre: p.nombre }))} />}
-        {(pestana === 'diseno' || pestana === 'modulos') && <Mejoras key={pestana} restaurante={restaurante} servicios={servicios} vista={pestana} fotos={carta.platos.map((p) => p.fotoUrl).filter((u): u is string => !!u).slice(0, 3)} />}
+        {ESTUDIO_IDS.includes(pestana) && (
+          <EstudioMarco slug={restaurante.slug} conLanding={restaurante.plan !== 'basico'} verInicial={pestana === 'landing' ? 'landing' : 'carta'}>
+            {ES_SUB_CARTA(pestana) && (
+              <div className="mb-6 flex gap-1.5 overflow-x-auto rounded-full bg-white p-1 ring-1 ring-linea [scrollbar-width:none]" role="tablist" aria-label="Partes de tu carta">
+                {SUB_CARTA.map((x) => (
+                  <button key={x.id} role="tab" aria-selected={pestana === x.id} onClick={() => setPestana(x.id)}
+                    className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${pestana === x.id ? 'bg-[#0D090F] text-[#F2C14E]' : 'text-niebla hover:text-tinta'}`}>{x.nombre}</button>
+                ))}
+              </div>
+            )}
+            {pestana === 'carta' && <MiCarta carta={carta} />}
+            {pestana === 'estudio' && <Estudio secciones={carta.secciones} platos={carta.platos} extras={estudio.extras} legal={estudio.legal} sinLegal restaurante={{ slug: restaurante.slug, nombre: restaurante.nombre, direccion: restaurante.direccion }} demo={identidad.id === 'demo'} irAPlatos={() => setPestana('carta')} />}
+            {pestana === 'local' && <MiLocal restaurante={restaurante} />}
+            {pestana === 'promociones' && <Promociones promociones={promociones} secciones={carta.secciones} plan={restaurante.plan} platos={carta.platos.map((p) => ({ id: p.id, nombre: p.nombre }))} />}
+            {pestana === 'diseno' && (
+              <div className="space-y-10">
+                <EstiloPremium inicial={{ plantilla: restaurante.plantilla || 'premium', fondo: restaurante.estiloFondo || 'oscuro', letra: restaurante.estiloLetra || 'sans', color: (restaurante.colorMarca || '#B23A48').toUpperCase() }} />
+                <PortadaCarta inicial={restaurante.portadaUrl ?? null} conNombreInicial={!!restaurante.portadaConNombre} demo={demo} onCambio={() => avisarEstudio({ recargar: true })} />
+              </div>
+            )}
+            {pestana === 'landing' && <LandingEstudio slug={restaurante.slug} plan={restaurante.plan} ir={(p) => setPestana(p as Pestana)} />}
+            {pestana === 'idiomas' && <Idiomas maximo={servicios.idiomasPermitidos ?? 1} activos={restaurante.idiomas ?? []} secciones={carta.secciones} platos={carta.platos} traducciones={traducciones} />}
+            {pestana === 'qr' && <MiQr codigoQr={codigoQr} restauranteNombre={restaurante.nombre} solicitudes={solicitudesQr} />}
+          </EstudioMarco>
+        )}
+        {pestana === 'modulos' && <Mejoras key={pestana} restaurante={restaurante} servicios={servicios} vista={pestana} fotos={carta.platos.map((p) => p.fotoUrl).filter((u): u is string => !!u).slice(0, 3)} />}
         {pestana === 'sala' && <Sala mesas={sala.mesas} elementos={sala.elementos} camareros={sala.camareros} tpv={sala.tpv} modulos={modulos} />}
-        {pestana === 'idiomas' && <Idiomas maximo={servicios.idiomasPermitidos ?? 1} activos={restaurante.idiomas ?? []} secciones={carta.secciones} platos={carta.platos} traducciones={traducciones} />}
         {pestana === 'reservas' && <Reservas reservas={reservasVivas} whatsapp={restaurante.whatsapp} abrirId={reservaAbrir} onAbierta={() => setReservaAbrir(null)} />}
         {pestana === 'pedidos' && <Pedidos demo={demo} elementos={sala.elementos} camareros={sala.camareros} />}
         {pestana === 'equipo' && <Equipo informe={sala.informe} demo={demo} />}
         {pestana === 'camarero' && <Camarero slug={restaurante.slug} codigoQr={codigoQr} />}
-        {pestana === 'qr' && (
-          <MiQr codigoQr={codigoQr} restauranteNombre={restaurante.nombre} solicitudes={solicitudesQr} />
-        )}
+        {pestana === 'legal' && <Estudio secciones={carta.secciones} platos={carta.platos} extras={estudio.extras} legal={estudio.legal} soloLegal restaurante={{ slug: restaurante.slug, nombre: restaurante.nombre, direccion: restaurante.direccion }} demo={identidad.id === 'demo'} irAPlatos={() => setPestana('carta')} />}
         {pestana === 'escaneos' && <MisEscaneos escaneosMes={escaneosMes} escaneos30d={escaneos30d} />}
         {pestana === 'plan' && <div className="space-y-6"><DesgloseCobro cobro={cobro} /><MiPlan restaurante={restaurante} servicios={servicios} /></div>}
         {pestana === 'soporte' && <div className="space-y-6">{socio && !delegado && <AsesorSocio socio={socio} />}<Soporte tickets={tickets} /></div>}
