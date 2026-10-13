@@ -46,15 +46,15 @@ export default async function LandingLocal({ params }: { params: Promise<{ slug:
   return (
     <main className="min-h-screen bg-[#0B0A09] text-[#F4EEE4] antialiased" style={{ '--marca': color } as CSSProperties}>
       {/* Portada */}
-      <header className="relative h-[92vh] min-h-[560px] overflow-hidden">
-        {portada && carta.portadaConNombre && <img src={portada} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl" />}
-        {portada && <img src={portada} alt="" className={`absolute inset-0 h-full w-full ${carta.portadaConNombre ? 'object-contain object-top' : 'object-cover'}`} />}
+      <header className={`relative overflow-hidden ${carta.portadaConNombre ? 'flex min-h-[86vh] flex-col justify-end pt-[min(62vw,520px)]' : 'h-[92vh] min-h-[560px]'}`}>
+        {portada && carta.portadaConNombre && <img src={portada} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-125 object-cover opacity-30 blur-3xl" />}
+        {portada && <img src={portada} alt="" className={carta.portadaConNombre ? 'absolute inset-x-0 top-0 mx-auto w-full max-w-4xl' : 'absolute inset-0 h-full w-full object-cover'} />}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.55)_0%,rgba(0,0,0,.1)_35%,rgba(0,0,0,.5)_62%,#0B0A09_100%)]" />
         <nav className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 py-4 sm:px-10">
           {carta.logoUrl ? <img src={carta.logoUrl} alt={carta.nombre} className="h-12 w-12 rounded-full object-cover ring-1 ring-white/40" /> : <span />}
           <Link href={verCarta} className={`${versalitas} rounded-full border border-white/30 bg-black/30 px-4 py-2.5 backdrop-blur`}>La carta</Link>
         </nav>
-        <div className="absolute inset-x-0 bottom-0 z-10 mx-auto max-w-3xl px-6 pb-14 text-center">
+        <div className={`z-10 mx-auto max-w-3xl px-6 pb-14 text-center ${carta.portadaConNombre ? 'relative w-full pt-6' : 'absolute inset-x-0 bottom-0'}`}>
           <p className={`${versalitas} text-white/75`}>Bienvenidos</p>
           {!carta.portadaConNombre && <h1 className={`${serif.className} mt-3 text-[clamp(52px,14vw,110px)] font-medium leading-[0.95]`}>{carta.nombre}</h1>}
           {carta.portadaConNombre && <h1 className="sr-only">{carta.nombre}</h1>}

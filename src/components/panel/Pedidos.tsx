@@ -7,6 +7,8 @@ import {
   cartaPedidosAction, anadirRondaAction, cambiarCantidadAction, moverMesaAction, reenviarTpvAction, abrirMesaAction,
 } from '@/app/panel/actions';
 import { probarSonido } from '@/lib/alarma-camarero';
+import type { ElementoPlano } from '@/lib/sala';
+import PlanoVivo from './PlanoVivo';
 
 const euros = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(Number(n) || 0);
 const haceMin = (iso: string) => Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -43,11 +45,11 @@ const EJEMPLO: Datos = {
   ],
 };
 
-export default function Pedidos({ demo = false }: { demo?: boolean }) {
+export default function Pedidos({ demo = false, elementos = [], camareros = [] }: { demo?: boolean; elementos?: ElementoPlano[]; camareros?: { id: string; nombre: string; activo: boolean }[] }) {
   const [datos, setDatos] = useState<Datos | null>(demo ? EJEMPLO : null);
   const [error, setError] = useState<string | null>(null);
   const [abierta, setAbierta] = useState<string | null>(null);
-  const [nuevo, setNuevo] = useState(false);
+  const [nuevo, setNuevo] = useState<false | string>(false);
   const [carta, setCarta] = useState<CartaPanel | null>(null);
   const [actualizado, setActualizado] = useState<number>(Date.now());
   const vistas = useRef<Set<string> | null>(null);
@@ -84,7 +86,7 @@ export default function Pedidos({ demo = false }: { demo?: boolean }) {
           <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Pedidos</h2>
           <p className="text-sm text-niebla">Todo lo que entra de sala, en directo. Se actualiza solo cada 5 s · {demo || Math.round((Date.now() - actualizado) / 1000) < 10 ? 'al día' : 'reconectando…'}</p>
         </div>
-        <button onClick={() => { setNuevo(true); void pedirCarta(); }} className="rounded-full bg-vino px-5 py-3 text-sm font-bold text-white hover:bg-vino-hondo">+ Nuevo pedido</button>
+        <button onClick={() => { setNuevo(''); void pedirCarta(); }} className="rounded-full bg-vino px-5 py-3 text-sm font-bold text-white hover:bg-vino-hondo">+ Nuevo pedido</button>
       </header>
       {error && <p className="text-sm text-red-600">{error}</p>}
       {demo && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Ejemplo de un servicio en marcha. En tu panel real, desde aquí añades productos, cambias cantidades, mueves o juntas mesas y las cierras.</p>}
@@ -97,6 +99,8 @@ export default function Pedidos({ demo = false }: { demo?: boolean }) {
           </div>
         ))}
       </dl>
+
+      {!demo && <PlanoVivo datos={datos} elementos={elementos} camareros={camareros} onCambio={cargar} onVerCuenta={setAbierta} onPedido={(m) => { setNuevo(m); void pedirCarta(); }} />}
 
       <section className="space-y-3">
         <h3 className="text-xs font-bold uppercase tracking-wider text-niebla">
@@ -137,8 +141,8 @@ export default function Pedidos({ demo = false }: { demo?: boolean }) {
       </section>
 
       {abierta && !demo && <DetalleCuenta id={abierta} tpv={datos.tpv} pedirCarta={pedirCarta} onCerrar={() => { setAbierta(null); cargar(); }} />}
-      {nuevo && !demo && (
-        <NuevoPedido mesas={datos.mesas.map((m) => m.numero)} abiertas={datos.cuentas.map((k) => k.mesa)} pedirCarta={pedirCarta}
+      {nuevo !== false && !demo && (
+        <NuevoPedido mesaInicial={nuevo} mesas={datos.mesas.map((m) => m.numero)} abiertas={datos.cuentas.map((k) => k.mesa)} pedirCarta={pedirCarta}
           onCerrar={(cuenta) => { setNuevo(false); cargar(); if (cuenta) setAbierta(cuenta); }} />
       )}
     </div>
@@ -251,10 +255,10 @@ function Modal({ titulo, sub, onCerrar, children }: { titulo: string; sub?: stri
   );
 }
 
-function NuevoPedido({ mesas, abiertas, pedirCarta, onCerrar }: {
-  mesas: string[]; abiertas: string[]; pedirCarta: () => Promise<CartaPanel | null>; onCerrar: (cuenta?: string) => void;
+function NuevoPedido({ mesaInicial = '', mesas, abiertas, pedirCarta, onCerrar }: {
+  mesaInicial?: string; mesas: string[]; abiertas: string[]; pedirCarta: () => Promise<CartaPanel | null>; onCerrar: (cuenta?: string) => void;
 }) {
-  const [mesa, setMesa] = useState('');
+  const [mesa, setMesa] = useState(mesaInicial);
   const [pax, setPax] = useState('');
   const [carta, setCarta] = useState<CartaPanel | null>(null);
   const [aviso, setAviso] = useState<Aviso>(null);
