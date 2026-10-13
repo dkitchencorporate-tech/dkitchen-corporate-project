@@ -85,7 +85,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
             <input value={d.nombre} onChange={set('nombre')} maxLength={80} className={campo} />
           </label>
         </div>
-        <p className="text-xs text-niebla">El estilo, el fondo, la letra y el color de tu carta se eligen en la pestaña <a href="/panel?pestana=diseno" className="font-semibold text-vino underline">Diseño</a>.</p>
+        <p className="text-xs text-niebla">El estilo, el fondo, la letra y el color de tu carta se eligen en <a href="/panel?pestana=diseno" className="font-semibold text-vino underline">Estudio → Estilo</a>.</p>
         <label className="block space-y-1">
           <span className="text-xs text-niebla">Descripción corta ({d.descripcion.length}/280)</span>
           <textarea value={d.descripcion} onChange={set('descripcion')} maxLength={280} rows={2} spellCheck lang="es" placeholder="Ej: Cocina mediterránea de mercado desde 1998" className={campo} />

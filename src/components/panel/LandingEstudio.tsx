@@ -43,7 +43,7 @@ export default function LandingEstudio({ slug, plan, ir }: { slug: string; plan:
         {pasos.map(([t, d, p], i) => (
           <li key={t}>
             <button type="button" onClick={() => ir(p)} className="h-full w-full rounded-[24px] bg-white p-5 text-left ring-1 ring-linea transition hover:ring-vino">
-              <span className="font-display text-3xl italic text-vino">{['I', 'II', 'III'][i]}</span>
+              <span className="font-display text-3xl font-semibold tabular-nums text-vino">{String(i + 1).padStart(2, '0')}</span>
               <span className="mt-1 block font-semibold">{t}</span>
               <span className="mt-1 block text-sm text-niebla">{d}</span>
             </button>
