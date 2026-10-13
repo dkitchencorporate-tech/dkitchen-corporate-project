@@ -136,7 +136,7 @@ export default function EstiloPremium({ inicial }: { inicial: { plantilla: strin
         <p className="mt-2 text-xs text-niebla">Se usa en detalles y botones; en Noir, los precios van siempre en oro.</p>
       </div>
 
-      <div className="sticky bottom-20 z-10 flex flex-wrap items-center gap-3 rounded-full bg-white/90 p-2 pl-5 shadow-lg ring-1 ring-linea backdrop-blur lg:bottom-4">
+      <div className={`${cambiado ? 'sticky bottom-20 z-10 shadow-lg lg:bottom-4' : ''} flex flex-wrap items-center gap-3 rounded-full bg-white/90 p-2 pl-5 ring-1 ring-linea backdrop-blur`}>
         <span className="flex-1 text-sm text-niebla">{aviso ? <span className={aviso.ok ? 'text-exito' : 'text-red-600'}>{aviso.texto}</span> : cambiado ? 'Tienes cambios sin guardar.' : 'Así se ve tu carta ahora.'}</span>
         {cambiado && <button type="button" onClick={() => { setComp(base.comp); setTema(base.tema); setColor(base.color); avisarEstudio({ recargar: true }); }} className="rounded-full px-4 py-2.5 text-sm font-semibold text-niebla hover:text-tinta">Deshacer</button>}
         <button type="button" disabled={!cambiado || pendiente} onClick={guardar} className="rounded-full bg-vino px-6 py-3 text-sm font-bold text-white disabled:opacity-35">{pendiente ? 'Guardando…' : 'Guardar estilo'}</button>

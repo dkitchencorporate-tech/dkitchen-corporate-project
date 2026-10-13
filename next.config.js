@@ -151,6 +151,9 @@ const nextConfig = {
       { source: '/:path*', headers: cabecerasDeSeguridad },
       // Va después: en Next gana la última regla que coincide con la misma cabecera.
       { source: '/demo/carta', headers: [{ key: 'Content-Security-Policy', value: CSP_DEMO_INCRUSTABLE }, { key: 'X-Frame-Options', value: 'SAMEORIGIN' }] },
+      // Estudio del panel (13/10): el móvil en vivo enseña la carta y la landing reales del local. Públicas; solo desde nuestro dominio.
+      { source: '/m/:slug', headers: [{ key: 'Content-Security-Policy', value: CSP_DEMO_INCRUSTABLE }, { key: 'X-Frame-Options', value: 'SAMEORIGIN' }] },
+      { source: '/l/:slug', headers: [{ key: 'Content-Security-Policy', value: CSP_DEMO_INCRUSTABLE }, { key: 'X-Frame-Options', value: 'SAMEORIGIN' }] },
       // Puerta de los eventos de Experience (0067): el portero escanea las entradas con la cámara trasera.
       { source: '/e/:slug/puerta', headers: [{ key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=(), usb=(), interest-cohort=()' }] },
     ];
