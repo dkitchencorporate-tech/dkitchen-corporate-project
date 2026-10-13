@@ -1,3 +1,4 @@
+import { leerLanding } from '@/lib/landing';
 import { redirect } from 'next/navigation';
 import { obtenerJwtDeSesion, identidadActual } from '@/lib/sesion';
 import { obtenerMiRestaurante, obtenerCodigoQr } from '@/lib/mi-restaurante';
@@ -76,6 +77,7 @@ export default async function Panel() {
     ]);
     const [servicios, cobro, extras, legal, tutorial] = await Promise.all([estadoServicios(jwt, restaurante.id), puesta ? Promise.resolve(null) : resumenCobro(jwt, restaurante.id).catch(() => null),
       suave(listarExtras(jwt, restaurante.id), []), obtenerLegal(jwt, restaurante.id), puesta ? Promise.resolve(null) : tutorialEstado(jwt, restaurante.id).catch(() => null)]);
+    const landing = await leerLanding(jwt, restaurante.id).catch(() => null);
     const c = servicios.contratados;
     const hayPlano = tiene(c, 'plano_mesas'), hayApp = tiene(c, 'app_sala'), hayTpv = tiene(c, 'conexion_tpv');
     const [plano, camareros, tpv, llamadas, traducciones, informe] = await Promise.all([
@@ -103,7 +105,7 @@ export default async function Panel() {
         sala={{ mesas: plano.mesas, elementos: plano.elementos, camareros, tpv, llamadas, informe }}
         traducciones={traducciones}
         cobro={cobro}
-        estudio={{ extras, legal }}
+        estudio={{ extras, legal, landing }}
         tutorial={tutorial}
         socio={socio}
       />

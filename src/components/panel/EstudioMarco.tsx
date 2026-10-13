@@ -68,10 +68,10 @@ export default function EstudioMarco({ slug, conLanding, verInicial = 'carta', c
 
       {/* Escritorio: móvil fijo a la derecha */}
       <aside className="hidden xl:block">
-        <div className="sticky top-6 rounded-[36px] bg-[#0D090F] px-5 py-6"
+        <div className="sticky top-[132px] rounded-[36px] bg-[#0D090F] px-5 py-5"
           style={{ backgroundImage: 'radial-gradient(120% 60% at 0% 0%, rgba(110,12,43,.4), transparent 60%)' }}>
-          <p className="mb-3 text-center font-display text-lg italic text-[#F2C14E]">En vivo</p>
-          {movil('h-[600px]')}
+          <p className="mb-2 text-center font-display text-lg italic text-[#F2C14E]">En vivo</p>
+          {movil('h-[min(600px,calc(100dvh-300px))] min-h-[380px]')}
         </div>
       </aside>
 

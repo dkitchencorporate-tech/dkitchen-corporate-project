@@ -20,6 +20,7 @@ import AsesorSocio from './AsesorSocio';
 import Estudio from './Estudio';
 import GuiaSeccion from './GuiaSeccion';
 import type { ExtraPlato, DatosLegal } from '@/lib/estudio';
+import type { Landing } from '@/lib/landing-tipos';
 import MiLocal from './MiLocal';
 import Camarero from './Camarero';
 import Pedidos from './Pedidos';
@@ -127,7 +128,7 @@ export default function PanelShell({
   sala: { mesas: (MesaPlano & { id: string })[]; elementos: ElementoPlano[]; informe: FilaInforme[]; camareros: CamareroSala[]; tpv: { proveedor: string; activa: boolean; ultimoEnvio: string | null; ultimoError: string | null } | null; llamadas: string[] };
   traducciones: { entidad: 'plato' | 'seccion'; entidadId: string; idioma: string; campo: 'nombre' | 'descripcion'; texto: string }[];
   cobro: ResumenCobro | null;
-  estudio?: { extras: ExtraPlato[]; legal: DatosLegal };
+  estudio?: { extras: ExtraPlato[]; legal: DatosLegal; landing?: Landing | null };
   tutorial?: TutorialEstado | null;
   /** Asesor del local (0052): el dueño lo ve en Soporte y puede retirarle el permiso. */
   socio?: { nombre: string; puede_editar: boolean } | null;
@@ -305,7 +306,7 @@ export default function PanelShell({
                 <PortadaCarta inicial={restaurante.portadaUrl ?? null} conNombreInicial={!!restaurante.portadaConNombre} demo={demo} onCambio={() => avisarEstudio({ recargar: true })} />
               </div>
             )}
-            {pestana === 'landing' && <LandingEstudio slug={restaurante.slug} plan={restaurante.plan} ir={(p) => setPestana(p as Pestana)} />}
+            {pestana === 'landing' && <LandingEstudio slug={restaurante.slug} plan={restaurante.plan} ir={(p) => setPestana(p as Pestana)} inicial={estudio?.landing ?? null} demo={demo} platos={carta.platos.filter((p) => !p.esCombo).map((p) => ({ id: p.id, nombre: p.nombre, fotoUrl: p.fotoUrl }))} />}
             {pestana === 'idiomas' && <Idiomas maximo={servicios.idiomasPermitidos ?? 1} activos={restaurante.idiomas ?? []} secciones={carta.secciones} platos={carta.platos} traducciones={traducciones} />}
             {pestana === 'qr' && <MiQr codigoQr={codigoQr} restauranteNombre={restaurante.nombre} solicitudes={solicitudesQr} />}
           </EstudioMarco>

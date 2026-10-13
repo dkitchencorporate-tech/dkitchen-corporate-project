@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { claveDeLimite, limiteSuperado } from '@/lib/limite-frecuencia';
 import { escaneosRango as dbEscaneosRango } from '@/lib/escaneos-cliente';
-import { mejorarTexto as dbMejorarTexto, type TipoTexto } from '@/lib/texto-ia';
+import { mejorarTexto as dbMejorarTexto, generarTextosLanding as dbGenerarTextosLanding, type TipoTexto } from '@/lib/texto-ia';
+import { guardarLanding as dbGuardarLanding, type Landing } from '@/lib/landing';
+import { comoCliente as comoClienteLanding } from '@/lib/db';
 import { responderAyuda, type MensajeAyuda } from '@/lib/ayuda-ia';
 import { saldoIa as dbSaldoIa, generarImagen as dbGenerarImagen, limpiarTextoIa } from '@/lib/ia';
 import { moverSeccion as dbMoverSeccion, guardarExtras as dbGuardarExtras, guardarCombo as dbGuardarCombo, guardarLegal as dbGuardarLegal, ETIQUETAS, type Etiqueta, type DatosCombo, type DatosLegal } from '@/lib/estudio';
@@ -1078,3 +1080,58 @@ export async function pedirLlamadaSignatureAction(telefono?: string): Promise<{ 
     return { ok: false, error: e instanceof Error && /dueño/.test(e.message) ? e.message : 'No se pudo enviar. Inténtalo en unos segundos.' };
   }
 }
+
+// ---------------------------------------------------------------- landing del local (0076)
+const URL_FOTO_LOCAL = (url: unknown, restauranteId: string) =>
+  typeof url === 'string' && FOTO_PROPIA.test(url) && url.includes(`/restaurantes/${restauranteId}/`);
+
+async function guardarLandingAction_(l: Landing) {
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  const texto = (v: unknown, n: number) => (typeof v === 'string' ? v.replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n) || null : null);
+  const galeria = (Array.isArray(l?.galeria) ? l.galeria : []).filter((u) => URL_FOTO_LOCAL(u, restaurante.id)).slice(0, 8);
+  const foto = l?.fotoHistoriaUrl && URL_FOTO_LOCAL(l.fotoHistoriaUrl, restaurante.id) ? l.fotoHistoriaUrl : null;
+  if (l?.fotoHistoriaUrl && !foto) throw new Error('La foto de «La casa» no es válida. Súbela de nuevo.');
+  const limpia: Landing = {
+    activa: l?.activa !== false,
+    estilo: (['noir', 'crema', 'brasa', 'mar'] as const).includes(l?.estilo) ? l.estilo : 'noir',
+    titular: texto(l?.titular, 90), subtitulo: texto(l?.subtitulo, 160),
+    historia: typeof l?.historia === 'string' ? l.historia.replace(/[\u0000-\u0009\u000b-\u001f\u007f<>]/g, ' ').trim().slice(0, 600) || null : null,
+    fotoHistoriaUrl: foto, galeria,
+    destacados: (Array.isArray(l?.destacados) ? l.destacados : []).filter((x) => UUID.test(String(x))).slice(0, 6),
+    bloques: Array.isArray(l?.bloques) ? l.bloques : [],
+    faq: (Array.isArray(l?.faq) ? l.faq : []).map((q) => ({ p: texto(q?.p, 140) ?? '', r: texto(q?.r, 400) ?? '' })).filter((q) => q.p && q.r).slice(0, 6),
+    ctaPrincipal: (['reservar', 'carta', 'llamar'] as const).includes(l?.ctaPrincipal) ? l.ctaPrincipal : 'reservar',
+    seoTitulo: texto(l?.seoTitulo, 70), seoDescripcion: texto(l?.seoDescripcion, 160),
+  };
+  await dbGuardarLanding(jwt, restaurante.id, limpia);
+  revalidatePath('/panel');
+  revalidatePath(`/l/${restaurante.slug}`);
+}
+export async function guardarLandingAction(...a: Parameters<typeof guardarLandingAction_>) { return envolver(() => guardarLandingAction_(...a)); }
+
+/** Textos con IA para la landing: gasta 1 crédito de IA del local (el mismo saldo que las imágenes). */
+async function generarLandingIaAction_() {
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  const carta = await listarMiCarta(jwt, restaurante.id);
+  const reserva = await comoClienteLanding(jwt, async (c) => {
+    const { rows } = await c.query('SELECT * FROM dk.ia_reservar($1, $2)', [restaurante.id, 'landing: textos']);
+    return rows[0] as { movimiento: string };
+  }).catch((e: Error) => {
+    if (/ia_sin_saldo/.test(e.message)) throw new Error('Has usado todos tus créditos de IA. Puedes comprar un bono cuando quieras.');
+    if (/ia_limite_diario/.test(e.message)) throw new Error('Has llegado al límite de IA de hoy. Mañana puedes seguir.');
+    if (/ia_tope_global/.test(e.message)) throw new Error('La IA está en pausa unas horas por mantenimiento. Inténtalo más tarde.');
+    throw e;
+  });
+  try {
+    const textos = await dbGenerarTextosLanding({
+      nombre: restaurante.nombre, descripcion: restaurante.descripcion ?? '', direccion: restaurante.direccion ?? '', horario: restaurante.horario ?? '',
+      secciones: carta.secciones.map((s) => s.nombre), platos: carta.platos.filter((p) => !p.esCombo).map((p) => p.nombre), conFaq: restaurante.plan === 'sala',
+    });
+    const saldo = await dbSaldoIa(jwt, restaurante.id).catch(() => null);
+    return { textos, restantes: saldo?.restantes ?? null };
+  } catch (e) {
+    await comoClienteLanding(jwt, (c) => c.query('SELECT dk.ia_devolver($1)', [reserva.movimiento])).catch(() => {});
+    throw e;
+  }
+}
+export async function generarLandingIaAction() { return envolver(() => generarLandingIaAction_()); }
