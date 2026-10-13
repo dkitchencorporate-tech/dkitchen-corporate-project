@@ -34,13 +34,15 @@ const euros = (p: string) => `${Number(p).toLocaleString('es-ES', { minimumFract
 const normal = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 export default function CartaPremium({
-  carta, grupos, nombres, color, oscuro, serifClase, accion, portadaFallback, tras, variante = 'autor',
+  carta, grupos, nombres, color, oscuro, serifClase, accion, portadaFallback, tras, variante = 'autor', resenas,
 }: {
   carta: Carta; grupos: SeccionCarta[]; nombres: Record<string, string>; color: string; oscuro: boolean;
   serifClase: string; accion: ReactNode; portadaFallback: string | null;
   /** Lo que va justo después de la portada (idiomas, banners, aviso de respaldo). */
   tras?: ReactNode;
   variante?: VariantePremium;
+  /** Enlace a las reseñas de Google del local. */
+  resenas?: string;
 }) {
   const t = oscuro ? TEMAS.noir : TEMAS.crema;
   const [busca, setBusca] = useState('');
@@ -124,7 +126,14 @@ export default function CartaPremium({
             <span className="h-px w-10 bg-white/50" /><span className="h-1.5 w-1.5 rotate-45" style={{ background: t.oro }} /><span className="h-px w-10 bg-white/50" />
           </div>
           {carta.descripcion && <p className={`${serifClase} mx-auto mt-4 max-w-md text-xl italic leading-snug text-white/85`}>{carta.descripcion}</p>}
-          <div className="mt-6 flex justify-center">{accion}</div>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            {accion}
+            {resenas && (
+              <a href={resenas} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-black/35 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur">
+                <span style={{ color: '#F2C14E' }}>★★★★★</span> Reseñas en Google
+              </a>
+            )}
+          </div>
         </div>
       </header>
 

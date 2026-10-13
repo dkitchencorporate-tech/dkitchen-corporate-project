@@ -14,6 +14,7 @@ import { EtiquetaPlato, PrecioAnterior, ComboPlato } from '@/components/carta/Ex
 import Reservar from '@/components/carta/Reservar';
 import IndiceSecciones, { type VarianteIndice } from '@/components/carta/IndiceSecciones';
 import { traducirCarta, IDIOMAS } from '@/lib/idiomas';
+import { metadatosCarta, urlResenas } from '@/lib/carta-compartir';
 import { Cormorant_Garamond } from 'next/font/google';
 
 const serifCarta = Cormorant_Garamond({ weight: ['500', '600', '700'], style: ['normal', 'italic'], subsets: ['latin'], display: 'swap', variable: '--fuente-serif' });
@@ -62,14 +63,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const resultado = await obtenerCartaConRespaldo(slug);
   if (!resultado) return { title: 'Carta no disponible', robots: { index: false } };
-  const { carta } = resultado;
-  return {
-    title: `Carta de ${carta.nombre}`,
-    description: `Carta digital de ${carta.nombre}, con precios y alérgenos actualizados.`,
-    // La carta de un restaurante real sí interesa que se indexe: trae búsquedas locales.
-    robots: { index: true, follow: true },
-    openGraph: { title: `Carta de ${carta.nombre}`, type: 'website', images: carta.logoUrl ? [carta.logoUrl] : undefined },
-  };
+  return metadatosCarta(resultado.carta, `/m/${slug}`, 'carta');
 }
 
 export default async function CartaPublica({
@@ -125,7 +119,7 @@ export default async function CartaPublica({
     return (
       <main className={`min-h-screen ${serifCarta.variable}`} style={{ background: oscuro ? '#0B0A09' : '#F8F3EA' }}>
         <CartaPremium
-          carta={carta} grupos={grupos} nombres={nombres} color={color} oscuro={oscuro} variante={variante}
+          carta={carta} grupos={grupos} nombres={nombres} color={color} oscuro={oscuro} variante={variante} resenas={urlResenas(carta)}
           serifClase={serifCarta.className} accion={reservar} portadaFallback={fotoPortada}
           tras={<>
             {desdeRespaldo && <p className="bg-amber-50 px-5 py-2 text-center text-xs text-amber-800">Puede que esta carta no refleje los últimos cambios en los próximos minutos.</p>}
@@ -141,10 +135,10 @@ export default async function CartaPublica({
               <p className="mx-auto mt-4 max-w-md text-xs leading-relaxed opacity-50">Información conforme al Reglamento (UE) 1169/2011. Si tienes una alergia o intolerancia, consúltalo con nuestro equipo antes de pedir: en cocina pueden existir trazas que no figuran en la carta.</p>
             </section>
           )}
-          {ampliado && carta.urlResenas && (
+          {(
             <section className="mt-16">
               <p className={`${serifCarta.className} text-3xl italic`}>¿Te ha gustado?</p>
-              <a href={carta.urlResenas} target="_blank" rel="noopener" className="mt-5 inline-block border px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.28em]" style={{ borderColor: color, color: oscuro ? '#F4EEE4' : color }}>Déjanos tu opinión en Google</a>
+              <a href={urlResenas(carta)} target="_blank" rel="noopener" className="mt-5 inline-block border px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.28em]" style={{ borderColor: color, color: oscuro ? '#F4EEE4' : color }}>Déjanos tu opinión en Google</a>
             </section>
           )}
           {(carta.direccion || carta.horario || carta.telefono || carta.instagram) && (
@@ -162,6 +156,7 @@ export default async function CartaPublica({
           <footer className="mt-20">
             {legal && <p className="mb-2 text-[11px] opacity-40"><a href={`/m/${carta.slug}/legal#aviso`} className="hover:underline">Aviso legal</a> · <a href={`/m/${carta.slug}/legal#privacidad`} className="hover:underline">Privacidad</a> · <a href={`/m/${carta.slug}/legal#cookies`} className="hover:underline">Cookies</a></p>}
             <p className={`${serifCarta.className} text-2xl`}>{carta.nombre}</p>
+            <a href={`/l/${carta.slug}`} className="mt-3 inline-block border-b border-current pb-0.5 text-[11px] font-medium uppercase tracking-[0.28em] opacity-70">Conoce el local</a>
             <p className="mt-3 text-[10px] uppercase tracking-[0.2em] opacity-35">Carta digital · <a href="https://dkitchencorporate.es/qr" className="hover:opacity-80">DKitchen</a></p>
           </footer>
         </div>
