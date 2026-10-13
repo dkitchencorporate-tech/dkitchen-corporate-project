@@ -219,7 +219,7 @@ export default function LandingEstudio({ slug, plan, ir, inicial, platos, demo =
         <textarea value={l.seoDescripcion ?? ''} maxLength={160} rows={2} onChange={(e) => set('seoDescripcion', e.target.value)} placeholder="Descripción de 1–2 frases" className={campo} />
       </div>
 
-      <div className="sticky bottom-20 z-10 flex flex-wrap items-center gap-3 rounded-full bg-white/95 p-2 pl-5 shadow-lg ring-1 ring-linea backdrop-blur lg:bottom-4">
+      <div className={`${cambiado ? 'sticky bottom-20 z-10 shadow-lg lg:bottom-4' : ''} flex flex-wrap items-center gap-3 rounded-full bg-white/95 p-2 pl-5 ring-1 ring-linea backdrop-blur`}>
         <label className="flex items-center gap-2 text-sm font-semibold">
           <input type="checkbox" checked={l.activa} onChange={(e) => set('activa', e.target.checked)} className="h-4 w-4 accent-[#8C0D37]" /> Publicada
         </label>
