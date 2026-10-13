@@ -7,6 +7,20 @@ import { cookies } from 'next/headers';
 import { verificarJwtNeonAuth } from './verificar-jwt';
 
 /**
+ * Local abierto en modo soporte o puesta a punto (cookie dk_puesta). Solo es
+ * una pista: la base (0074) únicamente la acepta si la sesión es de un super
+ * admin con el 2FA vigente; para cualquier otro usuario no cambia nada.
+ */
+async function localEnSoporte(): Promise<string> {
+  try {
+    const v = (await cookies()).get('dk_puesta')?.value ?? '';
+    return /^[0-9a-f-]{36}$/i.test(v) ? v : '';
+  } catch {
+    return '';
+  }
+}
+
+/**
  * Huella (SHA-256) de la cookie de sesión de Neon Auth de esta petición. La
  * base la usa para atar el segundo factor del super admin a ESTA sesión
  * (0022): con otra cookie, aunque sea el mismo usuario, dk.es_admin() es false.
@@ -149,9 +163,13 @@ export async function comoCliente<T>(jwt: string, fn: (c: PoolClient) => Promise
   const usuarioId = await verificarJwtNeonAuth(jwt);
   if (!usuarioId) throw new SesionNoValida();
   const sesion = await huellaSesion();
+  const soporte = await localEnSoporte();
 
   return enTransaccion(async (c) => {
-    await c.query("SELECT set_config('dk.usuario_id', $1, true), set_config('dk.sesion', $2, true)", [usuarioId, sesion]);
+    await c.query(
+      "SELECT set_config('dk.usuario_id', $1, true), set_config('dk.sesion', $2, true), set_config('dk.soporte_rest', $3, true)",
+      [usuarioId, sesion, soporte],
+    );
     await c.query('SET LOCAL ROLE dk_auth');
 
     const { rows } = await c.query<{ id: string | null }>('SELECT dk.identidad_actual() AS id');
