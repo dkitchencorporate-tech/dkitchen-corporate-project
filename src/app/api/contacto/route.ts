@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   const llamar = b.llamar === true;
   const telefono = txt(b.telefono, 20).replace(/[^+0-9 ]/g, '');
   if (llamar) {
-    if (!/^+?[0-9 ]{9,16}$/.test(telefono)) return NextResponse.json({ error: 'Escribe un teléfono válido para que te llamemos.' }, { status: 400 });
+    if (!/^\+?[0-9 ]{9,16}$/.test(telefono)) return NextResponse.json({ error: 'Escribe un teléfono válido para que te llamemos.' }, { status: 400 });
     d.consulta = `QUE ME LLAMEN al ${telefono}${d.consulta ? ' · ' + d.consulta : ''}`.slice(0, 600);
   }
   if (d.nombre.length < 2 || !TIPOS.includes(d.tipo) || d.consulta.length < 3) {

@@ -35,7 +35,7 @@ function cargarGa() {
 }
 
 function cargarMeta() {
-  if (!/^d{6,20}$/.test(META_ID) || document.getElementById('dk-meta')) return;
+  if (!/^\d{6,20}$/.test(META_ID) || document.getElementById('dk-meta')) return;
   // Cola estándar de Meta: las llamadas se guardan hasta que carga fbevents.js, que la vacía.
   type Fbq = ((...a: unknown[]) => void) & { queue: unknown[]; loaded: boolean; version: string; push: unknown; callMethod?: (...a: unknown[]) => void };
   const fbq = ((...a: unknown[]) => { if (fbq.callMethod) fbq.callMethod(...a); else fbq.queue.push(a); }) as Fbq;
