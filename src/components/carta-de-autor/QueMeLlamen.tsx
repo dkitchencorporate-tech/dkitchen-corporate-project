@@ -41,7 +41,7 @@ export default function QueMeLlamen({ origen }: { origen: string }) {
 
   return (
     <>
-      <button onClick={() => setAbierto(true)} className="w-full rounded-full border border-white/30 bg-white/[0.06] px-6 py-4 text-base font-semibold text-white backdrop-blur transition hover:border-white/60">
+      <button onClick={() => setAbierto(true)} className="w-full rounded-full border border-white/30 bg-white/[0.06] px-3 py-3.5 text-[15px] font-semibold lg:px-6 lg:py-4 lg:text-base text-white backdrop-blur transition hover:border-white/60">
         Que me llamen
       </button>
       {montado && abierto && createPortal(
