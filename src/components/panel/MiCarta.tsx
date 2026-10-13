@@ -5,6 +5,7 @@ import { useState, useTransition } from 'react';
 import { ALERGENOS, CODIGOS_ALERGENOS } from '@/lib/alergenos';
 import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
 import SubirImagen from './SubirImagen';
+import ImportarCartaFoto from './ImportarCartaFoto';
 import {
   crearSeccionAction,
   editarSeccionAction,
@@ -35,8 +36,9 @@ export default function MiCarta({
 
   return (
     <div className="space-y-8">
+      <ImportarCartaFoto abiertoInicial={carta.platos.length === 0} />
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Mi Carta</h2>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Platos</h2>
         <button
           data-tutorial="nuevo-plato"
           onClick={() => setPlatoEnEdicion('nuevo')}

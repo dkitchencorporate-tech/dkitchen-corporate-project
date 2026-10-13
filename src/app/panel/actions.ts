@@ -6,6 +6,8 @@ import { escaneosRango as dbEscaneosRango } from '@/lib/escaneos-cliente';
 import { mejorarTexto as dbMejorarTexto, generarTextosLanding as dbGenerarTextosLanding, type TipoTexto } from '@/lib/texto-ia';
 import { guardarLanding as dbGuardarLanding, type Landing } from '@/lib/landing';
 import { comoCliente as comoClienteLanding } from '@/lib/db';
+import { leerCartaDeFotos as dbLeerCartaDeFotos } from '@/lib/carta-foto-ia';
+import { CODIGOS_ALERGENOS } from '@/lib/alergenos';
 import { responderAyuda, type MensajeAyuda } from '@/lib/ayuda-ia';
 import { saldoIa as dbSaldoIa, generarImagen as dbGenerarImagen, limpiarTextoIa } from '@/lib/ia';
 import { moverSeccion as dbMoverSeccion, guardarExtras as dbGuardarExtras, guardarCombo as dbGuardarCombo, guardarLegal as dbGuardarLegal, ETIQUETAS, type Etiqueta, type DatosCombo, type DatosLegal } from '@/lib/estudio';
@@ -1135,3 +1137,64 @@ async function generarLandingIaAction_() {
   }
 }
 export async function generarLandingIaAction() { return envolver(() => generarLandingIaAction_()); }
+
+// ---------------------------------------------------------------- carta desde foto con IA (13/10)
+async function leerCartaFotoAction_(urls: string[]) {
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  const fotos = (Array.isArray(urls) ? urls : []).filter((u) => URL_FOTO_LOCAL(u, restaurante.id)).slice(0, 4);
+  if (fotos.length === 0) throw new Error('Sube al menos una foto de tu carta.');
+  const reserva = await comoClienteLanding(jwt, async (c) => {
+    const { rows } = await c.query('SELECT * FROM dk.ia_reservar($1, $2)', [restaurante.id, `carta desde foto (${fotos.length})`]);
+    return rows[0] as { movimiento: string };
+  }).catch((e: Error) => {
+    if (/ia_sin_saldo/.test(e.message)) throw new Error('Has usado todos tus créditos de IA. Puedes comprar un bono cuando quieras.');
+    if (/ia_limite_diario/.test(e.message)) throw new Error('Has llegado al límite de IA de hoy. Mañana puedes seguir.');
+    if (/ia_tope_global/.test(e.message)) throw new Error('La IA está en pausa unas horas por mantenimiento. Inténtalo más tarde.');
+    throw e;
+  });
+  try {
+    const secciones = await dbLeerCartaDeFotos(fotos);
+    const saldo = await dbSaldoIa(jwt, restaurante.id).catch(() => null);
+    return { secciones, restantes: saldo?.restantes ?? null };
+  } catch (e) {
+    await comoClienteLanding(jwt, (c) => c.query('SELECT dk.ia_devolver($1)', [reserva.movimiento])).catch(() => {});
+    throw e;
+  }
+}
+export async function leerCartaFotoAction(...a: Parameters<typeof leerCartaFotoAction_>) { return envolver(() => leerCartaFotoAction_(...a)); }
+
+/** Añade a la carta lo revisado: crea las secciones que falten y los platos (los topes del plan los aplica la base). */
+async function anadirCartaLeidaAction_(secciones: { nombre: string; platos: { nombre: string; descripcion: string; precio: number; alergenos: string[] }[] }[]) {
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  const lista = (Array.isArray(secciones) ? secciones : []).slice(0, 30);
+  const actual = await listarMiCarta(jwt, restaurante.id);
+  let creados = 0;
+  let aviso: string | null = null;
+  for (const s of lista) {
+    const nombreSeccion = textoEstudio(s?.nombre, 60) || 'Carta';
+    const platos = (Array.isArray(s?.platos) ? s.platos : []).slice(0, 80);
+    if (platos.length === 0) continue;
+    let seccion = actual.secciones.find((x) => x.nombre.trim().toLowerCase() === nombreSeccion.toLowerCase());
+    if (!seccion) { seccion = await dbCrearSeccion(jwt, restaurante.id, nombreSeccion); actual.secciones.push(seccion); }
+    for (const p of platos) {
+      const nombre = textoEstudio(p?.nombre, 80);
+      const precio = importe(p?.precio);
+      if (!nombre || precio === null || precio <= 0) continue;
+      try {
+        await dbCrearPlato(jwt, restaurante.id, {
+          seccionId: seccion.id, nombre, precio, descripcion: textoEstudio(p?.descripcion, 300), fotoUrl: null,
+          alergenos: (Array.isArray(p?.alergenos) ? p.alergenos : []).filter((a) => CODIGOS_ALERGENOS.includes(a)),
+        });
+        creados++;
+      } catch (e) {
+        aviso = traducirErrorEstudio(e);
+        break;
+      }
+    }
+    if (aviso) break;
+  }
+  revalidatePath('/panel');
+  refrescarCartas();
+  return { creados, aviso };
+}
+export async function anadirCartaLeidaAction(...a: Parameters<typeof anadirCartaLeidaAction_>) { return envolver(() => anadirCartaLeidaAction_(...a)); }
