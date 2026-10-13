@@ -26,6 +26,7 @@ export function OpcionesCuenta({ cuenta, alElegir }: { cuenta: Cuenta; alElegir?
       </div>
       <ul className="mt-4 grid gap-1.5">
         <li><Link href="/admin-dkitchen/administradores" onClick={alElegir} className="block rounded-2xl bg-papel px-4 py-3 text-sm font-medium">Administradores</Link></li>
+        <li><Link href="/admin-dkitchen/tareas" onClick={alElegir} className="block rounded-2xl bg-tinta px-4 py-3 text-sm font-semibold text-white">Mis tareas</Link></li>
         <li><Link href="/admin-dkitchen/buzon" onClick={alElegir} className="block rounded-2xl bg-papel px-4 py-3 text-sm font-medium">Buzón para Claude</Link></li>
         <li>
           <button onClick={salir} disabled={saliendo} className="flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-left text-sm font-semibold text-vino hover:bg-vino/5 disabled:opacity-50">
