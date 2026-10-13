@@ -97,7 +97,7 @@ export default function CartaPremium({
   return (
     <div style={vars} className="min-h-screen antialiased">
       {/* Portada: a sangre, nombre centrado como en una carta impresa */}
-      <header className={`relative w-full overflow-hidden ${carta.portadaConNombre ? 'aspect-[4/3] min-h-[380px] max-h-[660px]' : 'h-[78vh] min-h-[480px] max-h-[760px]'}`}
+      <header className={`relative w-full overflow-hidden ${carta.portadaConNombre ? 'aspect-[4/3] min-h-[300px] max-h-[560px]' : 'h-[78vh] min-h-[480px] max-h-[760px]'}`}
         style={{ background: portada ? '#15120f' : `linear-gradient(160deg, color-mix(in srgb, ${color} 70%, #0B0A09), ${color})` }}>
         {/* Si la portada ya lleva el nombre escrito (cartel, rótulo), se ve entera: contain sobre la misma foto desenfocada. */}
         {portada && carta.portadaConNombre && <img src={portada} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-xl" />}
