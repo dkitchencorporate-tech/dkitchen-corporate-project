@@ -19,7 +19,7 @@ const META_ID = (process.env.NEXT_PUBLIC_META_PIXEL_ID ?? '').trim();
 const SIN_MEDICION = ['/m/', '/admin-dkitchen', '/panel', '/sala', '/socio', '/r/'];
 
 declare global {
-  interface Window { fbq?: ((...a: unknown[]) => void) & { queue?: unknown[]; loaded?: boolean; version?: string; push?: unknown; callMethod?: (...a: unknown[]) => void }; _fbq?: unknown; dataLayer?: unknown[]; gtag?: (...a: unknown[]) => void; va?: (...a: unknown[]) => void; vaq?: unknown[]; si?: (...a: unknown[]) => void; siq?: unknown[] }
+  interface Window { fbq?: (...a: unknown[]) => void; _fbq?: unknown; dataLayer?: unknown[]; gtag?: (...a: unknown[]) => void; va?: (...a: unknown[]) => void; vaq?: unknown[]; si?: (...a: unknown[]) => void; siq?: unknown[] }
 }
 
 function cargarGa() {
