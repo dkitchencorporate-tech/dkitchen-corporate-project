@@ -53,7 +53,7 @@ export async function avanzarPruebas(): Promise<number> {
     await enviarCorreoCliente(a.email, a.dias === 1 ? `Mañana termina tu prueba · ${a.nombre}` : `Quedan ${a.dias} días de tu prueba · ${a.nombre}`,
       `<p>Hola${a.contacto ? ' ' + escaparHtml(a.contacto) : ''},</p>
        <p>Tu prueba con todo incluido en <strong>${escaparHtml(a.nombre)}</strong> termina el <strong>${fin}</strong>.</p>
-       <p>Si te quedas antes de esa fecha, <strong>no pagas nada hasta el día 12 del mes siguiente</strong>: todos los días que queden hasta entonces siguen siendo gratis, con todos los módulos.</p>
+       <p>Si te quedas antes de esa fecha, <strong>no pagas nada hasta el día 12 del mes siguiente</strong>: todos los días que queden hasta entonces siguen siendo gratis, con todo incluido.</p>
        <p><a href="${sitio}/panel?pestana=plan" style="display:inline-block;background:#6E0C2B;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:bold">Quedarme con todo</a></p>
        <p>Si no haces nada, tu carta sigue visible para tus clientes, pero el panel pasará a solo lectura.</p>`)
       .catch((e) => console.error(`No se pudo avisar del fin de prueba a ${a.email}`, e));

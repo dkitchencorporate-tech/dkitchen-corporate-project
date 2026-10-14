@@ -91,7 +91,7 @@ const PREGUNTAS: [string, string][] = [
   ['¿Cobráis comisión por pedido o por entrada?', 'No. DKitchen nunca cobra comisión ni toca el dinero de tus ventas: pagas tu cuota y lo que vendes es tuyo.'],
   ['¿Cómo funciona el primer mes a 1 €?', `Es del plan ${QR_MENU.planes.ampliado.nombre}: registras la tarjeta y pagas ${eur(QR_MENU.primerMes)} el primer mes. Después, ${eur(QR_MENU.planes.ampliado.mensual)} + IVA al mes, sin permanencia. El alta (${eur(QR_MENU.setup.precio)}) va incluida.`],
   ...PREGUNTAS_SIN_CAMBIAR,
-  ['¿Puedo empezar con la carta QR y pasar a Signature más adelante?', 'Sí. Tu carta y tus datos pasan a Signature, y lo que llevas pagado en módulos de sala se descuenta en parte de la entrada durante los primeros meses.'],
+  ['¿Puedo empezar con la carta QR y pasar a Signature más adelante?', 'Sí. Tu carta y tus datos pasan a Signature, y lo que llevas pagado en tu plan de carta QR se descuenta en parte de la entrada durante los primeros meses.'],
 ];
 
 function Tabla({ titulo, sub, filas }: { titulo: string; sub: string; filas: Linea[] }) {
@@ -154,7 +154,7 @@ export default async function PaginaPrecios() {
 
       <div className="border-b border-linea bg-white">
         <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-6 py-4 md:px-8">
-          {[['carta-qr', '01 Carta QR'], ['modulos', '02 Módulos y extras'], ['signature', '03 Signature'], ['experience', '04 Experience'], ['auditoria', '05 Auditoría'], ['dark-kitchen', '06 Dark Kitchen']].map(([id, t]) => (
+          {[['carta-qr', '01 Carta QR'], ['modulos', '02 Extras'], ['signature', '03 Signature'], ['experience', '04 Experience'], ['auditoria', '05 Auditoría'], ['dark-kitchen', '06 Dark Kitchen']].map(([id, t]) => (
             <a key={id} href={`#${id}`} className="shrink-0 rounded-full border border-linea px-4 py-2 text-sm font-semibold hover:border-vino">{t}</a>
           ))}
         </div>

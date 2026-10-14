@@ -171,7 +171,7 @@ function ResumenCuenta({ restaurante, servicios, precioPlan, nombrePlan }: {
           </li>
         ))}
       </ul>
-      {filas.length === 0 && <p className="px-5 pb-5 text-sm text-niebla">Aún no tienes servicios añadidos. Los encontrarás en las pestañas Diseño y Módulos.</p>}
+      {filas.length === 0 && <p className="px-5 pb-5 text-sm text-niebla">Aún no tienes servicios añadidos. Los encontrarás en las pestañas Diseño y Mejoras.</p>}
     </section>
   );
 }

@@ -71,7 +71,7 @@ async function resumenLocal(jwt: string, r: MiRestaurante): Promise<string> {
     uso.length ? `Uso actual: ${uso.map((u) => `${u.que} ${u.usados}/${u.tope}`).join(', ')}.` : `Platos en la carta: ${p.length}.`,
     `Carta: ${carta.secciones.length} secciones, ${p.length} platos; sin foto ${p.filter((x) => !x.fotoUrl).length}; sin precio ${p.filter((x) => !Number(x.precio)).length}; sin alérgenos marcados ${p.filter((x) => !x.alergenos?.length).length}; ocultos (agotados) ${p.filter((x) => !x.disponible).length}.`,
     `Ficha: logo ${si(!!r.logoUrl)}, foto de portada ${si(!!r.portadaUrl)}, dirección ${si(!!r.direccion)}, horario ${si(!!r.horario)}, teléfono ${si(!!r.telefono)}, WhatsApp ${si(!!r.whatsapp)}, enlace de reseñas ${si(!!r.urlResenas)}, idiomas activos: ${r.idiomas.length ? r.idiomas.join(', ') : 'ninguno'}.`,
-    cobro ? `Cobro: ${cobro.prueba_hasta ? `en prueba hasta ${cobro.prueba_hasta}; ` : ''}próximo cobro ${cobro.proximo_cobro ?? 'sin fecha'}; módulos: ${cobro.items.map((i) => i.nombre).join(', ') || 'ninguno extra'}.` : '',
+    cobro ? `Cobro: ${cobro.prueba_hasta ? `en prueba hasta ${cobro.prueba_hasta}; ` : ''}próximo cobro ${cobro.proximo_cobro ?? 'sin fecha'}; conceptos: ${cobro.items.map((i) => i.nombre).join(', ') || 'ninguno extra'}.` : '',
     tutorial ? `Montaje guiado: ${tutorial.completado ? 'completado' : `pendiente (logo ${si(tutorial.logo)}, datos del local ${si(tutorial.local)}, platos ${si(tutorial.platos)}, foto con IA ${si(tutorial.foto_ia)}, QR ${si(tutorial.qr)})`}.` : '',
     `Tickets abiertos: ${tickets.filter((t) => t.estado === 'abierto').length}.`,
     r.puestaAPunto ? 'Quien pregunta es el asesor de DKitchen del local, en modo puesta a punto: no puede tocar pagos ni el plan.' : '',

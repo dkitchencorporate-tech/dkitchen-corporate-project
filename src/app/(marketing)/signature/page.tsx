@@ -39,7 +39,7 @@ const PREGUNTAS: [string, string][] = [
   ['¿La app es mía?', 'Sí. Pagas una entrada única y un mantenimiento mensual; la app, tu marca y los datos de tus clientes son tuyos.'],
   ['¿Tengo que dejar las plataformas de delivery?', 'No. Lo habitual es combinar: la plataforma para captar clientes nuevos y tu app para que los que repiten pidan sin comisión de plataforma.'],
   ['¿Funciona con mi TPV?', 'Se conecta con tu TPV y con tu gestoría para que el cierre del día llegue al sistema fiscal que ya usas.'],
-  ['¿Qué pasa con la carta QR si ya la tengo?', 'Tu carta y tus datos pasan a Signature, y lo que llevas pagado en módulos de sala se descuenta en parte de la entrada durante los primeros meses.'],
+  ['¿Qué pasa con la carta QR si ya la tengo?', 'Tu carta y tus datos pasan a Signature, y lo que llevas pagado en tu plan de carta QR se descuenta en parte de la entrada durante los primeros meses.'],
 ];
 
 // El bloque Fundador depende del estado vivo de la base (0070).

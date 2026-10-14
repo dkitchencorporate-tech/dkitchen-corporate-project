@@ -171,7 +171,7 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
             <p className="mt-3 max-w-lg text-[15px] text-white/65">Con DKitchen Signature tus clientes piden y pagan en tu app, acumulan puntos y vuelven. Pedidos, sala y carta en un solo panel, y el código de tu app es tuyo.</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-            <div className="flex justify-between text-sm"><span className="text-white/60">Carta QR con todos los módulos</span><span className="tabular-nums">{QR_CON_TODO} €/mes · alquiler</span></div>
+            <div className="flex justify-between text-sm"><span className="text-white/60">Carta QR con todo incluido</span><span className="tabular-nums">{QR_CON_TODO} €/mes · alquiler</span></div>
             <div className="mt-2 flex justify-between text-sm"><span className="text-white/60">Signature</span><span className="tabular-nums text-oro">desde 99 €/mes · tu app</span></div>
             <p className="mt-3 text-xs text-white/45">Signature: entrada de 700 € y 2 meses de mantenimiento incluidos. Precios + IVA.</p>
             <a href="/pagar/signature" className="mt-4 flex items-center justify-center gap-2 rounded-full bg-vino px-5 py-3 text-sm font-semibold">Ver Signature <Icono n="flecha" className="h-4 w-4" /></a>

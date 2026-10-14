@@ -285,7 +285,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     id: 'plan-pago', pregunta: 'Cuánto pago y cuándo me cobráis', secciones: ['plan', 'inicio'],
     claves: ['pago', 'pagar', 'cobro', 'factura', 'tarjeta', 'cuanto', 'precio plan', 'prueba', 'cobrar', 'dia 12', 'iva'],
     respuesta: [
-      'En Negocio → Mi plan tienes «Tu cobro»: lo que pagas, el próximo cobro y el desglose por módulo.',
+      'En Negocio → Mi plan tienes «Tu cobro»: lo que pagas, el próximo cobro y el desglose por concepto.',
       'Los cobros son el día 12 de cada mes. Si estás en la prueba, no se cobra nada hasta el primer día 12 después de que termine.',
       'Los precios se muestran sin IVA; al pagar se suma el 21 %.',
       'Para cambiar la tarjeta o descargar tus facturas (con el IVA desglosado), pulsa «Tarjeta y facturas» en Mi plan.',
@@ -318,11 +318,11 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     siguientes: ['modulos'],
   },
   {
-    id: 'modulos', pregunta: 'Qué módulos puedo añadir', secciones: ['modulos', 'sala'],
+    id: 'modulos', pregunta: 'Qué extras puedo añadir', secciones: ['modulos', 'sala'],
     claves: ['modulo', 'mejora', 'pack sala', 'tpv', 'app sala', 'extra', 'anadir servicio'],
     respuesta: [
       'En Negocio → Mejoras tienes extras de pago único: idiomas además del español y el inglés, la puesta a punto y bonos de imágenes con IA. No hay módulos con cuota aparte.',
-      'Cada módulo muestra su precio antes de pagar y se activa al momento.',
+      'Cada extra muestra su precio antes de pagar y se activa al momento.',
     ],
     acciones: [{ tipo: 'ir', pestana: 'modulos', texto: 'Ver Mejoras' }],
     siguientes: ['idiomas', 'sala'],

@@ -52,7 +52,7 @@ const ZONAS: Zona[] = [
       'Cobrar: «Enlace de pago a medida» prepara un pago con el plan o servicios y el precio que acordéis (1 €, Fundador o a medida). Marca «enviar por correo» para que le llegue. Al pagarlo se activa solo.',
       'Prueba con todo incluido: 7, 15, 30 días o hasta una fecha. Al acabar sin pagar, su panel pasa a solo lectura y la carta sigue visible.',
       'Cambiar de plan, reenviar el enlace de acceso (si no puede entrar) y cargar una carta de ejemplo (si aún no tiene platos).',
-      'Servicios: marca la entrega de una puesta a punto o cancela un módulo. Para activar un módulo que no tiene, prepárale un enlace de pago.',
+      'Servicios: marca la entrega de una puesta a punto o cancela un extra. Para activar un extra que no tiene, prepárale un enlace de pago.',
       'Diseño de la carta: plantilla, nivel y color (lo decide DKitchen; el cliente gestiona el contenido).',
       'Historial: cada cambio, quién lo hizo (cliente, DKitchen o automático) y cuándo.',
     ],

@@ -30,7 +30,7 @@ const REGLAS = [
   'El precio se mantiene de por vida mientras sigas activo en el plan Sala y sin impagos.',
   'Se pierde si te das de baja o si bajas a un plan inferior. No es transferible.',
   'Se cobra por trimestre, por adelantado. Sin permanencia: si te vas, no se renueva (lo pagado no se devuelve).',
-  'Los módulos nuevos que añadamos a Sala te llegan con el mismo 40 %.',
+  'Las funciones nuevas que añadamos a Sala te llegan con el mismo 40 %.',
 ];
 
 export default async function Fundador() {

@@ -61,7 +61,7 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
   return (
     <div className="space-y-12">
       <header>
-        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">{vista === 'diseno' ? 'Diseño de tu carta' : 'Módulos para tu local'}</h2>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">{vista === 'diseno' ? 'Diseño de tu carta' : 'Extras para tu local'}</h2>
         <p className="mt-1 text-sm text-niebla">{vista === 'diseno'
           ? (restaurante.nivelDiseno === 'esencial' ? 'Elige cómo se ve tu carta: estilo, fondo, letra, color y foto de portada. La vista previa cambia al momento.' : 'Tú gestionas platos, precios y fotos. El diseño de autor lo prepara DKitchen.')
           : 'Tu plan ya trae la sala completa por cantidades. Aquí añades extras de pago único.'}</p>

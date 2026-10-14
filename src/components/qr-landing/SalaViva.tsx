@@ -28,9 +28,9 @@ export default function SalaViva() {
     <section className="bg-crema py-24 md:py-32">
       <div className="mx-auto max-w-6xl px-6 md:px-8">
         <div className="max-w-2xl">
-          <p className="etiqueta-dk text-vino">Módulos de sala</p>
+          <p className="etiqueta-dk text-vino">Sala incluida en tu plan</p>
           <TextoRevelado texto="Ninguna mesa esperando. Ninguna comanda perdida." className="font-display mt-4 text-4xl font-semibold leading-[1.02] text-tinta md:text-6xl" />
-          <p className="mt-5 text-lg text-niebla">Cuando tu sala crece, la carta se conecta con tu equipo. Se activan desde tu panel, cuando los necesites.</p>
+          <p className="mt-5 text-lg text-niebla">Cuando tu sala crece, la carta se conecta con tu equipo. Plano, app de sala y conexión con tu TPV ya vienen en todos los planes, ajustados al tamaño de tu local.</p>
         </div>
         <div className="mt-14 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
           <div className="rounded-[28px] border border-linea bg-white p-4 [background-image:linear-gradient(rgba(23,25,30,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(23,25,30,.04)_1px,transparent_1px)] [background-size:24px_24px] sm:p-6">
