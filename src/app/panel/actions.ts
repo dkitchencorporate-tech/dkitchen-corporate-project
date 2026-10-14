@@ -128,6 +128,24 @@ export async function crearPlatoAction(datos: DatosPlato) {
   refrescarCartas();
 }
 
+/**
+ * Guardar plato desde el formulario (14/10, piloto): crea la categoría si el cliente escribe una nueva
+ * (antes los platos quedaban en «Sin sección») y devuelve el error legible en vez de un 500 mudo.
+ */
+async function guardarPlatoAction_(platoId: string | null, datos: DatosPlato & { disponible?: boolean }, nuevaCategoria?: string | null) {
+  const { jwt, restaurante } = await requerirSesionYRestaurante();
+  if (!(datos.nombre ?? '').trim()) throw new Error('Escribe el nombre del plato.');
+  if (!Number.isFinite(datos.precio) || datos.precio < 0) throw new Error('Escribe un precio válido, por ejemplo 8,50.');
+  const categoria = (nuevaCategoria ?? '').trim().slice(0, 60);
+  let seccionId = datos.seccionId ?? null;
+  if (categoria) seccionId = (await dbCrearSeccion(jwt, restaurante.id, categoria)).id;
+  if (platoId) await dbEditarPlato(jwt, platoId, { ...datos, seccionId });
+  else await dbCrearPlato(jwt, restaurante.id, { ...datos, seccionId });
+  revalidatePath('/panel');
+  refrescarCartas();
+}
+export async function guardarPlatoAction(...a: Parameters<typeof guardarPlatoAction_>) { return envolver(() => guardarPlatoAction_(...a)); }
+
 export async function editarPlatoAction(platoId: string, datos: Partial<DatosPlato> & { disponible?: boolean }) {
   const { jwt } = await requerirSesionYRestaurante();
   await dbEditarPlato(jwt, platoId, datos);

@@ -13,7 +13,10 @@ import {
   crearPlatoAction,
   editarPlatoAction,
   eliminarPlatoAction,
+  guardarPlatoAction,
 } from '@/app/panel/actions';
+
+const NUEVA = '__nueva';
 
 export default function MiCarta({
   carta,
@@ -83,7 +86,7 @@ export default function MiCarta({
 
       {sueltos.length > 0 && (
         <SeccionCard
-          seccion={{ id: '', nombre: 'Sin sección', orden: -1 }}
+          seccion={{ id: '', nombre: 'Sin categoría · ábrelos y elige su categoría', orden: -1 }}
           platos={sueltos}
           onEditarPlato={setPlatoEnEdicion}
           sinBorrar
@@ -213,7 +216,10 @@ function FormularioPlato({
   const [descripcion, setDescripcion] = useState(plato?.descripcion ?? '');
   const [precio, setPrecio] = useState(plato?.precio ?? '');
   const [fotoUrl, setFotoUrl] = useState(plato?.fotoUrl ?? '');
-  const [seccionId, setSeccionId] = useState(plato?.seccionId ?? secciones[0]?.id ?? '');
+  // 14/10 (piloto): todo plato va en una categoría; si no hay ninguna, se escribe aquí y se crea al guardar.
+  const [seccionId, setSeccionId] = useState(plato ? (plato.seccionId ?? '') : (secciones[0]?.id ?? NUEVA));
+  const [nuevaCategoria, setNuevaCategoria] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [alergenos, setAlergenos] = useState<string[]>(plato?.alergenos ?? []);
   const [disponible, setDisponible] = useState(plato?.disponible ?? true);
 
@@ -222,28 +228,22 @@ function FormularioPlato({
   }
 
   function guardar() {
-    if (!nombre.trim() || !precio) return;
+    setError(null);
+    const importe = Number(String(precio).replace(',', '.').trim());
+    if (!nombre.trim()) { setError('Escribe el nombre del plato.'); return; }
+    if (!String(precio).trim() || !Number.isFinite(importe) || importe < 0) { setError('Escribe el precio, por ejemplo 8,50.'); return; }
+    if (seccionId === NUEVA && !nuevaCategoria.trim()) { setError('Escribe la categoría del plato (por ejemplo Entrantes o Principales).'); return; }
     iniciarTransicion(async () => {
-      if (plato) {
-        await editarPlatoAction(plato.id, {
-          nombre: nombre.trim(),
-          descripcion: descripcion.trim() || null,
-          precio: Number(precio),
-          fotoUrl: fotoUrl.trim() || null,
-          seccionId: seccionId || null,
-          ...(plato.esCombo ? {} : { alergenos }),
-          disponible,
-        });
-      } else {
-        await crearPlatoAction({
-          nombre: nombre.trim(),
-          descripcion: descripcion.trim() || null,
-          precio: Number(precio),
-          fotoUrl: fotoUrl.trim() || null,
-          seccionId: seccionId || null,
-          alergenos,
-        });
-      }
+      const r = await guardarPlatoAction(plato?.id ?? null, {
+        nombre: nombre.trim(),
+        descripcion: descripcion.trim() || null,
+        precio: importe,
+        fotoUrl: fotoUrl.trim() || null,
+        seccionId: seccionId && seccionId !== NUEVA ? seccionId : null,
+        alergenos: plato?.esCombo ? plato.alergenos : alergenos,
+        ...(plato ? { disponible } : {}),
+      }, seccionId === NUEVA ? nuevaCategoria : null).catch(() => ({ ok: false as const, error: 'Sin conexión: no se ha guardado. Revisa tu internet y vuelve a pulsar Guardar.' }));
+      if (!r.ok) { setError(r.error); return; }
       onCerrar();
     });
   }
@@ -271,11 +271,10 @@ function FormularioPlato({
         </div>
         <input
           value={precio}
-          onChange={(e) => setPrecio(e.target.value)}
-          type="number"
-          step="0.01"
-          min="0"
-          placeholder="Precio (€)"
+          onChange={(e) => setPrecio(e.target.value.replace(/[^0-9.,]/g, ''))}
+          type="text"
+          inputMode="decimal"
+          placeholder="Precio (€), ej. 8,50"
           className="rounded-lg bg-white border border-acero px-3 py-2 text-carbon placeholder-ceniza"
         />
       </div>
@@ -297,20 +296,31 @@ function FormularioPlato({
 
       <SubirImagen valor={fotoUrl || null} onCambio={(url) => setFotoUrl(url ?? '')} etiqueta="Foto" formato="plato" ia={{ modo: 'plato', plato: { nombre, descripcion } }} />
 
-      {secciones.length > 0 && (
+      <label className="block space-y-1">
+        <span className="text-xs font-semibold text-grafito">Categoría de la carta</span>
         <select
           value={seccionId}
           onChange={(e) => setSeccionId(e.target.value)}
           className="w-full rounded-lg bg-white border border-acero px-3 py-2 text-carbon"
         >
-          <option value="">Sin sección</option>
           {secciones.map((s) => (
             <option key={s.id} value={s.id}>
               {s.nombre}
             </option>
           ))}
+          <option value={NUEVA}>+ Nueva categoría…</option>
+          {plato && !plato.seccionId && <option value="">Sin categoría (no recomendado)</option>}
         </select>
-      )}
+        {seccionId === NUEVA && (
+          <input
+            value={nuevaCategoria}
+            onChange={(e) => setNuevaCategoria(e.target.value.slice(0, 60))}
+            placeholder="Nombre de la categoría, ej. Entrantes"
+            className="w-full rounded-lg bg-white border border-vino/50 px-3 py-2 text-carbon placeholder-ceniza"
+          />
+        )}
+        <span className="block text-[11px] text-ceniza">Así se agrupan tus platos en la carta (Entrantes, Principales, Postres…).</span>
+      </label>
 
       <div>
         <p className="text-sm text-niebla mb-2">Alérgenos (obligatorio marcar si aplica — Reglamento UE 1169/2011)</p>
@@ -348,7 +358,7 @@ function FormularioPlato({
         </label>
       )}
 
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
         {plato && (
           <button
             onClick={() => iniciarTransicion(async () => { await eliminarPlatoAction(plato.id); onCerrar(); })}
@@ -357,6 +367,7 @@ function FormularioPlato({
             Eliminar plato
           </button>
         )}
+        {error && <p role="alert" className="w-full rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
         <button
           onClick={guardar}
           disabled={pendiente}
