@@ -193,8 +193,13 @@ export async function crearClienteAction(datos: { email: string; contacto: strin
   if (datos.demoInterna) { await marcarDemo(jwt, id, true); await regalarTodo(jwt, id, null); }
   else if (datos.todo) await regalarTodo(jwt, id, dias);
   if (datos.cartaEjemplo) await cargarCartaDemo(jwt, id).catch(() => 0);
-  await enviarEnlaceDeContrasena(email).catch((e) => console.error('Alta manual: no se pudo enviar el enlace de contraseña', e));
-  await enviarBienvenidaQr(email, contacto, local, plan).catch((e) => console.error('Alta manual: bienvenida no enviada', e));
+  // 14/10: el alta manual también avisa al buzón interno (antes solo lo hacía el alta pagada) y dice si salieron los correos.
+  const enlace = await enviarEnlaceDeContrasena(email).then(() => 'enviado', (e) => { console.error('Alta manual: no se pudo enviar el enlace de contraseña', e); return 'FALLÓ'; });
+  const bienvenida = await enviarBienvenidaQr(email, contacto, local, plan).then(() => 'enviada', (e) => { console.error('Alta manual: bienvenida no enviada', e); return 'FALLÓ'; });
+  const modo = datos.demoInterna ? 'demo interna' : datos.todo ? `prueba con todo incluido · ${dias} días` : 'solo cuenta';
+  await enviarCorreoInterno(`NUEVA ALTA QR (manual): ${local} (${plan})`,
+    `<p><strong>${escaparHtml(local)}</strong> · ${escaparHtml(contacto)} · ${escaparHtml(email)}</p><p>Plan ${escaparHtml(plan)} · ${escaparHtml(modo)} · sin cobro.</p><p>Enlace «Crea tu contraseña»: <strong>${enlace}</strong> · Bienvenida: <strong>${bienvenida}</strong>.</p>`)
+    .catch((e) => console.error('Alta manual: aviso interno no enviado', e));
   revalidatePath('/admin-dkitchen/qr');
   return { id };
 }
