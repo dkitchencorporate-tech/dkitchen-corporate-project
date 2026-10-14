@@ -253,7 +253,7 @@ export async function generarImagen(
     if (!img && !p.imagenBase) img = await generarGratisHF(instruccionesFlux(p), p.modo);
     if (!img) img = await generarNanoBanana(p);
     const { datos, tipo: tipoIa } = img;
-    let buffer = Buffer.from(datos, 'base64');
+    let buffer: Buffer = Buffer.from(datos, 'base64');
     let tipo = tipoIa;
     if (buffer.length > 8_000_000) throw new Error('La imagen generada es demasiado grande.');
     const id = randomUUID();
