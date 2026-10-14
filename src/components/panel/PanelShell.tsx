@@ -19,6 +19,7 @@ import Soporte from './Soporte';
 import AsesorSocio from './AsesorSocio';
 import Estudio from './Estudio';
 import GuiaSeccion from './GuiaSeccion';
+import FormacionSeccion from './FormacionSeccion';
 import type { ExtraPlato, DatosLegal } from '@/lib/estudio';
 import type { Landing } from '@/lib/landing-tipos';
 import MiLocal from './MiLocal';
@@ -286,6 +287,7 @@ export default function PanelShell({
       <main className="mx-auto max-w-6xl px-4 pb-32 pt-6 sm:px-6 lg:px-10 lg:py-10">
         {pestana !== 'plan' && <AvisoPrueba cobro={cobro} />}
         <GuiaSeccion seccion={pestana} />
+        {!demo && <FormacionSeccion seccion={pestana} />}
         <AnimatePresence mode="wait">
         <motion.div key={pestana} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
         {pestana === 'inicio' && <Inicio restaurante={restaurante} qrPedido={solicitudesQr.length > 0} escaneosMes={escaneosMes} escaneos30d={escaneos30d} reservas={reservasVivas} platos={carta.platos} servicios={servicios} ir={(p) => setPestana(p)} />}

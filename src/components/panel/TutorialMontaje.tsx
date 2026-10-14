@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TutorialEstado } from '@/lib/tutorial-tipos';
-import { tutorialAvanzarAction, tutorialCompletarAction, tutorialEstadoAction } from '@/app/panel/actions';
+import { tutorialAvanzarAction, tutorialCompletarAction, tutorialEstadoAction, formacionEstadoAction, tutorialPausarAction } from '@/app/panel/actions';
 import { mensajeError } from '@/lib/mensaje-error';
 
 /**
@@ -11,12 +11,13 @@ import { mensajeError } from '@/lib/mensaje-error';
  *   tarea se hace ahí mismo. La base comprueba cada tarea (0049); aquí solo se mira.
  * - Bloquea el panel (el resto de secciones no se abren) salvo llamadas y reservas,
  *   que siguen sonando. «Seguir luego» lo pausa en esta visita y vuelve en la siguiente.
+ *   Desde 0079 (14/10, piloto) solo se puede pausar UNA vez: la base lo cuenta.
  * - Al completar: +10 créditos de IA (una sola vez) y el panel pasa a modo Día a día.
  */
 interface Paso { id: string; pestana: string; ancla: string; titulo: string; texto: string; hecho: (t: TutorialEstado) => boolean; incluir?: (t: TutorialEstado) => boolean }
 
 const PASOS: Paso[] = [
-  { id: 'logo', pestana: 'local', ancla: 'logo', titulo: 'Sube tu logo', texto: 'Súbelo desde el móvil o créalo con IA y pulsa «Guardar cambios» al final de la página.', hecho: (t) => t.logo },
+  { id: 'logo', pestana: 'local', ancla: 'logo', titulo: 'Sube tu logo', texto: 'Súbelo desde el móvil o créalo con IA y pulsa «Usar esta imagen»: se guarda solo y verás «Logo guardado».', hecho: (t) => t.logo },
   { id: 'local', pestana: 'local', ancla: 'datos-local', titulo: 'Dirección y horario', texto: 'Tus clientes los verán en la carta. Rellena los dos y pulsa «Guardar cambios».', hecho: (t) => t.local },
   { id: 'platos', pestana: 'carta', ancla: 'nuevo-plato', titulo: 'Crea 3 platos con su precio', texto: 'Pulsa «+ Añadir plato», escribe el nombre y el precio y guarda. Repite hasta tener 3.', hecho: (t) => t.platos },
   { id: 'foto_ia', pestana: 'carta', ancla: 'lista-platos', titulo: 'Tu primera foto con IA', texto: 'Abre uno de tus platos, pulsa «✨ Crear con IA», usa la foto y guarda el plato. Gasta 1 crédito de tu regalo de bienvenida.', hecho: (t) => t.foto_ia },
@@ -43,7 +44,14 @@ export default function TutorialMontaje({ inicial, pestana, irA, onBloqueo, avis
   const [ocupado, setOcupado] = useState(false);
   const [premio, setPremio] = useState(false);
   const [sacudir, setSacudir] = useState(false);
-  useEffect(() => setPausa(leerPausa()), []);
+  // La pausa solo vale si la base la ha concedido (una vez en toda la vida de la cuenta).
+  const [pausas, setPausas] = useState(0);
+  useEffect(() => {
+    if (demo) { setPausa(leerPausa()); return; }
+    formacionEstadoAction()
+      .then((e) => { const n = e?.pausas ?? 0; setPausas(n); setPausa(n >= 1 && leerPausa()); })
+      .catch(() => setPausa(false));
+  }, [demo]);
 
   const pasos = useMemo(() => PASOS.filter((p) => !p.incluir || p.incluir(t)), [t]);
   const actual = t.paso === 0 ? null : pasos.find((p) => !p.hecho(t)) ?? null;
@@ -112,7 +120,14 @@ export default function TutorialMontaje({ inicial, pestana, irA, onBloqueo, avis
     try { const e = await tutorialCompletarAction(); if (e) { setT(e); setPremio(true); } } catch (e) { setError(mensajeError(e, 'No se pudo completar.')); void refrescar(); }
     setOcupado(false);
   }
-  const pausar = () => { try { sessionStorage.setItem(PAUSA, '1'); } catch { /* sin almacenamiento */ } setPausa(true); };
+  const pausar = async () => {
+    if (pausas >= 1) return;
+    const ok = demo ? true : await tutorialPausarAction().catch(() => false);
+    setPausas(1);
+    if (!ok) return;
+    try { sessionStorage.setItem(PAUSA, '1'); } catch { /* sin almacenamiento */ }
+    setPausa(true);
+  };
   const seguir = () => { try { sessionStorage.removeItem(PAUSA); } catch { /* sin almacenamiento */ } setPausa(false); };
 
   if (pausa) {
@@ -159,7 +174,7 @@ export default function TutorialMontaje({ inicial, pestana, irA, onBloqueo, avis
             <p className="mt-4 rounded-2xl bg-oro/15 p-3 text-sm font-semibold text-oro">🎁 Al completarlo: +10 créditos de IA para fotos de tus platos.</p>
             <div className="mt-4 grid grid-cols-[1fr_auto] gap-2">
               <button disabled={ocupado} onClick={empezar} className="rounded-2xl bg-oro py-3 font-black text-tinta disabled:opacity-60">{ocupado ? 'Un momento…' : 'Empezar'}</button>
-              <button onClick={pausar} className="rounded-2xl px-4 py-3 text-sm font-semibold text-white/70">Seguir luego</button>
+              {pausas < 1 && <button onClick={pausar} className="rounded-2xl px-4 py-3 text-sm font-semibold text-white/70">Seguir luego (1 vez)</button>}
             </div>
           </>
         )}
@@ -168,13 +183,13 @@ export default function TutorialMontaje({ inicial, pestana, irA, onBloqueo, avis
           <>
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs font-bold uppercase tracking-wider text-oro">Paso {pasos.indexOf(actual) + 1} de {pasos.length}</p>
-              <button onClick={pausar} className="text-xs font-semibold text-white/60 underline">Seguir luego</button>
+              {pausas < 1 && <button onClick={pausar} className="text-xs font-semibold text-white/60 underline">Seguir luego (solo 1 vez)</button>}
             </div>
             <h2 id="tutorial-titulo" className="mt-1 text-lg font-bold">{actual.titulo}</h2>
             <p className="mt-1 text-sm text-white/80">{actual.texto}</p>
             {progreso}
             {demo && <button onClick={() => setT((x) => ({ ...x, [actual.id]: true }))} className="mt-3 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold">Demo: simular paso hecho →</button>}
-            <p className="mt-2 text-[11px] text-white/50">{sacudir ? 'Primero termina este paso (o pulsa «Seguir luego»).' : 'Cuando lo hagas, este aviso pasa solo al siguiente paso.'}</p>
+            <p className="mt-2 text-[11px] text-white/50">{sacudir ? (pausas < 1 ? 'Primero termina este paso (o pulsa «Seguir luego», solo una vez).' : 'Primero termina este paso: así dejas tu carta lista.') : 'Cuando lo hagas, este aviso pasa solo al siguiente paso.'}</p>
           </>
         )}
 

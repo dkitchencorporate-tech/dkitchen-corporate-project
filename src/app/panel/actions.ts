@@ -349,6 +349,27 @@ export async function llamadasPendientesAction() {
 // ---------------------------------------------------------------------------
 // Montaje guiado (0049, B5): la base comprueba las tareas y abona +10 créditos una vez.
 // ---------------------------------------------------------------------------
+// Formación obligatoria (0079, 14/10): el montaje solo se pausa una vez y cada sección se enseña la primera vez.
+export async function formacionEstadoAction(): Promise<{ pausas: number; vistas: string[] } | null> {
+  const { jwt } = await requerirSesionYRestaurante();
+  const { comoCliente } = await import('@/lib/db');
+  return comoCliente(jwt, async (c) => {
+    const { rows } = await c.query<{ pausas: number; vistas: string[] }>('SELECT * FROM dk.formacion_estado()');
+    return rows[0] ? { pausas: Number(rows[0].pausas), vistas: rows[0].vistas ?? [] } : null;
+  });
+}
+export async function tutorialPausarAction(): Promise<boolean> {
+  const { jwt } = await requerirSesionYRestaurante();
+  const { comoCliente } = await import('@/lib/db');
+  return comoCliente(jwt, async (c) => Boolean((await c.query<{ ok: boolean }>('SELECT dk.tutorial_pausar() ok')).rows[0]?.ok));
+}
+export async function formacionMarcarAction(seccion: string): Promise<void> {
+  if (!/^[a-z_]{2,20}$/.test(seccion)) return;
+  const { jwt } = await requerirSesionYRestaurante();
+  const { comoCliente } = await import('@/lib/db');
+  await comoCliente(jwt, (c) => c.query('SELECT dk.formacion_marcar($1)', [seccion]));
+}
+
 export async function tutorialEstadoAction() {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   return dbTutorialEstado(jwt, restaurante.id);
