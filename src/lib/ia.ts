@@ -259,10 +259,16 @@ export async function generarImagen(
     const id = randomUUID();
     if (p.modo === 'logo') {
       // El nombre lo escribe el servidor (nunca la IA): exacto, con sus tildes y mayúsculas.
-      const emblema = await emblemaPng(buffer);
-      await put(`restaurantes/${restaurante.id}/ia/${id}-emblema.png`, emblema, { access: 'public', contentType: 'image/png' });
-      buffer = await componerLogo(emblema, textoEnImagen(p) ?? restaurante.nombre);
-      tipo = 'png';
+      // Si la composición fallara, se entrega la imagen de la IA tal cual (nunca se deja al cliente sin logo).
+      try {
+        const emblema = await emblemaPng(buffer);
+        const compuesto = await componerLogo(emblema, textoEnImagen(p) ?? restaurante.nombre);
+        await put(`restaurantes/${restaurante.id}/ia/${id}-emblema.png`, emblema, { access: 'public', contentType: 'image/png' });
+        buffer = compuesto;
+        tipo = 'png';
+      } catch (e) {
+        console.error('Logo: no se pudo componer el nombre', e);
+      }
     }
     // La carpeta «ia/» marca la foto como generada: la carta muestra «Imagen orientativa».
     const { url } = await put(`restaurantes/${restaurante.id}/ia/${id}.${tipo === 'jpeg' ? 'jpg' : tipo}`, buffer, {
