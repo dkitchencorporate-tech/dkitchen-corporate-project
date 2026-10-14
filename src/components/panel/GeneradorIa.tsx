@@ -156,7 +156,7 @@ export default function GeneradorIa({
                   </div>
                 </div>
               )}
-              <p className="text-xs text-niebla">{modo === 'portada' ? 'Al pulsar «Usar esta imagen» se guarda y se ve en tu carta al momento.' : <>Al pulsar «Usar esta imagen» se coloca en el formulario: <strong>después pulsa «Guardar»</strong> para que quede en tu carta.{modo !== 'logo' && ' Se mostrará con la nota «Imagen orientativa».'}</>}</p>
+              <p className="text-xs text-niebla">{modo === 'portada' || modo === 'logo' ? `Al pulsar «Usar esta imagen» se guarda y se ve en tu carta al momento.${modo === 'logo' ? ' El nombre lo escribimos nosotros, siempre exacto; si quieres otro texto, ponlo entre comillas.' : ''}` : <>Al pulsar «Usar esta imagen» se coloca en el formulario: <strong>después pulsa «Guardar»</strong> para que quede en tu carta.{modo !== 'logo' && ' Se mostrará con la nota «Imagen orientativa».'}</>}</p>
             </div>
           ) : (
             <div className="space-y-3">

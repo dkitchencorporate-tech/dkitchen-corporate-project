@@ -233,7 +233,9 @@ export async function actualizarLocalAction(d: DatosLocal) {
   await actualizarDatosLocal(jwt, restaurante.id, {
     nombre,
     logoUrl: urlSegura(d.logoUrl),
-    colorMarca: /^#[0-9a-f]{6}$/i.test(d.colorMarca ?? '') ? d.colorMarca : null,
+    // 14/10 (piloto): Mi local no edita el color; se conserva el actual. Antes mandaba #6E0C2B por defecto y en
+    // diseño de autor la base lo rechazaba («El diseño lo ha hecho DKitchen») y no se podía guardar nada.
+    colorMarca: restaurante.colorMarca ?? null,
     descripcion: limpio(d.descripcion, 280),
     telefono: limpio(d.telefono, 30),
     direccion: limpio(d.direccion, 160),

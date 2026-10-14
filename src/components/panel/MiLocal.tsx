@@ -28,7 +28,7 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
   const [d, setD] = useState({
     nombre: restaurante.nombre,
     logoUrl: restaurante.logoUrl,
-    colorMarca: restaurante.colorMarca ?? '#6E0C2B',
+    colorMarca: restaurante.colorMarca ?? null,
     descripcion: restaurante.descripcion ?? '',
     telefono: restaurante.telefono ?? '',
     direccion: restaurante.direccion ?? '',
@@ -41,6 +41,22 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
   const urlCarta = `https://dkitchencorporate.es/m/${restaurante.slug}`;
   const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setD((prev) => ({ ...prev, [k]: e.target.value }));
+
+  // 14/10 (piloto): el logo se guarda al momento al elegirlo o subirlo; antes había que pulsar además «Guardar cambios» y se perdía.
+  function guardarLogo(url: string | null) {
+    const nuevo = { ...d, logoUrl: url };
+    setD(nuevo);
+    setAviso(null);
+    iniciar(async () => {
+      try {
+        await actualizarLocalAction(nuevo);
+        setAviso({ ok: true, texto: url ? 'Logo guardado. Ya sale en tu carta y en tu landing.' : 'Logo quitado.' });
+        avisarEstudio({ recargar: true });
+      } catch (e) {
+        setAviso({ ok: false, texto: mensajeError(e, 'No se pudo guardar el logo. Pulsa «Guardar cambios».') });
+      }
+    });
+  }
 
   function guardar() {
     setAviso(null);
@@ -77,7 +93,8 @@ export default function MiLocal({ restaurante }: { restaurante: MiRestaurante })
       <section className="bg-white border border-linea rounded-2xl p-6 space-y-5">
         <h3 className="text-lg font-semibold">Identidad</h3>
         <div data-tutorial="logo">
-          <SubirImagen valor={d.logoUrl} onCambio={(url) => setD((p) => ({ ...p, logoUrl: url }))} etiqueta="Logo" redonda ia={{ modo: 'logo' }} />
+          <SubirImagen valor={d.logoUrl} onCambio={guardarLogo} etiqueta="Logo" redonda ia={{ modo: 'logo' }} />
+          {aviso && /[Ll]ogo/.test(aviso.texto) && <p className={`mt-2 text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</p>}
         </div>
         <div className="grid sm:grid-cols-[1fr_auto] gap-3">
           <label className="space-y-1">
