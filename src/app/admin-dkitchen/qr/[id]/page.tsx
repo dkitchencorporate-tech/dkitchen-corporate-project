@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
+import { cuentaEnSeguimiento, eventosSeguimiento } from '@/lib/admin-seguimiento';
+import SeguimientoEnVivo from '@/components/admin/SeguimientoEnVivo';
 import { fichaCliente, historialCliente, serviciosCliente, listarEnlaces, catalogoPrecios, type EntradaHistorial } from '@/lib/admin-clientes';
 import EnlacesPago from '@/components/admin/EnlacesPago';
 import { resumenCobro, euros, fechaLarga, diasHasta } from '@/lib/prueba';
@@ -120,6 +122,9 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
   if (!ficha?.restaurante) notFound();
 
   const r = ficha.restaurante;
+  // Piloto (0078): seguimiento en vivo solo si la cuenta está marcada.
+  const seguimiento = await cuentaEnSeguimiento(jwt, id).catch(() => null);
+  const eventosSeg = seguimiento ? await eventosSeguimiento(jwt, id).catch(() => []) : [];
   // Enlace cliente ↔ proyectos (fallo 10): Signature, Experience, Auditoría… del mismo correo.
   const proyectos = ficha.email ? (await listarProyectos(jwt, {}).catch(() => [])).filter((p) => p.email.toLowerCase() === ficha.email!.toLowerCase()) : [];
   // Pack de idiomas: DKitchen traduce aquí la carta del cliente (0028).
@@ -171,6 +176,8 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           {bajaPendiente && <span className="rounded-full bg-vino/10 px-3 py-1 text-vino">Baja programada: deja de estar activo el {fecha.format(new Date(bajaPendiente + 'T12:00:00Z'))}{r.baja_por === 'cliente' ? ' (la pidió el cliente)' : ''}</span>}
         </div>
       )}
+
+      {seguimiento && <SeguimientoEnVivo restauranteId={id} inicial={eventosSeg} hasta={seguimiento.hasta} />}
 
       {r.demo_interna && (
         <section className="rounded-[22px] border border-vino/25 bg-vino/[0.04] p-5 sm:p-6">
