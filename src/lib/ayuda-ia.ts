@@ -17,14 +17,17 @@ import type { MiRestaurante } from '@/lib/mi-restaurante';
  * ni de otros locales. Gratis para el local, 30 mensajes al día y dentro del
  * tope mensual global de IA (lo controla la base). Modelo elegido por karc0.
  */
-export const MODELO_AYUDA = 'google/gemini-3.1-flash-lite';
-// Con el crédito gratuito de AI Gateway el 3.1 responde 403 («Free tier users do not have access»,
-// probado el 07/10). Hasta que se compre crédito (punto 10) responde el 2.5 Flash-Lite, el del
-// corrector de textos; después, el 3.1 entra solo. Precios de AI Gateway del 07/10/2026 ($ por token).
-const MODELOS: { id: string; entrada: number; salida: number }[] = [
-  { id: MODELO_AYUDA, entrada: 0.25 / 1e6, salida: 1.5 / 1e6 },
-  { id: 'google/gemini-2.5-flash-lite', entrada: 0.1 / 1e6, salida: 0.4 / 1e6 },
-];
+// 17/10 (karc0, 0080): N1 y N2 usan Claude Haiku 5.5; el interruptor de Central puede indicar otro modelo
+// de esta lista. Si un modelo responde 403 (sin crédito para él), se prueba el de reserva.
+// Precios de AI Gateway del 17/10/2026 ($ por token).
+export const MODELO_AYUDA = 'anthropic/claude-haiku-5.5';
+const RESERVA = 'google/gemini-2.5-flash-lite';
+const PRECIOS: Record<string, { entrada: number; salida: number }> = {
+  'anthropic/claude-haiku-5.5': { entrada: 0.1 / 1e6, salida: 0.5 / 1e6 },
+  'google/gemini-3.1-flash-lite': { entrada: 0.25 / 1e6, salida: 1.5 / 1e6 },
+  [RESERVA]: { entrada: 0.1 / 1e6, salida: 0.4 / 1e6 },
+};
+const modelos = (principal?: string | null) => Array.from(new Set([principal && PRECIOS[principal] ? principal : MODELO_AYUDA, RESERVA]));
 
 export const PESTANAS_AYUDA: Record<string, string> = {
   inicio: 'Inicio', carta: 'Platos', estudio: 'Estudio', diseno: 'Diseño', idiomas: 'Idiomas', promociones: 'Banners',
@@ -88,24 +91,27 @@ async function tokenGateway(): Promise<string> {
 
 export type MensajeAyuda = { rol: 'yo' | 'ia'; texto: string };
 export type RespuestaAyuda = { respuesta: string[]; ir: string | null; ticket: boolean; coste: number };
+export type MensajeChat = { role: 'system' | 'user' | 'assistant'; content: string };
 
-export async function responderAyuda(jwt: string, r: MiRestaurante, historial: MensajeAyuda[], seccion: string | null): Promise<RespuestaAyuda> {
-  const datos = await resumenLocal(jwt, r);
+/**
+ * Una llamada a AI Gateway que pide JSON (N1 y N2). Si un modelo responde 403 (sin crédito
+ * para él), prueba el de reserva. Devuelve el texto bruto y el coste real en dólares.
+ */
+export async function llamarGateway(mensajes: MensajeChat[], o: { modelo?: string | null; maxTokens: number; timeoutMs?: number }) {
   const token = await tokenGateway();
-  const mensajes = [
-    { role: 'system', content: `${SISTEMA}\n\nGUÍA DE DKITCHEN:\n${GUIA}\n\nDATOS DEL LOCAL:\n${datos}\nSección del panel abierta ahora: ${seccion && PESTANAS_AYUDA[seccion] ? seccion : 'desconocida'}.` },
-    ...historial.map((m) => ({ role: m.rol === 'yo' ? 'user' : 'assistant', content: m.texto })),
-  ];
   let res: Response | null = null;
   let j: { usage?: { prompt_tokens?: number; completion_tokens?: number }; choices?: { message?: { content?: string } }[] } | null = null;
-  let precio = MODELOS[0];
-  for (const m of MODELOS) {
-    precio = m;
+  let precio = PRECIOS[MODELO_AYUDA];
+  for (const id of modelos(o.modelo)) {
+    precio = PRECIOS[id];
     res = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: m.id, max_tokens: 450, temperature: 0.2, response_format: { type: 'json_object' }, messages: mensajes }),
-      signal: AbortSignal.timeout(20_000),
+      body: JSON.stringify({
+        model: id, max_tokens: o.maxTokens, temperature: 0.2, messages: mensajes,
+        ...(id.startsWith('google/') ? { response_format: { type: 'json_object' } } : {}),
+      }),
+      signal: AbortSignal.timeout(o.timeoutMs ?? 20_000),
     });
     j = await res.json().catch(() => null);
     if (res.status !== 403) break; // 403 = modelo no disponible con el crédito actual: probar el siguiente
@@ -113,15 +119,41 @@ export async function responderAyuda(jwt: string, r: MiRestaurante, historial: M
   const uso = j?.usage ?? {};
   const coste = (Number(uso.prompt_tokens) || 0) * precio.entrada + (Number(uso.completion_tokens) || 0) * precio.salida;
   const bruto: string = j?.choices?.[0]?.message?.content ?? '';
-  if (!res?.ok || !bruto.trim()) throw Object.assign(new Error('La ayuda con IA no ha respondido.'), { coste });
+  return { bruto, coste, ok: !!res?.ok && !!bruto.trim() };
+}
 
-  let salida: { respuesta?: unknown; ir?: unknown; ticket?: unknown } = {};
-  try { salida = JSON.parse(bruto.slice(bruto.indexOf('{'), bruto.lastIndexOf('}') + 1)); } catch { salida = { respuesta: bruto }; }
-  const texto = String(salida.respuesta ?? '').replace(/[*#`_]/g, '').trim();
-  if (!texto) throw Object.assign(new Error('La ayuda con IA no ha respondido.'), { coste });
-  const ir = typeof salida.ir === 'string' && PESTANAS_AYUDA[salida.ir] ? salida.ir : null;
+/** Saca el primer objeto JSON de un texto (los modelos a veces lo envuelven en prosa). */
+export function leerJson(bruto: string): Record<string, unknown> | null {
+  try { const o = JSON.parse(bruto.slice(bruto.indexOf('{'), bruto.lastIndexOf('}') + 1)); return o && typeof o === 'object' ? o : null; } catch { return null; }
+}
+
+/** Lo que ve la IA (o el agente de guardia, 0080): reglas + guía + datos de ESTE local + sección abierta. */
+export async function sistemaAyuda(jwt: string, r: MiRestaurante, seccion: string | null): Promise<string> {
+  const datos = await resumenLocal(jwt, r);
+  return `${SISTEMA}\n\nGUÍA DE DKITCHEN:\n${GUIA}\n\nDATOS DEL LOCAL:\n${datos}\nSección del panel abierta ahora: ${seccion && PESTANAS_AYUDA[seccion] ? seccion : 'desconocida'}.`;
+}
+
+/** Normaliza la respuesta del modelo o del agente: texto en líneas, sección válida y si pide persona. */
+export function leerSalidaAyuda(salida: Record<string, unknown> | null, bruto = ''): Omit<RespuestaAyuda, 'coste'> | null {
+  const s = salida ?? { respuesta: bruto };
+  const texto = (Array.isArray(s.respuesta) ? s.respuesta.join('\n') : String(s.respuesta ?? '')).replace(/[*#`_]/g, '').trim();
+  if (!texto) return null;
+  const ir = typeof s.ir === 'string' && PESTANAS_AYUDA[s.ir] ? s.ir : null;
   return {
     respuesta: texto.split(/\n+/).map((l) => l.trim()).filter(Boolean).slice(0, 8).map((l) => l.slice(0, 400)),
-    ir, ticket: salida.ticket === true, coste,
+    ir, ticket: s.ticket === true,
   };
+}
+
+export async function responderAyuda(jwt: string, r: MiRestaurante, historial: MensajeAyuda[], seccion: string | null, modelo?: string | null): Promise<RespuestaAyuda> {
+  const sistema = await sistemaAyuda(jwt, r, seccion);
+  const mensajes: MensajeChat[] = [
+    { role: 'system', content: sistema },
+    ...historial.map((m): MensajeChat => ({ role: m.rol === 'yo' ? 'user' : 'assistant', content: m.texto })),
+  ];
+  const { bruto, coste, ok } = await llamarGateway(mensajes, { modelo, maxTokens: 450 });
+  if (!ok) throw Object.assign(new Error('La ayuda con IA no ha respondido.'), { coste });
+  const salida = leerSalidaAyuda(leerJson(bruto), bruto);
+  if (!salida) throw Object.assign(new Error('La ayuda con IA no ha respondido.'), { coste });
+  return { ...salida, coste };
 }

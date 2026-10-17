@@ -2,9 +2,10 @@ import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { bandejaSoporte, solicitudesQrAdmin } from '@/lib/admin-clientes';
 import { responderTicketAction, estadoSolicitudAction } from '../qr/actions';
+import { guardarModoIaAction, n2IaAction } from './actions';
 import PanelN2 from '@/components/admin/PanelN2';
 import GuiaZona from '@/components/admin/GuiaZona';
-import { diagnosticar, sugerir, borrador, datosTickets, metricasSoporte, CATEGORIAS, type Categoria } from '@/lib/soporte-n2';
+import { diagnosticar, sugerir, borrador, datosTickets, metricasSoporte, modoSoporte, CATEGORIAS, type Categoria, type IaN2, type ModoSoporte } from '@/lib/soporte-n2';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,17 +20,19 @@ const ESTADOS_SOLICITUD = ['solicitado', 'presupuestado', 'pagado', 'en_producci
 const AVISOS: Record<string, string> = {
   acceso: 'Enlace de contraseña enviado.', bienvenida: 'Bienvenida y enlace de contraseña enviados.', enlace: 'Enlace nuevo enviado al correo del dueño.',
   tpv: 'Reintento al TPV hecho.', resuelto: 'Ticket cerrado como resuelto.',
+  modo: 'Interruptor de la IA de soporte guardado.', ia: 'Diagnóstico y borrador de la IA listos: revísalos antes de responder.',
 };
 const ERRORES: Record<string, string> = {
   datos: 'Datos del formulario no válidos.', diagnostico: 'No se pudo leer el estado del local.', sin_correo: 'El local no tiene cuenta de dueño con correo.',
   miembro: 'Ese miembro del equipo no está activo o no se pudo regenerar.', sin_fallidos: 'No hay envíos al TPV fallidos en 7 días.', categoria: 'Elige categoría y nivel.',
+  ia_modo: 'La IA de N2 no está en modo AI Gateway (míralo en el interruptor de arriba).', ia_tope: 'Se ha llegado al tope mensual de gasto de IA.', ia_fallo: 'La IA no ha respondido bien. Prueba otra vez o responde con el diagnóstico por reglas.',
   hueco: 'No se ha enviado: la respuesta aún tiene un hueco por rellenar ([Respuesta] o [pasos]). Escribe la respuesta real y vuelve a pulsar «Responder».',
 };
 
 export default async function SoporteQr({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAdmin();
   const q = await searchParams;
-  const [tickets, solicitudes, metricas] = await Promise.all([bandejaSoporte(jwt), solicitudesQrAdmin(jwt), metricasSoporte(jwt)]);
+  const [tickets, solicitudes, metricas, modo] = await Promise.all([bandejaSoporte(jwt), solicitudesQrAdmin(jwt), metricasSoporte(jwt), modoSoporte(jwt)]);
   const abiertos = tickets.filter((t) => t.estado === 'abierto').length;
   // N2 (0055): diagnóstico por reglas de los tickets sin cerrar (máx. 15 por carga)
   const vivos = tickets.filter((t) => t.estado !== 'cerrado').slice(0, 15);
@@ -70,6 +73,7 @@ export default async function SoporteQr({ searchParams }: { searchParams: Promis
           </p>
         </div>
       )}
+      {modo && <InterruptorIa modo={modo} />}
       {aviso && <p className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{aviso}</p>}
       {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
@@ -107,6 +111,14 @@ export default async function SoporteQr({ searchParams }: { searchParams: Promis
                 <p className="whitespace-pre-wrap">{t.respuesta}</p>
               </div>
             )}
+            {extra.get(t.id)?.ia && <BloqueIa ia={extra.get(t.id)!.ia!} />}
+            {t.estado !== 'cerrado' && modo?.n2 === 'gateway' && (
+              <form action={n2IaAction}>
+                <input type="hidden" name="ticketId" value={t.id} />
+                <input type="hidden" name="restauranteId" value={t.restauranteId} />
+                <button className="rounded-full border border-vino px-4 py-2 text-sm font-semibold text-vino hover:bg-vino/5">{extra.get(t.id)?.ia ? 'Rehacer diagnóstico y borrador con IA' : 'Diagnóstico y borrador con IA'}</button>
+              </form>
+            )}
             {n2.has(t.id) && <PanelN2 ticketId={t.id} restauranteId={t.restauranteId} d={n2.get(t.id)!.d} s={n2.get(t.id)!.s} acciones={n2.get(t.id)!.acciones} />}
             {t.estado === 'cerrado' && extra.get(t.id)?.resolucion && <p className="text-xs text-niebla">Resolución: {extra.get(t.id)!.resolucion}</p>}
             {t.estado !== 'cerrado' && (
@@ -117,7 +129,7 @@ export default async function SoporteQr({ searchParams }: { searchParams: Promis
                   required
                   maxLength={4000}
                   rows={n2.has(t.id) ? 7 : 3}
-                  defaultValue={t.respuesta ? undefined : n2.get(t.id)?.texto}
+                  defaultValue={t.respuesta ? undefined : extra.get(t.id)?.ia?.borrador ?? n2.get(t.id)?.texto}
                   placeholder={t.respuesta ? 'Añadir otra respuesta (sustituye a la anterior)…' : 'Escribe la respuesta. El cliente la recibirá por correo y en su panel.'}
                   className="w-full rounded-lg border border-acero bg-white px-3 py-2 text-sm focus:border-vino focus:outline-none"
                 />
@@ -173,6 +185,55 @@ export default async function SoporteQr({ searchParams }: { searchParams: Promis
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+const horaMadrid = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
+const MODOS_N1: Record<ModoSoporte['n1'], string> = { apagado: 'Apagada (solo la guía)', agente: 'Agente Claude de guardia (pruebas)', gateway: 'AI Gateway (responde sola)' };
+const MODOS_N2: Record<ModoSoporte['n2'], string> = { reglas: 'Solo reglas', agente: 'Agente Claude de guardia (pruebas)', gateway: 'AI Gateway (botón en cada ticket)' };
+
+/** Interruptor de la IA de soporte (0080): aquí se le pasa el mando a AI Gateway cuando hay saldo. */
+function InterruptorIa({ modo }: { modo: ModoSoporte }) {
+  const hasta = modo.agente_hasta ? new Date(modo.agente_hasta) : null;
+  return (
+    <section id="ia" className="scroll-mt-6 rounded-[24px] border border-oro/40 bg-papel p-5 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">IA de soporte · N1 y N2</p>
+          <h2 className="font-display mt-1 text-2xl font-semibold">¿Quién responde?</h2>
+          <p className="mt-1 max-w-xl text-sm text-niebla">Modelo en AI Gateway: <strong className="text-carbon">{modo.modelo}</strong>. N2 nunca responde sola: deja el diagnóstico y el borrador, y tú lo envías.</p>
+        </div>
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${modo.agente_activo ? 'bg-green-500/15 text-green-700' : 'bg-white text-niebla ring-1 ring-linea'}`}>
+          {modo.agente_activo && hasta ? `Agente de guardia hasta las ${horaMadrid.format(hasta)}` : 'Sin agente de guardia'}
+        </span>
+      </div>
+      <form action={guardarModoIaAction} className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <label className="text-sm">N1 · chat de ayuda del panel
+          <select name="n1" defaultValue={modo.n1} className="mt-1 w-full rounded-xl border border-acero bg-white px-3 py-2.5 text-sm">
+            {Object.entries(MODOS_N1).map(([v, n]) => <option key={v} value={v}>{n}</option>)}
+          </select>
+        </label>
+        <label className="text-sm">N2 · tickets
+          <select name="n2" defaultValue={modo.n2} className="mt-1 w-full rounded-xl border border-acero bg-white px-3 py-2.5 text-sm">
+            {Object.entries(MODOS_N2).map(([v, n]) => <option key={v} value={v}>{n}</option>)}
+          </select>
+        </label>
+        <button className="rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white">Guardar</button>
+      </form>
+      <p className="mt-3 text-xs text-niebla">En modo agente, el chat solo responde con IA mientras Claude está de guardia (lo abre Claude cuando le pides pruebas); el resto del tiempo enseña la guía y «hablar con una persona». Con saldo en AI Gateway, pon los dos en «AI Gateway».</p>
+    </section>
+  );
+}
+
+function BloqueIa({ ia }: { ia: IaN2 }) {
+  return (
+    <div className="rounded-xl border border-vino/25 bg-vino/[0.04] p-3 text-sm">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-vino">
+        Diagnóstico de la IA · {CATEGORIAS[ia.categoria] ?? ia.categoria} · nivel {ia.nivel} · {ia.motor === 'agente' ? 'agente Claude' : ia.motor} · {fechaHora.format(new Date(ia.en))}
+      </p>
+      {ia.diagnostico && <p className="mt-1 whitespace-pre-wrap">{ia.diagnostico}</p>}
+      <p className="mt-2 text-xs text-niebla">El borrador ya está en la caja de respuesta de abajo: revísalo antes de pulsar «Responder».</p>
     </div>
   );
 }

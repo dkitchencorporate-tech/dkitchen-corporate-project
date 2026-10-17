@@ -26,9 +26,9 @@ type Entrada =
   | { tipo: 'ia'; lineas: string[]; ir: string | null }
   | { tipo: 'pensando' };
 
-/** Respuesta de la ayuda IA del panel (punto 6). `tope`: sin mensajes hoy o tope global de IA. */
+/** Respuesta de la ayuda IA del panel (punto 6). `tope`: sin mensajes hoy, tope global de IA o sin IA de guardia (0080). */
 export type RespuestaIa =
-  | { ok: true; respuesta?: string[]; ir?: string | null; ticket?: boolean; quedan?: number; tope?: 'diario' | 'global' }
+  | { ok: true; respuesta?: string[]; ir?: string | null; ticket?: boolean; quedan?: number; tope?: 'diario' | 'global' | 'guardia' }
   | { ok: false; error: string };
 type TurnoIa = { rol: 'yo' | 'ia'; texto: string };
 
@@ -127,7 +127,7 @@ export default function ChatAyuda({ modo, temas, seccion, saludo, posicion, sinB
       quitarPensando();
       if (!r.ok || r.tope || !r.respuesta?.length) {
         setIaApagada(true);
-        poner({ tipo: 'bot', lineas: [!r.ok ? r.error : r.tope === 'diario' ? 'Hoy ya has usado las 30 preguntas a la ayuda con IA. Mañana vuelve a estar disponible; mientras, aquí tienes las respuestas preparadas.' : 'La ayuda con IA está en pausa este mes. Te dejo las respuestas preparadas.'] });
+        poner({ tipo: 'bot', lineas: [!r.ok ? r.error : r.tope === 'diario' ? 'Hoy ya has usado las 30 preguntas a la ayuda con IA. Mañana vuelve a estar disponible; mientras, aquí tienes las respuestas preparadas.' : r.tope === 'guardia' ? 'La ayuda con IA no está disponible ahora mismo. Te dejo las respuestas preparadas y, si no es ninguna, habla con una persona.' : 'La ayuda con IA está en pausa este mes. Te dejo las respuestas preparadas.'] });
         porPalabras(q, false);
         return;
       }

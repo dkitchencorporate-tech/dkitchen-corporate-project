@@ -8,7 +8,7 @@ import { guardarLanding as dbGuardarLanding, type Landing } from '@/lib/landing'
 import { comoCliente as comoClienteLanding } from '@/lib/db';
 import { leerCartaDeFotos as dbLeerCartaDeFotos } from '@/lib/carta-foto-ia';
 import { CODIGOS_ALERGENOS } from '@/lib/alergenos';
-import { responderAyuda, type MensajeAyuda } from '@/lib/ayuda-ia';
+import { responderAyuda, sistemaAyuda, leerSalidaAyuda, type MensajeAyuda } from '@/lib/ayuda-ia';
 import { saldoIa as dbSaldoIa, generarImagen as dbGenerarImagen, limpiarTextoIa } from '@/lib/ia';
 import { moverSeccion as dbMoverSeccion, guardarExtras as dbGuardarExtras, guardarCombo as dbGuardarCombo, guardarLegal as dbGuardarLegal, ETIQUETAS, type Etiqueta, type DatosCombo, type DatosLegal } from '@/lib/estudio';
 import { obtenerJwtDeSesion, identidadActual } from '@/lib/sesion';
@@ -839,6 +839,12 @@ async function preguntarAyudaIaAction_(historial: MensajeAyuda[], seccion: strin
   if (lista.at(-1)?.rol !== 'yo') throw new Error('Escribe tu duda.');
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   const { comoCliente } = await import('@/lib/db');
+  const seccionValida = typeof seccion === 'string' && /^[a-z]{2,20}$/.test(seccion) ? seccion : null;
+  // Interruptor de Central (0080): apagado · agente (Claude Code de guardia en pruebas) · gateway (AI Gateway)
+  const modo = await comoCliente(jwt, async (c) => (await c.query<{ n1: string; modelo: string; agente_activo: boolean }>('SELECT n1, modelo, agente_activo FROM dk.ia_soporte_modo()')).rows[0])
+    .catch(() => ({ n1: 'gateway', modelo: null, agente_activo: false }));
+  if (modo?.n1 === 'agente') return preguntarAlAgente(jwt, restaurante, lista, seccionValida, modo.agente_activo);
+  if (modo?.n1 !== 'gateway') return { tope: 'guardia' as const };
   let reserva: { uso: string; quedan: number };
   try {
     reserva = await comoCliente(jwt, async (c) => (await c.query<{ uso: string; quedan: number }>('SELECT * FROM dk.ayuda_ia_reservar($1)', [restaurante.id])).rows[0]);
@@ -848,9 +854,8 @@ async function preguntarAyudaIaAction_(historial: MensajeAyuda[], seccion: strin
     if (m.includes('ia_tope_global')) return { tope: 'global' as const };
     throw e;
   }
-  const seccionValida = typeof seccion === 'string' && /^[a-z]{2,20}$/.test(seccion) ? seccion : null;
   try {
-    const r = await responderAyuda(jwt, restaurante, lista, seccionValida);
+    const r = await responderAyuda(jwt, restaurante, lista, seccionValida, modo?.modelo);
     await comoCliente(jwt, (c) => c.query('SELECT dk.ayuda_ia_coste($1, $2)', [reserva.uso, r.coste])).catch(() => {});
     return { respuesta: r.respuesta, ir: r.ir, ticket: r.ticket, quedan: reserva.quedan };
   } catch (e) {
@@ -861,6 +866,40 @@ async function preguntarAyudaIaAction_(historial: MensajeAyuda[], seccion: strin
   }
 }
 export async function preguntarAyudaIaAction(...a: Parameters<typeof preguntarAyudaIaAction_>) { return envolver(() => preguntarAyudaIaAction_(...a)); }
+
+/**
+ * N1 en modo agente (0080): la pregunta entra en la cola con el mismo contexto que vería la IA y el
+ * servidor espera hasta 100 s a que el agente de guardia (Claude Code, solo en ventanas de prueba)
+ * responda. Sin guardia o sin respuesta a tiempo, el chat sigue con la guía y «hablar con una persona».
+ */
+async function preguntarAlAgente(jwt: string, restaurante: Awaited<ReturnType<typeof requerirSesionYRestaurante>>['restaurante'],
+  lista: MensajeAyuda[], seccion: string | null, deGuardia: boolean) {
+  if (!deGuardia) return { tope: 'guardia' as const };
+  const { comoCliente } = await import('@/lib/db');
+  const sistema = await sistemaAyuda(jwt, restaurante, seccion);
+  let alta: { cola: string; quedan: number };
+  try {
+    alta = await comoCliente(jwt, async (c) => (await c.query<{ cola: string; quedan: number }>('SELECT * FROM dk.ayuda_cola_crear($1, $2::jsonb, $3)',
+      [restaurante.id, JSON.stringify(lista), sistema])).rows[0]);
+  } catch (e) {
+    const m = String((e as Error)?.message ?? '');
+    if (m.includes('ayuda_tope_diario')) return { tope: 'diario' as const };
+    if (m.includes('agente_inactivo')) return { tope: 'guardia' as const };
+    throw e;
+  }
+  const leer = (rendirse: boolean) => comoCliente(jwt, async (c) =>
+    (await c.query<{ r: Record<string, unknown> | null }>('SELECT dk.ayuda_cola_respuesta($1, $2) AS r', [alta.cola, rendirse])).rows[0]?.r ?? null);
+  const limite = Date.now() + 100_000;
+  while (Date.now() < limite) {
+    await new Promise((ok) => setTimeout(ok, 2500));
+    const r = await leer(false).catch(() => null);
+    const salida = r ? leerSalidaAyuda(r) : null;
+    if (salida) return { ...salida, quedan: alta.quedan };
+  }
+  const ultima = await leer(true).catch(() => null);
+  const salida = ultima ? leerSalidaAyuda(ultima) : null;
+  return salida ? { ...salida, quedan: alta.quedan } : { tope: 'guardia' as const };
+}
 
 // Corrector y mejora de textos (01/10/2026): 80 usos al día por restaurante.
 async function mejorarTextoAction_(tipo: TipoTexto, texto: string, contexto?: string) {

@@ -21,8 +21,8 @@ import { estadoInterno } from '@/lib/guard-admin';
 import { miSocio } from '@/lib/socio';
 
 export const dynamic = 'force-dynamic';
-// La creación de imágenes con IA puede tardar hasta un minuto.
-export const maxDuration = 60;
+// La creación de imágenes con IA puede tardar hasta un minuto, y la ayuda en modo agente (0080) espera hasta 100 s.
+export const maxDuration = 120;
 
 export default async function Panel() {
   let jwt: string | null = null;

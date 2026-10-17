@@ -10,7 +10,7 @@ import { enviarCorreoCliente, escaparHtml } from '@/lib/email';
 import { nuevoToken } from '@/lib/equipo';
 import { huellaToken } from '@/lib/sala';
 import { reintentarTpvAdmin } from '@/lib/envio-tpv';
-import { diagnosticar, CATEGORIAS, type Categoria } from '@/lib/soporte-n2';
+import { diagnosticar, sugerir, borradorIaN2, modoSoporte, CATEGORIAS, type Categoria } from '@/lib/soporte-n2';
 
 /**
  * Acciones seguras del soporte N2 (0055). Reversibles, auditadas y anotadas en
@@ -92,4 +92,30 @@ export async function n2ResolverAction(formulario: FormData) {
   await comoCliente(jwt, (c) => c.query('SELECT dk.admin_ticket_resolver($1, $2, $3::smallint, $4, $5, $6::jsonb)', [ticket, categoria, nivel, acertado, nota, JSON.stringify(d)]));
   revalidatePath('/admin-dkitchen/soporte');
   volver(ticket, 'ok=resuelto');
+}
+
+/** Interruptor de la IA de soporte (0080). N1: apagado · agente · gateway. N2: reglas · agente · gateway. */
+export async function guardarModoIaAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const n1 = String(formulario.get('n1') ?? '');
+  const n2 = String(formulario.get('n2') ?? '');
+  if (!['apagado', 'agente', 'gateway'].includes(n1) || !['reglas', 'agente', 'gateway'].includes(n2)) redirect('/admin-dkitchen/soporte?e=datos');
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_ia_soporte_guardar($1, $2)', [n1, n2]));
+  revalidatePath('/admin-dkitchen/soporte');
+  redirect('/admin-dkitchen/soporte?ok=modo#ia');
+}
+
+/** N2 con AI Gateway (0080): diagnóstico y borrador en el ticket. No envía nada al cliente. */
+export async function n2IaAction(formulario: FormData) {
+  const { jwt, ticket, d } = await contexto(formulario);
+  const modo = await modoSoporte(jwt);
+  if (modo?.n2 !== 'gateway') volver(ticket, 'e=ia_modo');
+  const permitida = await comoCliente(jwt, async (c) => (await c.query<{ ok: boolean }>('SELECT dk.admin_soporte_ia_permitida() AS ok')).rows[0]?.ok === true).catch(() => false);
+  if (!permitida) volver(ticket, 'e=ia_tope');
+  const t = await comoCliente(jwt, async (c) => (await c.query<{ asunto: string; mensaje: string }>('SELECT asunto, mensaje FROM tickets_soporte WHERE id = $1', [ticket])).rows[0]);
+  if (!t) volver(ticket, 'e=datos');
+  const { ia, coste } = await borradorIaN2(t, d, sugerir(t.asunto, t.mensaje, d), modo.modelo).catch(() => ({ ia: null, coste: 0 }));
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_soporte_ia_guardar($1, $2::jsonb, $3)', [ticket, ia ? JSON.stringify(ia) : null, coste]));
+  revalidatePath('/admin-dkitchen/soporte');
+  volver(ticket, ia ? 'ok=ia' : 'e=ia_fallo');
 }
