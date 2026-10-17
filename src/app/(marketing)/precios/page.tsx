@@ -220,7 +220,7 @@ export default async function PaginaPrecios() {
             <Aparecer retraso={0.1}>
               <div className={`rounded-[28px] p-8 md:p-10 ${o.oscuro ? 'border border-white/10 bg-white/5' : 'bg-crema'}`}>
                 <p className="font-display text-5xl font-semibold">
-                  {o.ancla && <span className={`mr-3 font-sans text-xl font-normal line-through ${o.oscuro ? 'text-white/40' : 'text-ceniza'}`}>{o.ancla}</span>}
+
                   {o.p}
                 </p>
                 <p className={`mt-2 text-sm ${o.oscuro ? 'text-white/60' : 'text-niebla'}`}>{o.unidad} · {o.nota} · + IVA</p>
