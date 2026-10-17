@@ -21,6 +21,10 @@ export interface Boton {
   etiqueta?: string;
   /** Tarjeta de contacto: icono de conversación en lugar de captura. */
   contacto?: boolean;
+  /** Texto del enlace (por defecto «Abrir demo», «Empezar» o «Ver»). */
+  accion?: string;
+  /** Icono de conversación sin ser la tarjeta de contacto (p. ej. WhatsApp). */
+  charla?: boolean;
 }
 
 /** Conserva el origen (flyer, tarjeta…) en los enlaces internos. */
@@ -68,10 +72,10 @@ export default function Botonera({ etiqueta, titulo, sub, botones, origen, qr }:
                   <span className="block text-xl font-semibold leading-tight sm:text-2xl">{b.titulo}</span>
                   <span className={`mt-1.5 block text-[15px] ${b.destacado ? 'text-white/85' : 'text-white/65'}`}>{b.texto}</span>
                   <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-oro">
-                    {b.externo ? 'Abrir demo' : b.contacto ? 'Empezar' : 'Ver'} <span aria-hidden="true" className="transition group-hover:translate-x-1">→</span>
+                    {b.accion ?? (b.externo ? 'Abrir demo' : b.contacto ? 'Empezar' : 'Ver')} <span aria-hidden="true" className="transition group-hover:translate-x-1">→</span>
                   </span>
                 </span>
-                {b.imagen ? <Movil src={b.imagen} alt={`Captura de ${b.titulo}`} /> : b.contacto ? <Charla /> : null}
+                {b.imagen ? <Movil src={b.imagen} alt={`Captura de ${b.titulo}`} /> : b.contacto || b.charla ? <Charla /> : null}
               </>
             );
             return (

@@ -127,13 +127,6 @@ const nextConfig = {
   // tanto Turbopack como webpack, sin acoplarse a ninguno de los dos.
   serverExternalPackages: ['@neondatabase/serverless', 'ws', 'bufferutil', 'utf-8-validate'],
 
-  // Central → Reportes (17/10): los .md de docs/reportes se leen en tiempo de ejecución,
-  // así que hay que meterlos en la función de esas rutas (si no, Vercel no los sube).
-  outputFileTracingIncludes: {
-    '/admin-dkitchen/reportes': ['./docs/reportes/**/*.md'],
-    '/admin-dkitchen/reportes/[slug]': ['./docs/reportes/**/*.md'],
-  },
-
   // SEO bloque 2 (05/10): Signature vive en /signature. Solo la ruta exacta:
   // /base-operativa/bienvenida sigue siendo la vuelta tras pagar Signature.
   async redirects() {

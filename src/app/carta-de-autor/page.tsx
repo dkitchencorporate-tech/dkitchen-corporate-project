@@ -35,7 +35,6 @@ export default async function CartaDeAutor({ searchParams }: { searchParams: Pro
       <div className="mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-between px-4 pb-32 pt-5 sm:px-6 lg:justify-center lg:pb-12 lg:gap-10 lg:py-12">
         <header className="flex items-center justify-between">
           <span className="font-display text-2xl font-semibold">DKitchen<span className="text-oro">.</span></span>
-          <span className="rounded-full border border-oro/50 bg-noche/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-oro backdrop-blur">Para los 20 primeros</span>
         </header>
 
         <section className="mt-[20svh] max-w-xl lg:mt-0">

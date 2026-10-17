@@ -4,7 +4,7 @@ import { PREGUNTAS_SIN_CAMBIAR, DESPUES_PRIMER_MES } from '@/lib/preguntas-sin-c
 export const PREGUNTAS: [string, string][] = [
   ['¿Qué pasa después del primer mes a 1 €?', DESPUES_PRIMER_MES],
   ['¿Y si no me convence?', 'Tienes 30 días de garantía: si el plan Local a 1 € no te convence, te devolvemos el euro y te llevas tu carta en PDF. Sin preguntas.'],
-  ['¿Tengo que montar yo la carta?', 'No hace falta. A los 20 primeros locales te la montamos nosotros: nos mandas una foto de tu carta y en 48 horas la tienes lista con tu estilo.'],
+  ['¿Tengo que montar yo la carta?', 'No hace falta. Sube una foto de tu carta desde el panel y la IA te propone platos, precios y alérgenos para que solo los revises. Y si prefieres no tocar nada, la Puesta a punto (49 €; 29 € si la pides al darte de alta) te la deja montada entera, con tu TPV, tus impresoras y la formación de tu equipo.'],
   ...PREGUNTAS_SIN_CAMBIAR,
   ['¿Mis clientes pueden pedir desde la carta?', 'No. La carta QR es para mirar: tus clientes piden a tu equipo como siempre y tu TPV sigue cobrando. Si quieres que pidan y paguen solos, eso es DKitchen Signature.'],
   ['¿Tengo que reimprimir el QR si cambio la carta?', 'Nunca. El QR apunta siempre a tu carta; los cambios se ven al momento.'],

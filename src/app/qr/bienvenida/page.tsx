@@ -12,7 +12,6 @@ export const metadata: Metadata = {
 };
 
 const WHATSAPP = 'https://wa.me/34622652659?text=Hola,%20acabo%20de%20activar%20mi%20carta%20QR%20y%20tengo%20una%20duda.';
-const MONTAJE = 'https://wa.me/34622652659?text=' + encodeURIComponent('Hola, acabo de activar mi carta QR. Os mando la foto de mi carta para que me la montéis.');
 
 
 /**
@@ -88,19 +87,8 @@ export default async function BienvenidaQr({
           También te llega «Bienvenido a DKitchen» con el resumen de tu plan, y la factura de Stripe con el IVA desglosado.
         </p>
 
-        {/* Montaje incluido para los 20 primeros (karc0, 13/10): foto por WhatsApp, lista en 48 h. */}
-        <a href={MONTAJE} target="_blank" rel="noopener noreferrer"
-          className="group mt-8 flex items-center gap-4 rounded-[26px] bg-[#0D090F] p-5 text-left text-white transition hover:shadow-xl sm:p-6"
-          style={{ backgroundImage: 'radial-gradient(120% 90% at 0% 0%, rgba(140,13,55,.55), transparent 60%)' }}>
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#F2C14E] text-xl text-[#0D090F]" aria-hidden="true">✦</span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-[11px] font-bold uppercase tracking-[0.25em] text-white/50">Incluido para los 20 primeros</span>
-            <span className="mt-1 block font-display text-2xl italic text-[#F2C14E]">Te la montamos nosotros</span>
-            <span className="mt-1 block text-sm text-white/70">Mándanos una foto de tu carta por WhatsApp y en 48 horas la tienes lista, con tu estilo. Tú solo la revisas.</span>
-          </span>
-          <span className="hidden rounded-full bg-white/10 px-4 py-2 text-xs font-bold sm:block">Enviar foto →</span>
-        </a>
-        <p className="mt-3 text-center text-[12px] text-pizarra">Plan Local a 1 €: garantía de 30 días. Si no te convence, te devolvemos el euro y te llevas tu carta en PDF.</p>
+        {/* 17/10 (karc0): el montaje gratis es solo para clientes de flyers y visitas; no se anuncia en la web. */}
+        <p className="mt-8 text-center text-[12px] text-pizarra">Plan Local a 1 €: garantía de 30 días. Si no te convence, te devolvemos el euro y te llevas tu carta en PDF.</p>
 
         <div className="mt-8 flex flex-col items-center gap-3 rounded-[24px] bg-papel px-5 py-6 text-center">
           <p className="text-[15px] font-semibold">¿No te llega el correo o algo no cuadra?</p>

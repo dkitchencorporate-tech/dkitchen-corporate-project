@@ -131,12 +131,22 @@ const ZONAS: Zona[] = [
   {
     id: 'tareas', titulo: 'Mis tareas', ruta: '/admin-dkitchen/tareas',
     que: 'Todo lo pendiente del proyecto en un solo sitio: lo que te toca a ti y la hoja de ruta de lo que construye Claude, con quién lo hace y su tiempo estimado. Si no está aquí, no existe.',
-    pasos: ['Filtra arriba por «Lo tuyo» o «De Claude».', 'Lo tuyo: hazlo y pulsa «Hecha», o «Bloqueada» con una nota.', 'Lo de Claude lo tacha él al terminarlo; tú le dejas notas para cambiar prioridades.', 'Las tareas en rojo son para hoy o están atrasadas.'],
+    pasos: ['Arriba, el tablero: abiertas por urgencia (pulsa una para filtrar), por estado y por responsable, y cuántas tienen documentación.', 'Filtra por «Lo tuyo» o «De Claude».', 'Lo tuyo: hazlo y pulsa «Hecha», o «Bloqueada» con una nota.', 'Lo de Claude lo tacha él al terminarlo; tú le dejas notas para cambiar prioridades.', 'Las tareas en rojo son para hoy o están atrasadas.'],
   },
   {
     id: 'reportes', titulo: 'Reportes', ruta: '/admin-dkitchen/reportes',
-    que: 'Auditorías, mapeos y cierres de sesión, por fecha. Son los mismos documentos del repo (docs/reportes) y del escritorio.',
+    que: 'Auditorías, mapeos y cierres de sesión, por fecha. Viven en la base de datos (el repo es público), con copia en el escritorio.',
     pasos: ['Abre el reporte del día.', 'Lo que haya que hacer a raíz de un reporte está en Mis tareas.'],
+  },
+  {
+    id: 'decisiones', titulo: 'Decisiones', ruta: '/admin-dkitchen/decisiones',
+    que: 'Todo lo que necesita tu respuesta, con su contexto y la recomendación de Claude marcada. Cada decisión tomada se convierte en tarea.',
+    pasos: ['Elige una opción y pulsa «Decidir»; puedes matizar en la caja de texto.', 'Si ninguna te vale, elige «Otra» y escribe la tuya.', '«Aplazar» la deja en la lista para más adelante.'],
+  },
+  {
+    id: 'documentos', titulo: 'Documentos', ruta: '/admin-dkitchen/documentos',
+    que: 'Copia de toda la documentación del escritorio (dkitchen corporate), por carpetas, sin claves ni datos personales. Si el escritorio se pierde, aquí sigue.',
+    pasos: ['Busca por título o carpeta.', 'Lo superado aparece marcando «Ver también lo archivado».'],
   },
   {
     id: 'competencia', titulo: 'Competencia', ruta: '/admin-dkitchen/competencia',

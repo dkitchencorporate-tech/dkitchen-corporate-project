@@ -1,5 +1,7 @@
 import { exigirAdmin } from '@/lib/guard-admin';
-import { verTareas, BLOQUES, RESPONSABLES, type Tarea } from '@/lib/tareas';
+import { verTareas, BLOQUES, RESPONSABLES, URGENCIAS, type Tarea } from '@/lib/tareas';
+import { verDecisiones } from '@/lib/decisiones';
+import { enlaceDocumento } from '@/lib/documentos';
 import GuiaZona from '@/components/admin/GuiaZona';
 import { guardarTareaAction, materialAction } from './actions';
 
@@ -19,7 +21,8 @@ const urgente = (t: Tarea, hoy: string) => t.estado !== 'hecha' && !!t.paraCuand
 export default async function MisTareas({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAdmin();
   const sp = await searchParams;
-  const tareas = await verTareas(jwt).catch(() => null);
+  const [tareas, decisiones] = await Promise.all([verTareas(jwt).catch(() => null), verDecisiones(jwt).catch(() => null)]);
+  const porDecidir = decisiones?.filter((d) => d.estado === 'pendiente').length ?? 0;
   const hechas = tareas?.filter((t) => t.estado === 'hecha').length ?? 0;
   const total = tareas?.length ?? 0;
   const pct = total ? Math.round((hechas / total) * 100) : 0;
@@ -30,7 +33,18 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const de = sp.de && sp.de in RESPONSABLES ? sp.de : null;
   const mias = tareas?.filter((t) => t.estado !== 'hecha' && (t.responsable === 'karc0' || t.responsable === 'ambos')).length ?? 0;
   const deClaude = tareas?.filter((t) => t.estado !== 'hecha' && t.responsable === 'claude').length ?? 0;
-  const visibles = de ? tareas?.filter((t) => t.responsable === de || (de === 'karc0' && t.responsable === 'ambos')) : tareas;
+  const u = sp.u && sp.u in URGENCIAS ? sp.u : null;
+  const visibles = tareas?.filter((t) => (!de || t.responsable === de || (de === 'karc0' && t.responsable === 'ambos')) && (!u || (t.urgencia === u && t.estado !== 'hecha')));
+  // Tablero (0083): pendientes por urgencia, por estado y por responsable; y cuántas tienen documentación.
+  const abiertas = tareas?.filter((t) => t.estado !== 'hecha') ?? [];
+  const cuenta = (f: (t: Tarea) => boolean) => abiertas.filter(f).length;
+  const conDoc = cuenta((t) => !!(t.docEscritorio || t.docCentral));
+  const filtro = (extra: Record<string, string | null>) => {
+    const q = new URLSearchParams();
+    for (const [k, x] of Object.entries({ de, u, ...extra })) if (x) q.set(k, x);
+    const s = q.toString();
+    return `/admin-dkitchen/tareas${s ? `?${s}` : ''}`;
+  };
   const grupos = Object.keys(BLOQUES).map((b) => [b, visibles?.filter((t) => t.bloque === b) ?? []] as const).filter(([, l]) => l.length);
 
   return (
@@ -71,9 +85,45 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
         </section>
       )}
 
+      {porDecidir > 0 && (
+        <a href="/admin-dkitchen/decisiones" className="flex items-center justify-between gap-3 rounded-[22px] border-2 border-oro bg-papel p-4 text-sm sm:p-5">
+          <span><span className="font-display text-2xl font-semibold text-vino">{porDecidir}</span> <span className="font-semibold">{porDecidir === 1 ? 'decisión espera' : 'decisiones esperan'} tu respuesta</span><span className="block text-niebla">Con su contexto y mi recomendación marcada.</span></span>
+          <span className="shrink-0 rounded-full bg-vino px-4 py-2 font-semibold text-white">Decidir →</span>
+        </a>
+      )}
+
+      <section aria-label="Tablero" className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-[22px] border border-linea bg-white p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">Por urgencia · abiertas</p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {Object.entries(URGENCIAS).map(([k, txt]) => (
+              <li key={k}><a href={filtro({ u: u === k ? null : k })} aria-current={u === k ? 'true' : undefined} className={`flex justify-between rounded-lg px-2 py-1 ${u === k ? 'bg-tinta text-white' : 'hover:bg-papel'}`}><span>{txt}</span><span className="font-semibold">{cuenta((t) => t.urgencia === k)}</span></a></li>
+            ))}
+          </ul>
+        </div>
+        <div className="rounded-[22px] border border-linea bg-white p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">Por estado</p>
+          <ul className="mt-2 space-y-1 text-sm">
+            <li className="flex justify-between px-2 py-1"><span>Pendientes</span><span className="font-semibold">{cuenta((t) => t.estado === 'pendiente')}</span></li>
+            <li className="flex justify-between px-2 py-1"><span>Bloqueadas</span><span className="font-semibold text-vino">{cuenta((t) => t.estado === 'bloqueada')}</span></li>
+            <li className="flex justify-between px-2 py-1"><span>Hechas</span><span className="font-semibold">{hechas}</span></li>
+            <li className="flex justify-between px-2 py-1"><span>Para hoy o atrasadas</span><span className="font-semibold text-red-700">{urgentes.length}</span></li>
+          </ul>
+        </div>
+        <div className="rounded-[22px] border border-linea bg-white p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">Quién · abiertas</p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {Object.entries(RESPONSABLES).map(([k, txt]) => (
+              <li key={k} className="flex justify-between px-2 py-1"><span>{txt}</span><span className="font-semibold">{cuenta((t) => t.responsable === k)}</span></li>
+            ))}
+            <li className="flex justify-between border-t border-linea px-2 pt-2"><span>Con documentación</span><span className="font-semibold">{conDoc} / {abiertas.length}</span></li>
+          </ul>
+        </div>
+      </section>
+
       <nav aria-label="Filtrar por responsable" className="flex flex-wrap gap-2 text-sm">
         {([[null, `Todo (${total})`], ['karc0', `Lo tuyo · ${mias} pendientes`], ['claude', `De Claude · ${deClaude} pendientes`]] as const).map(([v, txt]) => (
-          <a key={txt} href={v ? `/admin-dkitchen/tareas?de=${v}` : '/admin-dkitchen/tareas'} aria-current={de === v ? 'page' : undefined}
+          <a key={txt} href={filtro({ de: v })} aria-current={de === v ? 'page' : undefined}
             className={`rounded-full px-4 py-2 font-medium ${de === v ? 'bg-tinta text-white' : 'border border-acero bg-white text-carbon'}`}>{txt}</a>
         ))}
         <a href="/admin-dkitchen/reportes" className="rounded-full border border-oro/60 bg-papel px-4 py-2 font-medium text-vino">Reportes por fecha →</a>
@@ -130,7 +180,9 @@ function TareaFicha({ t, hoy }: { t: Tarea; hoy: string }) {
               {roja && <span className="rounded-full bg-red-600 px-2.5 py-0.5 font-semibold uppercase tracking-wide text-white">{t.paraCuando! < hoy ? 'Atrasada' : 'Hoy · prioridad'}</span>}
               {t.paraCuando && !roja && <span className="rounded-full bg-papel px-2.5 py-0.5 font-medium text-carbon">Para el {dia.format(new Date(t.paraCuando + 'T12:00:00'))}</span>}
               <span className={`rounded-full px-2.5 py-0.5 font-semibold ${t.responsable === 'claude' ? 'bg-noche text-oro' : t.responsable === 'antigravity' ? 'bg-acero/40 text-carbon' : 'bg-vino/10 text-vino'}`}>{RESPONSABLES[t.responsable] ?? t.responsable}</span>
+              {t.estado !== 'hecha' && t.urgencia !== 'media' && <span className={`rounded-full px-2.5 py-0.5 font-semibold ${t.urgencia === 'urgente' ? 'bg-red-600 text-white' : t.urgencia === 'alta' ? 'bg-oro text-noche' : 'bg-acero/30 text-carbon'}`}>{URGENCIAS[t.urgencia] ?? t.urgencia}</span>}
               {t.estimado && <span className="rounded-full border border-linea px-2.5 py-0.5 font-medium text-carbon">⏱ {t.estimado}</span>}
+              {(t.docEscritorio || t.docCentral) && <span className="rounded-full border border-oro/50 px-2.5 py-0.5 font-medium text-vino">📄 Documentada</span>}
               {t.estado === 'bloqueada' && <span className="rounded-full bg-vino/10 px-2.5 py-0.5 font-semibold text-vino">Bloqueada</span>}
               {t.cambiadoEn && <span>{t.leidoClaude ? 'Claude ya lo ha leído' : 'Pendiente de que Claude lo lea'}</span>}
             </span>
@@ -138,6 +190,12 @@ function TareaFicha({ t, hoy }: { t: Tarea; hoy: string }) {
         </summary>
         <div className="space-y-3 px-5 pb-5">
           {t.detalle && <p className="whitespace-pre-wrap text-sm leading-relaxed">{t.detalle}</p>}
+          {(t.docEscritorio || t.docCentral) && (
+            <div className="flex flex-wrap gap-2 text-xs">
+              {t.docCentral && <a href={enlaceDocumento(t.docCentral)} className="rounded-full bg-papel px-3 py-1.5 font-semibold text-vino ring-1 ring-oro/40">📄 Leer en Central</a>}
+              {t.docEscritorio && <span className="break-all rounded-full bg-papel px-3 py-1.5 text-niebla">Escritorio: {t.docEscritorio}</span>}
+            </div>
+          )}
           {t.enlace && <a href={t.enlace} target={t.enlace.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer" className="inline-block rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white">Abrir →</a>}
           {t.notaClaude && (
             <div className="rounded-2xl border-l-[3px] border-vino bg-papel px-4 py-3">
