@@ -66,9 +66,9 @@ export default async function Evento({ params }: Props) {
       <header className="relative isolate overflow-hidden bg-noche text-white">
         {e.imagen_url && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={e.imagen_url} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover opacity-70" />
+          <img src={e.imagen_url} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover opacity-95" />
         )}
-        <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(11,8,7,.35)_0%,rgba(11,8,7,.55)_45%,rgba(11,8,7,.96)_100%)]" />
+        <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(11,8,7,.10)_0%,rgba(11,8,7,.30)_40%,rgba(11,8,7,.92)_100%)]" />
         <div className="mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-4 pb-10 pt-24 sm:px-6 lg:min-h-[70vh] lg:pb-14">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-oro">{e.local_nombre}{formato ? ` · ${formato.nombre}` : ''}</p>
           <h1 className="font-display mt-3 max-w-3xl break-words text-4xl font-semibold leading-[1.05] sm:text-5xl lg:text-6xl">{e.titulo}</h1>
