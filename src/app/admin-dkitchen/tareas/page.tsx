@@ -11,6 +11,9 @@ const OK: Record<string, string> = {
   pendiente: 'Reabierta.', material: 'Enviado al Buzón para Claude. Lo leerá al empezar su próxima sesión.',
 };
 const ERR: Record<string, string> = { datos: 'Datos no válidos.', base: 'No se pudo guardar. Inténtalo de nuevo.', corto: 'Escribe al menos unas palabras.', muchos: 'Demasiados mensajes en una hora.' };
+/** Aviso rojo: sin hacer y con fecha de hoy o ya pasada (hora de Madrid). Claude marca la prioridad poniendo «para_cuando». */
+const hoyMadrid = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+const urgente = (t: Tarea, hoy: string) => t.estado !== 'hecha' && !!t.paraCuando && t.paraCuando <= hoy;
 
 /** Central → Mis tareas (0077): checklist interactivo del lanzamiento para karc0 + buzón privado de material. */
 export default async function MisTareas({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -20,7 +23,9 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const hechas = tareas?.filter((t) => t.estado === 'hecha').length ?? 0;
   const total = tareas?.length ?? 0;
   const pct = total ? Math.round((hechas / total) * 100) : 0;
-  const proxima = tareas?.find((t) => t.estado !== 'hecha');
+  const hoy = hoyMadrid();
+  const urgentes = tareas?.filter((t) => urgente(t, hoy)) ?? [];
+  const proxima = urgentes[0] ?? tareas?.find((t) => t.estado !== 'hecha');
   const grupos = Object.keys(BLOQUES).map((b) => [b, tareas?.filter((t) => t.bloque === b) ?? []] as const).filter(([, l]) => l.length);
 
   return (
@@ -40,6 +45,27 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
         </div>
       </header>
 
+      {urgentes.length > 0 && (
+        <section className="rounded-[24px] border-2 border-red-600 bg-red-50 p-5 sm:p-6">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-red-700">
+            <span className="relative flex h-2.5 w-2.5"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-60" /><span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-600" /></span>
+            Prioridad · para hoy
+          </p>
+          <h2 className="font-display mt-1 text-2xl font-semibold text-red-800">{urgentes.length === 1 ? 'Tienes 1 tarea para hoy' : `Tienes ${urgentes.length} tareas para hoy`}</h2>
+          <ol className="mt-3 space-y-2">
+            {urgentes.map((t, i) => (
+              <li key={t.id}>
+                <a href={`#t-${t.id}`} className="flex items-start gap-3 rounded-2xl bg-white px-4 py-3 text-sm shadow-sm ring-1 ring-red-200 hover:ring-red-500">
+                  <span className="font-display text-lg font-semibold leading-none text-red-600">{i + 1}</span>
+                  <span className="flex-1 font-semibold text-carbon">{t.titulo}</span>
+                  {t.paraCuando && t.paraCuando < hoy && <span className="rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-semibold text-white">Atrasada</span>}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       {sp.ok && <p className="rounded-2xl bg-exito/10 p-3 text-sm text-exito">{OK[sp.ok] ?? 'Guardado.'}</p>}
       {sp.e && <p className="rounded-2xl bg-red-50 p-3 text-sm text-red-700">{ERR[sp.e] ?? 'No se pudo guardar.'}</p>}
 
@@ -55,7 +81,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
             <span className="font-display text-2xl normal-case tracking-normal text-oro">{String(gi + 1).padStart(2, '0')}</span>{BLOQUES[b]}
             <span className="text-xs font-normal normal-case tracking-normal text-niebla">{lista.filter((t) => t.estado === 'hecha').length}/{lista.length}</span>
           </h2>
-          <ul className="space-y-3">{lista.map((t) => <TareaFicha key={t.id} t={t} />)}</ul>
+          <ul className="space-y-3">{lista.map((t) => <TareaFicha key={t.id} t={t} hoy={hoy} />)}</ul>
         </section>
       ))}
 
@@ -77,17 +103,19 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   );
 }
 
-function TareaFicha({ t }: { t: Tarea }) {
+function TareaFicha({ t, hoy }: { t: Tarea; hoy: string }) {
   const hecha = t.estado === 'hecha';
+  const roja = urgente(t, hoy);
   return (
-    <li id={`t-${t.id}`} className={`scroll-mt-6 rounded-[22px] border bg-white ${t.estado === 'bloqueada' ? 'border-vino/50' : 'border-linea'}`}>
+    <li id={`t-${t.id}`} className={`scroll-mt-6 rounded-[22px] bg-white ${roja ? 'border-2 border-red-600 shadow-[0_0_0_4px_rgba(220,38,38,0.08)]' : t.estado === 'bloqueada' ? 'border border-vino/50' : 'border border-linea'}`}>
       <details open={!hecha} className="group">
         <summary className="flex cursor-pointer list-none items-start gap-3 p-5">
           <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold ${hecha ? 'border-oro bg-oro text-noche' : t.estado === 'bloqueada' ? 'border-vino text-vino' : 'border-acero text-transparent'}`}>{hecha ? '✓' : t.estado === 'bloqueada' ? '!' : '·'}</span>
           <span className="min-w-0 flex-1">
             <span className={`block font-semibold ${hecha ? 'text-niebla line-through' : ''}`}>{t.titulo}</span>
             <span className="mt-1 flex flex-wrap gap-2 text-xs text-niebla">
-              {t.paraCuando && <span className="rounded-full bg-papel px-2.5 py-0.5 font-medium text-carbon">Para el {dia.format(new Date(t.paraCuando + 'T12:00:00'))}</span>}
+              {roja && <span className="rounded-full bg-red-600 px-2.5 py-0.5 font-semibold uppercase tracking-wide text-white">{t.paraCuando! < hoy ? 'Atrasada' : 'Hoy · prioridad'}</span>}
+              {t.paraCuando && !roja && <span className="rounded-full bg-papel px-2.5 py-0.5 font-medium text-carbon">Para el {dia.format(new Date(t.paraCuando + 'T12:00:00'))}</span>}
               {t.estado === 'bloqueada' && <span className="rounded-full bg-vino/10 px-2.5 py-0.5 font-semibold text-vino">Bloqueada</span>}
               {t.cambiadoEn && <span>{t.leidoClaude ? 'Claude ya lo ha leído' : 'Pendiente de que Claude lo lea'}</span>}
             </span>
