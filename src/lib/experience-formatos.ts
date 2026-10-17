@@ -4,7 +4,8 @@
  * van ligados a ninguna marca. Una sola fuente para /experience, las landings
  * /experience/[formato], el configurador y el sitemap.
  *
- * `imagen`: null hasta que Antigravity entregue las fotos sin marcas. Para
+ * `imagen`: fotos generadas con IA el 17/10/2026 (crédito gratuito de AI Gateway, decisión de karc0),
+ * revisadas sin textos ni marcas. Antes: null a la espera de Antigravity. Para
  * activarlas basta con subir `public/images/experience/experience-<slug>-4x5.webp`
  * y `-16x9.webp` y poner aquí `imagen: { alt: '…' }`; mientras tanto la
  * landing usa la tarjeta Gran Reserva (revisión de diseño del 06/10).
@@ -47,7 +48,7 @@ export const FORMATOS_EXPERIENCE: FormatoExperience[] = [
     dias: 'Martes a jueves por la noche', aforo: [20, 60], entrada: [35, 70],
     claves: ['Guion de presentación de cada pase', 'Ficha de cada bebida para tu equipo', 'Cartelería y piezas para redes', 'Web de entradas con aforo cerrado'],
     faq: [['¿Necesito un sumiller?', 'No. Te damos el guion de cada pase para que lo presente tu equipo o el propio proveedor de bebidas, que a menudo colabora gratis.'], ['¿Y si no sirvo alcohol?', 'El formato funciona igual con bebidas sin alcohol: kombuchas, zumos de temporada o cócteles sin alcohol.']],
-    imagen: null,
+    imagen: { alt: 'Mesa larga a la luz de las velas mientras el sumiller sirve vino tinto junto a un arroz de setas' },
   },
   {
     slug: 'mesa-del-chef', codigo: 'chef', nombre: 'Mesa del chef',
@@ -60,7 +61,7 @@ export const FORMATOS_EXPERIENCE: FormatoExperience[] = [
     dias: 'Cualquier día, mejor en servicio tranquilo', aforo: [10, 20], entrada: [55, 120],
     claves: ['Guion del menú y de la presentación del chef', 'Piezas para redes con cuenta atrás de plazas', 'Web de entradas con lista de espera', 'Petición de reseña al día siguiente'],
     faq: [['¿Y si no tengo mesa junto a la cocina?', 'Basta con una mesa grande en sala: el chef sale a presentar cada pase.'], ['¿Cuántas veces se puede repetir?', 'Funciona muy bien una vez al mes con un menú distinto; a partir de la segunda edición pagas la tarifa de reuso, más baja que la primera.']],
-    imagen: null,
+    imagen: { alt: 'El chef emplata frente a un grupo pequeño sentado en la barra de la cocina abierta' },
   },
   {
     slug: 'brunch-de-domingo', codigo: 'brunch', nombre: 'Brunch de domingo',
@@ -73,7 +74,7 @@ export const FORMATOS_EXPERIENCE: FormatoExperience[] = [
     dias: 'Sábados y domingos de 10 a 14 h', aforo: [20, 80], entrada: [18, 35],
     claves: ['Menú cerrado con precio por persona', 'Turnos de reserva para no saturar la cocina', 'Piezas para redes y para tu ficha de Google', 'Web de entradas con pago anticipado por turnos'],
     faq: [['¿Turnos o reserva libre?', 'Recomendamos dos turnos (por ejemplo, 10:30 y 12:30): así la cocina trabaja a ritmo y doblas el aforo.'], ['¿Sirve para familias?', 'Sí. Se puede añadir un menú infantil a la entrada.']],
-    imagen: null,
+    imagen: { alt: 'Brunch en una terraza con vistas: tortitas con frutos rojos, huevos benedictinos, zumo y café' },
   },
   {
     slug: 'viaje-gastronomico', codigo: 'viaje', nombre: 'Viaje gastronómico',
@@ -86,7 +87,7 @@ export const FORMATOS_EXPERIENCE: FormatoExperience[] = [
     dias: 'Un jueves o viernes al mes', aforo: [30, 100], entrada: [30, 60],
     claves: ['Calendario de destinos para 3 meses', 'Ambientación y lista de música', 'Piezas para redes reutilizables cada mes', 'Web de entradas con aviso a la lista de interesados'],
     faq: [['¿Tengo que cambiar mi carta?', 'No. Es un menú aparte para esa noche; tu carta sigue igual el resto de días.'], ['¿Sale más barato repetirlo?', 'Sí. El mismo formato con un destino nuevo paga la tarifa de reuso, más baja que la primera.']],
-    imagen: null,
+    imagen: { alt: 'Noche temática mexicana: tortillas de maíz, mole y mezcal en una mesa compartida' },
   },
   {
     slug: 'taller-en-vivo', codigo: 'taller', nombre: 'Taller en vivo',
@@ -99,7 +100,7 @@ export const FORMATOS_EXPERIENCE: FormatoExperience[] = [
     dias: 'Tardes de entre semana o sábados por la mañana', aforo: [8, 24], entrada: [40, 85],
     claves: ['Guion de la clase paso a paso', 'Lista de material y de compra por asistente', 'Versión para empresas y para regalo', 'Web de entradas con bono regalo'],
     faq: [['¿Necesito una cocina grande?', 'No. Con una mesa de trabajo para 8–12 personas basta; el horno o los fogones los usas tú.'], ['¿Se puede regalar?', 'Sí. La web de entradas permite comprar la plaza como regalo.']],
-    imagen: null,
+    imagen: { alt: 'Participantes con delantal estirando pasta fresca a mano guiados por una cocinera' },
   },
   {
     slug: 'afterwork-con-musica', codigo: 'afterwork', nombre: 'Afterwork con música',
@@ -112,7 +113,7 @@ export const FORMATOS_EXPERIENCE: FormatoExperience[] = [
     dias: 'Miércoles o jueves de 19 a 22 h', aforo: [30, 120], entrada: [12, 25],
     claves: ['Formato de entrada con consumición incluida', 'Contacto y condiciones para el músico', 'Piezas para redes y para empresas cercanas', 'Web de entradas con lista de espera'],
     faq: [['¿Necesito licencia para música?', 'Depende de tu licencia y de tu ayuntamiento. Te decimos qué comprobar; la licencia y el aforo legal son responsabilidad del local.'], ['¿Quién paga al músico?', 'Tú, directamente. Te ayudamos a calcular el precio de la entrada para que salga a cuenta.']],
-    imagen: null,
+    imagen: { alt: 'Amigos con cañas y tapas en una terraza mientras un dúo toca la guitarra en directo' },
   },
   {
     slug: 'reto-o-batalla', codigo: 'reto', nombre: 'Reto o batalla',
@@ -125,7 +126,7 @@ export const FORMATOS_EXPERIENCE: FormatoExperience[] = [
     dias: 'Viernes o sábado', aforo: [20, 80], entrada: [15, 40],
     claves: ['Reglas, clasificación y premio', 'Plan de grabación para redes durante el evento', 'Aviso de responsabilidad para los participantes', 'Web de entradas con plazas por ronda'],
     faq: [['¿Es seguro el reto del picante?', 'Se hace con aviso de responsabilidad firmado, agua y lácteos a mano, y sin presionar a nadie. Te damos el protocolo.'], ['¿Cómo se mueve en redes?', 'Te damos un plan de grabación: qué momentos captar y cómo publicarlos esa misma noche.']],
-    imagen: null,
+    imagen: { alt: 'Concursantes ante platos de alitas y salsas picantes con el público animando detrás' },
   },
 ];
 
