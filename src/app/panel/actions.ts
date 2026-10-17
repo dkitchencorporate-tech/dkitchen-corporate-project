@@ -675,12 +675,16 @@ export async function solicitarBajaAction(motivo: string) {
        ? `<p>La renovación ya está cancelada en Stripe${fin ? `; el acceso termina el ${escaparHtml(fin)}` : ''}. No hace falta hacer nada más.</p>`
        : `<p><strong>Cancela sus suscripciones en Stripe antes del próximo cobro.</strong> La cancelación automática falló: ${escaparHtml(cancelada.error)}</p>`}
      <p>Motivo: ${escaparHtml(texto)}</p>`).catch((e) => console.error('Baja: aviso interno no enviado', e));
+  // 0081: día 0 del reenganche («las puertas siguen abiertas») y alta en la lista de exclientes.
+  const { prepararReenganche, bloquePuertasAbiertas, cabecerasBaja } = await import('@/lib/reenganche');
+  const reenganche = await prepararReenganche(restaurante.id);
   await enviarCorreoCliente(identidad.email, `Hemos recibido tu baja · ${restaurante.nombre}`,
     `<p>Hola,</p>
      <p>Hemos recibido tu solicitud de baja de la carta digital de <strong>${escaparHtml(restaurante.nombre)}</strong>. ${cancelada.ok ? 'Ya hemos cancelado la renovación: no se te volverá a cobrar.' : 'Cancelamos la renovación antes de tu próximo cobro y te lo confirmamos por correo.'}</p>
      <p>Tu carta sigue activa hasta el final del periodo que ya pagaste. Después, tu QR mostrará una página informativa (nunca un error) y guardaremos tu carta 60 días por si quieres volver o pedirnos una copia.</p>
-     <p>Si ha sido un error o quieres contarnos algo, responde a este correo.</p>`,
-    { titulo: 'Baja recibida' }).catch((e) => console.error('Baja: confirmación no enviada', e));
+     <p>Si ha sido un error o quieres contarnos algo, responde a este correo.</p>
+     ${bloquePuertasAbiertas(reenganche.vuelta, reenganche.bajaLista)}`,
+    { titulo: 'Baja recibida', cabeceras: cabecerasBaja(reenganche.bajaLista) }).catch((e) => console.error('Baja: confirmación no enviada', e));
   revalidatePath('/panel');
   refrescarCartas();
 }

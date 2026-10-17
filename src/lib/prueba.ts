@@ -1,6 +1,7 @@
 import 'server-only';
 import { comoCliente, comoAprovisionamiento } from '@/lib/db';
 import { enviarCorreoCliente, escaparHtml } from '@/lib/email';
+import { enviarAviso53, type Aviso53 } from '@/lib/reenganche';
 
 /**
  * Prueba «todo incluido» por tiempo y día de cobro común (migración 0034).
@@ -62,20 +63,16 @@ export async function avanzarPruebas(): Promise<number> {
 }
 
 /**
- * Borrado a los 60 días de la baja (0041): aviso por correo 7 días antes y,
- * al cumplirse, borrado del restaurante (en la base, en cascada) y de sus fotos.
+ * Borrado a los 60 días de la baja (0041): aviso por correo 7 días antes (0081: «se borra en 7 días»
+ * con el enlace de vuelta) y, al cumplirse, borrado del restaurante (en cascada) y de sus fotos.
  */
 export async function purgarBajas(): Promise<number> {
   const { avisos, borrados } = await comoAprovisionamiento(async (c) => ({
-    avisos: (await c.query<{ nombre: string; email: string; borrado_el: string }>('SELECT * FROM dk.bajas_por_avisar()')).rows,
+    avisos: (await c.query<Aviso53>('SELECT * FROM dk.bajas_por_avisar()')).rows,
     borrados: (await c.query<{ restaurante_id: string }>('SELECT * FROM dk.purgar_bajas()')).rows,
   }));
   for (const a of avisos) {
-    await enviarCorreoCliente(a.email, `Tu carta se borrará el ${fechaLarga(new Date(a.borrado_el).toISOString())} · ${a.nombre}`,
-      `<p>Hola,</p>
-       <p>Como te dijimos al darte de baja, guardamos la carta de <strong>${escaparHtml(a.nombre)}</strong> durante 60 días. Se borrará definitivamente el <strong>${fechaLarga(new Date(a.borrado_el).toISOString())}</strong>.</p>
-       <p>Si quieres volver o que te enviemos una copia antes, responde a este correo.</p>`)
-      .catch((e) => console.error(`No se pudo avisar del borrado a ${a.email}`, e));
+    await enviarAviso53(a).catch((e) => console.error(`No se pudo avisar del borrado a ${a.email}`, e));
   }
   for (const b of borrados) {
     try {

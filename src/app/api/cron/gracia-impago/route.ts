@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { avanzarGraciaConAvisos } from '@/lib/avisos-impago';
 import { avanzarPruebas, purgarBajas } from '@/lib/prueba';
+import { enviarReenganche30 } from '@/lib/reenganche';
 import { comoAprovisionamiento } from '@/lib/db';
 import { enviarCorreoInterno, escaparHtml } from '@/lib/email';
 
@@ -53,8 +54,10 @@ export async function GET(request: Request) {
     }
     // Bajas (0041): aviso 7 días antes y borrado a los 60 días.
     const borrados = await purgarBajas();
-    console.log(`Cron gracia/impago: ${cambiados} restaurante(s) cambiaron de fase; ${pruebasVencidas} prueba(s) vencida(s); ${bajasEjecutadas} baja(s) ejecutada(s); ${borrados} baja(s) borrada(s); ${regalosVencidos} regalo(s) vencido(s).`);
-    return NextResponse.json({ ok: true, cambiados, pruebasVencidas, bajasEjecutadas, borrados, regalosVencidos });
+    // Reenganche (0081): día 30 «tu carta sigue guardada», solo a quien sigue en la lista de exclientes.
+    const reenganches = await enviarReenganche30().catch((e) => { console.error('Reenganche día 30 falló', e); return 0; });
+    console.log(`Cron gracia/impago: ${cambiados} restaurante(s) cambiaron de fase; ${pruebasVencidas} prueba(s) vencida(s); ${bajasEjecutadas} baja(s) ejecutada(s); ${borrados} baja(s) borrada(s); ${reenganches} reenganche(s) del día 30; ${regalosVencidos} regalo(s) vencido(s).`);
+    return NextResponse.json({ ok: true, cambiados, pruebasVencidas, bajasEjecutadas, borrados, reenganches, regalosVencidos });
   } catch (error) {
     console.error('Cron gracia/impago falló:', error);
     return NextResponse.json({ error: 'Fallo avanzando el calendario' }, { status: 500 });

@@ -25,6 +25,9 @@ export default function robots(): MetadataRoute.Robots {
         // CRM: propuestas privadas por enlace y la zona del socio.
         '/propuesta/',
         '/socio',
+        // Reenganche de bajas (0081): enlaces privados por token.
+        '/volver/',
+        '/baja-lista/',
       ],
     },
     sitemap: 'https://dkitchencorporate.es/sitemap.xml',

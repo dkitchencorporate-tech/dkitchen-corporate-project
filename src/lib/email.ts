@@ -76,6 +76,8 @@ export interface OpcionesCorreo {
    * Obligatorio en todo correo que sale en nombre de un local.
    */
   marca?: { nombre: string; logoUrl?: string | null; color?: string | null };
+  /** Cabeceras extra (0081: List-Unsubscribe en los correos a la lista de exclientes). */
+  cabeceras?: Record<string, string>;
 }
 
 const C = { fondo: '#F6F5F3', tarjeta: '#FFFFFF', borde: '#E7E3DE', texto: '#1A1714', suave: '#6B6560', acento: '#6E0C2B' };
@@ -207,5 +209,6 @@ export async function enviarCorreoCliente(destinatario: string, asunto: string, 
     subject: asunto.replace(/[\r\n]/g, ' ').slice(0, 120),
     html: cuerpo,
     text: textoPlano(cuerpo),
+    ...(opciones?.cabeceras ? { headers: opciones.cabeceras } : {}),
   });
 }

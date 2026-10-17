@@ -332,11 +332,16 @@ export async function darDeBajaAction(formulario: FormData) {
   await enviarCorreoInterno(`BAJA desde Central: ${b.nombre}`,
     `<p><strong>${escaparHtml(b.nombre)}</strong>: ${b.inmediata ? 'baja inmediata' : `deja de estar activo el ${escaparHtml(fechaLarga(fecha))}`}.</p><p>${escaparHtml(stripeTxt)}</p><p>Motivo: ${escaparHtml(motivo)}</p>`).catch(() => {});
   if (avisar && b.email) {
+    // 0081: día 0 del reenganche («las puertas siguen abiertas») y alta en la lista de exclientes.
+    const { prepararReenganche, bloquePuertasAbiertas, cabecerasBaja } = await import('@/lib/reenganche');
+    const reenganche = await prepararReenganche(id);
     await enviarCorreoCliente(b.email, `Baja confirmada · ${b.nombre}`,
       `<p>Hola${b.contacto ? ' ' + escaparHtml(b.contacto) : ''},</p>
        <p>Te confirmamos la baja de la carta digital de <strong>${escaparHtml(b.nombre)}</strong>.${cliente ? ' Ya no se te volverá a cobrar.' : ''}</p>
        <p>${b.inmediata ? 'La carta deja de estar disponible hoy.' : `Tu carta y tu panel siguen activos hasta el <strong>${escaparHtml(fechaLarga(fecha))}</strong>, el final del periodo que ya pagaste.`} Después, tu QR mostrará una página informativa (nunca un error) y guardaremos tu carta 60 días por si quieres volver o pedirnos una copia.</p>
-       <p>Si ha sido un error o quieres contarnos algo, responde a este correo.</p>`, { titulo: 'Baja confirmada' }).catch((e) => console.error('Baja: correo al cliente no enviado', e));
+       <p>Si ha sido un error o quieres contarnos algo, responde a este correo.</p>
+       ${bloquePuertasAbiertas(reenganche.vuelta, reenganche.bajaLista)}`,
+      { titulo: 'Baja confirmada', cabeceras: cabecerasBaja(reenganche.bajaLista) }).catch((e) => console.error('Baja: correo al cliente no enviado', e));
   }
   if (b.inmediata) revalidatePath('/m/[slug]', 'page');
   revalidatePath('/admin-dkitchen/qr');
