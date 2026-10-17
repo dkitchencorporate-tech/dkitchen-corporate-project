@@ -1,5 +1,5 @@
 import { exigirAdmin } from '@/lib/guard-admin';
-import { verTareas, BLOQUES, type Tarea } from '@/lib/tareas';
+import { verTareas, BLOQUES, RESPONSABLES, type Tarea } from '@/lib/tareas';
 import GuiaZona from '@/components/admin/GuiaZona';
 import { guardarTareaAction, materialAction } from './actions';
 
@@ -26,7 +26,12 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const hoy = hoyMadrid();
   const urgentes = tareas?.filter((t) => urgente(t, hoy)) ?? [];
   const proxima = urgentes[0] ?? tareas?.find((t) => t.estado !== 'hecha');
-  const grupos = Object.keys(BLOQUES).map((b) => [b, tareas?.filter((t) => t.bloque === b) ?? []] as const).filter(([, l]) => l.length);
+  // 0082: «de quién» filtra la lista (?de=karc0 | claude). Sin filtro se ve todo, como antes.
+  const de = sp.de && sp.de in RESPONSABLES ? sp.de : null;
+  const mias = tareas?.filter((t) => t.estado !== 'hecha' && (t.responsable === 'karc0' || t.responsable === 'ambos')).length ?? 0;
+  const deClaude = tareas?.filter((t) => t.estado !== 'hecha' && t.responsable === 'claude').length ?? 0;
+  const visibles = de ? tareas?.filter((t) => t.responsable === de || (de === 'karc0' && t.responsable === 'ambos')) : tareas;
+  const grupos = Object.keys(BLOQUES).map((b) => [b, visibles?.filter((t) => t.bloque === b) ?? []] as const).filter(([, l]) => l.length);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6 text-carbon sm:p-6 lg:p-10">
@@ -34,7 +39,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
         <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-vino/40 blur-3xl" />
         <p className="relative text-xs font-semibold uppercase tracking-[0.25em] text-oro">Central · Lanzamiento</p>
         <h1 className="font-display relative mt-2 text-3xl font-semibold md:text-4xl">Mis tareas</h1>
-        <p className="relative mt-2 max-w-xl text-sm text-white/70">Lo que te toca a ti para salir. Táchalo al terminar o déjame una nota: lo leo al empezar cada sesión.</p>
+        <p className="relative mt-2 max-w-xl text-sm text-white/70">Lo que te toca a ti para salir y la hoja de ruta de lo que construye Claude, con su tiempo estimado. Táchalo al terminar o déjame una nota: lo leo al empezar cada sesión.</p>
         <div className="relative mt-6">
           <div className="flex items-end justify-between text-sm">
             <span className="font-display text-4xl font-semibold text-oro">{hechas}<span className="text-xl text-white/50"> / {total}</span></span>
@@ -66,12 +71,20 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
         </section>
       )}
 
+      <nav aria-label="Filtrar por responsable" className="flex flex-wrap gap-2 text-sm">
+        {([[null, `Todo (${total})`], ['karc0', `Lo tuyo · ${mias} pendientes`], ['claude', `De Claude · ${deClaude} pendientes`]] as const).map(([v, txt]) => (
+          <a key={txt} href={v ? `/admin-dkitchen/tareas?de=${v}` : '/admin-dkitchen/tareas'} aria-current={de === v ? 'page' : undefined}
+            className={`rounded-full px-4 py-2 font-medium ${de === v ? 'bg-tinta text-white' : 'border border-acero bg-white text-carbon'}`}>{txt}</a>
+        ))}
+        <a href="/admin-dkitchen/reportes" className="rounded-full border border-oro/60 bg-papel px-4 py-2 font-medium text-vino">Reportes por fecha →</a>
+      </nav>
+
       {sp.ok && <p className="rounded-2xl bg-exito/10 p-3 text-sm text-exito">{OK[sp.ok] ?? 'Guardado.'}</p>}
       {sp.e && <p className="rounded-2xl bg-red-50 p-3 text-sm text-red-700">{ERR[sp.e] ?? 'No se pudo guardar.'}</p>}
 
       <GuiaZona titulo="Mis tareas" ancla="tareas"
-        que="Claude apunta aquí todo lo que solo puedes hacer tú (cuentas, datos, revisiones, publicar). Cada cambio y cada nota se guardan en la base y Claude los lee al empezar su sesión."
-        pasos={['Abre la tarea, hazla y pulsa «Hecha». Si quieres, deja una nota (qué hiciste, un dato, un enlace).', 'Si no puedes, pulsa «Bloqueada» y explica por qué.', 'Para pasarle archivos o carpetas de tu equipo, usa «Te dejo material» al final.']} />
+        que="Claude apunta aquí todo lo que solo puedes hacer tú (cuentas, datos, revisiones, publicar) y también lo que construirá él, con quién lo hace y cuánto lleva. Cada cambio y cada nota se guardan en la base y Claude los lee al empezar su sesión."
+        pasos={['Arriba puedes ver solo lo tuyo o solo lo de Claude. Lo de Claude no lo tachas tú: lo tacha él al terminarlo; tú puedes dejarle una nota o cambiar el orden pidiéndoselo.', 'Abre la tarea, hazla y pulsa «Hecha». Si quieres, deja una nota (qué hiciste, un dato, un enlace).', 'Si no puedes, pulsa «Bloqueada» y explica por qué.', 'Para pasarle archivos o carpetas de tu equipo, usa «Te dejo material» al final.']} />
 
       {!tareas && <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">No se pudieron leer las tareas.</p>}
 
@@ -116,6 +129,8 @@ function TareaFicha({ t, hoy }: { t: Tarea; hoy: string }) {
             <span className="mt-1 flex flex-wrap gap-2 text-xs text-niebla">
               {roja && <span className="rounded-full bg-red-600 px-2.5 py-0.5 font-semibold uppercase tracking-wide text-white">{t.paraCuando! < hoy ? 'Atrasada' : 'Hoy · prioridad'}</span>}
               {t.paraCuando && !roja && <span className="rounded-full bg-papel px-2.5 py-0.5 font-medium text-carbon">Para el {dia.format(new Date(t.paraCuando + 'T12:00:00'))}</span>}
+              <span className={`rounded-full px-2.5 py-0.5 font-semibold ${t.responsable === 'claude' ? 'bg-noche text-oro' : t.responsable === 'antigravity' ? 'bg-acero/40 text-carbon' : 'bg-vino/10 text-vino'}`}>{RESPONSABLES[t.responsable] ?? t.responsable}</span>
+              {t.estimado && <span className="rounded-full border border-linea px-2.5 py-0.5 font-medium text-carbon">⏱ {t.estimado}</span>}
               {t.estado === 'bloqueada' && <span className="rounded-full bg-vino/10 px-2.5 py-0.5 font-semibold text-vino">Bloqueada</span>}
               {t.cambiadoEn && <span>{t.leidoClaude ? 'Claude ya lo ha leído' : 'Pendiente de que Claude lo lea'}</span>}
             </span>

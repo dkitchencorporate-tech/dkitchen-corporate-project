@@ -39,6 +39,7 @@
     "react-dom": "^19.3.0",
     "react-markdown": "^10.1.0",
     "react-parallax-tilt": "^1.7.343",
+    "remark-gfm": "^4.0.1",
     "server-only": "^0.0.1",
     "sharp": "^0.35.4",
     "three": "^0.186.0",

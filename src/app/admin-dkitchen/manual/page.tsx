@@ -128,6 +128,22 @@ const ZONAS: Zona[] = [
     que: 'Lo enviado con «Avisar de un fallo». Llega por correo y se revisa al empezar cada sesión de trabajo.',
     pasos: ['Desde la pantalla donde falla, pulsa «Avisar de un fallo» y cuenta qué intentabas hacer y qué pasó.', 'Aquí ves si está nuevo, en curso o resuelto.'],
   },
+  {
+    id: 'tareas', titulo: 'Mis tareas', ruta: '/admin-dkitchen/tareas',
+    que: 'Todo lo pendiente del proyecto en un solo sitio: lo que te toca a ti y la hoja de ruta de lo que construye Claude, con quién lo hace y su tiempo estimado. Si no está aquí, no existe.',
+    pasos: ['Filtra arriba por «Lo tuyo» o «De Claude».', 'Lo tuyo: hazlo y pulsa «Hecha», o «Bloqueada» con una nota.', 'Lo de Claude lo tacha él al terminarlo; tú le dejas notas para cambiar prioridades.', 'Las tareas en rojo son para hoy o están atrasadas.'],
+  },
+  {
+    id: 'reportes', titulo: 'Reportes', ruta: '/admin-dkitchen/reportes',
+    que: 'Auditorías, mapeos y cierres de sesión, por fecha. Son los mismos documentos del repo (docs/reportes) y del escritorio.',
+    pasos: ['Abre el reporte del día.', 'Lo que haya que hacer a raíz de un reporte está en Mis tareas.'],
+  },
+  {
+    id: 'competencia', titulo: 'Competencia', ruta: '/admin-dkitchen/competencia',
+    que: 'La base viva de competidores: qué venden, a qué precio, qué les funciona, sus clientes visibles para prospectar y qué hacemos mejor.',
+    pasos: ['Añade un competidor con su nombre, su web y dónde lo viste.', 'Claude lo audita al empezar su sesión.', 'Si cambia algo, deja una nota y pulsa «Guardar y volver a auditar».'],
+    ojo: ['Solo datos públicos de empresas.'],
+  },
 ];
 
 export default async function ManualCentral() {

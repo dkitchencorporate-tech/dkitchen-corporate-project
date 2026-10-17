@@ -21,6 +21,8 @@ const ESPACIOS = [
 ];
 const MAS = [
   { nombre: 'Mis tareas', href: '/admin-dkitchen/tareas' },
+  { nombre: 'Reportes', href: '/admin-dkitchen/reportes' },
+  { nombre: 'Competencia', href: '/admin-dkitchen/competencia' },
   { nombre: 'Entradas', href: '/admin-dkitchen/entradas' },
   { nombre: 'Embudo', href: '/admin-dkitchen/embudo' },
   { nombre: 'Oportunidades', href: '/admin-dkitchen/oportunidades' },
