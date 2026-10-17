@@ -83,7 +83,7 @@ Formularios (detalle en MAPEO §3, comprobados el 17/10): contacto 4 pasos, «Qu
 
 **Lo que falta, por impacto:**
 1. **Páginas por ciudad** (Baza, Granada, Guadix, Almería, Jaén: las mismas zonas que la tarea de leads), con diseño de autor y casos locales. Es lo que hace ganar a 7 de los 9 resultados de Granada.
-2. **Reenviar el sitemap en Search Console** y pedir la indexación de /experience, /auditoria, /casos-de-exito y el blog (no están en Google). Google enseña «Prueba Google Search Console» en la búsqueda: comprobar que la propiedad está verificada en tu cuenta.
+2. **Volver a pedir la indexación en Search Console** (el dominio está verificado y el sitemap enviado desde el 08/10, ESTADO §0.1) de /experience, /auditoria, /casos-de-exito y el blog, que siguen sin salir en Google, y de /precios y /demo/carta para que cambien sus descripciones viejas.
 3. **Blog:** 3 artículos frente a decenas en la competencia. Uno por semana, con las palabras clave de la memoria #215 (QR, carta, cartas digitales, PWA, app, TPV, hostelería, bares, restaurantes).
 4. **Cifras renderizadas en el servidor** con su valor final (no 0).
 5. `/panel` con noindex + `Disallow: /panel` · `llms.txt` · descripción nueva de `/demo/carta`.
