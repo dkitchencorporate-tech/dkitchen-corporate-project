@@ -17,7 +17,7 @@ const SECUENCIA = [
 const BENEFICIOS = [
   ['Plano de tu local', 'Dibuja tu sala y terraza, crea zonas y asígnaselas a cada camarero.'],
   ['App de sala', 'Cada camarero ve sus mesas y los avisos en su móvil, y anota las comandas.'],
-  ['Conexión con tu TPV', 'Lo que anota el camarero llega solo a tu TPV. Sin teclear dos veces.'],
+  ['Conexión con tu TPV', 'Lo que anota el camarero llega a tu TPV: lo conectamos y lo adaptamos a tu configuración. Sin teclear dos veces.'],
 ];
 
 export default function SalaViva() {

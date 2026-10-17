@@ -43,12 +43,16 @@ export function Marquesina({ items, oscura = false }: { items: string[]; oscura?
 export function Contador({ hasta, prefijo = '', sufijo = '', decimales = 0 }: { hasta: number; prefijo?: string; sufijo?: string; decimales?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   const visto = useInView(ref, { once: true, amount: 0.6 });
-  const [v, setV] = useState(0);
+  // El HTML del servidor lleva la cifra final (es lo que leen Google y los asistentes de IA); en el navegador
+  // se pone a 0 al montar y se anima al entrar en pantalla, como antes (17/10).
+  const [v, setV] = useState(hasta);
+  const [montado, setMontado] = useState(false);
+  useEffect(() => { setV(0); setMontado(true); }, []);
   useEffect(() => {
-    if (!visto) return;
+    if (!visto || !montado) return;
     const c = animate(0, hasta, { duration: 1.6, ease: CURVA, onUpdate: setV });
     return () => c.stop();
-  }, [visto, hasta]);
+  }, [visto, montado, hasta]);
   return <span ref={ref} className="whitespace-nowrap tabular-nums">{prefijo}{v.toLocaleString('es-ES', { maximumFractionDigits: decimales, minimumFractionDigits: decimales })}{sufijo}</span>;
 }
 

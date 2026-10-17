@@ -20,7 +20,7 @@ export default function robots(): MetadataRoute.Robots {
         '/manuals/',
         '/api/',
         // Paneles privados de clientes y camareros.
-        '/panel/',
+        '/panel',
         '/sala/',
         // CRM: propuestas privadas por enlace y la zona del socio.
         '/propuesta/',

@@ -1,0 +1,16 @@
+# DKitchen Corporate
+
+> Tecnología y marca para bares, restaurantes y cafeterías en España: carta digital QR de autor, app propia de pedidos con la marca del local (DKitchen Signature) y eventos llave en mano (DKitchen Experience). Sin comisiones por pedido. Precios sin IVA.
+
+## Productos
+- [Carta digital QR](https://dkitchencorporate.es/qr): carta con fotos, 14 alérgenos, idiomas, reservas, llamada al camarero, plano de sala, app de camareros y comandero conectado al TPV del local. Planes Carta 9 €/mes, Local 29 €/mes (primer mes 1 €) y Sala 69 €/mes, sin permanencia, con garantía de 30 días.
+- [DKitchen Signature](https://dkitchencorporate.es/signature): app propia instalable con la marca y el dominio del local; pedidos en mesa, para recoger y a domicilio; cobro con la cuenta del propio local (Stripe, SumUp, Revolut Pay o Redsys); club de puntos; pantalla de cocina. Entrada desde 700 € y mantenimiento según ventas.
+- [DKitchen Experience](https://dkitchencorporate.es/experience): 7 formatos de evento (maridaje, mesa del chef, brunch, viaje gastronómico, taller, afterwork, reto) con web de entradas y QR por entrada; la taquilla va directa al local, sin comisión. Desde 299 € por evento.
+- [Auditoría de canales](https://dkitchencorporate.es/auditoria): revisión de Google Maps, redes y rentabilidad de la carta con reunión 1 a 1. 47 €.
+
+## Más información
+- [Precios](https://dkitchencorporate.es/precios)
+- [Preguntas frecuentes](https://dkitchencorporate.es/faq)
+- [Casos de éxito](https://dkitchencorporate.es/casos-de-exito)
+- [Blog](https://dkitchencorporate.es/blog)
+- [Contacto](https://dkitchencorporate.es/contacto)

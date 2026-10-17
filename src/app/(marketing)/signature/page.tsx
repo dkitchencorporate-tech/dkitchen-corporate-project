@@ -8,6 +8,7 @@ import { Titulo } from '@/components/dk/Bloques';
 import ComparativaQr from '@/components/qr-landing/ComparativaQr';
 import { BASE_OPERATIVA, FUNDADOR } from '@/lib/pricing-config';
 import { estadoFundador } from '@/lib/fundador';
+import { PLAZAS_PARA_CONTAR } from '@/components/fundador/ContadorFundador';
 
 /**
  * DKitchen Signature (antes «Núcleo Operativo») — rediseño 29/09/2026.
@@ -27,7 +28,7 @@ const FUNCIONES = [
   ['Pantalla de cocina', 'Cada comanda llega ordenada a cocina y se marca cuando está lista.'],
   ['Freno de emergencia', 'Si la cocina no da abasto en un pico, pausas la entrada de pedidos con un botón.'],
   ['Fidelización propia', 'Puntos, niveles y avisos al móvil para que cada cliente repita.'],
-  ['Cierre fiscal conectado', 'El cierre del día pasa al sistema que ya usas (Verifactu), con tu TPV y tu gestoría.'],
+  ['Cierre fiscal (VeriFactu)', 'Si tu TPV ya lleva VeriFactu, lo conectamos con él; si no, te lo dejamos montado con nuestro proveedor.'],
 ];
 const PACK = [
   ['Auditoría de tu ficha de Google Maps', 'Revisamos los factores que hacen que te encuentren (o no) en tu zona.'],
@@ -38,7 +39,8 @@ const PACK = [
 const PREGUNTAS: [string, string][] = [
   ['¿La app es mía?', 'Sí. Pagas una entrada única y un mantenimiento mensual; la app, tu marca y los datos de tus clientes son tuyos.'],
   ['¿Tengo que dejar las plataformas de delivery?', 'No. Lo habitual es combinar: la plataforma para captar clientes nuevos y tu app para que los que repiten pidan sin comisión de plataforma.'],
-  ['¿Funciona con mi TPV?', 'Se conecta con tu TPV y con tu gestoría para que el cierre del día llegue al sistema fiscal que ya usas.'],
+  ['¿Funciona con mi TPV?', 'Sí: lo conectamos con tu TPV por API o con la configuración que dé tu proveedor, y lo adaptamos a tu configuración, también la de VeriFactu. Si no tienes TPV, te lo dejamos montado con nuestro proveedor de VeriFactu.'],
+  ['¿Con qué cobro?', 'Con tu propia cuenta: Stripe, SumUp, Revolut Pay o Redsys de tu banco. La configuramos nosotros y el dinero va directo a ti, sin comisiones de DKitchen.'],
   ['¿Qué pasa con la carta QR si ya la tengo?', 'Tu carta y tus datos pasan a Signature, y lo que llevas pagado en tu plan de carta QR se descuenta en parte de la entrada durante los primeros meses.'],
 ];
 
@@ -158,7 +160,7 @@ export default async function PaginaSignature() {
             </ul>
             {fundador?.abierto && (
               <Link href="/pagar/signature-fundador" className="mt-6 block rounded-2xl border border-oro/50 bg-oro/10 p-5 transition hover:bg-oro/15">
-                <span className="etiqueta-dk text-oro">Precio de fundador · quedan {fundador.quedan} de {fundador.plazas} plazas</span>
+                <span className="etiqueta-dk text-oro">Precio de fundador · {fundador.plazas - fundador.quedan >= PLAZAS_PARA_CONTAR ? `quedan ${fundador.quedan} de ${fundador.plazas} plazas` : 'plazas limitadas'}</span>
                 <span className="mt-2 block text-lg font-semibold">Entrada {FUNDADOR.signature.entrada} € y {FUNDADOR.signature.mensual} €/mes el primer año →</span>
                 <span className="mt-1 block text-sm text-white/60">Pago único, sin cuotas · + IVA</span>
               </Link>

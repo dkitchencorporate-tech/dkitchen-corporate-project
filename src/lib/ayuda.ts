@@ -407,7 +407,7 @@ export const TEMAS_WEB: TemaAyuda[] = [
     claves: ['tpv', 'caja', 'caja registradora', 'verifactu', 'ticketbai', 'factura', 'ticket', 'sumup', 'datafono'],
     respuesta: [
       'Sí. DKitchen no sustituye tu TPV: tu carta, tus mesas y tu comandero envían las comandas al TPV que ya tienes, y el ticket fiscal (VeriFactu) lo sigue haciendo él.',
-      'Si todavía no tienes TPV, te ayudamos a elegir uno y a montarlo, por ejemplo SumUp, que ya usamos como pasarela de pago.',
+      'Lo conectamos con tu TPV por API o con la configuración que dé tu proveedor, y lo adaptamos a tu configuración. Si todavía no tienes TPV, el panel hace de comandero y te dejamos VeriFactu listo con nuestro proveedor.',
     ],
     acciones: [{ tipo: 'enlace', href: '/qr', texto: 'Ver la carta QR' }, { tipo: 'solicitud', interes: 'dudas', texto: 'Cuéntanos tu caso' }],
     siguientes: ['incluye', 'signature'],

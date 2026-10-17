@@ -121,7 +121,7 @@ const QUE_ES: Record<string, string> = {
   idioma_extra: 'Un idioma más, traducido por DKitchen',
   plano_mesas: 'Plano de tu local con zonas y mesas por camarero',
   app_sala: 'Tus camareros con sus mesas y comandas en el móvil',
-  conexion_tpv: 'Lo que anota el camarero llega solo a tu TPV',
+  conexion_tpv: 'Lo que anota el camarero llega a tu TPV, adaptado a tu configuración',
   pack_sala: 'Plano de mesas + App de sala + Conexión TPV',
 };
 

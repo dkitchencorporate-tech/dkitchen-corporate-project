@@ -51,7 +51,7 @@ export default function OrdenBumpAuditoria({
       </h2>
       <p className="text-pizarra mb-6">
         Añade tu Auditoría de canales + Escandallo por{' '}
-        <span className="line-through text-gray-400">{formatPrecio(AUDITORIA_CANALES.precioAncla)}</span>{' '}
+        
         <span className="font-semibold text-tinta">{formatPrecio(AUDITORIA_CANALES.precioOferta)}</span> — un
         diagnóstico 1 a 1 de tu presencia digital y de los márgenes reales de tu carta.
       </p>

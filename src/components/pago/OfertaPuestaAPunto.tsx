@@ -15,7 +15,7 @@ const INCLUYE = [
   'Fotos de tus platos generadas con IA cuando no tengas las tuyas.',
   'Configuramos tu panel: horarios, datos del local, estilo y QR listo para imprimir.',
   'No cambias de sistema: revisamos tu TPV o POS y tus impresoras térmicas de tickets en remoto, sin visitas.',
-  'Conectamos tu TPV si acepta pedidos externos: las comandas llegan solas y salen por tus impresoras de siempre.',
+  'Conectamos tu TPV y lo adaptamos a tu configuración (también VeriFactu): las comandas llegan a tu TPV y salen por tus impresoras de siempre.',
   'Asistente con IA en tu panel las 24 h, los 7 días, y una persona por WhatsApp el mismo día del arranque.',
 ];
 

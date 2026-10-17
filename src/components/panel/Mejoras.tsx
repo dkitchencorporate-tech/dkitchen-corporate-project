@@ -22,7 +22,7 @@ const MODULOS: { id: Servicio; titulo: string; resuelve: string; como: string; i
   { id: 'app_sala', titulo: 'App de sala', resuelve: 'Adiós a las comandas en papel y a las mesas olvidadas: cada camarero lleva sus mesas en el móvil.',
     como: 'Cada camarero recibe un enlace personal (sin contraseñas). Ve sus mesas y llamadas, y anota lo que pide cada mesa en segundos.',
     incluye: ['Avisos de llamada con sonido y vibración', 'Registro de comandas por mesa', 'Informe por camarero: comandas, productos, llamadas y tiempo de respuesta', 'Mesa sin dueño: la toma quien la atiende'] },
-  { id: 'conexion_tpv', titulo: 'Conexión con tu TPV', resuelve: 'Lo que anota el camarero llega solo a tu TPV, hasta las comandas al mes de tu plan. Sin teclear dos veces ni errores.',
+  { id: 'conexion_tpv', titulo: 'Conexión con tu TPV', resuelve: 'Lo que anota el camarero llega a tu TPV (lo conectamos y lo adaptamos a tu configuración), hasta las comandas al mes de tu plan. Sin teclear dos veces ni errores.',
     como: 'DKitchen configura la conexión con tu TPV. Tu TPV sigue siendo quien cobra y factura.',
     incluye: ['Compatible con la mayoría de TPV en España', 'Tu facturación no cambia (Verifactu, gestoría)', 'Instalación y pruebas hechas por DKitchen'] },
 ];

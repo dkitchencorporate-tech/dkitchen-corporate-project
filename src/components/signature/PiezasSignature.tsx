@@ -121,7 +121,7 @@ export function CalculadoraComisiones() {
 const CAPITULOS = [
   { n: '01', t: 'Tu cliente pide en tu app', d: 'Con tu marca, tus fotos y tus precios. En mesa, para recoger o a domicilio. Se instala en su móvil como una app más.' },
   { n: '02', t: 'La comanda llega a cocina', d: 'Sin papel ni gritos: la cocina ve cada pedido en su pantalla y lo marca cuando está listo. Si hay un pico, frenas la entrada con un botón.' },
-  { n: '03', t: 'Cobras y cierras el día', d: 'El cobro entra sin comisión de plataforma por pedido y el cierre del día pasa al sistema fiscal que ya usas (Verifactu), conectado con tu TPV y tu gestoría.' },
+  { n: '03', t: 'Cobras y cierras el día', d: 'El cobro entra en tu propia cuenta (Stripe, SumUp, Revolut Pay o Redsys), sin comisión de plataforma, y el cierre fiscal (VeriFactu) va con tu TPV o, si no tienes, con nuestro proveedor.' },
   { n: '04', t: 'Tu cliente vuelve', d: 'Puntos, niveles y avisos a sus móviles. Los datos son tuyos: sabes quién repite y le invitas a volver.' },
 ];
 

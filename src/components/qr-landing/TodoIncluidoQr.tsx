@@ -11,7 +11,7 @@ import { QR_MENU, SERVICIOS_QR } from '@/lib/pricing-config';
 const { ampliado: L, sala: S } = QR_MENU.planes;
 const PIEZAS: { t: string; d: string; precio: string }[] = [
   { t: 'Puesta a punto', d: 'Cargamos tu carta entera (secciones, platos, precios y alérgenos), configuramos horarios, datos y estilo y te dejamos el QR listo para imprimir.', precio: `${SERVICIOS_QR.puestaAPunto} € · ${SERVICIOS_QR.puestaAPuntoBienvenida} € si la pides al darte de alta` },
-  { t: 'Conexión con tu TPV', d: `No cambias de sistema: la carta va al lado de tu TPV o POS. Si acepta pedidos externos, lo que anota el camarero llega solo, sin teclear dos veces.`, precio: 'Incluida en todos los planes, con comandas al mes según el plan' },
+  { t: 'Conexión con tu TPV', d: `No cambias de sistema: conectamos la carta con tu TPV o POS y lo adaptamos a tu configuración, también la de VeriFactu. Lo que anota el camarero llega a tu TPV sin teclear dos veces.`, precio: 'Incluida en todos los planes, con comandas al mes según el plan' },
   { t: 'Tus impresoras de tickets', d: 'Las comandas salen por las impresoras térmicas que ya usa tu TPV. Lo revisamos y lo configuramos en remoto, sin visitas.', precio: 'Con la conexión TPV' },
   { t: 'Formación de tu equipo', d: 'Una videollamada para ti y tus camareros, y una guía paso a paso dentro del panel. En una tarde lo manejáis.', precio: 'Con la puesta a punto' },
   { t: 'Fotos de tus platos con IA', d: '¿No tienes fotos? Las creamos a partir del nombre y la descripción de cada plato. Empiezas con imágenes gratis.', precio: `Más: ${SERVICIOS_QR.imagenesBonoIa} por ${SERVICIOS_QR.bonoIa} €, sin caducidad` },

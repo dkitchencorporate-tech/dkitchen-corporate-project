@@ -48,7 +48,7 @@ export default function PaginaAuditoria() {
           <Aparecer className="mt-16 grid items-center gap-8 rounded-[32px] bg-noche p-8 text-white md:grid-cols-2 md:p-12">
             <div>
               <p className="etiqueta-dk text-vino">Oferta de lanzamiento</p>
-              <p className="mt-3 flex items-baseline gap-4"><span className="font-display text-3xl text-white/40 line-through">297 €</span><span className="font-display text-7xl font-semibold">47 €</span><span className="self-end pb-3 text-lg text-white/60">+ IVA</span></p>
+              <p className="mt-3 flex items-baseline gap-4"><span className="font-display text-7xl font-semibold">47 €</span><span className="self-end pb-3 text-lg text-white/60">+ IVA</span></p>
               <p className="mt-2 text-white/60">Pago único · reunión 1 a 1 incluida</p>
             </div>
             <div className="md:text-right"><a href={WA} className="inline-block rounded-full bg-vino px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(163,24,74,.45)]">Reservar mi auditoría</a></div>

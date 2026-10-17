@@ -87,7 +87,7 @@ export default function PaginaExperience() {
       </section>
 
       <Faq preguntas={[
-        ['¿Cómo se cobran las entradas?', 'Con tu propia pasarela: Stripe, SumUp o Revolut Pay, la que elijas. Nosotros la conectamos a la web de venta y el dinero cae directo en tu cuenta.'],
+        ['¿Cómo se cobran las entradas?', 'Con tu propia pasarela: Stripe, SumUp o Revolut Pay. Te la configuramos y la conectamos a la web de venta, y el dinero cae directo en tu cuenta.'],
         ['¿Quién paga los anuncios?', 'Tú, directamente a Meta o Google. Nosotros creamos y gestionamos la campaña, pero nunca ponemos ni intermediamos ese dinero.'],
         ['¿Cuánto tarda en montarse?', 'Unas tres semanas desde el pago hasta el día del evento: tiempo para el concepto, la campaña y la venta de entradas.'],
         ['¿Puedo usar mi propia carta?', 'Sí. El formato se mantiene y el menú lo pones tú.'],

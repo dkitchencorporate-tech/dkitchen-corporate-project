@@ -59,7 +59,7 @@ export default async function FundadorCentral() {
           <p className="mt-4 text-sm text-niebla">Fundadores vigentes: <strong className="text-tinta">{vigentes}</strong> · cobro por trimestre: <strong className="text-tinta">{ingresoTrimestral.toLocaleString('es-ES', { maximumFractionDigits: 2 })} € + IVA</strong></p>
           <p className="mt-1 text-xs text-ceniza">Landing privada para el flyer y el socio: <Link href="/fundador" className="underline">dkitchencorporate.es/fundador</Link></p>
         </section>
-        {e && <ContadorFundador quedan={e.quedan} plazas={e.plazas} cierraEn={e.abierto ? e.cierraEn : null} />}
+        {e && <ContadorFundador siempre quedan={e.quedan} plazas={e.plazas} cierraEn={e.abierto ? e.cierraEn : null} />}
       </div>
 
       <section className={tarjeta}>

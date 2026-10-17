@@ -21,7 +21,7 @@ const GRUPOS: { g: string; filas: Fila[] }[] = [
   { g: 'Pedidos y cobro', filas: [
     { t: 'Pedidos a domicilio y para recoger, con carrito', qr: false, sig: true, clave: true },
     { t: 'Seguimiento del pedido en tiempo real', qr: false, sig: true },
-    { t: 'Pago online (Stripe, SumUp o Revolut Pay, a tu elección), datáfono o efectivo', qr: false, sig: true, clave: true },
+    { t: 'Cobro online con tu propia cuenta (Stripe, SumUp, Revolut Pay o Redsys de tu banco), datáfono o efectivo', qr: false, sig: true, clave: true },
     { t: 'Cero comisiones por pedido (frente a las plataformas)', qr: 'No vende', sig: true, clave: true },
   ] },
   { g: 'Tus clientes', filas: [

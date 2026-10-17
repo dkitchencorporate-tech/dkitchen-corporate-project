@@ -47,7 +47,7 @@ export default function PlanesQr() {
 
           <article className="relative order-1 flex flex-col overflow-hidden rounded-[36px] bg-tinta p-8 text-white shadow-[0_40px_100px_rgba(23,25,30,.35)] md:p-12 lg:order-2 lg:-my-6">
             <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.4),transparent)]" />
-            <div className="relative -mx-8 -mt-8 mb-8 bg-vino px-8 py-3 text-center text-sm font-bold uppercase tracking-[0.2em] md:-mx-12 md:-mt-12">El más elegido</div>
+            <div className="relative -mx-8 -mt-8 mb-8 bg-vino px-8 py-3 text-center text-sm font-bold uppercase tracking-[0.2em] md:-mx-12 md:-mt-12">Recomendado</div>
             <h3 className="relative text-xl font-semibold">{L.nombre}</h3>
             <p className="relative mt-1 text-sm text-white/55">Tu carta y tu sala, conectadas.</p>
             <p className="relative mt-8"><span className="font-display text-7xl font-semibold">{L.mensual} €</span><span className="ml-1 text-white/50">/mes + IVA</span></p>

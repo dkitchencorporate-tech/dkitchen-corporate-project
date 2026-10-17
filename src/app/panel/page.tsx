@@ -21,6 +21,8 @@ import { estadoInterno } from '@/lib/guard-admin';
 import { miSocio } from '@/lib/socio';
 
 export const dynamic = 'force-dynamic';
+// 17/10: la pantalla de acceso al panel no debe salir en Google.
+export const metadata = { robots: { index: false, follow: false } };
 // La creación de imágenes con IA puede tardar hasta un minuto, y la ayuda en modo agente (0080) espera hasta 100 s.
 export const maxDuration = 120;
 

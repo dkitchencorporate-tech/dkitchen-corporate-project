@@ -31,7 +31,7 @@ const COMPARATIVA: [string, string, string, string][] = [
   ['Eventos para llenar los días flojos', 'No', 'No', `Experience: desde ${EXPERIENCE.tarifas.primeraVez.precio} € + IVA`],
   ['Google Maps, redes y carta que vende', 'No', 'A veces, aparte', 'Incluido en el arranque de Signature'],
   ['Comandas, mesas y reservas', 'Sí', 'No', 'Sí, en todos los planes QR'],
-  ['Ticket fiscal (VeriFactu)', 'Sí', 'No', 'Lo hace tu TPV; nos conectamos a él. Si no tienes, te ayudamos a montar uno'],
+  ['Ticket fiscal (VeriFactu)', 'Sí', 'No', 'Con tu TPV (lo conectamos y lo adaptamos) o, si no tienes, con nuestro proveedor de VeriFactu'],
   ['Alguien que viene a tu local', 'Soporte a distancia', 'Reuniones', 'Sí: estamos en la calle, en tu zona'],
 ];
 
@@ -77,7 +77,7 @@ const OTROS = [
   { id: 'auditoria', n: '05', t: 'Auditoría de canales', lema: 'Por qué algunos clientes no te encuentran.',
     d: 'Un diagnóstico 1 a 1 de tu ficha de Google Maps, tus redes y tus plataformas, con las prioridades ordenadas.',
     incluye: ['Revisión de tu ficha de Google y de tus canales', 'Diagnóstico con prioridades', 'Reunión 1 a 1 para explicártelo'],
-    p: eur(AUDITORIA_CANALES.precioOferta), ancla: eur(AUDITORIA_CANALES.precioAncla), unidad: 'pago único', nota: 'Sin suscripción',
+    p: eur(AUDITORIA_CANALES.precioOferta), unidad: 'pago único · precio de lanzamiento', nota: 'Sin suscripción',
     cta: { href: '/pagar/auditoria', t: 'Pedir mi auditoría' }, ver: '/auditoria' },
   { id: 'dark-kitchen', n: '06', t: 'Dark Kitchen', lema: 'Vende a domicilio con la cocina que ya tienes.',
     d: 'Marcas virtuales ya operadas, o un proyecto completo desde cero.',
@@ -89,7 +89,7 @@ const OTROS = [
 const PREGUNTAS: [string, string][] = [
   ['¿Los precios llevan IVA?', 'No. Todos los precios de esta página son sin IVA; el 21 % se suma al pagar.'],
   ['¿Cobráis comisión por pedido o por entrada?', 'No. DKitchen nunca cobra comisión ni toca el dinero de tus ventas: pagas tu cuota y lo que vendes es tuyo.'],
-  ['¿Cómo funciona el primer mes a 1 €?', `Es del plan ${QR_MENU.planes.ampliado.nombre}: registras la tarjeta y pagas ${eur(QR_MENU.primerMes)} el primer mes. Después, ${eur(QR_MENU.planes.ampliado.mensual)} + IVA al mes, sin permanencia. El alta (${eur(QR_MENU.setup.precio)}) va incluida.`],
+  ['¿Cómo funciona el primer mes a 1 €?', `Es del plan ${QR_MENU.planes.ampliado.nombre}: registras la tarjeta y pagas ${eur(QR_MENU.primerMes)} el primer mes. Después, ${eur(QR_MENU.planes.ampliado.mensual)} + IVA al mes, sin permanencia. Sin coste de alta.`],
   ...PREGUNTAS_SIN_CAMBIAR,
   ['¿Puedo empezar con la carta QR y pasar a Signature más adelante?', 'Sí. Tu carta y tus datos pasan a Signature, y lo que llevas pagado en tu plan de carta QR se descuenta en parte de la entrada durante los primeros meses.'],
 ];
@@ -162,7 +162,7 @@ export default async function PaginaPrecios() {
 
       <section id="carta-qr" className="scroll-mt-20 bg-crema py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <Titulo etiqueta="01 · Carta digital QR" texto="Planes por tamaño, no por módulos." sub={`Alta de ${eur(QR_MENU.setup.precio)} incluida. Con ${PL.nombre}, el primer mes cuesta ${eur(QR_MENU.primerMes)}.`} />
+          <Titulo etiqueta="01 · Carta digital QR" texto="Planes por tamaño, no por módulos." sub={`Sin coste de alta (otros TPV cobran 400–900 € de instalación). Con ${PL.nombre}, el primer mes cuesta ${eur(QR_MENU.primerMes)}.`} />
           <div className="mt-14 grid gap-5 md:grid-cols-3">
             {QR_PLANES.map((p, i) => (
               <Aparecer key={p.id} retraso={i * 0.08}>

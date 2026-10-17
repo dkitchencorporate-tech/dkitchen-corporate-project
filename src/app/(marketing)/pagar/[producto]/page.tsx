@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
 import { BASE_OPERATIVA, FUNDADOR } from '@/lib/pricing-config';
 import { estadoFundador } from '@/lib/fundador';
+import { PLAZAS_PARA_CONTAR } from '@/components/fundador/ContadorFundador';
 import PagoDirecto from '@/components/pago/PagoDirecto';
 import { FondoVivo, TextoRevelado } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
@@ -54,7 +55,7 @@ export default async function Pagar({ params, searchParams }: { params: Promise<
           <Aparecer retraso={0.2}><p className="mt-6 max-w-2xl text-lg text-white/70">{p.resumen}</p></Aparecer>
           {fundador?.abierto && (
             <Link href="/pagar/signature-fundador" className="mt-8 block max-w-2xl rounded-2xl border border-oro/50 bg-oro/10 p-5 transition hover:bg-oro/15">
-              <span className="etiqueta-dk text-oro">Oferta de lanzamiento · precio de fundador · quedan {fundador.quedan} de {fundador.plazas} plazas</span>
+              <span className="etiqueta-dk text-oro">Oferta de lanzamiento · precio de fundador · {fundador.plazas - fundador.quedan >= PLAZAS_PARA_CONTAR ? `quedan ${fundador.quedan} de ${fundador.plazas} plaza` : 'plazas limitada'}s</span>
               <span className="mt-2 block text-xl font-semibold">Entrada {FUNDADOR.signature.entrada} € en lugar de {BASE_OPERATIVA.pagoUnico} € y {FUNDADOR.signature.mensual} €/mes el primer año →</span>
               <span className="mt-1 block text-sm text-white/60">Pago único, sin cuotas · precios + IVA · contratar con el precio de fundador</span>
             </Link>
