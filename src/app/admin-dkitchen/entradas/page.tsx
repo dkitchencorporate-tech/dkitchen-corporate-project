@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
-import { clavePuerta, euros, urlAltaCobro } from '@/lib/entradas';
+import { clavePuerta, euros, leerLanding, urlAltaCobro } from '@/lib/entradas';
+import { FORMATOS_EXPERIENCE } from '@/lib/experience-formatos';
 import { cambiarEstadoAction, conectarCobroAction, guardarEventoAction, nuevaClavePuertaAction } from './actions';
 import GuiaZona from '@/components/admin/GuiaZona';
 
@@ -16,6 +17,7 @@ type Evento = {
   id: string; slug: string; local_nombre: string; titulo: string; fecha: string; precio_centimos: number; aforo: number;
   vendidas: number; usadas: number; ingresos_centimos: string; estado: string; stripe_cuenta: string | null; tiene_clave: boolean;
   descripcion: string; lugar: string; max_por_compra: number; imagen_url: string | null;
+  landing: unknown; muestra: boolean; formato: string | null;
 };
 type Entrada = { codigo: string; numero: number; nombre: string; email: string; estado: string; usada_en: string | null; creado_en: string };
 
@@ -32,6 +34,8 @@ const MENSAJES: Record<string, string> = {
 const aLocal = (s: string) => new Date(s).toLocaleString('sv-SE', { timeZone: 'Europe/Madrid' }).slice(0, 16).replace(' ', 'T');
 
 function Formulario({ e }: { e?: Evento }) {
+  const l = leerLanding(e?.landing);
+  const area = (filas: string[]) => filas.join('\n');
   return (
     <form action={guardarEventoAction} className="grid gap-3 sm:grid-cols-2">
       {e && <input type="hidden" name="id" value={e.id} />}
@@ -43,8 +47,30 @@ function Formulario({ e }: { e?: Evento }) {
       <label className="grid gap-1 text-sm">Aforo<input type="number" name="aforo" min={1} max={5000} required defaultValue={e?.aforo} className={input} /></label>
       <label className="grid gap-1 text-sm">Máximo por compra<input type="number" name="max_por_compra" min={1} max={20} defaultValue={e?.max_por_compra ?? 6} className={input} /></label>
       <label className="grid gap-1 text-sm">Lugar<input name="lugar" defaultValue={e?.lugar} className={input} /></label>
-      <label className="grid gap-1 text-sm sm:col-span-2">Imagen (URL https de Vercel Blob o de dkitchencorporate.es)<input name="imagen_url" defaultValue={e?.imagen_url ?? ''} className={input} /></label>
-      <label className="grid gap-1 text-sm sm:col-span-2">Descripción<textarea name="descripcion" rows={5} defaultValue={e?.descripcion} className={input} /></label>
+      <label className="grid gap-1 text-sm sm:col-span-2">Imagen (URL https de Vercel Blob, o /images/experience/experience-&lt;formato&gt;-16x9.webp)<input name="imagen_url" defaultValue={e?.imagen_url ?? ''} className={input} /></label>
+      <label className="grid gap-1 text-sm">Formato
+        <select name="formato" defaultValue={e?.formato ?? ''} className={input}>
+          <option value="">Sin formato</option>
+          {FORMATOS_EXPERIENCE.map((f) => <option key={f.slug} value={f.slug}>{f.nombre}</option>)}
+        </select>
+      </label>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="muestra" value="1" defaultChecked={!!e?.muestra} /> Evento de muestra (nunca vende)</label>
+      <label className="grid gap-1 text-sm sm:col-span-2">Descripción corta (si no hay historia)<textarea name="descripcion" rows={2} defaultValue={e?.descripcion} className={input} /></label>
+      <fieldset className="grid gap-3 rounded-2xl border border-oro/40 bg-papel p-4 sm:col-span-2 sm:grid-cols-2">
+        <legend className="px-2 text-xs font-semibold uppercase tracking-[0.18em] text-vino">Landing de venta (lo que ve el comensal)</legend>
+        <label className="grid gap-1 text-sm sm:col-span-2">Subtítulo (fecha, hora, plazas…)<input name="l_subtitulo" maxLength={160} defaultValue={l.subtitulo} className={input} /></label>
+        <label className="grid gap-1 text-sm sm:col-span-2">Historia del evento (un párrafo por bloque, separados por una línea en blanco)<textarea name="l_historia" rows={4} maxLength={3000} defaultValue={l.historia.join('\n\n')} className={input} /></label>
+        <label className="grid gap-1 text-sm sm:col-span-2">Menú: una línea por pase · «Pase | Plato | Bebida»<textarea name="l_menu" rows={5} defaultValue={area(l.menu.map((m) => `${m.pase} | ${m.plato} | ${m.bebida}`))} className={input} /></label>
+        <label className="grid gap-1 text-sm">Programa: «Hora | Qué pasa»<textarea name="l_programa" rows={4} defaultValue={area(l.programa.map((p) => `${p.hora} | ${p.que}`))} className={input} /></label>
+        <label className="grid gap-1 text-sm">La entrada incluye (una por línea)<textarea name="l_incluye" rows={4} defaultValue={area(l.incluye)} className={input} /></label>
+        <label className="grid gap-1 text-sm">Anfitrión o chef<input name="l_anf_nombre" maxLength={80} defaultValue={l.anfitrion?.nombre ?? ''} className={input} /></label>
+        <label className="grid gap-1 text-sm">Su papel<input name="l_anf_rol" maxLength={80} defaultValue={l.anfitrion?.rol ?? ''} className={input} /></label>
+        <label className="grid gap-1 text-sm sm:col-span-2">Sobre el anfitrión<input name="l_anf_texto" maxLength={400} defaultValue={l.anfitrion?.texto ?? ''} className={input} /></label>
+        <label className="grid gap-1 text-sm">Dirección<input name="l_direccion" maxLength={200} defaultValue={l.direccion} className={input} /></label>
+        <label className="grid gap-1 text-sm">Enlace de Google Maps<input name="l_mapa" maxLength={400} defaultValue={l.mapa ?? ''} className={input} /></label>
+        <label className="grid gap-1 text-sm sm:col-span-2">Preguntas: «Pregunta | Respuesta»<textarea name="l_faq" rows={3} defaultValue={area(l.faq.map((x) => `${x.p} | ${x.r}`))} className={input} /></label>
+        <label className="grid gap-1 text-sm sm:col-span-2">Avisos (edad, alérgenos, aforo…)<input name="l_avisos" maxLength={400} defaultValue={l.avisos} className={input} /></label>
+      </fieldset>
       <div className="sm:col-span-2"><button className={boton}>{e ? 'Guardar cambios' : 'Crear evento'}</button></div>
     </form>
   );

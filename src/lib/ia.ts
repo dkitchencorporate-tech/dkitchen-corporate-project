@@ -198,6 +198,32 @@ async function generarGateway(modelo: string, p: PeticionImagen): Promise<{ dato
   }
 }
 
+/**
+ * Foto para la propia web de DKitchen (17/10/2026: portadas de Experience). Solo la llama la ruta interna
+ * /api/interno/imagen-ia, protegida con IA_LOTE_SECRET. Modelos del crédito gratuito (FLUX.2 flex y, si
+ * falla, Grok Imagine); no pasa por el saldo de ningún local.
+ */
+export async function imagenLibre(prompt: string, tamano: string): Promise<Buffer | null> {
+  const auth = { Authorization: `Bearer ${await tokenGateway()}`, 'Content-Type': 'application/json' };
+  for (const modelo of MODELOS_GATEWAY_GRATIS) {
+    try {
+      const r = await fetch('https://ai-gateway.vercel.sh/v1/images/generations', {
+        method: 'POST', headers: auth, body: JSON.stringify({ model: modelo, prompt, n: 1, size: tamano }), signal: AbortSignal.timeout(55_000),
+      });
+      const j = await r.json().catch(() => null);
+      const img: string | undefined = j?.data?.[0]?.b64_json || j?.data?.[0]?.url;
+      if (!r.ok || !img) { console.error(`IA libre ${modelo} sin imagen:`, r.status, JSON.stringify(j?.error ?? j)?.slice(0, 200)); continue; }
+      if (img.startsWith('http')) {
+        const d = await fetch(img, { signal: AbortSignal.timeout(15_000) });
+        if (d.ok) return Buffer.from(await d.arrayBuffer());
+        continue;
+      }
+      return Buffer.from(img, 'base64');
+    } catch (e) { console.error(`IA libre ${modelo} no disponible:`, (e as Error).message); }
+  }
+  return null;
+}
+
 /** Nano Banana (google/gemini-2.5-flash-image) por AI Gateway: crea y también mejora fotos. */
 async function generarNanoBanana(p: PeticionImagen): Promise<{ datos: string; tipo: string }> {
   const contenido: unknown[] = [{ type: 'text', text: instrucciones(p) }];

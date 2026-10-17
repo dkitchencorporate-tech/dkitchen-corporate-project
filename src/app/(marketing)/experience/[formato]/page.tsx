@@ -86,7 +86,7 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
       <HeroPagina etiqueta={`DKitchen Experience · ${f.etiqueta}`}
         titulo={f.titular}
         sub={f.resumen}
-        ctas={[{ href: '#configurar', t: 'Configurar mi evento' }, { href: '#como-funciona', t: 'Cómo funciona', secundario: true }]}
+        ctas={[{ href: '#configurar', t: 'Configurar mi evento' }, { href: `/e/muestra-${f.slug}`, t: 'Así lo verán tus clientes', secundario: true }]}
         nota={`${f.dias} · ${f.aforo[0]}–${f.aforo[1]} personas · listo en unas 3 semanas`}
         visual={
           <TarjetaTilt className="relative mx-auto min-h-[320px] w-full max-w-[380px] overflow-hidden rounded-[28px] bg-vino-fondo text-white shadow-[0_40px_90px_-30px_rgba(62,5,21,.7)] md:aspect-[4/5] md:min-h-0">
@@ -218,7 +218,7 @@ export default async function LandingFormato({ params }: { params: Promise<{ for
         </div>
       </section>
 
-      <Cierre titulo={`Tu ${f.nombre.toLowerCase()}, en marcha en 3 semanas.`} sub="Configúralo en dos minutos, reserva y lo preparamos contigo desde la videollamada de arranque." cta={{ href: '#configurar', t: 'Configurar mi evento' }} secundario={{ href: '/experience', t: 'Ver los 7 formatos' }} />
+      <Cierre titulo={`Tu ${f.nombre.toLowerCase()}, en marcha en 3 semanas.`} sub="Configúralo en dos minutos, reserva y lo preparamos contigo desde la videollamada de arranque." cta={{ href: '#configurar', t: 'Configurar mi evento' }} secundario={{ href: `/e/muestra-${f.slug}`, t: 'Ver el evento de muestra' }} />
       <BarraReserva precio={primeraVez.precio} />
     </div>
   );

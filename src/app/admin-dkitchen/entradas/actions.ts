@@ -14,6 +14,8 @@ import { clavePuerta, crearCuentaLocal, cuentaLista } from '@/lib/entradas';
 const UUID = /^[0-9a-f-]{36}$/i;
 const campo = (f: FormData, k: string, max = 200) => String(f.get(k) ?? '').trim().slice(0, max);
 const volver = (q: string): never => redirect(`/admin-dkitchen/entradas?${q}`);
+/** Líneas «a | b | c» de un textarea (landing del evento, 0084). */
+const lineas = (f: FormData, k: string, max: number) => campo(f, k, 6000).split(/\r?\n/).map((l) => l.split('|').map((x) => x.trim())).filter((l) => l.some(Boolean)).slice(0, max);
 
 export async function guardarEventoAction(f: FormData) {
   const jwt = await exigirAdmin();
@@ -31,6 +33,21 @@ export async function guardarEventoAction(f: FormData) {
     aforo: Number(campo(f, 'aforo', 6)),
     max_por_compra: Number(campo(f, 'max_por_compra', 3) || 6),
     imagen_url: campo(f, 'imagen_url', 500),
+    formato: campo(f, 'formato', 40),
+    muestra: f.get('muestra') === '1',
+    // Landing de venta (0084): la página /e/<slug> la lee con leerLanding (solo textos, con topes).
+    landing: {
+      subtitulo: campo(f, 'l_subtitulo', 160),
+      historia: campo(f, 'l_historia', 3000).replace(/\r\n/g, '\n'),
+      menu: lineas(f, 'l_menu', 12).map(([pase = '', plato = '', bebida = '']) => ({ pase, plato, bebida })),
+      programa: lineas(f, 'l_programa', 12).map(([hora = '', que = '']) => ({ hora, que })),
+      incluye: lineas(f, 'l_incluye', 12).map(([x = '']) => x),
+      anfitrion: campo(f, 'l_anf_nombre', 80) ? { nombre: campo(f, 'l_anf_nombre', 80), rol: campo(f, 'l_anf_rol', 80), texto: campo(f, 'l_anf_texto', 400) } : null,
+      direccion: campo(f, 'l_direccion', 200),
+      mapa: campo(f, 'l_mapa', 400),
+      faq: lineas(f, 'l_faq', 10).map(([p = '', r = '']) => ({ p, r })),
+      avisos: campo(f, 'l_avisos', 400),
+    },
   };
   if (!Number.isFinite(euros) || !fechaLocal) volver('e=datos');
   let nuevo = '';

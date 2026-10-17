@@ -15,7 +15,41 @@ import { enviarCorreoCliente, escaparHtml } from '@/lib/email';
 export interface EventoPublico {
   id: string; slug: string; local_nombre: string; titulo: string; descripcion: string; lugar: string; fecha: string;
   precio_centimos: number; aforo: number; vendidas: number; max_por_compra: number; imagen_url: string | null;
-  stripe_cuenta: string | null; estado: 'venta' | 'cerrado';
+  stripe_cuenta: string | null; estado: 'venta' | 'cerrado' | 'borrador';
+  /** Landing de venta (0084) y evento de muestra (nunca vende). */
+  landing: unknown; muestra: boolean; formato: string | null;
+}
+
+/** Contenido de la landing de un evento (0084). Se lee siempre con leerLanding: solo textos, con topes. */
+export interface LandingEvento {
+  subtitulo: string; historia: string[];
+  menu: { pase: string; plato: string; bebida: string }[];
+  programa: { hora: string; que: string }[];
+  incluye: string[];
+  anfitrion: { nombre: string; rol: string; texto: string } | null;
+  direccion: string; mapa: string | null;
+  faq: { p: string; r: string }[];
+  avisos: string;
+}
+
+const txt = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+const lista = (v: unknown, max: number) => (Array.isArray(v) ? v.slice(0, max) : []);
+export function leerLanding(v: unknown): LandingEvento {
+  const o = (v && typeof v === 'object' ? v : {}) as Record<string, unknown>;
+  const a = (o.anfitrion && typeof o.anfitrion === 'object' ? o.anfitrion : null) as Record<string, unknown> | null;
+  const mapa = txt(o.mapa, 400);
+  return {
+    subtitulo: txt(o.subtitulo, 160),
+    historia: txt(o.historia, 3000).split(/\n{2,}/).map((x) => x.trim()).filter(Boolean),
+    menu: lista(o.menu, 12).map((m) => ({ pase: txt(m?.pase, 40), plato: txt(m?.plato, 200), bebida: txt(m?.bebida, 120) })).filter((m) => m.plato || m.bebida),
+    programa: lista(o.programa, 12).map((m) => ({ hora: txt(m?.hora, 12), que: txt(m?.que, 160) })).filter((m) => m.que),
+    incluye: lista(o.incluye, 12).map((x) => txt(x, 140)).filter(Boolean),
+    anfitrion: a && txt(a.nombre, 80) ? { nombre: txt(a.nombre, 80), rol: txt(a.rol, 80), texto: txt(a.texto, 400) } : null,
+    direccion: txt(o.direccion, 200),
+    mapa: /^https:\/\/(www\.)?(google\.[a-z.]+\/maps|maps\.google\.[a-z.]+|maps\.app\.goo\.gl|goo\.gl\/maps)/.test(mapa) ? mapa : null,
+    faq: lista(o.faq, 10).map((m) => ({ p: txt(m?.p, 160), r: txt(m?.r, 600) })).filter((m) => m.p && m.r),
+    avisos: txt(o.avisos, 400),
+  };
 }
 
 export const SLUG_EVENTO = /^[a-z0-9-]{3,60}$/;
@@ -27,7 +61,7 @@ export async function eventoPublico(slug: string): Promise<EventoPublico | null>
 }
 
 export const plazasLibres = (e: EventoPublico) => Math.max(0, e.aforo - e.vendidas);
-export const ventaAbierta = (e: EventoPublico) => e.estado === 'venta' && Boolean(e.stripe_cuenta) && new Date(e.fecha).getTime() > Date.now() && plazasLibres(e) > 0;
+export const ventaAbierta = (e: EventoPublico) => !e.muestra && e.estado === 'venta' && Boolean(e.stripe_cuenta) && new Date(e.fecha).getTime() > Date.now() && plazasLibres(e) > 0;
 
 export const euros = (c: number) => (c / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 export const fechaEvento = (s: string) => new Date(s).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
