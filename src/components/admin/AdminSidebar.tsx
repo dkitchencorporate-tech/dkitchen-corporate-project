@@ -40,7 +40,7 @@ export type Avisos = Record<string, number>;
 const avisosZona = (z: Zona, av: Avisos) => z.items.reduce((s, i) => s + (av[i.href] ?? 0), 0);
 function Aviso({ n, claro }: { n: number; claro?: boolean }) {
   if (!n) return null;
-  return <span className={`inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums leading-none ${claro ? 'ml-1.5 bg-vino text-white' : 'bg-oro text-noche ring-2 ring-noche'}`}>{n > 99 ? '99+' : n}</span>;
+  return <span className={`inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums leading-none ${claro === undefined ? 'bg-oro text-noche ring-2 ring-noche' : claro ? 'ml-1.5 bg-vino text-white' : 'ml-1.5 bg-oro text-noche'}`}>{n > 99 ? '99+' : n}</span>;
 }
 
 const activoEn = (ruta: string, href: string) => ruta === href || ruta.startsWith(href + '/');
@@ -72,7 +72,7 @@ export default function AdminSidebar({ cuenta, avisos = {} }: { cuenta: Cuenta; 
 
   return (
     <>
-      <aside className="sticky top-0 hidden h-screen w-[88px] shrink-0 flex-col items-center bg-noche py-5 text-white md:flex">
+      <aside className="sticky top-0 z-[45] hidden h-screen w-[88px] shrink-0 flex-col items-center bg-noche py-5 text-white md:flex">
         <Link href="/admin-dkitchen/inicio" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.06] font-display text-lg font-semibold text-oro" title="DKitchen · Central">D</Link>
         <nav aria-label="Central" className="mt-8 flex flex-1 flex-col gap-1.5">
           {ZONAS.map((z) => {
