@@ -27,7 +27,7 @@ const urgente = (t: Tarea, hoy: string) => t.estado !== 'hecha' && esMia(t) && (
 /**
  * Central → Mis tareas (0077; rehecha el 18/10 con 0087, karc0: «no puedo tener
  * todo de golpe, es confuso incluso para ti»). Una zona cada vez, elegida en un
- * menú flotante: Hoy · Lo mío · De Claude · Notas enviadas · Revisiones de Alex ·
+ * menú flotante: Hoy · Lo mío · De Claude · Comunicación (0091) · Revisiones de Alex ·
  * Resueltas. La nota enviada queda bloqueada hasta pulsar «Editar nota».
  */
 export default async function MisTareas({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {

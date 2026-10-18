@@ -6,7 +6,7 @@ import GuiaZona from '@/components/admin/GuiaZona';
 export const dynamic = 'force-dynamic';
 
 const kb = (b: number) => (b < 1024 ? `${b} B` : `${Math.round(b / 1024)} KB`);
-const dia = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Madrid' });
+const dia = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
 
 /**
  * Central → Documentos (0083): copia viva de toda la documentación del escritorio (dkitchen corporate),
@@ -44,6 +44,19 @@ export default async function Documentos({ searchParams }: { searchParams: Promi
 
       {!todos && <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">No se pudieron leer los documentos.</p>}
       {todos && !lista.length && <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">Nada con esa búsqueda.</p>}
+
+      {/* 18/10 noche (karc0: «en Documentos no hay casi nada de lo que hemos hecho»): lo último que ha cambiado, delante */}
+      {!q && lista.length > 0 && (
+        <section className="rounded-[24px] border-2 border-oro/60 bg-white">
+          <p className="flex items-center justify-between gap-3 p-5 pb-3">
+            <span className="font-display text-lg font-semibold">Actualizado recientemente</span>
+            <Link href="/admin-dkitchen/reportes" className="text-xs font-semibold text-vino underline">Reportes de cada sesión →</Link>
+          </p>
+          <ul className="divide-y divide-linea border-t border-linea">
+            {[...lista].sort((a, b) => b.actualizadoEn.localeCompare(a.actualizadoEn)).slice(0, 12).map((d) => <Fila key={'r-' + d.ruta} d={d} />)}
+          </ul>
+        </section>
+      )}
 
       {carpetas.map((c) => {
         const docs = lista.filter((d) => (d.carpeta || 'Raíz') === c);

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { verRuta, progreso, estadoHito, PESO, type Hito, type EstadoHito } from '@/lib/ruta';
 import { verTareas } from '@/lib/tareas';
+import { tareasDeHoy } from '@/lib/tareas-hoy';
 import { verDecisiones } from '@/lib/decisiones';
 import { QR_MENU, FUNDADOR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES } from '@/lib/pricing-config';
 import GuiaZona from '@/components/admin/GuiaZona';
@@ -36,7 +37,9 @@ export default async function RutaLanzamiento({ searchParams }: { searchParams: 
   const atrasados = hitos.filter((h) => estadoHito(h, hoy) === 'atrasado').length;
   const siguiente = hitos.find((h) => estadoHito(h, hoy) !== 'hecho');
   const diasA = (f: string) => Math.round((Date.parse(f) - Date.parse(hoy)) / 86400000);
-  const urgentes = tareas?.filter((t) => t.estado !== 'hecha' && (t.paraCuando ? t.paraCuando <= hoy : t.urgencia === 'urgente')).length ?? 0;
+  // Mismo criterio que Mis tareas → Hoy (lo tuyo y lo de Claude de hoy o atrasado).
+  const deHoy = tareas ? tareasDeHoy(tareas) : null;
+  const urgentes = deHoy ? deHoy.mias.length + deHoy.claude.length : 0;
   const porDecidir = decisiones?.filter((d) => d.estado === 'pendiente').length ?? 0;
   const codigos = [...new Set(hitos.map((h) => h.codigo))];
   const prods = [...new Set(productos.map((p) => p.producto))];
@@ -88,8 +91,8 @@ export default async function RutaLanzamiento({ searchParams }: { searchParams: 
       {sp.e && <p className="rounded-2xl bg-red-50 p-3 text-sm text-red-700">No se pudo guardar el dato.</p>}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <Link href="/admin-dkitchen/tareas?u=urgente" className="flex items-center justify-between rounded-[22px] border-2 border-red-600/70 bg-white p-4 text-sm">
-          <span><span className="font-display text-2xl font-semibold text-red-700">{urgentes}</span> <span className="font-semibold">tareas para hoy o urgentes</span></span><span className="text-red-700">Ver →</span>
+        <Link href="/admin-dkitchen/tareas?zona=hoy" className="flex items-center justify-between rounded-[22px] border-2 border-red-600/70 bg-white p-4 text-sm">
+          <span><span className="font-display text-2xl font-semibold text-red-700">{urgentes}</span> <span className="font-semibold">tareas para hoy (tuyas y de Claude)</span></span><span className="text-red-700">Ver →</span>
         </Link>
         <Link href="/admin-dkitchen/decisiones" className="flex items-center justify-between rounded-[22px] border border-oro bg-papel p-4 text-sm">
           <span><span className="font-display text-2xl font-semibold text-vino">{porDecidir}</span> <span className="font-semibold">decisiones esperan tu respuesta</span></span><span className="text-vino">Ver →</span>

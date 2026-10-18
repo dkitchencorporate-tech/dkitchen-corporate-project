@@ -131,12 +131,12 @@ const ZONAS: Zona[] = [
   {
     id: 'ruta', titulo: 'Ruta de lanzamiento', ruta: '/admin-dkitchen/ruta',
     que: 'El termómetro del proyecto: hitos con meta, fecha y dato real (clientes, MRR, propuestas, visitas y contactos salen solos de la base), qué está automatizado en cada producto y un simulador de ingresos.',
-    pasos: ['Mira el «Siguiente» de arriba.', 'Actualiza los hitos manuales (publicaciones, testimonio, anuncios) con su dato real.', 'Anota cada contacto y cada visita en Prospección para que cuenten solos.'],
+    pasos: ['Mira el «Siguiente» de arriba y su tarea.', 'Los hitos «avanza al cerrar sus tareas» se mueven solos al tachar sus tareas; los manuales (publicaciones, testimonio) llevan su dato real.', 'La matriz de productos cambia sola al cerrar la tarea ligada a cada capacidad.', 'Anota cada contacto y cada visita en Prospección para que cuenten solos.'],
   },
   {
     id: 'tareas', titulo: 'Mis tareas', ruta: '/admin-dkitchen/tareas',
     que: 'Todo lo pendiente del proyecto en un solo sitio: lo que te toca a ti y la hoja de ruta de lo que construye Claude, con quién lo hace y su tiempo estimado. Si no está aquí, no existe.',
-    pasos: ['Arriba, el tablero: abiertas por urgencia (pulsa una para filtrar), por estado y por responsable, y cuántas tienen documentación.', 'Filtra por «Lo tuyo» o «De Claude».', 'Lo tuyo: hazlo y pulsa «Hecha», o «Bloqueada» con una nota.', 'Lo de Claude lo tacha él al terminarlo; tú le dejas notas para cambiar prioridades.', 'Las tareas en rojo son para hoy o están atrasadas.'],
+    pasos: ['Una zona cada vez, en el menú flotante de abajo: Hoy · Lo mío · De Claude · Comunicación · Revisiones · Resueltas.', 'Hoy: lo tuyo y lo de Claude de hoy o atrasado; cuando uno acaba, entra el adelanto (lo del siguiente día y lo urgente).', 'Cada tarea guarda un hilo de notas con fecha y hora: puedes añadir notas hasta que se cierre.', 'Comunicación: Esperando a Claude → Claude ha respondido (Listo / Falta que decidas / Falta corregir) → apruebas y pasa a Resueltas; solo tú la reabres.', 'Revisiones: Por revisar → Enviadas a Claude → En curso → Resueltas por Claude (aprueba o reabre) → Aprobadas.', 'El número del menú es lo que te espera a ti.'],
   },
   {
     id: 'reportes', titulo: 'Reportes', ruta: '/admin-dkitchen/reportes',
@@ -146,7 +146,7 @@ const ZONAS: Zona[] = [
   {
     id: 'decisiones', titulo: 'Decisiones', ruta: '/admin-dkitchen/decisiones',
     que: 'Todo lo que necesita tu respuesta, con su contexto y la recomendación de Claude marcada. Cada decisión tomada se convierte en tarea.',
-    pasos: ['Elige una opción y pulsa «Decidir»; puedes matizar en la caja de texto.', 'Si ninguna te vale, elige «Otra» y escribe la tuya.', '«Aplazar» la deja en la lista para más adelante.'],
+    pasos: ['Por decidir → En comunicación (si matizas o eliges «Otra», hasta que Claude responda) → Decidido (falta aplicarla; queda ligada a su tarea) → Resuelto (aplicada, con dónde), cada paso con fecha y hora.', 'Elige una opción y pulsa «Decidir»; «Aplazar» la deja en Por decidir.', '«Reabrir» devuelve una cerrada a Por decidir.', 'Al cerrar la tarea ligada, la decisión pasa sola a Resuelto.'],
   },
   {
     id: 'documentos', titulo: 'Documentos', ruta: '/admin-dkitchen/documentos',
