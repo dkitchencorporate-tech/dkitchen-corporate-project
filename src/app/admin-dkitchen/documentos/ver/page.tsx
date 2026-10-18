@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { exigirAdmin } from '@/lib/guard-admin';
-import { verDocumento } from '@/lib/documentos';
+import { verDocumento, verDocumentos, base, enlaceDocumento } from '@/lib/documentos';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +15,8 @@ export default async function VerDocumento({ searchParams }: { searchParams: Pro
   const { r } = await searchParams;
   const d = r ? await verDocumento(jwt, r).catch(() => null) : null;
   if (!d) notFound();
+  // 19/10: si esta copia del escritorio es también un reporte, se dice y se enlaza (no hay dos verdades).
+  const reporte = d.tipo === 'documento' ? (await verDocumentos(jwt, 'reporte').catch(() => [])).find((x) => base(x.ruta) === base(d.ruta)) : undefined;
   const esTexto = /\.txt$/i.test(d.ruta);
   const cuerpo = esTexto ? d.contenido : d.contenido.replace(/^﻿?# .*\r?\n/, '');
   const volver = d.tipo === 'reporte' ? { href: '/admin-dkitchen/reportes', txt: '← Todos los reportes' } : { href: '/admin-dkitchen/documentos', txt: '← Todos los documentos' };
@@ -29,6 +31,11 @@ export default async function VerDocumento({ searchParams }: { searchParams: Pro
         <h1 className="font-display mt-2 break-words text-3xl font-semibold leading-tight md:text-4xl">{d.titulo}</h1>
         <p className="mt-3 break-all text-xs text-white/50">{d.tipo === 'documento' ? `Escritorio: dkitchen corporate/${d.ruta}` : `Reporte: ${d.ruta}`}</p>
       </header>
+      {reporte && (
+        <Link href={enlaceDocumento(reporte.ruta)} className="block rounded-[22px] border-2 border-oro/60 bg-white p-4 text-sm hover:border-oro">
+          Esta es la copia del escritorio. Su reporte, con la clase, si está vigente y las tareas que salen de él, está en <span className="font-semibold text-vino underline">Reportes → {reporte.titulo}</span>.
+        </Link>
+      )}
       {esTexto ? (
         <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-[28px] border border-linea bg-white p-5 font-sans text-sm leading-relaxed sm:p-8">{cuerpo}</pre>
       ) : (
