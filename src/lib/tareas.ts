@@ -23,7 +23,13 @@ export interface Tarea {
   urgencia: string; docEscritorio: string | null; docCentral: string | null;
   /** 0087: nota enviada (bloqueada hasta «Editar nota»), traspaso a Claude y fecha de cierre. */
   notaEnviadaEn: string | null; traspasadaEn: string | null; hechaEn: string | null;
+  /** 0091: ciclo de Comunicación (karc0 escribe → Claude responde con resultado → karc0 aprueba o reabre) y hito de la Ruta. */
+  comEstado: EstadoComunicacion | null; comResultado: ResultadoClaude | null; respuestaEn: string | null; resueltaEn: string | null; hito: string | null;
 }
+export type EstadoComunicacion = 'abierta' | 'respondida' | 'resuelta' | 'reabierta';
+export type ResultadoClaude = 'listo' | 'falta_decidir' | 'falta_corregir';
+export const ESTADOS_COMUNICACION: Record<EstadoComunicacion, string> = { abierta: 'Esperando a Claude', respondida: 'Claude ha respondido', resuelta: 'Resuelta', reabierta: 'Reabierta' };
+export const RESULTADOS_CLAUDE: Record<ResultadoClaude, string> = { listo: 'Listo', falta_decidir: 'Falta que decidas', falta_corregir: 'Falta corregir' };
 /** 0087: qué hace la nota al enviarse. */
 export type ModoNota = 'abierta' | 'cerrar' | 'traspasar' | 'estado';
 const iso = (x: unknown) => (x ? new Date(x as string).toISOString() : null);
@@ -36,7 +42,12 @@ export async function verTareas(jwt: string): Promise<Tarea[]> {
     leidoClaude: r.leido_claude, responsable: r.responsable ?? 'karc0', estimado: r.estimado ?? null,
     urgencia: r.urgencia ?? 'media', docEscritorio: r.doc_escritorio ?? null, docCentral: r.doc_central ?? null,
     notaEnviadaEn: iso(r.nota_enviada_en), traspasadaEn: iso(r.traspasada_en), hechaEn: iso(r.hecha_en),
+    comEstado: r.com_estado ?? null, comResultado: r.com_resultado ?? null, respuestaEn: iso(r.respuesta_en), resueltaEn: iso(r.resuelta_en), hito: r.hito ?? null,
   })));
+}
+
+export async function comunicacion(jwt: string, id: string, accion: 'aprobar' | 'reabrir') {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_comunicacion($1, $2)', [id, accion]));
 }
 
 export async function guardarTarea(jwt: string, id: string, estado: EstadoTarea, nota: string, modo: ModoNota = 'estado') {

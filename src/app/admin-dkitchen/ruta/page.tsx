@@ -36,7 +36,7 @@ export default async function RutaLanzamiento({ searchParams }: { searchParams: 
   const atrasados = hitos.filter((h) => estadoHito(h, hoy) === 'atrasado').length;
   const siguiente = hitos.find((h) => estadoHito(h, hoy) !== 'hecho');
   const diasA = (f: string) => Math.round((Date.parse(f) - Date.parse(hoy)) / 86400000);
-  const urgentes = tareas?.filter((t) => t.estado !== 'hecha' && (t.urgencia === 'urgente' || (t.paraCuando && t.paraCuando <= hoy))).length ?? 0;
+  const urgentes = tareas?.filter((t) => t.estado !== 'hecha' && (t.paraCuando ? t.paraCuando <= hoy : t.urgencia === 'urgente')).length ?? 0;
   const porDecidir = decisiones?.filter((d) => d.estado === 'pendiente').length ?? 0;
   const codigos = [...new Set(hitos.map((h) => h.codigo))];
   const prods = [...new Set(productos.map((p) => p.producto))];
@@ -67,6 +67,7 @@ export default async function RutaLanzamiento({ searchParams }: { searchParams: 
                 <span className="text-oro">Siguiente</span>
                 <span className="font-semibold">{siguiente.codigo} · {siguiente.titulo}</span>
                 <span className="text-white/60">{diasA(siguiente.fecha) < 0 ? `atrasado ${-diasA(siguiente.fecha)} d` : diasA(siguiente.fecha) === 0 ? 'hoy' : `en ${diasA(siguiente.fecha)} d`}</span>
+                {siguiente.tareas.find((t) => t.estado !== 'hecha') && <span className="basis-full text-white/80">Tarea: {siguiente.tareas.find((t) => t.estado !== 'hecha')!.titulo.slice(0, 90)}</span>}
               </a>
             )}
           </div>
@@ -97,7 +98,7 @@ export default async function RutaLanzamiento({ searchParams }: { searchParams: 
 
       <GuiaZona titulo="Ruta de lanzamiento" ancla="ruta"
         que="El termómetro es la media del avance de todos los hitos. Cada hito tiene una meta y una fecha; los datos de clientes, MRR, propuestas, visitas y contactos salen solos de la base. Los manuales (publicaciones, testimonio, anuncios) los actualizas tú aquí."
-        pasos={['Mira el «Siguiente» de arriba: es lo único que importa hoy.', 'Si un hito es manual, escribe el dato real y pulsa «Guardar».', 'Para que cuenten las propuestas y las visitas, anota cada contacto en Central → Prospección.', 'Abajo: qué está automatizado en cada producto y un simulador de ingresos.']} />
+        pasos={['Mira el «Siguiente» de arriba: es lo único que importa hoy.', 'Si un hito es manual, escribe el dato real y pulsa «Guardar». Los que dicen «avanza al cerrar sus tareas» se mueven solos al tachar sus tareas.', 'Para que cuenten las propuestas y las visitas, anota cada contacto en Central → Prospección.', 'Abajo: qué está automatizado en cada producto y un simulador de ingresos.']} />
 
       {/* KPIs */}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
@@ -153,7 +154,9 @@ export default async function RutaLanzamiento({ searchParams }: { searchParams: 
                   {caps.map((c) => (
                     <li key={c.capacidad} className="flex gap-2.5">
                       <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${COLOR[c.estado]}`} title={LEYENDA[c.estado]} />
-                      <span><span className="font-semibold">{c.capacidad}</span>{c.nota && <span className="text-niebla"> · {c.nota}</span>}</span>
+                      <span><span className="font-semibold">{c.capacidad}</span>{c.nota && <span className="text-niebla"> · {c.nota}</span>}
+                        {c.tareas.map((t) => <a key={t.id} href={`/admin-dkitchen/tareas?zona=claude#t-${t.id}`} className="mt-1 block text-xs text-vino underline-offset-2 hover:underline">→ {t.titulo.slice(0, 70)}{t.pasa_a ? ` (al cerrarla: ${LEYENDA[t.pasa_a] ?? t.pasa_a})` : ''}</a>)}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -190,7 +193,15 @@ function FilaHito({ h, hoy }: { h: Hito; hoy: string }) {
         <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-papel"><div className={`h-full rounded-full ${e === 'hecho' ? 'bg-exito' : e === 'atrasado' ? 'bg-red-600' : 'bg-vino'}`} style={{ width: `${Math.max(pct, 2)}%` }} /></div>
         <span className="w-28 shrink-0 text-right text-sm"><span className="font-display text-lg font-semibold">{num(h.valor)}</span><span className="text-niebla"> / {num(h.meta)} {h.unidad}</span></span>
       </div>
-      <p className="mt-1 text-xs text-niebla">{diaCorto.format(new Date(`${h.fecha}T12:00:00Z`))} · {h.metrica ? 'automático' : 'manual'}{h.detalle ? ` · ${h.detalle}` : ''}</p>
+      <p className="mt-1 text-xs text-niebla">{diaCorto.format(new Date(`${h.fecha}T12:00:00Z`))} · {h.metrica === 'tareas' ? 'avanza al cerrar sus tareas' : h.metrica ? 'automático' : 'manual'}{h.detalle ? ` · ${h.detalle}` : ''}</p>
+      {h.tareas.length > 0 && (
+        <ul className="mt-2 space-y-1 text-xs">
+          {h.tareas.map((t) => (
+            <li key={t.id}><a href={`/admin-dkitchen/tareas?zona=${t.responsable === 'claude' || t.responsable === 'antigravity' ? 'claude' : t.estado === 'hecha' ? 'resueltas' : 'mias'}#t-${t.id}`}
+              className={`hover:underline ${t.estado === 'hecha' ? 'text-niebla line-through' : 'text-carbon'}`}>{t.estado === 'hecha' ? '✓' : '○'} {t.titulo.slice(0, 90)}</a></li>
+          ))}
+        </ul>
+      )}
       {!h.metrica && e !== 'hecho' && (
         <form action={valorHitoAction} className="mt-2 flex items-center gap-2">
           <input type="hidden" name="id" value={h.id} />

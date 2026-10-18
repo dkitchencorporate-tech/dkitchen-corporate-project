@@ -1,6 +1,7 @@
 import React from 'react';
 import AdminSidebar, { SubmenuZona } from '@/components/admin/AdminSidebar';
 import AvisarFallo from '@/components/admin/AvisarFallo';
+import Autocorrector from '@/components/admin/Autocorrector';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { identidadActual } from '@/lib/sesion';
 
@@ -35,6 +36,7 @@ export default async function AdminLayout({
           </div>
         </main>
         <AvisarFallo />
+        <Autocorrector />
       </div>
     </>
   );

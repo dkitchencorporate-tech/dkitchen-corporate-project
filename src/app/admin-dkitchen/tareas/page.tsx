@@ -1,11 +1,12 @@
 import { exigirAdmin } from '@/lib/guard-admin';
-import { verTareas, BLOQUES, RESPONSABLES, URGENCIAS, type Tarea } from '@/lib/tareas';
+import { verTareas, BLOQUES, RESPONSABLES, URGENCIAS, ESTADOS_COMUNICACION, RESULTADOS_CLAUDE, type Tarea } from '@/lib/tareas';
 import { verRevisiones, ESTADOS_REVISION, ESTADOS_CLAUDE, type Revision } from '@/lib/revisiones';
 import { verDecisiones } from '@/lib/decisiones';
 import { enlaceDocumento } from '@/lib/documentos';
 import GuiaZona from '@/components/admin/GuiaZona';
 import RevisionForm from '@/components/admin/RevisionForm';
-import { guardarTareaAction, materialAction, revisionAction } from './actions';
+import PulirTexto from '@/components/admin/PulirTexto';
+import { guardarTareaAction, materialAction, revisionAction, comunicacionAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,8 +14,9 @@ const dia = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric',
 const fecha = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
 const OK: Record<string, string> = {
   hecha: 'Tarea cerrada. Pasa a «Resueltas».', bloqueada: 'Marcada como bloqueada. Claude leerá tu nota.', pendiente: 'Reabierta.',
-  nota: 'Nota enviada a Claude. La tarea sigue abierta para ti.', cerrar: 'Nota enviada y tarea cerrada. Está en «Resueltas».',
-  traspasar: 'Nota enviada: cerrada para ti y pendiente para Claude. La ves en «De Claude».',
+  nota: 'Nota enviada a Claude. La tarea sigue abierta para ti y la nota está en «Comunicación».', cerrar: 'Nota enviada y tarea cerrada. Está en «Resueltas».',
+  traspasar: 'Nota enviada: cerrada para ti y pendiente para Claude. La sigues en «Comunicación».',
+  aprobar: 'Aprobada: la comunicación pasa a Resueltas.', reabrir: 'Reabierta: Claude la verá al empezar su sesión.',
   revision: 'Revisión enviada a Claude con tus comentarios.', aprobada: 'Revisión aprobada.',
   material: 'Enviado al Buzón para Claude. Lo leerá al empezar su próxima sesión.',
 };
@@ -37,11 +39,20 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const hoy = hoyMadrid();
   const todas = tareas ?? [];
   const abiertas = todas.filter((t) => t.estado !== 'hecha');
+  // 18/10 (karc0): «Hoy» es lo de hoy o atrasado; lo urgente con fecha futura espera en «Lo mío» con su día.
+  const comunicaciones = todas.filter((t) => t.comEstado).sort((a, b) => (b.respuestaEn ?? b.notaEnviadaEn ?? '').localeCompare(a.respuestaEn ?? a.notaEnviadaEn ?? ''));
+  const GRUPOS_COM = {
+    respondidas: (t: Tarea) => t.comEstado === 'respondida',
+    abiertas: (t: Tarea) => t.comEstado === 'abierta' || t.comEstado === 'reabierta',
+    resueltas: (t: Tarea) => t.comEstado === 'resuelta',
+  } as const;
+  const filtroCom = (Object.keys(GRUPOS_COM) as (keyof typeof GRUPOS_COM)[]).find((k) => k === sp.c)
+    ?? (comunicaciones.some(GRUPOS_COM.respondidas) ? 'respondidas' : 'abiertas');
   const zonas = {
-    hoy: abiertas.filter((t) => urgente(t, hoy) || (esMia(t) && t.urgencia === 'urgente')),
+    hoy: abiertas.filter((t) => urgente(t, hoy) || (esMia(t) && t.urgencia === 'urgente' && !t.paraCuando)),
     mias: abiertas.filter(esMia),
     claude: abiertas.filter((t) => t.responsable === 'claude' || t.responsable === 'antigravity'),
-    enviadas: todas.filter((t) => t.notaEnviadaEn).sort((a, b) => (b.notaEnviadaEn ?? '').localeCompare(a.notaEnviadaEn ?? '')),
+    comunicacion: comunicaciones.filter(GRUPOS_COM[filtroCom]),
     resueltas: todas.filter((t) => t.estado === 'hecha').sort((a, b) => (b.hechaEn ?? '').localeCompare(a.hechaEn ?? '')),
   };
   const revPend = revisiones?.filter((r) => r.estado === 'por_revisar').length ?? 0;
@@ -57,9 +68,10 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const revsVisibles = revisiones?.filter(GRUPOS_REV[filtroRev]) ?? [];
   const ZONAS = [
     ['hoy', 'Hoy', zonas.hoy.length], ['mias', 'Lo mío', zonas.mias.length], ['claude', 'De Claude', zonas.claude.length],
-    ['enviadas', 'Notas enviadas', zonas.enviadas.filter((t) => !t.leidoClaude).length], ['revisiones', 'Revisiones', revPend], ['resueltas', 'Resueltas', zonas.resueltas.length],
+    ['comunicacion', 'Comunicación', comunicaciones.filter(GRUPOS_COM.respondidas).length], ['revisiones', 'Revisiones', revPend], ['resueltas', 'Resueltas', zonas.resueltas.length],
   ] as const;
-  const zona = (ZONAS.some(([k]) => k === sp.zona) ? sp.zona : zonas.hoy.length ? 'hoy' : 'mias') as (typeof ZONAS)[number][0];
+  const pedida = sp.zona === 'enviadas' ? 'comunicacion' : sp.zona;
+  const zona = (ZONAS.some(([k]) => k === pedida) ? pedida : zonas.hoy.length ? 'hoy' : 'mias') as (typeof ZONAS)[number][0];
   const hechas = zonas.resueltas.length;
   const pct = todas.length ? Math.round((hechas / todas.length) * 100) : 0;
   const lista = zona === 'revisiones' ? [] : zonas[zona];
@@ -70,7 +82,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
     hoy: ['Para hoy', 'Lo tuyo con fecha de hoy o atrasado, y lo urgente.'],
     mias: ['Lo mío', 'Todo lo que te toca a ti (o a ti con Claude), por bloques.'],
     claude: ['De Claude', 'Lo que construye Claude (y Antigravity), con su tiempo. Lo tacha él al terminar; tú puedes dejarle una nota.'],
-    enviadas: ['Notas enviadas', 'Todo lo que le has escrito a Claude y si ya lo ha leído.'],
+    comunicacion: ['Comunicación', 'Cada nota que le envías a Claude y su respuesta. Si está lista, apruébala y pasa a Resueltas; solo tú puedes reabrirla.'],
     revisiones: ['Revisiones de Alex', 'Cada cambio que Claude te pide revisar. Apruébalo o dile qué cambiar, con texto e imágenes.'],
     resueltas: ['Resueltas', 'Tareas cerradas, de la más reciente a la más antigua.'],
   };
@@ -115,6 +127,17 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
           {revsVisibles.length ? <ul className="space-y-3">{revsVisibles.map((r) => <RevisionFicha key={r.id} r={r} />)}</ul>
             : <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">Nada en este apartado.</p>}
         </>
+      ) : zona === 'comunicacion' ? (
+        <>
+          <nav aria-label="Estado de la comunicación" className="flex flex-wrap gap-2 text-sm">
+            {([['respondidas', 'Claude ha respondido'], ['abiertas', 'Esperando a Claude'], ['resueltas', 'Resueltas']] as const).map(([k, t]) => (
+              <a key={k} href={`/admin-dkitchen/tareas?zona=comunicacion&c=${k}`} aria-current={filtroCom === k ? 'page' : undefined}
+                className={`rounded-full px-4 py-2 font-semibold ${filtroCom === k ? 'bg-tinta text-white' : 'border border-acero bg-white'}`}>{t} · {comunicaciones.filter(GRUPOS_COM[k]).length}</a>
+            ))}
+          </nav>
+          {lista.length ? <ul className="space-y-3">{lista.map((t) => <TareaFicha key={t.id} t={t} hoy={hoy} zona={zona} editar={sp.editar === t.id} />)}</ul>
+            : <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">Nada en este apartado.</p>}
+        </>
       ) : lista.length === 0 && tareas ? (
         <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">Nada en esta zona. 🎉</p>
       ) : grupos.map(([b, l]) => (
@@ -140,7 +163,8 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
               <label className="block text-sm">Qué es y qué quieres que haga
                 <textarea name="mensaje" required minLength={3} maxLength={4000} rows={3} className="mt-1 w-full rounded-xl border border-acero bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-tinta" />
               </label>
-              <button className="rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white">Enviar a Claude</button>
+              <PulirTexto campo="mensaje" />
+              <button className="block rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white">Enviar a Claude</button>
             </form>
           </section>
         </>
@@ -167,7 +191,7 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
   const notaBloqueada = !!t.notaKarc0 && !!t.notaEnviadaEn && !editar;
   return (
     <li id={`t-${t.id}`} className={`scroll-mt-6 rounded-[22px] bg-white ${roja ? 'border-2 border-red-600' : t.estado === 'bloqueada' ? 'border border-vino/50' : 'border border-linea'}`}>
-      <details open={!hecha && zona !== 'enviadas' ? true : editar} className="group">
+      <details open={zona === 'comunicacion' ? t.comEstado !== 'resuelta' || editar : !hecha || editar} className="group">
         <summary className="flex cursor-pointer list-none items-start gap-3 p-5">
           <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold ${hecha ? 'border-oro bg-oro text-noche' : t.estado === 'bloqueada' ? 'border-vino text-vino' : 'border-acero text-transparent'}`}>{hecha ? '✓' : t.estado === 'bloqueada' ? '!' : '·'}</span>
           <span className="min-w-0 flex-1">
@@ -180,7 +204,8 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
               {t.estimado && !hecha && <span className="rounded-full border border-linea px-2.5 py-0.5 font-medium text-carbon">⏱ {t.estimado}</span>}
               {t.traspasadaEn && !hecha && <span className="rounded-full bg-noche/10 px-2.5 py-0.5 font-semibold text-noche">Cerrada para ti · pendiente para Claude</span>}
               {hecha && t.hechaEn && <span>Cerrada el {fecha.format(new Date(t.hechaEn))}</span>}
-              {t.notaEnviadaEn && <span>{t.leidoClaude ? '✓ Claude ha leído tu nota' : '● Nota pendiente de que Claude la lea'}</span>}
+              {t.comEstado && <span className={`rounded-full px-2.5 py-0.5 font-semibold ${t.comEstado === 'respondida' ? 'bg-oro text-noche' : t.comEstado === 'resuelta' ? 'bg-exito/15 text-exito' : t.comEstado === 'reabierta' ? 'bg-vino text-white' : 'bg-papel text-carbon ring-1 ring-linea'}`}>{ESTADOS_COMUNICACION[t.comEstado]}{t.comEstado === 'abierta' && t.leidoClaude ? ' · leída' : ''}</span>}
+              {t.hito && <span className="rounded-full border border-oro/50 px-2.5 py-0.5 font-medium text-vino">Ruta · {t.hito}</span>}
             </span>
           </span>
         </summary>
@@ -194,10 +219,22 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
           )}
           {t.enlace && <a href={t.enlace} target={t.enlace.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer" className="inline-block rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white">Abrir →</a>}
           {t.notaClaude && (
-            <div className="rounded-2xl border-l-[3px] border-vino bg-papel px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-vino">Nota de Claude</p>
+            <div className={`rounded-2xl border-l-[3px] px-4 py-3 ${t.comResultado === 'listo' ? 'border-exito bg-exito/5' : t.comResultado ? 'border-vino bg-vino/5' : 'border-vino bg-papel'}`}>
+              <p className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-vino">
+                <span>{t.comResultado ? 'Respuesta de Claude' : 'Nota de Claude'}</span>
+                {t.comResultado && <span className="rounded-full bg-tinta px-2 py-0.5 normal-case tracking-normal text-white">{RESULTADOS_CLAUDE[t.comResultado]}</span>}
+              </p>
               <p className="mt-1 whitespace-pre-wrap text-sm">{t.notaClaude}</p>
+              {t.respuestaEn && <p className="mt-1 text-xs text-niebla">{fecha.format(new Date(t.respuestaEn))}</p>}
             </div>
+          )}
+          {(t.comEstado === 'respondida' || t.comEstado === 'resuelta') && (
+            <form action={comunicacionAction} className="flex flex-wrap items-center gap-2">
+              <input type="hidden" name="id" value={t.id} />
+              {t.comEstado === 'respondida' && <button name="accion" value="aprobar" className="rounded-full bg-exito px-5 py-2.5 text-sm font-semibold text-white">✓ Aprobar · pasa a Resuelta{t.comResultado === 'listo' && !hecha ? ' y cierra la tarea' : ''}</button>}
+              <button name="accion" value="reabrir" className="rounded-full border border-acero bg-white px-4 py-2.5 text-sm font-medium">Reabrir</button>
+              {t.comEstado === 'resuelta' && t.resueltaEn && <span className="text-xs text-niebla">Resuelta el {fecha.format(new Date(t.resueltaEn))}</span>}
+            </form>
           )}
           {notaBloqueada && (
             <div className="rounded-2xl border-l-[3px] border-oro bg-white px-4 py-3 ring-1 ring-linea">
@@ -216,6 +253,7 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
                 <label className="block text-sm">{editar ? 'Edita tu nota para Claude' : 'Nota para Claude'}
                   <textarea name="nota" maxLength={3000} rows={3} defaultValue={editar ? t.notaKarc0 ?? '' : ''} placeholder="Qué has hecho, un dato, un enlace, una instrucción o por qué no puedes." className="mt-1 w-full rounded-xl border border-acero bg-white px-3.5 py-2.5 text-sm outline-none focus:border-tinta" />
                 </label>
+                <PulirTexto campo="nota" />
                 <input type="hidden" name="estado" value={t.estado} />
                 <details className="rounded-2xl border border-vino/30 bg-vino/[0.04] p-3">
                   <summary className="cursor-pointer list-none text-sm font-semibold text-vino">Enviar nota ▾ <span className="font-normal text-niebla">· elige qué pasa con la tarea</span></summary>

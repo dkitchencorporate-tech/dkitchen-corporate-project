@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import PulirTexto from '@/components/admin/PulirTexto';
 
 /**
  * Revisiones de Alex (0087): comentario + imágenes. Las capturas se pegan con
@@ -53,6 +54,7 @@ export default function RevisionForm({ id, accion, comentario }: { id: string; a
       </label>
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" onClick={() => archivo.current?.click()} className="rounded-full border border-acero bg-white px-4 py-2 text-sm font-medium">📎 Añadir imágenes</button>
+        <PulirTexto campo="comentario" />
         <input ref={archivo} type="file" accept="image/png,image/jpeg,image/webp" multiple hidden onChange={(e) => { subir(Array.from(e.target.files ?? [])); e.target.value = ''; }} />
         {subiendo > 0 && <span className="text-xs text-niebla">Subiendo {subiendo}…</span>}
         {error && <span className="text-xs text-red-700">{error}</span>}
