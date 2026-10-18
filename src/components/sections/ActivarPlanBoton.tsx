@@ -130,7 +130,7 @@ export default function ActivarPlanBoton({
                     <p className="text-sm font-semibold">{p.cuando}</p>
                     <p className="text-xs text-black/45">{p.despues}</p>
                   </div>
-                  <p className="text-3xl font-bold tracking-tight">{p.hoy}</p>
+                  <p className="shrink-0 whitespace-nowrap pl-3 text-3xl font-bold tracking-tight">{p.hoy}</p>
                 </div>
 
                 {plan === 'fundador' && (
