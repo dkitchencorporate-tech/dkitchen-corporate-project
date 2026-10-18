@@ -3,7 +3,10 @@ import { notFound } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { cuentaEnSeguimiento, eventosSeguimiento } from '@/lib/admin-seguimiento';
 import SeguimientoEnVivo from '@/components/admin/SeguimientoEnVivo';
-import { fichaCliente, historialCliente, serviciosCliente, listarEnlaces, catalogoPrecios, type EntradaHistorial } from '@/lib/admin-clientes';
+import { fichaCliente, historialCliente, serviciosCliente, listarEnlaces, catalogoPrecios, bandejaSoporte, type EntradaHistorial } from '@/lib/admin-clientes';
+import { plantillas, verComunicaciones, usoPlanCliente, NOMBRES_USO } from '@/lib/comunicaciones';
+import ComunicacionCliente from '@/components/admin/ComunicacionCliente';
+import { comunicarAction, recordatorioHechoAction } from '../comunicacion';
 import EnlacesPago from '@/components/admin/EnlacesPago';
 import { resumenCobro, euros, fechaLarga, diasHasta } from '@/lib/prueba';
 import { obtenerCarta } from '@/lib/menu';
@@ -119,6 +122,9 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
   if (!UUID.test(id)) notFound();
   const jwt = await exigirAdmin();
   const [ficha, historial, servicios, enlaces, catalogo, cobro] = await Promise.all([fichaCliente(jwt, id), historialCliente(jwt, id), serviciosCliente(jwt, id), listarEnlaces(jwt, id), catalogoPrecios(jwt), resumenCobro(jwt, id)]);
+  // Ficha 360 (0089): uso frente a su plan, comunicaciones y sus tickets
+  const [uso, comunicaciones, tickets] = await Promise.all([usoPlanCliente(jwt, id).catch(() => []), verComunicaciones(jwt, id).catch(() => []), bandejaSoporte(jwt).then((l) => l.filter((t) => t.restauranteId === id)).catch(() => [])]);
+  const abiertosTk = tickets.filter((t) => t.estado === 'abierto').length;
   if (!ficha?.restaurante) notFound();
 
   const r = ficha.restaurante;
@@ -212,7 +218,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
         ojo={['Dar de baja cancela su cuota en Stripe sin reembolso. Ese día su carta deja de verse y a los 60 días se borra todo.', 'Mientras la baja no haya llegado se puede anular; después, solo «Reactivar cuenta».']} />
 
       <nav aria-label="Secciones de la ficha" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
-        {[['#acciones', 'Acciones'], ['#enlace', 'Cobrar'], ['#cuenta', 'Baja y archivo'], ['#servicios', 'Servicios'], ['#diseno', 'Diseño'], ['#historial', 'Historial']].map(([h, t]) => (
+        {[['#resumen', 'Resumen'], ['#comunicacion', 'Comunicación'], ['#tickets', abiertosTk ? `Tickets (${abiertosTk})` : 'Tickets'], ['#acciones', 'Acciones'], ['#enlace', 'Cobrar'], ['#cuenta', 'Baja y archivo'], ['#servicios', 'Servicios'], ['#diseno', 'Diseño'], ['#historial', 'Historial']].map(([h, t]) => (
           <a key={h} href={h} className="shrink-0 rounded-full border border-linea bg-white px-4 py-2 text-sm font-medium hover:border-tinta">{t}</a>
         ))}
       </nav>
@@ -230,6 +236,71 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           </div>
         ))}
       </div>
+
+      <section id="resumen" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-xl font-semibold tracking-tight">Uso frente a su plan {esPlanQr(r.plan) ? QR_MENU.planes[r.plan].nombre : r.plan}</h2>
+          <p className="text-xs text-niebla">Lo mismo que ve el cliente en «Mi plan». Desde el 80 %, buen momento para proponerle subir de plan.</p>
+        </div>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {uso.map((u) => {
+            const pct = u.tope ? Math.min(100, Math.round((u.usados / u.tope) * 100)) : 0;
+            return (
+              <li key={u.que} className="rounded-2xl bg-papel p-4">
+                <p className="flex justify-between text-sm"><span>{NOMBRES_USO[u.que] ?? u.que}</span><span className="font-semibold tabular-nums">{u.usados} / {u.tope}</span></p>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-linea"><div className={`h-full rounded-full ${pct >= 100 ? 'bg-red-600' : pct >= 80 ? 'bg-oro' : 'bg-exito'}`} style={{ width: `${pct}%` }} /></div>
+              </li>
+            );
+          })}
+          {!uso.length && <li className="text-sm text-niebla">Sin datos de uso todavía.</li>}
+        </ul>
+      </section>
+
+      <section id="comunicacion" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-xl font-semibold tracking-tight">Comunicación</h2>
+          <p className="text-xs text-niebla">{ficha.email ?? 'Sin correo'} · {r.telefono ?? 'sin teléfono'}</p>
+        </div>
+        <div className="mt-4 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+          <ComunicacionCliente restauranteId={r.id} email={ficha.email} telefono={r.telefono} accion={comunicarAction}
+            plantillas={plantillas({ contacto: ficha.contacto, local: r.nombre, plan: r.plan, slug: r.slug, proximoCobro: null })} />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-vino">Lo último con este cliente</p>
+            <ol className="mt-3 max-h-[520px] space-y-2 overflow-y-auto pr-1">
+              {comunicaciones.map((c) => (
+                <li key={c.id} className={`rounded-2xl border p-3 text-sm ${c.canal === 'recordatorio' && !c.hecho ? 'border-oro bg-oro/10' : 'border-linea'}`}>
+                  <p className="flex flex-wrap items-center justify-between gap-2 text-xs text-niebla">
+                    <span className="font-semibold uppercase tracking-wide text-carbon">{({ email: '✉ Correo', whatsapp: 'WhatsApp', nota: 'Nota interna', llamada: 'Llamada', recordatorio: `Recordatorio · ${c.recordarEn ?? ''}` } as Record<string, string>)[c.canal]}</span>
+                    <span>{fechaHora.format(new Date(c.creadoEn))}</span>
+                  </p>
+                  {c.asunto && c.canal === 'email' && <p className="mt-1 font-semibold">{c.asunto}</p>}
+                  {c.cuerpo && <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-niebla">{c.cuerpo}</p>}
+                  {c.canal === 'recordatorio' && !c.hecho && (
+                    <form action={recordatorioHechoAction} className="mt-2"><input type="hidden" name="id" value={c.id} /><input type="hidden" name="volver" value={`/admin-dkitchen/qr/${r.id}`} /><button className="rounded-full bg-tinta px-3 py-1.5 text-xs font-semibold text-white">Hecho</button></form>
+                  )}
+                </li>
+              ))}
+              {!comunicaciones.length && <li className="text-sm text-niebla">Todavía no hay nada. Lo que envíes o anotes desde aquí aparecerá en esta lista.</li>}
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section id="tickets" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-xl font-semibold tracking-tight">Tickets de este cliente</h2>
+          <Link href="/admin-dkitchen/soporte" className="text-sm font-semibold text-vino underline">Responder en Soporte (con ayuda de la IA N2) →</Link>
+        </div>
+        <ul className="mt-3 space-y-2 text-sm">
+          {tickets.map((t) => (
+            <li key={t.id} className="rounded-2xl border border-linea p-3">
+              <p className="flex flex-wrap justify-between gap-2"><span className="font-semibold">{t.asunto}</span><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${t.estado === 'abierto' ? 'bg-vino text-white' : 'bg-papel'}`}>{t.estado}</span></p>
+              <p className="mt-1 line-clamp-2 text-niebla">{t.mensaje}</p>
+            </li>
+          ))}
+          {!tickets.length && <li className="text-niebla">Sin tickets.</li>}
+        </ul>
+      </section>
 
       {cobro && (
         <section id="cobro" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
@@ -317,30 +388,43 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
               <p className="w-full text-xs text-niebla">Siempre con fecha de fin (no hay regalos sin fecha). La fecha solo cuenta con «Hasta una fecha…». Si termina sin pago, el panel pasa a solo lectura y la carta sigue visible.</p>
             </form>
           )}
-          {ficha.platos === 0 && (
-            <form action={cartaDemoAction}>
-              <input type="hidden" name="restauranteId" value={r.id} />
-              <button className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Cargar carta de demostración</button>
-            </form>
-          )}
-          {ficha.email && (
-            <form action={reenviarAccesoAction}>
-              <input type="hidden" name="email" value={ficha.email} />
-              <button className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Reenviar enlace de acceso</button>
-            </form>
-          )}
-          {PLANES_QR.filter((p) => p !== r.plan).map((p) => (
-            <form key={p} action={cambiarPlanAction}>
-              <input type="hidden" name="restauranteId" value={r.id} />
-              <input type="hidden" name="plan" value={p} />
-              <button className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">
-                Pasar a {nombrePlan(p)}
-              </button>
-            </form>
-          ))}
-          <Link href="/admin-dkitchen/soporte" className="rounded-lg bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">
-            Soporte y QR físico
-          </Link>
+          {/* 18/10 (karc0): cada acción dice qué hace y cuándo usarla */}
+          <div className="grid w-full gap-3 sm:grid-cols-2">
+            {ficha.platos === 0 && (
+              <form action={cartaDemoAction} className="rounded-2xl border border-linea p-4">
+                <input type="hidden" name="restauranteId" value={r.id} />
+                <p className="font-semibold">Cargar carta de demostración</p>
+                <p className="mt-1 text-xs text-niebla">Rellena su carta vacía con platos de ejemplo para enseñarle cómo queda. Solo aparece si no tiene ningún plato: no borra nada. Úsala en la primera visita o en la demo.</p>
+                <button className="mt-3 rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Cargar ejemplo</button>
+              </form>
+            )}
+            {ficha.email && (
+              <form action={reenviarAccesoAction} className="rounded-2xl border border-linea p-4">
+                <input type="hidden" name="email" value={ficha.email} />
+                <p className="font-semibold">Reenviar enlace de acceso</p>
+                <p className="mt-1 text-xs text-niebla">Le llega a {ficha.email} el correo para fijar (o cambiar) su contraseña del panel. Úsalo si dice que no puede entrar o que no le llegó el correo de alta.</p>
+                <button className="mt-3 rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Reenviar acceso</button>
+              </form>
+            )}
+            <div className="rounded-2xl border border-linea p-4">
+              <p className="font-semibold">Cambiar el plan sin cobrar</p>
+              <p className="mt-1 text-xs text-niebla">Corrige su plan en la base al momento, <strong>sin generar ningún cobro</strong> (cortesía o corrección). Para cobrar un cambio de plan usa «Cobrar» → «Cambiar de plan».</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {PLANES_QR.filter((p) => p !== r.plan).map((p) => (
+                  <form key={p} action={cambiarPlanAction}>
+                    <input type="hidden" name="restauranteId" value={r.id} />
+                    <input type="hidden" name="plan" value={p} />
+                    <button className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Pasar a {nombrePlan(p)} (sin cobro)</button>
+                  </form>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-linea p-4">
+              <p className="font-semibold">Soporte y QR físico</p>
+              <p className="mt-1 text-xs text-niebla">Sus tickets están arriba, en «Tickets». Los pedidos de QR impresos (pegatinas o metacrilato) se gestionan en Soporte → Pedidos de QR físico.</p>
+              <Link href="/admin-dkitchen/soporte" className="mt-3 inline-block rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Abrir Soporte →</Link>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -349,7 +433,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           <h2 className="font-display text-xl font-semibold tracking-tight">Enlace de pago a medida</h2>
           <p className="text-xs text-niebla">Plan y/o servicios al precio que decidas. Al pagarlo se activa solo y queda en el historial.</p>
         </div>
-        <EnlacesPago restauranteId={r.id} catalogo={catalogo} demo={!!r.demo_interna} />
+        <EnlacesPago restauranteId={r.id} catalogo={catalogo} demo={!!r.demo_interna} planActual={r.plan} pagando={r.activo && !r.demo_interna && !r.prueba_hasta && r.estado_acceso !== 'suspendido'} />
         {enlaces.length > 0 && (
           <ul className="divide-y divide-linea border-t border-linea pt-2 text-sm">
             {enlaces.map((e) => (

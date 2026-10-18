@@ -14,10 +14,18 @@ const numero = (s: string) => Number(s.replace(',', '.'));
  * 1. Qué cobras · 2. Cuánto · 3. Enviar. El importe se guarda en la base
  * antes de ir al pago; al pagarlo se activa solo.
  */
-export default function EnlacesPago({ restauranteId, catalogo: todo, demo = false }: { restauranteId: string; catalogo: Cat[]; demo?: boolean }) {
+/** 18/10 (karc0): cada extra explica qué es y qué pasa al pagarlo; el pack de idiomas antiguo ya no se ofrece (los idiomas van por plan, 0086). */
+const EXTRAS: Record<string, { que: string; despues: string }> = {
+  bono_ia: { que: '50 fotos de plato generadas con IA a partir de sus fotos o del nombre del plato (3 gratis siempre).', despues: 'Al pagarlo, queda en sus extras contratados y el bono se suma a su Estudio de fotos.' },
+  idioma_extra: { que: 'Un idioma más traducido por DKitchen, además de los que trae su plan.', despues: 'Al pagarlo, se suma solo a los idiomas que puede activar; la traducción la hacemos desde «Entrar en su panel» → Idiomas.' },
+  setup_esencial: { que: 'Puesta a punto: carta cargada, conexión con su TPV, formación del equipo y fotos con IA.', despues: 'Al pagarlo, aparece en Extras contratados con su checklist de montaje (carta, fotos, TPV, formación).' },
+  setup_experto: { que: 'Carta de Autor: diseño de carta a medida, fotos y textos cuidados por DKitchen.', despues: 'Al pagarlo, aparece en Extras contratados con su checklist; el diseño lo coordinamos desde esta ficha.' },
+};
+
+export default function EnlacesPago({ restauranteId, catalogo: todo, demo = false, planActual = null, pagando = false }: { restauranteId: string; catalogo: Cat[]; demo?: boolean; planActual?: string | null; pagando?: boolean }) {
   // 08/10 (karc0): los módulos mensuales sueltos quedaron sustituidos por los planes por cantidades
   // (Carta/Local/Sala). Aquí solo se ofrecen extras de pago único.
-  const catalogo = todo.filter((c) => c.tipo !== 'mensual');
+  const catalogo = todo.filter((c) => c.tipo !== 'mensual' && c.servicio !== 'idiomas');
   const [paso, setPaso] = useState(1);
   const [plan, setPlan] = useState('');
   const [servicios, setServicios] = useState<string[]>([]);
@@ -68,16 +76,24 @@ export default function EnlacesPago({ restauranteId, catalogo: todo, demo = fals
       {paso === 1 && (
         <div className="space-y-4">
           <div>
-            <p className="text-sm font-medium">{demo ? 'Convertir esta demo en cliente' : 'Activación rápida'}</p>
-            <p className="text-xs text-ceniza">Un toque prepara el cobro con el precio de la web. Al pagarlo, la cuenta pasa a cliente activo sola{demo ? ' y deja de ser demo' : ''}.</p>
+            <p className="text-sm font-medium">{demo ? 'Convertir esta demo en cliente' : pagando ? 'Cambiar de plan' : 'Activación rápida'}</p>
+            <p className="text-xs text-ceniza">{pagando ? 'Ya paga su plan: aquí solo ves los cambios posibles. Subir de plan se cobra a precio normal (el 1 € del primer mes es solo para clientes nuevos).' : `Un toque prepara el cobro con el precio de la web. Al pagarlo, la cuenta pasa a cliente activo sola${demo ? ' y deja de ser demo' : ''}.`}</p>
             <div className="mt-2 grid gap-2 sm:grid-cols-3">
               {PLANES_QR.map((p) => {
                 const pl = QR_MENU.planes[p];
-                const hoy = pl.primerMesSimbolico ? QR_MENU.primerMes : pl.mensual;
+                const hoy = pl.primerMesSimbolico && !pagando ? QR_MENU.primerMes : pl.mensual;
+                const actual = pagando && planActual === p;
+                const sube = pagando && planActual ? PLANES_QR.indexOf(p) > PLANES_QR.indexOf(planActual as typeof p) : false;
+                if (actual) return (
+                  <div key={p} className="rounded-xl border-2 border-exito/50 bg-exito/5 px-4 py-3 text-left text-sm">
+                    <span className="block font-semibold">Plan {pl.nombre} <span className="ml-1 rounded-full bg-exito px-2 py-0.5 text-[10px] font-semibold uppercase text-white">Plan actual</span></span>
+                    <span className="block text-xs text-niebla">Ya lo paga: {eur(pl.mensual * 100)}/mes + IVA</span>
+                  </div>
+                );
                 return (
                   <button key={p} type="button" onClick={() => { setPlan(p); setServicios([]); setPrimer(String(hoy)); setMensual(String(pl.mensual)); setPaso(3); }}
                     className="rounded-xl border border-linea px-4 py-3 text-left text-sm transition hover:border-tinta hover:bg-crema">
-                    <span className="block font-semibold">Plan {pl.nombre}</span>
+                    <span className="block font-semibold">{pagando ? (sube ? 'Subir a' : 'Bajar a') : 'Plan'} {pl.nombre}</span>
                     <span className="block text-xs text-niebla">Hoy {eur(hoy * 100)} + IVA · después {eur(pl.mensual * 100)}/mes</span>
                   </button>
                 );
@@ -88,7 +104,7 @@ export default function EnlacesPago({ restauranteId, catalogo: todo, demo = fals
           <label className="block text-sm font-medium">Plan mensual
             <select value={plan} onChange={(e) => setPlan(e.target.value)} className={campo}>
               <option value="">Sin cambio de plan (solo extras)</option>
-              {PLANES_QR.map((p) => <option key={p} value={p}>Plan {nombrePlan(p)} · {QR_MENU.planes[p].mensual} €/mes</option>)}
+              {PLANES_QR.filter((p) => !(pagando && planActual === p)).map((p) => <option key={p} value={p}>Plan {nombrePlan(p)} · {QR_MENU.planes[p].mensual} €/mes</option>)}
             </select>
           </label>
           <div>
@@ -98,10 +114,10 @@ export default function EnlacesPago({ restauranteId, catalogo: todo, demo = fals
               {catalogo.map((c) => {
                 const on = servicios.includes(c.servicio);
                 return (
-                  <label key={c.servicio} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${on ? 'border-tinta bg-crema' : 'border-linea'}`}>
+                  <label key={c.servicio} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 text-sm transition ${on ? 'border-tinta bg-crema' : 'border-linea'}`}>
                     <input type="checkbox" checked={on} onChange={(e) => setServicios((l) => (e.target.checked ? [...l, c.servicio] : l.filter((x) => x !== c.servicio)))} />
-                    <span className="min-w-0 flex-1 font-medium">{c.nombre}</span>
-                    <span className="shrink-0 text-xs text-niebla">{eur(c.precio)}{c.tipo === 'mensual' ? '/mes' : ''}</span>
+                    <span className="min-w-0 flex-1"><span className="block font-medium">{c.nombre}</span>{EXTRAS[c.servicio] && <><span className="mt-0.5 block text-xs text-niebla">{EXTRAS[c.servicio].que}</span><span className="mt-0.5 block text-[11px] text-exito">{EXTRAS[c.servicio].despues}</span></>}</span>
+                    <span className="shrink-0 self-start text-xs text-niebla">{eur(c.precio)}{c.tipo === 'mensual' ? '/mes' : ''}</span>
                   </label>
                 );
               })}
