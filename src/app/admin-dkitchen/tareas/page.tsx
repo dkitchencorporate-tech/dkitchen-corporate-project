@@ -126,6 +126,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
           <a key={txt} href={filtro({ de: v })} aria-current={de === v ? 'page' : undefined}
             className={`rounded-full px-4 py-2 font-medium ${de === v ? 'bg-tinta text-white' : 'border border-acero bg-white text-carbon'}`}>{txt}</a>
         ))}
+        <a href="/admin-dkitchen/ruta" className="rounded-full bg-noche px-4 py-2 font-semibold text-oro">Ruta de lanzamiento →</a>
         <a href="/admin-dkitchen/reportes" className="rounded-full border border-oro/60 bg-papel px-4 py-2 font-medium text-vino">Reportes por fecha →</a>
       </nav>
 

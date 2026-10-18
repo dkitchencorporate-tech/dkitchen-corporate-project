@@ -20,6 +20,7 @@ const ESPACIOS = [
   { nombre: 'Soporte', href: '/admin-dkitchen/soporte', icono: 'ayuda' },
 ];
 const MAS = [
+  { nombre: 'Ruta de lanzamiento', href: '/admin-dkitchen/ruta' },
   { nombre: 'Mis tareas', href: '/admin-dkitchen/tareas' },
   { nombre: 'Decisiones', href: '/admin-dkitchen/decisiones' },
   { nombre: 'Reportes', href: '/admin-dkitchen/reportes' },

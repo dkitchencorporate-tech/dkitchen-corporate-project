@@ -129,6 +129,11 @@ const ZONAS: Zona[] = [
     pasos: ['Desde la pantalla donde falla, pulsa «Avisar de un fallo» y cuenta qué intentabas hacer y qué pasó.', 'Aquí ves si está nuevo, en curso o resuelto.'],
   },
   {
+    id: 'ruta', titulo: 'Ruta de lanzamiento', ruta: '/admin-dkitchen/ruta',
+    que: 'El termómetro del proyecto: hitos con meta, fecha y dato real (clientes, MRR, propuestas, visitas y contactos salen solos de la base), qué está automatizado en cada producto y un simulador de ingresos.',
+    pasos: ['Mira el «Siguiente» de arriba.', 'Actualiza los hitos manuales (publicaciones, testimonio, anuncios) con su dato real.', 'Anota cada contacto y cada visita en Prospección para que cuenten solos.'],
+  },
+  {
     id: 'tareas', titulo: 'Mis tareas', ruta: '/admin-dkitchen/tareas',
     que: 'Todo lo pendiente del proyecto en un solo sitio: lo que te toca a ti y la hoja de ruta de lo que construye Claude, con quién lo hace y su tiempo estimado. Si no está aquí, no existe.',
     pasos: ['Arriba, el tablero: abiertas por urgencia (pulsa una para filtrar), por estado y por responsable, y cuántas tienen documentación.', 'Filtra por «Lo tuyo» o «De Claude».', 'Lo tuyo: hazlo y pulsa «Hecha», o «Bloqueada» con una nota.', 'Lo de Claude lo tacha él al terminarlo; tú le dejas notas para cambiar prioridades.', 'Las tareas en rojo son para hoy o están atrasadas.'],
