@@ -1,6 +1,6 @@
 import { exigirAdmin } from '@/lib/guard-admin';
 import { verTareas, BLOQUES, RESPONSABLES, URGENCIAS, type Tarea } from '@/lib/tareas';
-import { verRevisiones, ESTADOS_REVISION, type Revision } from '@/lib/revisiones';
+import { verRevisiones, ESTADOS_REVISION, ESTADOS_CLAUDE, type Revision } from '@/lib/revisiones';
 import { verDecisiones } from '@/lib/decisiones';
 import { enlaceDocumento } from '@/lib/documentos';
 import GuiaZona from '@/components/admin/GuiaZona';
@@ -45,8 +45,16 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
     resueltas: todas.filter((t) => t.estado === 'hecha').sort((a, b) => (b.hechaEn ?? '').localeCompare(a.hechaEn ?? '')),
   };
   const revPend = revisiones?.filter((r) => r.estado === 'por_revisar').length ?? 0;
-  const filtroRev = (['por_revisar', 'cambios', 'aprobada'] as const).find((k) => k === sp.r) ?? (revPend ? 'por_revisar' : 'cambios');
-  const revsVisibles = revisiones?.filter((x) => x.estado === filtroRev) ?? [];
+  // 0090: cada revisión con cambios lleva el resultado de Claude; las resueltas por Claude salen de «Enviadas»
+  const resuelta = (x: Revision) => x.estado === 'cambios' && (x.estadoClaude === 'implementada' || x.estadoClaude === 'descartada');
+  const GRUPOS_REV = {
+    por_revisar: (x: Revision) => x.estado === 'por_revisar',
+    enviadas: (x: Revision) => x.estado === 'cambios' && !resuelta(x),
+    resueltas: resuelta,
+    aprobada: (x: Revision) => x.estado === 'aprobada',
+  } as const;
+  const filtroRev = (Object.keys(GRUPOS_REV) as (keyof typeof GRUPOS_REV)[]).find((k) => k === sp.r) ?? (revPend ? 'por_revisar' : 'enviadas');
+  const revsVisibles = revisiones?.filter(GRUPOS_REV[filtroRev]) ?? [];
   const ZONAS = [
     ['hoy', 'Hoy', zonas.hoy.length], ['mias', 'Lo mío', zonas.mias.length], ['claude', 'De Claude', zonas.claude.length],
     ['enviadas', 'Notas enviadas', zonas.enviadas.filter((t) => !t.leidoClaude).length], ['revisiones', 'Revisiones', revPend], ['resueltas', 'Resueltas', zonas.resueltas.length],
@@ -99,9 +107,9 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
         <>
           {/* 18/10 (karc0): cada revisión en su sitio según su estado, sin que nada se pierda */}
           <nav aria-label="Estado de las revisiones" className="flex flex-wrap gap-2 text-sm">
-            {([['por_revisar', 'Por revisar'], ['cambios', 'Enviadas a Claude (con cambios)'], ['aprobada', 'Aprobadas']] as const).map(([k, t]) => (
+            {([['por_revisar', 'Por revisar'], ['enviadas', 'Enviadas a Claude'], ['resueltas', 'Resueltas por Claude'], ['aprobada', 'Aprobadas']] as const).map(([k, t]) => (
               <a key={k} href={`/admin-dkitchen/tareas?zona=revisiones&r=${k}`} aria-current={filtroRev === k ? 'page' : undefined}
-                className={`rounded-full px-4 py-2 font-semibold ${filtroRev === k ? 'bg-tinta text-white' : 'border border-acero bg-white'}`}>{t} · {revisiones?.filter((x) => x.estado === k).length ?? 0}</a>
+                className={`rounded-full px-4 py-2 font-semibold ${filtroRev === k ? 'bg-tinta text-white' : 'border border-acero bg-white'}`}>{t} · {revisiones?.filter(GRUPOS_REV[k]).length ?? 0}</a>
             ))}
           </nav>
           {revsVisibles.length ? <ul className="space-y-3">{revsVisibles.map((r) => <RevisionFicha key={r.id} r={r} />)}</ul>
@@ -255,6 +263,16 @@ function RevisionFicha({ r }: { r: Revision }) {
           {r.queCambio && <p className="whitespace-pre-wrap text-sm leading-relaxed">{r.queCambio}</p>}
           {r.enlace && <a href={r.enlace} target="_blank" rel="noopener noreferrer" className="inline-block rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white">Abrir lo que hay que revisar →</a>}
           {r.comentario && <div className="rounded-2xl border-l-[3px] border-oro bg-papel px-4 py-3 text-sm"><p className="text-[11px] font-semibold uppercase tracking-[0.15em]">Lo que dijiste</p><p className="mt-1 whitespace-pre-wrap">{r.comentario}</p></div>}
+          {r.estado === 'cambios' && (
+            <div className={`rounded-2xl border-l-[3px] px-4 py-3 text-sm ${r.estadoClaude === 'implementada' ? 'border-exito bg-exito/5' : r.estadoClaude === 'en_preguntas' || r.estadoClaude === 'decision' ? 'border-vino bg-vino/5' : 'border-tinta bg-white ring-1 ring-linea'}`}>
+              <p className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-[0.15em]">
+                <span>Respuesta de Claude</span>
+                <span className="rounded-full bg-tinta px-2 py-0.5 normal-case tracking-normal text-white">{r.estadoClaude ? ESTADOS_CLAUDE[r.estadoClaude] : r.leidoClaude ? 'Leída, sin respuesta aún' : 'Sin leer'}</span>
+              </p>
+              {r.respuestaClaude ? <p className="mt-1 whitespace-pre-wrap">{r.respuestaClaude}</p> : <p className="mt-1 text-niebla">Claude aún no ha dado el resultado de esta revisión.</p>}
+              {r.respondidaEn && <p className="mt-1 text-xs text-niebla">{fecha.format(new Date(r.respondidaEn))}</p>}
+            </div>
+          )}
           {r.imagenes.length > 0 && (
             <ul className="flex flex-wrap gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
