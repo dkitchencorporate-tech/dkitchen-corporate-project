@@ -21,7 +21,12 @@ export interface Tarea {
   paraCuando: string | null; estado: EstadoTarea; notaKarc0: string | null; notaClaude: string | null;
   cambiadoEn: string | null; leidoClaude: boolean; responsable: string; estimado: string | null;
   urgencia: string; docEscritorio: string | null; docCentral: string | null;
+  /** 0087: nota enviada (bloqueada hasta «Editar nota»), traspaso a Claude y fecha de cierre. */
+  notaEnviadaEn: string | null; traspasadaEn: string | null; hechaEn: string | null;
 }
+/** 0087: qué hace la nota al enviarse. */
+export type ModoNota = 'abierta' | 'cerrar' | 'traspasar' | 'estado';
+const iso = (x: unknown) => (x ? new Date(x as string).toISOString() : null);
 
 export async function verTareas(jwt: string): Promise<Tarea[]> {
   return comoCliente(jwt, async (c) => (await c.query('SELECT * FROM dk.admin_tareas()')).rows.map((r) => ({
@@ -30,9 +35,10 @@ export async function verTareas(jwt: string): Promise<Tarea[]> {
     notaKarc0: r.nota_karc0, notaClaude: r.nota_claude, cambiadoEn: r.cambiado_en ? new Date(r.cambiado_en).toISOString() : null,
     leidoClaude: r.leido_claude, responsable: r.responsable ?? 'karc0', estimado: r.estimado ?? null,
     urgencia: r.urgencia ?? 'media', docEscritorio: r.doc_escritorio ?? null, docCentral: r.doc_central ?? null,
+    notaEnviadaEn: iso(r.nota_enviada_en), traspasadaEn: iso(r.traspasada_en), hechaEn: iso(r.hecha_en),
   })));
 }
 
-export async function guardarTarea(jwt: string, id: string, estado: EstadoTarea, nota: string) {
-  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_tarea_guardar($1, $2, $3)', [id, estado, nota]));
+export async function guardarTarea(jwt: string, id: string, estado: EstadoTarea, nota: string, modo: ModoNota = 'estado') {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_tarea_guardar($1, $2, $3, $4)', [id, estado, nota, modo]));
 }
