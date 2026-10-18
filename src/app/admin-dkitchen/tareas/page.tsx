@@ -6,6 +6,7 @@ import { enlaceDocumento } from '@/lib/documentos';
 import GuiaZona from '@/components/admin/GuiaZona';
 import RevisionForm from '@/components/admin/RevisionForm';
 import PulirTexto from '@/components/admin/PulirTexto';
+import { tareasDeHoy, esMia, type Adelanto } from '@/lib/tareas-hoy';
 import { guardarTareaAction, materialAction, revisionAction, comunicacionAction } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -21,8 +22,6 @@ const OK: Record<string, string> = {
   material: 'Enviado al Buzón para Claude. Lo leerá al empezar su próxima sesión.',
 };
 const ERR: Record<string, string> = { datos: 'Datos no válidos.', base: 'No se pudo guardar. Inténtalo de nuevo.', corto: 'Escribe al menos unas palabras (o añade una imagen).', muchos: 'Demasiados mensajes en una hora.' };
-const hoyMadrid = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
-const esMia = (t: Tarea) => t.responsable === 'karc0' || t.responsable === 'ambos';
 const urgente = (t: Tarea, hoy: string) => t.estado !== 'hecha' && esMia(t) && (!!t.paraCuando && t.paraCuando <= hoy);
 
 /**
@@ -36,8 +35,9 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const [tareas, revisiones, decisiones] = await Promise.all([verTareas(jwt).catch(() => null), verRevisiones(jwt).catch(() => null), verDecisiones(jwt).catch(() => null)]);
   const porDecidir = decisiones?.filter((d) => d.estado === 'pendiente').length ?? 0;
-  const hoy = hoyMadrid();
   const todas = tareas ?? [];
+  const H = tareasDeHoy(todas);
+  const hoy = H.hoy;
   const abiertas = todas.filter((t) => t.estado !== 'hecha');
   // 18/10 (karc0): «Hoy» es lo de hoy o atrasado; lo urgente con fecha futura espera en «Lo mío» con su día.
   const comunicaciones = todas.filter((t) => t.comEstado).sort((a, b) => (b.respuestaEn ?? b.notaEnviadaEn ?? '').localeCompare(a.respuestaEn ?? a.notaEnviadaEn ?? ''));
@@ -49,7 +49,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const filtroCom = (Object.keys(GRUPOS_COM) as (keyof typeof GRUPOS_COM)[]).find((k) => k === sp.c)
     ?? (comunicaciones.some(GRUPOS_COM.respondidas) ? 'respondidas' : 'abiertas');
   const zonas = {
-    hoy: abiertas.filter((t) => urgente(t, hoy) || (esMia(t) && t.urgencia === 'urgente' && !t.paraCuando)),
+    hoy: [...H.mias, ...H.claude],
     mias: abiertas.filter(esMia),
     claude: abiertas.filter((t) => t.responsable === 'claude' || t.responsable === 'antigravity'),
     comunicacion: comunicaciones.filter(GRUPOS_COM[filtroCom]),
@@ -67,11 +67,11 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const filtroRev = (Object.keys(GRUPOS_REV) as (keyof typeof GRUPOS_REV)[]).find((k) => k === sp.r) ?? (revPend ? 'por_revisar' : 'enviadas');
   const revsVisibles = revisiones?.filter(GRUPOS_REV[filtroRev]) ?? [];
   const ZONAS = [
-    ['hoy', 'Hoy', zonas.hoy.length], ['mias', 'Lo mío', zonas.mias.length], ['claude', 'De Claude', zonas.claude.length],
+    ['hoy', 'Hoy', H.mias.length], ['mias', 'Lo mío', zonas.mias.length], ['claude', 'De Claude', zonas.claude.length],
     ['comunicacion', 'Comunicación', comunicaciones.filter(GRUPOS_COM.respondidas).length], ['revisiones', 'Revisiones', revPend], ['resueltas', 'Resueltas', zonas.resueltas.length],
   ] as const;
   const pedida = sp.zona === 'enviadas' ? 'comunicacion' : sp.zona;
-  const zona = (ZONAS.some(([k]) => k === pedida) ? pedida : zonas.hoy.length ? 'hoy' : 'mias') as (typeof ZONAS)[number][0];
+  const zona = (ZONAS.some(([k]) => k === pedida) ? pedida : H.mias.length || H.adelantoMias ? 'hoy' : 'mias') as (typeof ZONAS)[number][0];
   const hechas = zonas.resueltas.length;
   const pct = todas.length ? Math.round((hechas / todas.length) * 100) : 0;
   const lista = zona === 'revisiones' ? [] : zonas[zona];
@@ -79,7 +79,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
     ? Object.keys(BLOQUES).map((b) => [b, lista.filter((t) => t.bloque === b)] as const).filter(([, l]) => l.length)
     : [['', lista] as const];
   const TITULOS: Record<string, [string, string]> = {
-    hoy: ['Para hoy', 'Lo tuyo con fecha de hoy o atrasado, y lo urgente.'],
+    hoy: ['Para hoy', 'Lo de hoy o atrasado, tuyo y de Claude. Cuando uno acaba lo suyo, entra el adelanto: lo del siguiente día y lo urgente.'],
     mias: ['Lo mío', 'Todo lo que te toca a ti (o a ti con Claude), por bloques.'],
     claude: ['De Claude', 'Lo que construye Claude (y Antigravity), con su tiempo. Lo tacha él al terminar; tú puedes dejarle una nota.'],
     comunicacion: ['Comunicación', 'Cada nota que le envías a Claude y su respuesta. Si está lista, apruébala y pasa a Resueltas; solo tú puedes reabrirla.'],
@@ -126,6 +126,15 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
           </nav>
           {revsVisibles.length ? <ul className="space-y-3">{revsVisibles.map((r) => <RevisionFicha key={r.id} r={r} />)}</ul>
             : <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">Nada en este apartado.</p>}
+        </>
+      ) : zona === 'hoy' && tareas ? (
+        <>
+          <p className="flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full bg-exito/10 px-3 py-1 font-semibold text-exito">Hoy has cerrado {H.hechasHoyMias}</span>
+            <span className="rounded-full bg-noche/10 px-3 py-1 font-semibold text-noche">Claude ha cerrado {H.hechasHoyClaude}</span>
+          </p>
+          <BloqueHoy titulo="Lo tuyo" lista={H.mias} adelanto={H.adelantoMias} hoy={hoy} vacio="Lo tuyo de hoy está hecho." />
+          <BloqueHoy titulo="De Claude" lista={H.claude} adelanto={H.adelantoClaude} hoy={hoy} vacio="Claude ha terminado lo suyo de hoy." />
         </>
       ) : zona === 'comunicacion' ? (
         <>
@@ -184,6 +193,25 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   );
 }
 
+function BloqueHoy({ titulo, lista, adelanto, hoy, vacio }: { titulo: string; lista: Tarea[]; adelanto: Adelanto | null; hoy: string; vacio: string }) {
+  return (
+    <section className="space-y-3">
+      <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-vino">{titulo} <span className="text-xs font-normal normal-case tracking-normal text-niebla">{lista.length || ''}</span></h3>
+      {lista.length > 0 ? <ul className="space-y-3">{lista.map((t) => <TareaFicha key={t.id} t={t} hoy={hoy} zona="hoy" editar={false} />)}</ul> : (
+        <>
+          <p className="rounded-[22px] border border-exito/30 bg-exito/5 p-4 text-sm text-exito">{vacio} {adelanto ? 'Puedes adelantar esto:' : 'No hay nada más con fecha. 🎉'}</p>
+          {adelanto && (
+            <>
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-carbon">Adelanto{adelanto.dia ? ` · lo del ${dia.format(new Date(adelanto.dia + 'T12:00:00'))}` : ''} y lo urgente</p>
+              <ul className="space-y-3">{adelanto.lista.map((t) => <TareaFicha key={t.id} t={t} hoy={hoy} zona="hoy" editar={false} />)}</ul>
+            </>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: string; editar: boolean }) {
   const hecha = t.estado === 'hecha';
   const roja = urgente(t, hoy);
@@ -203,7 +231,10 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
               {!hecha && t.urgencia !== 'media' && <span className={`rounded-full px-2.5 py-0.5 font-semibold ${t.urgencia === 'urgente' ? 'bg-red-600 text-white' : t.urgencia === 'alta' ? 'bg-oro text-noche' : 'bg-acero/30 text-carbon'}`}>{URGENCIAS[t.urgencia] ?? t.urgencia}</span>}
               {t.estimado && !hecha && <span className="rounded-full border border-linea px-2.5 py-0.5 font-medium text-carbon">⏱ {t.estimado}</span>}
               {t.traspasadaEn && !hecha && <span className="rounded-full bg-noche/10 px-2.5 py-0.5 font-semibold text-noche">Cerrada para ti · pendiente para Claude</span>}
-              {hecha && t.hechaEn && <span>Cerrada el {fecha.format(new Date(t.hechaEn))}</span>}
+              {t.creadoEn && <span>Creada el {fecha.format(new Date(t.creadoEn))}</span>}
+              {t.notaEnviadaEn && <span>· Nota el {fecha.format(new Date(t.notaEnviadaEn))}</span>}
+              {t.respuestaEn && <span>· Respondida el {fecha.format(new Date(t.respuestaEn))}</span>}
+              {hecha && t.hechaEn && <span>· Cerrada el {fecha.format(new Date(t.hechaEn))}</span>}
               {t.comEstado && <span className={`rounded-full px-2.5 py-0.5 font-semibold ${t.comEstado === 'respondida' ? 'bg-oro text-noche' : t.comEstado === 'resuelta' ? 'bg-exito/15 text-exito' : t.comEstado === 'reabierta' ? 'bg-vino text-white' : 'bg-papel text-carbon ring-1 ring-linea'}`}>{ESTADOS_COMUNICACION[t.comEstado]}{t.comEstado === 'abierta' && t.leidoClaude ? ' · leída' : ''}</span>}
               {t.hito && <span className="rounded-full border border-oro/50 px-2.5 py-0.5 font-medium text-vino">Ruta · {t.hito}</span>}
             </span>

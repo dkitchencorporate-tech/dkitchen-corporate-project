@@ -25,6 +25,8 @@ export interface Tarea {
   notaEnviadaEn: string | null; traspasadaEn: string | null; hechaEn: string | null;
   /** 0091: ciclo de Comunicación (karc0 escribe → Claude responde con resultado → karc0 aprueba o reabre) y hito de la Ruta. */
   comEstado: EstadoComunicacion | null; comResultado: ResultadoClaude | null; respuestaEn: string | null; resueltaEn: string | null; hito: string | null;
+  /** 0092: fecha y hora de creación (karc0: «fecha y hora para todo, siempre»). */
+  creadoEn: string | null;
 }
 export type EstadoComunicacion = 'abierta' | 'respondida' | 'resuelta' | 'reabierta';
 export type ResultadoClaude = 'listo' | 'falta_decidir' | 'falta_corregir';
@@ -42,7 +44,7 @@ export async function verTareas(jwt: string): Promise<Tarea[]> {
     leidoClaude: r.leido_claude, responsable: r.responsable ?? 'karc0', estimado: r.estimado ?? null,
     urgencia: r.urgencia ?? 'media', docEscritorio: r.doc_escritorio ?? null, docCentral: r.doc_central ?? null,
     notaEnviadaEn: iso(r.nota_enviada_en), traspasadaEn: iso(r.traspasada_en), hechaEn: iso(r.hecha_en),
-    comEstado: r.com_estado ?? null, comResultado: r.com_resultado ?? null, respuestaEn: iso(r.respuesta_en), resueltaEn: iso(r.resuelta_en), hito: r.hito ?? null,
+    comEstado: r.com_estado ?? null, comResultado: r.com_resultado ?? null, respuestaEn: iso(r.respuesta_en), resueltaEn: iso(r.resuelta_en), hito: r.hito ?? null, creadoEn: iso(r.creado_en),
   })));
 }
 

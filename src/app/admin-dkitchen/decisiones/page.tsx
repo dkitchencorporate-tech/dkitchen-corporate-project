@@ -1,14 +1,15 @@
 import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
-import { verDecisiones, type Decision } from '@/lib/decisiones';
+import { verDecisiones, faseDe, FASES, type Decision, type FaseDecision } from '@/lib/decisiones';
 import { enlaceDocumento } from '@/lib/documentos';
 import GuiaZona from '@/components/admin/GuiaZona';
-import { decidirAction } from './actions';
+import { decidirAction, reabrirDecisionAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
-const dia = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', timeZone: 'Europe/Madrid' });
-const OK: Record<string, string> = { decidida: 'Decidido. Claude lo verá al empezar su sesión y creará la tarea que salga.', aplazada: 'Aplazada. Sigue en la lista.' };
+const dia = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
+const cuando = (x?: string | null) => (x ? dia.format(new Date(x)) : '');
+const OK: Record<string, string> = { decidida: 'Decidido. Si escribiste un matiz, pasa a «En comunicación» hasta que Claude responda; si no, a «Decidido».', aplazada: 'Aplazada. Sigue en «Por decidir».', reabierta: 'Reabierta: vuelve a «Por decidir».' };
 const ERR: Record<string, string> = { elige: 'Elige una opción.', otra: 'Escribe tu respuesta para «Otra».', base: 'No se pudo guardar. Inténtalo de nuevo.' };
 
 /** Central → Decisiones (0083): lo que necesita una respuesta de karc0, con la recomendación de Claude marcada. */
@@ -16,8 +17,14 @@ export default async function Decisiones({ searchParams }: { searchParams: Promi
   const jwt = await exigirAdmin();
   const sp = await searchParams;
   const lista = await verDecisiones(jwt).catch(() => null);
-  const pendientes = lista?.filter((d) => d.estado !== 'decidida') ?? [];
-  const decididas = lista?.filter((d) => d.estado === 'decidida') ?? [];
+  const pendientes = lista?.filter((d) => faseDe(d) === 'por_decidir') ?? [];
+  const decididas = lista?.filter((d) => faseDe(d) !== 'por_decidir') ?? [];
+  // 18/10 (karc0): submenú por fase, como en Comunicación; cada paso con fecha y hora.
+  const cuenta = (k: FaseDecision) => lista?.filter((d) => faseDe(d) === k).length ?? 0;
+  const fase = ((Object.keys(FASES) as FaseDecision[]).find((k) => k === sp.f) ?? (pendientes.length ? 'por_decidir' : cuenta('comunicacion') ? 'comunicacion' : 'decidida')) as FaseDecision;
+  const fechaDe = (d: Decision) => d.resuelta_en ?? d.respuesta_claude_en ?? d.decidido_en ?? d.creado_en;
+  const visibles = (lista ?? []).filter((d) => faseDe(d) === fase)
+    .sort((a, b) => (fase === 'por_decidir' ? 0 : fechaDe(b).localeCompare(fechaDe(a))));
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6 text-carbon sm:p-6 lg:p-10">
@@ -26,7 +33,7 @@ export default async function Decisiones({ searchParams }: { searchParams: Promi
         <p className="relative text-xs font-semibold uppercase tracking-[0.25em] text-oro">Central · Tú decides</p>
         <h1 className="font-display relative mt-2 text-3xl font-semibold md:text-4xl">Decisiones</h1>
         <p className="relative mt-2 max-w-xl text-sm text-white/70">Cada punto que necesita tu respuesta, con su contexto y mi recomendación marcada. Elige, escribe la tuya o aplázala: lo leo al empezar cada sesión.</p>
-        <p className="relative mt-5 font-display text-4xl font-semibold text-oro">{pendientes.length}<span className="ml-2 text-base font-normal text-white/60">por decidir · {decididas.length} decididas</span></p>
+        <p className="relative mt-5 font-display text-4xl font-semibold text-oro">{pendientes.length}<span className="ml-2 text-base font-normal text-white/60">por decidir · {decididas.length} decididas ({cuenta('resuelta')} ya resueltas)</span></p>
       </header>
 
       {sp.ok && <p className="rounded-2xl bg-exito/10 p-3 text-sm text-exito">{OK[sp.ok] ?? 'Guardado.'}</p>}
@@ -37,16 +44,18 @@ export default async function Decisiones({ searchParams }: { searchParams: Promi
         pasos={['Lee el contexto y las opciones. La recomendada lleva la marca «Recomendada».', 'Elige una y pulsa «Decidir». Si quieres matizar, escribe en la caja de debajo.', 'Si no te convence ninguna, elige «Otra» y escribe la tuya. Si no es el momento, «Aplazar».']} />
 
       {!lista && <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">No se pudieron leer las decisiones.</p>}
-      {lista && !pendientes.length && <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">Nada por decidir ahora mismo.</p>}
-
-      <ol className="space-y-4">{pendientes.map((d, i) => <Pendiente key={d.id} d={d} n={i + 1} />)}</ol>
-
-      {decididas.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-vino">Ya decidido</h2>
-          <ul className="space-y-2">{decididas.map((d) => <Decidida key={d.id} d={d} />)}</ul>
-        </section>
-      )}
+      <nav aria-label="Fase de las decisiones" className="flex flex-wrap gap-2 text-sm">
+        {(Object.keys(FASES) as FaseDecision[]).map((k) => (
+          <a key={k} href={`/admin-dkitchen/decisiones?f=${k}`} aria-current={fase === k ? 'page' : undefined}
+            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 font-semibold ${fase === k ? 'bg-tinta text-white' : 'border border-acero bg-white'}`}>
+            {FASES[k]} <span className={`rounded-full px-1.5 text-[11px] ${k === 'por_decidir' && cuenta(k) ? 'bg-vino text-white' : fase === k ? 'bg-white/20' : 'bg-papel'}`}>{cuenta(k)}</span>
+          </a>
+        ))}
+      </nav>
+      {lista && !visibles.length && <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">Nada en este apartado.</p>}
+      {fase === 'por_decidir'
+        ? <ol className="space-y-4">{visibles.map((d, i) => <Pendiente key={d.id} d={d} n={i + 1} />)}</ol>
+        : <ul className="space-y-2">{visibles.map((d) => <Decidida key={d.id} d={d} />)}</ul>}
     </div>
   );
 }
@@ -57,7 +66,7 @@ function Pendiente({ d, n }: { d: Decision; n: number }) {
       <div className="flex items-start gap-3">
         <span className="font-display text-2xl font-semibold leading-none text-oro">{String(n).padStart(2, '0')}</span>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">{d.tema}{d.estado === 'aplazada' ? ' · aplazada' : ''}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">{d.tema}{d.estado === 'aplazada' ? ' · aplazada' : ''} <span className="font-normal normal-case tracking-normal text-niebla">· creada el {cuando(d.creado_en)}</span></p>
           <h2 className="font-display mt-1 break-words text-xl font-semibold leading-snug">{d.titulo}</h2>
         </div>
       </div>
@@ -102,12 +111,21 @@ function Decidida({ d }: { d: Decision }) {
         <summary className="flex cursor-pointer list-none flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-3.5 text-sm">
           <span className="text-exito">✓</span>
           <span className="min-w-0 flex-1 break-words font-semibold">{d.titulo}</span>
-          <span className="text-xs text-niebla">{d.decidido_en ? dia.format(new Date(d.decidido_en)) : ''}</span>
+          <span className="rounded-full bg-papel px-2.5 py-0.5 text-[11px] font-semibold text-carbon">{FASES[faseDe(d)]}</span>
+          <span className="text-xs text-niebla">{cuando(d.resuelta_en ?? d.respuesta_claude_en ?? d.decidido_en)}</span>
         </summary>
         <div className="space-y-2 border-t border-linea px-5 py-4 text-sm">
           <p><span className="font-semibold">Elegiste:</span> {elegida}</p>
           {d.respuesta_karc0 && <p className="whitespace-pre-wrap rounded-2xl bg-papel px-4 py-3">{d.respuesta_karc0}</p>}
-          {d.nota_claude && <p className="whitespace-pre-wrap border-l-[3px] border-vino pl-3 text-niebla">Claude: {d.nota_claude}</p>}
+          {d.nota_claude ? <p className="whitespace-pre-wrap border-l-[3px] border-vino pl-3 text-niebla">Claude: {d.nota_claude}</p>
+            : faseDe(d) === 'comunicacion' ? <p className="text-niebla">Esperando la respuesta de Claude (la lee al empezar su sesión).</p> : null}
+          <p className="flex flex-wrap gap-x-3 text-xs text-niebla">
+            <span>Creada: {cuando(d.creado_en)}</span>
+            {d.decidido_en && <span>Decidida: {cuando(d.decidido_en)}</span>}
+            {d.respuesta_claude_en && <span>Respuesta de Claude: {cuando(d.respuesta_claude_en)}</span>}
+            {d.resuelta_en && <span>Resuelta: {cuando(d.resuelta_en)}</span>}
+          </p>
+          <form action={reabrirDecisionAction}><input type="hidden" name="id" value={d.id} /><button className="rounded-full border border-acero px-4 py-1.5 text-xs font-medium">Reabrir</button></form>
         </div>
       </details>
     </li>

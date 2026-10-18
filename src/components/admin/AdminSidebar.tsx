@@ -35,11 +35,19 @@ export const ZONAS: Zona[] = [
     { nombre: 'Reportes', href: '/admin-dkitchen/reportes' }, { nombre: 'Equipo', href: '/admin-dkitchen/administradores' }] },
 ];
 
+/** 18/10 (karc0): avisos con número (lo que te toca a ti) por pestaña, sumados por zona en el raíl. */
+export type Avisos = Record<string, number>;
+const avisosZona = (z: Zona, av: Avisos) => z.items.reduce((s, i) => s + (av[i.href] ?? 0), 0);
+function Aviso({ n, claro }: { n: number; claro?: boolean }) {
+  if (!n) return null;
+  return <span className={`ml-1.5 inline-flex min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold leading-[18px] ${claro ? 'bg-vino text-white' : 'bg-oro text-noche'}`}>{n > 99 ? '99+' : n}</span>;
+}
+
 const activoEn = (ruta: string, href: string) => ruta === href || ruta.startsWith(href + '/');
 export const zonaDe = (ruta: string) => ZONAS.find((z) => z.items.some((i) => activoEn(ruta, i.href))) ?? null;
 
 /** Pestañas de la zona actual, arriba del contenido (solo si la zona tiene más de una). */
-export function SubmenuZona() {
+export function SubmenuZona({ avisos = {} }: { avisos?: Avisos }) {
   const ruta = usePathname();
   const z = zonaDe(ruta);
   if (!z || z.items.length < 2) return null;
@@ -49,14 +57,14 @@ export function SubmenuZona() {
         <span className="mr-2 shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">{z.nombre}</span>
         {z.items.map((i) => {
           const a = activoEn(ruta, i.href);
-          return <Link key={i.href} href={i.href} aria-current={a ? 'page' : undefined} className={`shrink-0 rounded-full px-3.5 py-1.5 font-medium ${a ? 'bg-tinta text-white' : 'text-carbon hover:bg-white'}`}>{i.nombre}</Link>;
+          return <Link key={i.href} href={i.href} aria-current={a ? 'page' : undefined} className={`inline-flex shrink-0 items-center rounded-full px-3.5 py-1.5 font-medium ${a ? 'bg-tinta text-white' : 'text-carbon hover:bg-white'}`}>{i.nombre}<Aviso n={avisos[i.href] ?? 0} claro={!a} /></Link>;
         })}
       </div>
     </nav>
   );
 }
 
-export default function AdminSidebar({ cuenta }: { cuenta: Cuenta }) {
+export default function AdminSidebar({ cuenta, avisos = {} }: { cuenta: Cuenta; avisos?: Avisos }) {
   const [mas, setMas] = useState(false);
   const ruta = usePathname();
   const actual = zonaDe(ruta)?.id;
@@ -73,7 +81,7 @@ export default function AdminSidebar({ cuenta }: { cuenta: Cuenta }) {
               <Link key={z.id} href={z.items[0].href} aria-current={a ? 'page' : undefined} title={z.items.map((i) => i.nombre).join(' · ')}
                 className={`relative flex w-[72px] flex-col items-center gap-1 rounded-2xl py-2.5 text-[10px] font-medium transition-colors ${a ? 'text-white' : 'text-white/45 hover:text-white'}`}>
                 {a && <motion.span layoutId="central-rail" className="absolute inset-0 rounded-2xl bg-white/[0.08] ring-1 ring-oro/30" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-                <span className={`relative ${a ? 'text-oro' : ''}`}><Icono n={z.icono} /></span>
+                <span className={`relative ${a ? 'text-oro' : ''}`}><Icono n={z.icono} />{avisosZona(z, avisos) > 0 && <span className="absolute -right-2.5 -top-1.5"><Aviso n={avisosZona(z, avisos)} /></span>}</span>
                 <span className="relative">{z.nombre}</span>
               </Link>
             );
@@ -90,7 +98,7 @@ export default function AdminSidebar({ cuenta }: { cuenta: Cuenta }) {
               <li key={z.id} className="flex-1">
                 <Link href={z.items[0].href} aria-current={a ? 'page' : undefined} className={`relative flex flex-col items-center gap-0.5 rounded-[20px] py-2 text-[10px] font-medium ${a ? 'text-white' : 'text-white/50'}`}>
                   {a && <motion.span layoutId="central-barra" className="absolute inset-0 rounded-[20px] bg-white/[0.1]" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-                  <span className={`relative ${a ? 'text-oro' : ''}`}><Icono n={z.icono} /></span>
+                  <span className={`relative ${a ? 'text-oro' : ''}`}><Icono n={z.icono} />{avisosZona(z, avisos) > 0 && <span className="absolute -right-2.5 -top-1.5"><Aviso n={avisosZona(z, avisos)} /></span>}</span>
                   <span className="relative">{z.nombre}</span>
                 </Link>
               </li>

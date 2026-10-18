@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { exigirAdmin } from '@/lib/guard-admin';
-import { decidir } from '@/lib/decisiones';
+import { decidir, reabrirDecision } from '@/lib/decisiones';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const RUTA = '/admin-dkitchen/decisiones';
@@ -23,4 +23,14 @@ export async function decidirAction(f: FormData) {
   if (e) redirect(`${RUTA}?e=${e}#d-${id}`);
   revalidatePath(RUTA);
   redirect(`${RUTA}?ok=${eleccion === 'aplazar' ? 'aplazada' : 'decidida'}#d-${id}`);
+}
+
+/** 0092: karc0 reabre una decisión cerrada (vuelve a «Por decidir»). */
+export async function reabrirDecisionAction(f: FormData) {
+  const jwt = await exigirAdmin();
+  const id = String(f.get('id') ?? '');
+  if (!UUID.test(id)) redirect(`${RUTA}?e=base`);
+  try { await reabrirDecision(jwt, id); } catch { redirect(`${RUTA}?e=base#d-${id}`); }
+  revalidatePath(RUTA);
+  redirect(`${RUTA}?f=por_decidir&ok=reabierta#d-${id}`);
 }
