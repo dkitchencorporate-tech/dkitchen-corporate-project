@@ -53,11 +53,12 @@ export function SubmenuZona({ avisos = {} }: { avisos?: Avisos }) {
   if (!z || z.items.length < 2) return null;
   return (
     <nav aria-label={`Zona ${z.nombre}`} className="sticky top-0 z-30 border-b border-linea bg-crema/90 px-4 py-2.5 backdrop-blur sm:px-6 lg:px-10">
-      <div className="flex items-center gap-1.5 overflow-x-auto text-sm">
-        <span className="mr-2 shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">{z.nombre}</span>
+      {/* 19/10 (karc0 en el móvil): las pestañas se cortaban sin aviso → degradado a la derecha y la activa, centrada */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pr-6 text-sm [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_85%,transparent)] md:pr-0 md:[mask-image:none]">
+        <span className="mr-1 hidden shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-vino sm:mr-2 sm:inline">{z.nombre}</span>
         {z.items.map((i) => {
           const a = activoEn(ruta, i.href);
-          return <Link key={i.href} href={i.href} aria-current={a ? 'page' : undefined} className={`inline-flex shrink-0 items-center rounded-full px-3.5 py-1.5 font-medium ${a ? 'bg-tinta text-white' : 'text-carbon hover:bg-white'}`}>{i.nombre}<Aviso n={avisos[i.href] ?? 0} claro={!a} /></Link>;
+          return <Link key={i.href} href={i.href} ref={a ? (n) => { n?.scrollIntoView({ inline: 'center', block: 'nearest' }); } : undefined} aria-current={a ? 'page' : undefined} className={`inline-flex shrink-0 items-center rounded-full px-3 py-1.5 font-medium sm:px-3.5 ${a ? 'bg-tinta text-white' : 'text-carbon hover:bg-white'}`}>{i.nombre}<Aviso n={avisos[i.href] ?? 0} claro={!a} /></Link>;
         })}
       </div>
     </nav>

@@ -98,9 +98,9 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
         <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-vino/40 blur-3xl" />
         <p className="relative text-xs font-semibold uppercase tracking-[0.25em] text-oro">Central · Lanzamiento</p>
         <h1 className="font-display relative mt-2 text-3xl font-semibold md:text-4xl">Mis tareas</h1>
-        <div className="relative mt-5 flex items-end justify-between text-sm">
-          <span className="font-display text-4xl font-semibold text-oro">{hechas}<span className="text-xl text-white/50"> / {todas.length}</span></span>
-          <span className="text-white/60">{pct} % hecho · {zonas.mias.length} tuyas abiertas · {zonas.claude.length} de Claude</span>
+        <div className="relative mt-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-1 text-sm">
+          <span className="font-display whitespace-nowrap text-4xl font-semibold text-oro">{hechas}<span className="text-xl text-white/50"> / {todas.length}</span></span>
+          <span className="text-white/60 sm:text-right">{pct} % hecho · {zonas.mias.length} tuyas abiertas · {zonas.claude.length} de Claude</span>
         </div>
         <div className="relative mt-2 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-oro" style={{ width: `${pct}%` }} /></div>
         <div className="relative mt-4 flex flex-wrap gap-2 text-sm">
@@ -184,11 +184,11 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
         </>
       )}
 
-      <nav aria-label="Zonas de tareas" className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-3">
-        <div className="pointer-events-auto flex max-w-full gap-1 overflow-x-auto rounded-full border border-white/10 bg-noche/95 p-1.5 text-sm shadow-[0_20px_50px_rgba(23,25,30,.35)] backdrop-blur">
+      <nav aria-label="Zonas de tareas" className="pointer-events-none fixed inset-x-0 bottom-[calc(84px+env(safe-area-inset-bottom))] z-40 flex justify-center px-3 md:bottom-4">
+        <div className="pointer-events-auto flex max-w-full gap-1 overflow-x-auto rounded-full [scrollbar-width:none] border border-white/10 bg-noche/95 p-1.5 text-sm shadow-[0_20px_50px_rgba(23,25,30,.35)] backdrop-blur">
           {ZONAS.map(([k, txt, n]) => (
             <a key={k} href={`/admin-dkitchen/tareas?zona=${k}`} aria-current={zona === k ? 'page' : undefined}
-              className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 font-semibold ${zona === k ? 'bg-oro text-noche' : 'text-white/80 hover:bg-white/10'}`}>
+              className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] font-semibold sm:px-3.5 sm:py-2 sm:text-sm ${zona === k ? 'bg-oro text-noche' : 'text-white/80 hover:bg-white/10'}`}>
               {txt}{n > 0 && <span className={`rounded-full px-1.5 text-[11px] ${zona === k ? 'bg-noche text-oro' : k === 'hoy' || k === 'revisiones' ? 'bg-vino text-white' : 'bg-white/15'}`}>{n}</span>}
             </a>
           ))}

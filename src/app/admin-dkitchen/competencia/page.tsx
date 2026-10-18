@@ -35,8 +35,8 @@ export default async function Competencia({ searchParams }: { searchParams: Prom
         <dl className="relative mt-6 grid grid-cols-3 gap-3 text-center">
           {cifras.map(([k, v]) => (
             <div key={k} className="rounded-2xl bg-white/[0.06] px-2 py-3 ring-1 ring-white/10">
-              <dd className="font-display text-3xl font-semibold text-oro">{v}</dd>
-              <dt className="mt-0.5 text-[11px] uppercase tracking-[0.15em] text-white/60">{k}</dt>
+              <dd className="font-display text-2xl font-semibold text-oro sm:text-3xl">{v}</dd>
+              <dt className="mt-0.5 break-words text-[10px] uppercase tracking-[0.08em] text-white/60 sm:text-[11px] sm:tracking-[0.15em]">{k}</dt>
             </div>
           ))}
         </dl>

@@ -63,7 +63,7 @@ export default async function Campanas() {
             {clics[q.codigo]?.length > 0 && (
               <p className="mt-1 text-xs text-ceniza">Botones: {clics[q.codigo].map((c) => `${c.detalle ?? '—'} (${c.total})`).join(' · ')}</p>
             )}
-            <form action={guardarQrCampanaAction} className="mt-3 grid gap-2 md:grid-cols-[1fr_2fr_auto_auto] md:items-center">
+            <form action={guardarQrCampanaAction} className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto_auto] lg:items-center [&>input]:min-w-0">
               <input type="hidden" name="codigo" value={q.codigo} />
               <input name="nombre" defaultValue={q.nombre} className="rounded-xl border border-linea px-3 py-2 text-sm" aria-label="Nombre" />
               <input name="destino" defaultValue={q.destino} className="rounded-xl border border-linea px-3 py-2 font-mono text-xs" aria-label="Destino" />
@@ -74,7 +74,7 @@ export default async function Campanas() {
         ))}
         <details className={tarjeta}>
           <summary className="cursor-pointer font-semibold">Crear un QR nuevo</summary>
-          <form action={guardarQrCampanaAction} className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_2fr_auto]">
+          <form action={guardarQrCampanaAction} className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,2fr)_auto] [&>input]:min-w-0">
             <input name="codigo" required placeholder="código (p. ej. t-carta)" className="rounded-xl border border-linea px-3 py-2 font-mono text-sm" />
             <input name="nombre" required placeholder="Nombre (p. ej. Tarjeta · Carta QR)" className="rounded-xl border border-linea px-3 py-2 text-sm" />
             <input name="destino" required placeholder="/demos/carta?utm_source=tarjeta" className="rounded-xl border border-linea px-3 py-2 font-mono text-xs" />

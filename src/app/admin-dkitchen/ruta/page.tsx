@@ -66,7 +66,7 @@ export default async function RutaLanzamiento({ searchParams }: { searchParams: 
             <h1 className="font-display mt-2 text-3xl font-semibold md:text-5xl">Ruta de lanzamiento</h1>
             <p className="mt-3 max-w-xl text-sm text-white/70">Dónde estamos de verdad: cada hito con su meta, su fecha y su dato real. Lo automático se calcula solo; lo manual lo actualizas aquí.</p>
             {siguiente && (
-              <a href={`#h-${siguiente.id}`} className="mt-6 inline-flex flex-wrap items-center gap-3 rounded-2xl bg-white/[0.07] px-4 py-3 text-sm ring-1 ring-white/10 hover:ring-oro/50">
+              <a href={`#h-${siguiente.id}`} className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl md:inline-flex bg-white/[0.07] px-4 py-3 text-sm ring-1 ring-white/10 hover:ring-oro/50">
                 <span className="text-oro">Siguiente</span>
                 <span className="font-semibold">{siguiente.codigo} · {siguiente.titulo}</span>
                 <span className="text-white/60">{diasA(siguiente.fecha) < 0 ? `atrasado ${-diasA(siguiente.fecha)} d` : diasA(siguiente.fecha) === 0 ? 'hoy' : `en ${diasA(siguiente.fecha)} d`}</span>
@@ -74,14 +74,18 @@ export default async function RutaLanzamiento({ searchParams }: { searchParams: 
               </a>
             )}
           </div>
-          <div className="flex items-end gap-5">
-            <div className="relative h-44 w-10 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/15" role="img" aria-label={`Avance global ${global} %`}>
+          {/* 19/10 (karc0 en el móvil): en vertical el termómetro dejaba media pantalla vacía → en móvil, barra horizontal */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:gap-5">
+            <div className="relative hidden h-44 w-10 overflow-hidden md:block rounded-full bg-white/10 ring-1 ring-white/15" role="img" aria-label={`Avance global ${global} %`}>
               <div className="absolute inset-x-0 bottom-0 rounded-full bg-gradient-to-t from-vino via-vino to-oro transition-all" style={{ height: `${Math.max(global, 4)}%` }} />
             </div>
-            <div>
-              <p className="font-display text-6xl font-semibold leading-none text-oro">{global}<span className="text-2xl">%</span></p>
-              <p className="mt-2 text-sm text-white/70">{hechos} de {hitos.length} hitos hechos</p>
-              {atrasados > 0 && <p className="mt-1 text-sm font-semibold text-red-300">{atrasados} {atrasados === 1 ? 'atrasado' : 'atrasados'}</p>}
+            <div className="flex flex-wrap items-end gap-x-4 gap-y-1 md:block">
+              <p className="font-display text-5xl font-semibold leading-none text-oro md:text-6xl">{global}<span className="text-2xl">%</span></p>
+              <p className="text-sm text-white/70 md:mt-2">{hechos} de {hitos.length} hitos hechos</p>
+              {atrasados > 0 && <p className="text-sm font-semibold text-red-300 md:mt-1">{atrasados} {atrasados === 1 ? 'atrasado' : 'atrasados'}</p>}
+            </div>
+            <div className="h-2.5 overflow-hidden rounded-full bg-white/10 ring-1 ring-white/15 md:hidden" role="img" aria-label={`Avance global ${global} %`}>
+              <div className="h-full rounded-full bg-gradient-to-r from-vino via-vino to-oro" style={{ width: `${Math.max(global, 3)}%` }} />
             </div>
           </div>
         </div>

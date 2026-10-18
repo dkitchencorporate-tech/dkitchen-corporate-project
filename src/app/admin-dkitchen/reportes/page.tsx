@@ -70,13 +70,13 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Vigente ahora · empieza por aquí</p>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             {vigentes.map((r) => (
-              <Link key={r.ruta} href={enlaceDocumento(r.ruta)} className="group rounded-[20px] bg-papel p-4 hover:bg-crema">
+              <Link key={r.ruta} href={enlaceDocumento(r.ruta)} className="group rounded-[20px] bg-papel p-4 [overflow-wrap:anywhere] hover:bg-crema">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-niebla">{CLASES[r.clase].nombre}</p>
                 <p className="font-display mt-1 font-semibold leading-snug group-hover:text-vino">{r.titulo}</p>
                 <p className="mt-2 text-xs text-niebla">Actualizado {diaHora.format(new Date(r.actualizadoEn))}</p>
               </Link>
             ))}
-            <Link href={enlaceDocumento('00_DIRECTOR_LANZAMIENTO.md')} className="group rounded-[20px] bg-papel p-4 hover:bg-crema">
+            <Link href={enlaceDocumento('00_DIRECTOR_LANZAMIENTO.md')} className="group rounded-[20px] bg-papel p-4 [overflow-wrap:anywhere] hover:bg-crema">
               <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-niebla">Instrucción fija</p>
               <p className="font-display mt-1 font-semibold leading-snug group-hover:text-vino">Director de lanzamiento: vender primero, una prioridad al día</p>
               <p className="mt-2 text-xs text-niebla">El «Siguiente» de cada día está en Lanzamiento → Ruta</p>
@@ -124,7 +124,7 @@ function Ficha({ r, tareas, todos }: { r: ReporteMapa; tareas: Tarea[]; todos: R
   const abiertas = tareas.filter((t) => t.estado !== 'hecha');
   const sustituto = r.superadoPor ? todos.find((x) => x.ruta === r.superadoPor) : null;
   return (
-    <li className={`rounded-[22px] border bg-white p-5 transition hover:border-oro ${r.vigente ? 'border-linea' : 'border-dashed border-acero opacity-75'}`}>
+    <li className={`rounded-[22px] border bg-white p-5 transition [overflow-wrap:anywhere] hover:border-oro ${r.vigente ? 'border-linea' : 'border-dashed border-acero opacity-75'}`}>
       <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em]">
         <span className="rounded-full bg-papel px-2.5 py-1 text-vino">{CLASES[r.clase].nombre}</span>
         {r.vigente ? <span className="rounded-full bg-oro/20 px-2.5 py-1 text-carbon">Vigente</span> : <span className="rounded-full bg-acero/40 px-2.5 py-1 text-carbon">Superado</span>}
