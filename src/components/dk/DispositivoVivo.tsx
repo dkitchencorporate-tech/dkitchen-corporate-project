@@ -16,11 +16,12 @@ const ESTILOS: EstiloMini[] = [
   { plantilla: 'editorial', fondo: 'papel', letra: 'serif', color: '#E8592A' },
   { plantilla: 'clasica', fondo: 'blanco', letra: 'sans', color: '#1F4E79' },
 ];
+// 18/10 (karc0: «las tarjetas tapan lo que hay dentro»): fuera del móvil, solapando solo el marco; las de la izquierda solo con sitio (xl)
 const AVISOS = [
-  { t: 'Mesa 4', d: 'Llama al camarero', c: '#6E0C2B', pos: 'left-[-14%] top-[14%]', r: -4 },
-  { t: 'Precio actualizado', d: 'Croquetas · 9,50 → 9,90 €', c: '#2F8F6B', pos: 'right-[-16%] top-[34%]', r: 3 },
-  { t: 'Reserva 21:30', d: '4 personas · confirmada', c: '#3B6EA5', pos: 'left-[-10%] bottom-[20%]', r: 2 },
-  { t: 'Carta en inglés', d: 'Traducida por DKitchen', c: '#D99A1E', pos: 'right-[-12%] bottom-[8%]', r: -3 },
+  { t: 'Mesa 4', d: 'Llama al camarero', c: '#6E0C2B', pos: 'right-[calc(100%-28px)] top-[12%] hidden xl:block', r: -4 },
+  { t: 'Precio actualizado', d: 'Croquetas · 9,50 → 9,90 €', c: '#2F8F6B', pos: 'left-[calc(100%-28px)] top-[30%] hidden sm:block', r: 3 },
+  { t: 'Reserva 21:30', d: '4 personas · confirmada', c: '#3B6EA5', pos: 'right-[calc(100%-28px)] bottom-[22%] hidden xl:block', r: 2 },
+  { t: 'Carta en inglés', d: 'Traducida por DKitchen', c: '#D99A1E', pos: 'left-[calc(100%-28px)] bottom-[10%] hidden sm:block', r: -3 },
 ];
 
 export default function DispositivoVivo({ ancho = 300 }: { ancho?: number }) {
@@ -72,7 +73,7 @@ export default function DispositivoVivo({ ancho = 300 }: { ancho?: number }) {
       </motion.div>
 
       {AVISOS.map((a, k) => (
-        <motion.div key={a.t} className={`absolute z-10 hidden sm:block ${a.pos}`}
+        <motion.div key={a.t} className={`absolute z-10 ${a.pos}`}
           animate={{ opacity: aviso === k ? 1 : 0.35, scale: aviso === k ? 1 : 0.94, y: [0, -8, 0] }}
           transition={{ opacity: { duration: 0.4 }, scale: { duration: 0.4 }, y: { duration: 5 + k, repeat: Infinity, ease: 'easeInOut' } }}
           style={{ rotate: a.r }}>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import CompraEntradas from '@/components/entradas/CompraEntradas';
+import SimulacionCompra from '@/components/entradas/SimulacionCompra';
 import { euros, eventoPublico, fechaEvento, leerLanding, plazasLibres, ventaAbierta } from '@/lib/entradas';
 import { FORMATOS_EXPERIENCE } from '@/lib/experience-formatos';
 
@@ -58,7 +59,7 @@ export default async function Evento({ params }: Props) {
       {e.muestra && (
         <div className="bg-oro px-4 py-2.5 text-center text-[13px] font-semibold text-noche">
           Así verán tus clientes tu evento · evento de muestra con un local inventado, no se venden entradas.
-          {formato && <> <Link href={`/experience/${formato.slug}`} className="underline underline-offset-2">Ver el formato «{formato.nombre}» →</Link></>}
+          {formato && <> <Link href={`/experience/${formato.slug}#configurar`} className="underline underline-offset-2">Quiero este evento en mi local →</Link> · <Link href="/experience#formatos" className="underline underline-offset-2">Ver otros eventos</Link></>}
         </div>
       )}
 
@@ -199,7 +200,7 @@ export default async function Evento({ params }: Props) {
               {abierta && clave
                 ? <CompraEntradas slug={e.slug} clavePublica={clave} precioCentimos={e.precio_centimos} maximo={Math.min(e.max_por_compra, libres)} />
                 : e.muestra
-                  ? <p className="rounded-2xl bg-papel px-4 py-3 text-sm text-carbon/80">Aquí tus clientes eligen cuántas entradas quieren y pagan con tarjeta, Apple Pay o Google Pay. El dinero va directo a tu cuenta y cada entrada lleva su QR.</p>
+                  ? <SimulacionCompra precioCentimos={e.precio_centimos} titulo={e.titulo} local={e.local_nombre} fecha={fechaEvento(e.fecha)} formato={formato?.slug ?? null} formatoNombre={formato?.nombre ?? null} />
                   : <p className="rounded-2xl bg-papel px-4 py-3 text-sm text-carbon/80">Ahora mismo no se pueden comprar entradas para este evento.</p>}
             </div>
             <a href={compartir} target="_blank" rel="noopener noreferrer" className="mt-4 block text-center text-sm font-semibold text-vino underline underline-offset-4">Compartir por WhatsApp</a>
@@ -209,13 +210,13 @@ export default async function Evento({ params }: Props) {
       </div>
 
       {/* Barra de compra en el móvil */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-white/95 px-4 py-3 backdrop-blur lg:hidden" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+      <div data-barra-inferior="on" className="fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-white/95 px-4 py-3 backdrop-blur lg:hidden" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
         <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="font-display text-xl font-semibold leading-none">{euros(e.precio_centimos)}</p>
             <p className="mt-1 truncate text-xs text-niebla">{estadoVenta}</p>
           </div>
-          <a href="#entradas" className="shrink-0 rounded-full bg-vino px-6 py-3 text-sm font-semibold text-white">{e.muestra ? 'Ver la compra' : abierta ? 'Comprar' : 'Ver'}</a>
+          <a href="#entradas" className="shrink-0 rounded-full bg-vino px-6 py-3 text-sm font-semibold text-white">{e.muestra ? 'Probar la compra' : abierta ? 'Comprar' : 'Ver'}</a>
         </div>
       </div>
     </main>

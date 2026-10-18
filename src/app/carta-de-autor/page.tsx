@@ -59,7 +59,7 @@ export default async function CartaDeAutor({ searchParams }: { searchParams: Pro
             <strong className="text-oro">Garantía de 30 días:</strong> si no te convence, te devolvemos el euro y te llevas tu carta en PDF.
           </p>
 
-          <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-2 border-t border-white/10 bg-noche/90 p-3 pb-[max(.75rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:static lg:mt-6 lg:gap-3 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+          <div data-barra-inferior="on" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-2 border-t border-white/10 bg-noche/90 p-3 pb-[max(.75rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:static lg:mt-6 lg:gap-3 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
             <ActivarPlanBoton plan="ampliado" etiqueta={`Empezar por ${QR_MENU.primerMes} €`}
               className="w-full rounded-full bg-oro px-3 py-3.5 text-[15px] font-bold lg:px-6 lg:py-4 lg:text-base text-noche shadow-[0_12px_40px_rgba(242,193,78,.35)] transition hover:brightness-105" />
             <QueMeLlamen origen={origen} />

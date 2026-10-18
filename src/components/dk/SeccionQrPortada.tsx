@@ -40,7 +40,7 @@ export default function SeccionQrPortada() {
 
       <VistaExplosionada />
 
-      <section className="pb-24 md:pb-32">
+      <section className="relative z-10 bg-crema pb-24 pt-16 md:pb-32 md:pt-24">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Aparecer><h3 className="font-display text-3xl font-semibold text-tinta md:text-4xl">Tres planes, por cantidades. Sin módulos sueltos.</h3></Aparecer>
           <div className="mt-10 grid gap-4 md:grid-cols-3">

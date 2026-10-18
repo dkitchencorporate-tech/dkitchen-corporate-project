@@ -67,7 +67,7 @@ export const PRODUCTOS_PAGO: Record<string, ProductoPago> = {
     resumen: 'Diseñamos el formato, la web de reservas y la comunicación del evento para llenar ese día que te cuesta.',
     precio: EXPERIENCE.tarifas.primeraVez.precio, nota: 'Pago único por evento · 0 % de comisión sobre la taquilla',
     incluye: ['Uno de nuestros 7 formatos, elegido contigo', 'Web del evento con venta de entradas', 'QR de entrada único por asistente', 'Anuncios gestionados (el presupuesto de anuncios lo pones tú)', 'El 100 % de la taquilla es tuyo'],
-    despues: [['Al momento', 'Rellenas el briefing del evento (2 minutos) y recibes la confirmación en tu correo.'], ['En menos de 48 horas laborables', 'Videollamada de arranque; en el día 3, el concepto para que lo apruebes.'], ['En unas 3 semanas', 'Tu evento queda listo: web, entradas y anuncios en marcha.']],
+    despues: [['Al momento', 'Te creamos tu zona de Experience (te llega el correo para fijar tu contraseña): allí nos cuentas tu evento en 5 minutos.'], ['Cuando tú elijas', 'Agendas la llamada de arranque desde tu zona; en el día 3, el concepto para que lo apruebes.'], ['En unas 3 semanas', 'Tu evento queda listo: web, entradas y anuncios en marcha.']],
     garantias: ['Pago seguro gestionado por Stripe', 'Factura a nombre de tu negocio', 'Sin comisión sobre tus entradas'],
     volver: { href: '/experience', t: 'Volver a Experience' },
     registro: {

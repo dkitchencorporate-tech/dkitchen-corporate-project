@@ -10,6 +10,7 @@ import { listarMisTickets } from '@/lib/tickets';
 import { listarPromociones } from '@/lib/promociones';
 import { listarMisReservas } from '@/lib/reservas';
 import { estadoServicios, tiene } from '@/lib/servicios';
+import { misExperiences } from '@/lib/mi-experience';
 import { cargarPlano, listarCamareros, estadoConexionTpv, informeCamareros } from '@/lib/sala';
 import { listarTraducciones } from '@/lib/idiomas';
 import { llamadasPendientes } from '@/lib/llamadas-camarero';
@@ -49,6 +50,8 @@ export default async function Panel() {
       const interno = await estadoInterno(jwt);
       if (interno.tipo === 'socio' && interno.estado === 'ok') redirect('/socio');
       if (interno.tipo) redirect('/acceso-seguro');
+      // 0088: cliente solo de Experience → su zona
+      if ((await misExperiences(jwt).catch(() => [])).length) redirect('/mi-experience');
       return (
         <div className="min-h-screen bg-crema flex items-center justify-center px-6 text-center">
           <div className="max-w-md">

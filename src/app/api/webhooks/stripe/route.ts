@@ -16,6 +16,7 @@ import { firmaWebhookValida, stripe, type ObjetoStripe } from '@/lib/payments/st
 import { pasarSignatureAMantenimiento } from '@/lib/payments/cobros';
 import { avisarCobroFallido } from '@/lib/avisos-impago';
 import { crearProyecto, type AltaProyecto } from '@/lib/proyectos';
+import { darAccesoExperience } from '@/lib/acceso-experience';
 
 export const runtime = 'nodejs';
 
@@ -217,7 +218,11 @@ async function alta(ctx: Contexto) {
   }
 
   if (PRODUCTOS_WEBHOOK_GENERICO.includes(String(meta.producto))) {
-    if (meta.producto === 'experience' && meta.email) await crearProyecto('experience', 'pago', altaProyecto(ctx));
+    if (meta.producto === 'experience' && meta.email) {
+      await crearProyecto('experience', 'pago', altaProyecto(ctx));
+      // 0088: cuenta + acceso a su zona de Experience (/mi-experience) con el briefing y la llamada
+      await darAccesoExperience(meta.email, meta.nombreContacto);
+    }
     if (productoDirecto) {
       await enviarCorreoInterno(`PAGO DIRECTO (${euros(ctx.importe)}): ${productoDirecto.nombre} · ${meta.nombreContacto || meta.email}`,
         `<h2>${escaparHtml(productoDirecto.nombre)} pagado</h2>${filasCorreo([['Nombre', meta.nombreContacto], ['Negocio', meta.restauranteNombre], ['Correo', meta.email], ['Teléfono', meta.telefono], ['Factura (Stripe)', ctx.idPago]])}`).catch(() => {});

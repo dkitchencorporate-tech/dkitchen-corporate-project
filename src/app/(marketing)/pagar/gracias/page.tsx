@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
 import { FondoVivo } from '@/components/dk/Movimiento';
-import Briefing from '@/components/experience/Briefing';
 
 export const metadata: Metadata = { title: 'Pago recibido · DKitchen Corporate', robots: { index: false, follow: false } };
 
@@ -26,7 +25,15 @@ export default async function Gracias({ searchParams }: { searchParams: Promise<
             ))}
           </ol>
         )}
-        {p?.id === 'experience' && <Briefing />}
+        {/* 0088: el briefing ya no es un formulario suelto: vive en la zona del cliente, con la llamada y el estado */}
+        {p?.id === 'experience' && (
+          <div className="mx-auto mt-12 max-w-lg rounded-[24px] border border-oro/40 bg-white/5 p-6 text-left">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-oro">Tu zona de Experience</p>
+            <p className="mt-2 text-white/80">Te hemos creado tu acceso con el correo con el que pagaste. Revisa el correo «fija tu contraseña» y entra: allí nos cuentas tu evento, eliges el día de la llamada de arranque y ves cómo avanza.</p>
+            <Link href="/mi-experience" className="mt-5 block rounded-full bg-vino py-3.5 text-center text-[15px] font-semibold">Entrar en mi zona de Experience →</Link>
+            <p className="mt-3 text-center text-xs text-white/50">¿Ya tenías cuenta en DKitchen? Entra con la de siempre.</p>
+          </div>
+        )}
         <Link href="/" className="mt-12 inline-block rounded-full border border-white/20 px-7 py-3.5 text-sm font-semibold hover:border-white/50">Volver a la web</Link>
       </div>
     </section>

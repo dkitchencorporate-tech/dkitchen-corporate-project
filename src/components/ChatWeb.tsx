@@ -20,7 +20,7 @@ export default function ChatWeb() {
       temas={TEMAS_WEB}
       seccion={null}
       saludo="Hola. ¿Qué te gustaría saber? Elige una duda o escríbela abajo."
-      posicion="bottom-5 right-5"
+      posicion="bottom-5 right-5 flotante-dk"
       onPersona={async () => {}}
       onSolicitud={(interes, contexto) => {
         // El formulario solo admite un detalle corto (60 caracteres, sin tildes).

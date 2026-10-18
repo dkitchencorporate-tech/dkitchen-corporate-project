@@ -4,7 +4,8 @@ import { Marquesina, TarjetaTilt } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
 import { TaquillaViva, EscaleraPrecios } from '@/components/dk/PiezasProductos';
 import Link from 'next/link';
-import { FORMATOS_EXPERIENCE } from '@/lib/experience-formatos';
+import Image from 'next/image';
+import { FORMATOS_EXPERIENCE, rutaImagen } from '@/lib/experience-formatos';
 import { EXPERIENCE } from '@/lib/pricing-config';
 
 const { primeraVez, nuevoEvento, reuso, reusoFidelizado, primeraParaClienteQr } = EXPERIENCE.tarifas;
@@ -42,22 +43,33 @@ export default function PaginaExperience() {
         </div>
       </section>
 
-      <section className="py-24 md:py-32">
+      <section id="formatos" className="scroll-mt-20 py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <Titulo etiqueta="Siete formatos listos" texto="No inventamos desde cero. El formato ya está hecho." sub="Siete formatos pensados para cualquier tipo de cocina. El formato lo ponemos nosotros; el menú y la esencia de tu local, tú." />
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {FORMATOS_EXPERIENCE.map(({ slug, nombre: t, etiqueta: m, frase: d }, i) => (
+            {FORMATOS_EXPERIENCE.map(({ slug, nombre: t, etiqueta: m, frase: d, imagen }, i) => (
               <Aparecer key={slug} retraso={(i % 3) * 0.07}>
-                <Link href={`/experience/${slug}`} className="block h-full"><TarjetaTilt className="group relative h-full overflow-hidden rounded-[28px] bg-noche p-7 text-white">
-                  <div aria-hidden="true" className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.4),transparent)] transition-transform duration-700 group-hover:scale-150" />
-                  <p className="relative etiqueta-dk text-oro">{m}</p>
-                  <p className="font-display relative mt-3 text-3xl font-semibold">{t}</p>
-                  <p className="relative mt-2 text-white/60">{d}</p>
-                  <p className="relative mt-5 text-sm font-semibold text-oro">Ver el formato y calcular mi evento →</p>
-                </TarjetaTilt></Link>
+                <TarjetaTilt className="group relative flex h-full flex-col overflow-hidden rounded-[28px] bg-noche text-white">
+                  {/* 18/10 (karc0): cada formato con su foto y dos salidas claras */}
+                  <Link href={`/experience/${slug}`} className="relative block aspect-[16/10] overflow-hidden">
+                    {imagen ? <Image src={rutaImagen(slug, '16x9')} alt={imagen.alt} fill sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                      : <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(closest-side,rgba(163,24,74,.45),transparent)]" />}
+                    <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-noche via-noche/20 to-transparent" />
+                    <p className="etiqueta-dk absolute bottom-3 left-6 text-oro">{m}</p>
+                  </Link>
+                  <div className="relative flex flex-1 flex-col p-6 pt-3">
+                    <p className="font-display text-3xl font-semibold">{t}</p>
+                    <p className="mt-2 flex-1 text-white/60">{d}</p>
+                    <div className="mt-5 flex flex-col gap-2">
+                      <Link href={`/experience/${slug}`} className="rounded-full bg-vino px-5 py-3 text-center text-sm font-semibold">Ver el formato y calcular mi evento →</Link>
+                      <Link href={`/e/muestra-${slug}`} className="rounded-full border border-white/20 px-5 py-2.5 text-center text-sm font-semibold text-white/85 hover:border-white/50">Así lo verán tus clientes (ejemplo)</Link>
+                    </div>
+                  </div>
+                </TarjetaTilt>
               </Aparecer>
             ))}
           </div>
+          <p className="mt-8 rounded-2xl border border-linea bg-crema px-5 py-4 text-sm text-carbon/80"><strong className="text-tinta">Son ejemplos, no un evento cerrado.</strong> Cuando contratas, lo adaptamos a tu local en la llamada de arranque: tu nombre, tu menú, tus fechas, tu aforo y tus precios.</p>
         </div>
       </section>
 
@@ -82,6 +94,22 @@ export default function PaginaExperience() {
           <EscaleraPrecios tramos={[[primeraVez.precio, 'Primera vez', 'Cliente nuevo, cualquiera de los 7 formatos.'], [nuevoEvento.precio, 'Nuevo evento', 'Ya trabajaste con nosotros y quieres otro formato.'], [reuso.precio, 'Reuso', 'El mismo evento, en una fecha nueva.'], [reusoFidelizado.precio, 'Reuso fidelizado', 'A partir de tu tercer evento.']]} />
           <Aparecer className="mt-10 rounded-[24px] bg-noche p-6 text-white md:flex md:items-center md:justify-between md:p-8">
             <p className="text-lg"><strong className="text-oro">¿Tienes la Carta QR con nosotros?</strong> Tu primer evento cuesta {primeraParaClienteQr.precio} € en lugar de {primeraVez.precio} € (+ IVA). Tarifa publicada, sin negociar.</p>
+          </Aparecer>
+          {/* 18/10 (karc0): los precios ya no son tarjetas planas: cómo se compra y qué pasa después */}
+          <Aparecer className="mt-10 grid gap-6 rounded-[28px] border border-linea bg-white p-7 md:grid-cols-[1.2fr_1fr] md:p-10">
+            <div>
+              <p className="etiqueta-dk text-vino">Cómo se contrata</p>
+              <ol className="mt-4 space-y-3 text-[15px]">
+                {[['Eliges el formato y pagas la tarifa', 'Pago seguro con Stripe, con factura.'], ['Entras en tu zona de Experience', 'Con tu usuario: el briefing, los pasos y el estado de tu evento.'], ['Llamada de arranque', 'La agendas tú desde tu zona y personalizamos el evento contigo.'], ['En unas tres semanas, tu evento en marcha', 'Web de entradas, piezas y campaña listas.']].map(([t, d], i) => (
+                  <li key={t} className="flex gap-3"><span className="font-display text-xl font-semibold text-vino">{i + 1}</span><span><span className="font-semibold">{t}</span><span className="block text-sm text-niebla">{d}</span></span></li>
+                ))}
+              </ol>
+            </div>
+            <div className="flex flex-col justify-center gap-3">
+              <Link href={WA} className="rounded-full bg-vino px-6 py-4 text-center text-[15px] font-semibold text-white">Contratar mi primer evento · {primeraVez.precio} € + IVA</Link>
+              <Link href="#formatos" className="rounded-full border border-tinta px-6 py-3.5 text-center text-[15px] font-semibold">Ver los 7 eventos de ejemplo</Link>
+              <p className="text-center text-xs text-niebla">Los eventos que ves son ejemplos: el tuyo se personaliza después de contratarlo.</p>
+            </div>
           </Aparecer>
         </div>
       </section>

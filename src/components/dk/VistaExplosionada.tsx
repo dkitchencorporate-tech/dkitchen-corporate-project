@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion, useMotionValueEvent, useScroll, useSpring, useTransform, type MotionValue } from 'framer-motion';
 import CartaDemo from '@/components/qr-landing/CartaDemo';
-import { useAjusteAlto } from './useAjusteAlto';
 import GuiaScroll from './GuiaScroll';
 
 /**
@@ -58,24 +57,36 @@ export default function VistaExplosionada() {
   const escMovil = useTransform(p, [0, 0.12, 0.66, 0.8], movil ? [0.85, 0.5, 0.5, 0.78] : [1, 0.86, 0.86, 1]);
   const giro = useTransform(p, [0, 0.12], [18, 0]);
   const publicada = useTransform(p, [0.76, 0.84], [0, 1]);
-  // 08/10: en portátiles de 14" (≈730 px útiles) el móvil y las capas se salían por abajo
-  // 18/10: el escenario (móvil + capas) mide ~600 px a escala 1; crece hasta 1,2 en pantallas altas y no baja de 0,6
-  const ajuste = useAjusteAlto(600, 230, 1.2, 0.6, 960);
+  // 18/10 (2.ª vuelta, fotos de karc0): la escala sale de MEDIR el hueco real del escenario (no de fórmulas):
+  // móvil + capas miden ~620 × 980 px a escala 1 en escritorio (560 × 370 en móvil). Así siempre cabe entero,
+  // también al final, y en escritorio el título va a la izquierda para dejar todo el alto al móvil.
+  const escenario = useRef<HTMLDivElement>(null);
+  const [ajuste, setAjuste] = useState(1);
+  useEffect(() => {
+    const el = escenario.current; if (!el) return;
+    const ro = new ResizeObserver(([e]) => {
+      const { width: w, height: h } = e.contentRect;
+      setAjuste(window.innerWidth < 768 ? Math.max(0.45, Math.min(1, h / 560, w / 370)) : Math.max(0.45, Math.min(1.3, h / 620, w / 980)));
+    });
+    ro.observe(el); return () => ro.disconnect();
+  }, []);
   const [fase, setFase] = useState(0);
   useMotionValueEvent(p, 'change', (v) => setFase(v < 0.12 ? 0 : v < 0.7 ? 1 : 2));
   const titulos = ['Una carta, seis superpoderes.', 'Todo lo que lleva tu carta.', 'Y todo cabe en un QR.'];
 
   return (
     <section ref={ref} className="relative h-[280vh] bg-crema">
-      <div className="sticky top-0 flex h-[100dvh] flex-col items-center overflow-hidden pb-14 pt-24 md:pb-6 md:pt-28">
+      <div className="sticky top-0 flex h-[100dvh] flex-col items-center overflow-hidden pb-14 pt-24 md:flex-row md:items-stretch md:pb-4 md:pt-24">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(23,25,30,.07)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
-        <div className="relative z-30 px-6 text-center">
+        <div className="relative z-30 px-6 text-center md:w-[34%] md:shrink-0 md:self-center md:pl-[5vw] md:pr-4 md:text-left">
           <p className="etiqueta-dk text-vino">Por dentro</p>
           <motion.h2 key={fase} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
             className="font-display mt-3 text-3xl font-semibold leading-[1.05] text-tinta md:text-5xl">{titulos[fase]}</motion.h2>
+          <p className="mt-4 hidden max-w-xs text-niebla md:block">{['Así la ven tus clientes al escanear el QR de la mesa.', 'Fotos, precios al momento, alérgenos, reservas, idiomas y un QR para siempre.', 'Lo cambias en tu móvil y ya está en todas las mesas.'][fase]}</p>
         </div>
         <GuiaScroll progreso={p} pasos={['Tu carta', 'Por dentro', 'Publicada']} cortes={[0.12, 0.7]} movil />
-        <div className="relative flex w-full flex-1 items-center justify-center" style={{ transform: `scale(${ajuste})` }}>
+        <div ref={escenario} className="relative w-full flex-1 md:pr-20">
+        <div className="absolute inset-0 flex items-center justify-center md:right-20" style={{ transform: `scale(${ajuste})` }}>
           <motion.div style={{ scale: escMovil, rotateX: giro, transformPerspective: 1400 }} className="relative z-10 w-[230px] md:w-[270px]">
             <div className="rounded-[46px] p-[3px] shadow-[0_50px_100px_-20px_rgba(23,25,30,.45)] [background:linear-gradient(145deg,#6b707b,#1b1d22_35%,#0b0c0f_70%,#4a4e57)]">
               <div className="rounded-[43px] bg-obsidiana p-[9px]">
@@ -88,6 +99,7 @@ export default function VistaExplosionada() {
             </div>
           </motion.div>
           {CAPAS.map((c, i) => <CapaFlotante key={c.id} c={c} p={p} movil={movil} i={i} />)}
+        </div>
         </div>
       </div>
     </section>
