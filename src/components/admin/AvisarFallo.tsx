@@ -1,11 +1,15 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { usePathname } from 'next/navigation';
 import { avisarFalloAction } from '@/app/admin-dkitchen/avisos/actions';
 
+/** Abre el diálogo desde cualquier sitio (menú de la cuenta). */
+export const abrirAvisoFallo = () => window.dispatchEvent(new Event('dk:avisar-fallo'));
+
 /**
- * Botón «Avisar de un fallo» en todas las pantallas de Central (0061). Guarda
+ * «Avisar de un fallo» en todas las pantallas de Central (0061). 18/10 noche (karc0): sin botón flotante;
+ * se abre desde el menú de la cuenta (la «D»), junto al Buzón. Guarda
  * la pantalla exacta (ruta + ancla) para que quien lo arregle vaya directo.
  */
 export default function AvisarFallo() {
@@ -14,6 +18,11 @@ export default function AvisarFallo() {
   const [texto, setTexto] = useState('');
   const [estado, setEstado] = useState<{ ok?: boolean; error?: string } | null>(null);
   const [enviando, iniciar] = useTransition();
+  useEffect(() => {
+    const abrir = () => { setAbierto(true); setEstado(null); };
+    window.addEventListener('dk:avisar-fallo', abrir);
+    return () => window.removeEventListener('dk:avisar-fallo', abrir);
+  }, []);
 
   function enviar() {
     setEstado(null);
@@ -26,10 +35,6 @@ export default function AvisarFallo() {
 
   return (
     <>
-      <button onClick={() => { setAbierto(true); setEstado(null); }}
-        className="fixed bottom-24 right-4 z-[45] rounded-full border border-linea bg-white px-4 py-2 text-xs font-semibold text-vino shadow-[0_8px_24px_rgba(10,8,12,.12)] hover:border-vino md:bottom-20 md:right-5">
-        Avisar de un fallo
-      </button>
       {abierto && (
         <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Avisar de un fallo">
           <button aria-label="Cerrar" onClick={() => setAbierto(false)} className="absolute inset-0 bg-black/50" />

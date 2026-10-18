@@ -31,7 +31,7 @@ export default async function AdminLayout({
   const avisos = {
     '/admin-dkitchen/decisiones': decisiones?.filter((d) => d.estado !== 'decidida').length ?? 0,
     '/admin-dkitchen/tareas': (hoyT ? hoyT.mias.length : 0) + (tareas?.filter((t) => t.comEstado === 'respondida').length ?? 0)
-      + (revisiones?.filter((r) => r.estado === 'por_revisar').length ?? 0),
+      + (revisiones?.filter((r) => r.estado === 'por_revisar' || (r.estado === 'cambios' && (r.estadoClaude === 'implementada' || r.estadoClaude === 'descartada'))).length ?? 0),
   };
   const cuenta = { nombre: yo?.nombre || 'Administrador', email: yo?.email ?? '' };
   return (

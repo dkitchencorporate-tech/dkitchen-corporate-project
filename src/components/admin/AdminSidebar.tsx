@@ -40,7 +40,7 @@ export type Avisos = Record<string, number>;
 const avisosZona = (z: Zona, av: Avisos) => z.items.reduce((s, i) => s + (av[i.href] ?? 0), 0);
 function Aviso({ n, claro }: { n: number; claro?: boolean }) {
   if (!n) return null;
-  return <span className={`ml-1.5 inline-flex min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold leading-[18px] ${claro ? 'bg-vino text-white' : 'bg-oro text-noche'}`}>{n > 99 ? '99+' : n}</span>;
+  return <span className={`inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums leading-none ${claro ? 'ml-1.5 bg-vino text-white' : 'bg-oro text-noche ring-2 ring-noche'}`}>{n > 99 ? '99+' : n}</span>;
 }
 
 const activoEn = (ruta: string, href: string) => ruta === href || ruta.startsWith(href + '/');
@@ -81,7 +81,8 @@ export default function AdminSidebar({ cuenta, avisos = {} }: { cuenta: Cuenta; 
               <Link key={z.id} href={z.items[0].href} aria-current={a ? 'page' : undefined} title={z.items.map((i) => i.nombre).join(' · ')}
                 className={`relative flex w-[72px] flex-col items-center gap-1 rounded-2xl py-2.5 text-[10px] font-medium transition-colors ${a ? 'text-white' : 'text-white/45 hover:text-white'}`}>
                 {a && <motion.span layoutId="central-rail" className="absolute inset-0 rounded-2xl bg-white/[0.08] ring-1 ring-oro/30" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-                <span className={`relative ${a ? 'text-oro' : ''}`}><Icono n={z.icono} />{avisosZona(z, avisos) > 0 && <span className="absolute -right-2.5 -top-1.5"><Aviso n={avisosZona(z, avisos)} /></span>}</span>
+                <span className={`relative ${a ? 'text-oro' : ''}`}><Icono n={z.icono} /></span>
+                {avisosZona(z, avisos) > 0 && <span className="absolute right-1.5 top-1 z-10 leading-none"><Aviso n={avisosZona(z, avisos)} /></span>}
                 <span className="relative">{z.nombre}</span>
               </Link>
             );
@@ -98,7 +99,8 @@ export default function AdminSidebar({ cuenta, avisos = {} }: { cuenta: Cuenta; 
               <li key={z.id} className="flex-1">
                 <Link href={z.items[0].href} aria-current={a ? 'page' : undefined} className={`relative flex flex-col items-center gap-0.5 rounded-[20px] py-2 text-[10px] font-medium ${a ? 'text-white' : 'text-white/50'}`}>
                   {a && <motion.span layoutId="central-barra" className="absolute inset-0 rounded-[20px] bg-white/[0.1]" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-                  <span className={`relative ${a ? 'text-oro' : ''}`}><Icono n={z.icono} />{avisosZona(z, avisos) > 0 && <span className="absolute -right-2.5 -top-1.5"><Aviso n={avisosZona(z, avisos)} /></span>}</span>
+                  <span className={`relative ${a ? 'text-oro' : ''}`}><Icono n={z.icono} /></span>
+                {avisosZona(z, avisos) > 0 && <span className="absolute right-1.5 top-1 z-10 leading-none"><Aviso n={avisosZona(z, avisos)} /></span>}
                   <span className="relative">{z.nombre}</span>
                 </Link>
               </li>

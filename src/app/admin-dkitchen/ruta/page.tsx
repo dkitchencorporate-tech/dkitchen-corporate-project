@@ -197,7 +197,7 @@ function FilaHito({ h, hoy }: { h: Hito; hoy: string }) {
       {h.tareas.length > 0 && (
         <ul className="mt-2 space-y-1 text-xs">
           {h.tareas.map((t) => (
-            <li key={t.id}><a href={`/admin-dkitchen/tareas?zona=${t.responsable === 'claude' || t.responsable === 'antigravity' ? 'claude' : t.estado === 'hecha' ? 'resueltas' : 'mias'}#t-${t.id}`}
+            <li key={t.id}><a href={`/admin-dkitchen/tareas?zona=${t.estado === 'hecha' ? 'resueltas' : t.responsable === 'claude' || t.responsable === 'antigravity' ? 'claude' : 'mias'}#t-${t.id}`}
               className={`hover:underline ${t.estado === 'hecha' ? 'text-niebla line-through' : 'text-carbon'}`}>{t.estado === 'hecha' ? '✓' : '○'} {t.titulo.slice(0, 90)}</a></li>
           ))}
         </ul>

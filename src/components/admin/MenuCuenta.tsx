@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { Icono } from '@/components/panel/Iconos';
+import { abrirAvisoFallo } from '@/components/admin/AvisarFallo';
 
 export type Cuenta = { nombre: string; email: string };
 
@@ -28,6 +29,7 @@ export function OpcionesCuenta({ cuenta, alElegir }: { cuenta: Cuenta; alElegir?
         <li><Link href="/admin-dkitchen/administradores" onClick={alElegir} className="block rounded-2xl bg-papel px-4 py-3 text-sm font-medium">Administradores</Link></li>
         <li><Link href="/admin-dkitchen/tareas" onClick={alElegir} className="block rounded-2xl bg-tinta px-4 py-3 text-sm font-semibold text-white">Mis tareas</Link></li>
         <li><Link href="/admin-dkitchen/buzon" onClick={alElegir} className="block rounded-2xl bg-papel px-4 py-3 text-sm font-medium">Buzón para Claude</Link></li>
+        <li><button onClick={() => { alElegir?.(); abrirAvisoFallo(); }} className="block w-full rounded-2xl bg-papel px-4 py-3 text-left text-sm font-medium text-vino">Avisar de un fallo</button></li>
         <li>
           <button onClick={salir} disabled={saliendo} className="flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-left text-sm font-semibold text-vino hover:bg-vino/5 disabled:opacity-50">
             <Icono n="salir" className="h-4 w-4" />{saliendo ? 'Cerrando sesión…' : 'Cerrar sesión'}

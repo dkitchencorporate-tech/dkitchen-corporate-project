@@ -55,16 +55,20 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
     comunicacion: comunicaciones.filter(GRUPOS_COM[filtroCom]),
     resueltas: todas.filter((t) => t.estado === 'hecha').sort((a, b) => (b.hechaEn ?? '').localeCompare(a.hechaEn ?? '')),
   };
-  const revPend = revisiones?.filter((r) => r.estado === 'por_revisar').length ?? 0;
+  const revPend = (revisiones?.filter((r) => r.estado === 'por_revisar').length ?? 0)
+    + (revisiones?.filter((r) => r.estado === 'cambios' && (r.estadoClaude === 'implementada' || r.estadoClaude === 'descartada')).length ?? 0);
   // 0090: cada revisión con cambios lleva el resultado de Claude; las resueltas por Claude salen de «Enviadas»
+  // 18/10 noche (karc0): «Enviadas» = sin respuesta de Claude; «En curso» = respondida con trabajo pendiente;
+  // «Resueltas por Claude» = para que karc0 apruebe o reabra.
   const resuelta = (x: Revision) => x.estado === 'cambios' && (x.estadoClaude === 'implementada' || x.estadoClaude === 'descartada');
   const GRUPOS_REV = {
     por_revisar: (x: Revision) => x.estado === 'por_revisar',
-    enviadas: (x: Revision) => x.estado === 'cambios' && !resuelta(x),
+    enviadas: (x: Revision) => x.estado === 'cambios' && !x.estadoClaude,
+    en_curso: (x: Revision) => x.estado === 'cambios' && !!x.estadoClaude && !resuelta(x),
     resueltas: resuelta,
     aprobada: (x: Revision) => x.estado === 'aprobada',
   } as const;
-  const filtroRev = (Object.keys(GRUPOS_REV) as (keyof typeof GRUPOS_REV)[]).find((k) => k === sp.r) ?? (revPend ? 'por_revisar' : 'enviadas');
+  const filtroRev = (Object.keys(GRUPOS_REV) as (keyof typeof GRUPOS_REV)[]).find((k) => k === sp.r) ?? (revisiones?.some((r) => r.estado === 'por_revisar') ? 'por_revisar' : revisiones?.some(resuelta) ? 'resueltas' : 'enviadas');
   const revsVisibles = revisiones?.filter(GRUPOS_REV[filtroRev]) ?? [];
   const ZONAS = [
     ['hoy', 'Hoy', H.mias.length], ['mias', 'Lo mío', zonas.mias.length], ['claude', 'De Claude', zonas.claude.length],
@@ -83,7 +87,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
     mias: ['Lo mío', 'Todo lo que te toca a ti (o a ti con Claude), por bloques.'],
     claude: ['De Claude', 'Lo que construye Claude (y Antigravity), con su tiempo. Lo tacha él al terminar; tú puedes dejarle una nota.'],
     comunicacion: ['Comunicación', 'Cada nota que le envías a Claude y su respuesta. Si está lista, apruébala y pasa a Resueltas; solo tú puedes reabrirla.'],
-    revisiones: ['Revisiones de Alex', 'Cada cambio que Claude te pide revisar. Apruébalo o dile qué cambiar, con texto e imágenes.'],
+    revisiones: ['Revisiones de Alex', 'Por revisar → Enviadas a Claude (sin respuesta) → En curso (respondida, falta hacerlo) → Resueltas por Claude (apruébala o reábrela) → Aprobadas.'],
     resueltas: ['Resueltas', 'Tareas cerradas, de la más reciente a la más antigua.'],
   };
 
@@ -119,7 +123,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
         <>
           {/* 18/10 (karc0): cada revisión en su sitio según su estado, sin que nada se pierda */}
           <nav aria-label="Estado de las revisiones" className="flex flex-wrap gap-2 text-sm">
-            {([['por_revisar', 'Por revisar'], ['enviadas', 'Enviadas a Claude'], ['resueltas', 'Resueltas por Claude'], ['aprobada', 'Aprobadas']] as const).map(([k, t]) => (
+            {([['por_revisar', 'Por revisar'], ['enviadas', 'Enviadas a Claude'], ['en_curso', 'En curso'], ['resueltas', 'Resueltas por Claude'], ['aprobada', 'Aprobadas']] as const).map(([k, t]) => (
               <a key={k} href={`/admin-dkitchen/tareas?zona=revisiones&r=${k}`} aria-current={filtroRev === k ? 'page' : undefined}
                 className={`rounded-full px-4 py-2 font-semibold ${filtroRev === k ? 'bg-tinta text-white' : 'border border-acero bg-white'}`}>{t} · {revisiones?.filter(GRUPOS_REV[k]).length ?? 0}</a>
             ))}
@@ -217,6 +221,8 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
   const roja = urgente(t, hoy);
   const deClaude = t.responsable === 'claude' || t.responsable === 'antigravity';
   const notaBloqueada = !!t.notaKarc0 && !!t.notaEnviadaEn && !editar;
+  // 0093: mientras la tarea siga abierta (o su comunicación esté reabierta) siempre se puede añadir otra nota.
+  const puedeAnadir = notaBloqueada && (!hecha || t.comEstado === 'reabierta');
   return (
     <li id={`t-${t.id}`} className={`scroll-mt-6 rounded-[22px] bg-white ${roja ? 'border-2 border-red-600' : t.estado === 'bloqueada' ? 'border border-vino/50' : 'border border-linea'}`}>
       <details open={zona === 'comunicacion' ? t.comEstado !== 'resuelta' || editar : !hecha || editar} className="group">
@@ -270,7 +276,7 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
           {notaBloqueada && (
             <div className="rounded-2xl border-l-[3px] border-oro bg-white px-4 py-3 ring-1 ring-linea">
               <p className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-carbon">
-                <span>Tu nota · enviada el {fecha.format(new Date(t.notaEnviadaEn!))}</span>
+                <span>Tus notas · la última, el {fecha.format(new Date(t.notaEnviadaEn!))}</span>
                 <a href={`/admin-dkitchen/tareas?zona=${zona}&editar=${t.id}#t-${t.id}`} className="normal-case tracking-normal text-vino underline">Editar nota</a>
               </p>
               <p className="mt-1 whitespace-pre-wrap text-sm">{t.notaKarc0}</p>
@@ -279,10 +285,11 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
           <form action={guardarTareaAction} className="space-y-2">
             <input type="hidden" name="id" value={t.id} />
             <input type="hidden" name="zona" value={zona} />
-            {!notaBloqueada && (
+            {(!notaBloqueada || puedeAnadir) && (
               <>
-                <label className="block text-sm">{editar ? 'Edita tu nota para Claude' : 'Nota para Claude'}
-                  <textarea name="nota" maxLength={3000} rows={3} defaultValue={editar ? t.notaKarc0 ?? '' : ''} placeholder="Qué has hecho, un dato, un enlace, una instrucción o por qué no puedes." className="mt-1 w-full rounded-xl border border-acero bg-white px-3.5 py-2.5 text-sm outline-none focus:border-tinta" />
+                {puedeAnadir && <input type="hidden" name="anadir" value="1" />}
+                <label className="block text-sm">{editar ? 'Edita tus notas para Claude' : puedeAnadir ? 'Añadir otra nota (queda con fecha y hora)' : 'Nota para Claude'}
+                  <textarea name="nota" maxLength={editar ? 12000 : 3000} rows={3} defaultValue={editar ? t.notaKarc0 ?? '' : ''} placeholder="Qué has hecho, un dato, un enlace, una instrucción o por qué no puedes." className="mt-1 w-full rounded-xl border border-acero bg-white px-3.5 py-2.5 text-sm outline-none focus:border-tinta" />
                 </label>
                 <PulirTexto campo="nota" />
                 <input type="hidden" name="estado" value={t.estado} />

@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { exigirAdmin } from '@/lib/guard-admin';
-import { guardarTarea, comunicacion, type EstadoTarea, type ModoNota } from '@/lib/tareas';
+import { guardarTarea, comunicacion, anadirNota, type EstadoTarea, type ModoNota } from '@/lib/tareas';
 import { pulirTextoLargo } from '@/lib/texto-ia';
 import { guardarRevision, type EstadoRevision } from '@/lib/revisiones';
 import { escribirBuzon } from '@/lib/buzon';
@@ -23,11 +23,16 @@ export async function guardarTareaAction(f: FormData) {
   const id = String(f.get('id') ?? '');
   const estado = String(f.get('estado') ?? '');
   const modo = String(f.get('modo') ?? 'estado');
-  const nota = String(f.get('nota') ?? '').trim().slice(0, 3000);
+  // 0093: «anadir» apila una nota nueva en el hilo; sin él, se guarda (o se edita) el hilo entero.
+  const anadir = f.get('anadir') === '1';
+  const nota = String(f.get('nota') ?? '').trim().slice(0, anadir ? 3000 : 12000);
   const zona = zonaDe(f);
   if (!UUID.test(id) || !['pendiente', 'hecha', 'bloqueada'].includes(estado) || !['abierta', 'cerrar', 'traspasar', 'estado'].includes(modo)) redirect(`/admin-dkitchen/tareas?zona=${zona}&e=datos`);
   if (modo !== 'estado' && !nota) redirect(`/admin-dkitchen/tareas?zona=${zona}&e=corto#t-${id}`);
-  try { await guardarTarea(jwt, id, estado as EstadoTarea, nota, modo as ModoNota); } catch { redirect(`/admin-dkitchen/tareas?zona=${zona}&e=base`); }
+  try {
+    if (anadir && modo !== 'estado') await anadirNota(jwt, id, nota, modo as 'abierta' | 'cerrar' | 'traspasar');
+    else await guardarTarea(jwt, id, estado as EstadoTarea, nota, modo as ModoNota);
+  } catch { redirect(`/admin-dkitchen/tareas?zona=${zona}&e=base`); }
   revalidatePath('/admin-dkitchen/tareas');
   revalidatePath('/admin-dkitchen/ruta');
   const ok = modo === 'estado' ? estado : modo === 'abierta' ? 'nota' : modo;

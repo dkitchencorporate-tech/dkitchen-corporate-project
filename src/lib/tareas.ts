@@ -48,6 +48,11 @@ export async function verTareas(jwt: string): Promise<Tarea[]> {
   })));
 }
 
+/** 0093: añade una nota al hilo de la tarea (con fecha y hora) y reabre la comunicación para Claude. */
+export async function anadirNota(jwt: string, id: string, nota: string, modo: 'abierta' | 'cerrar' | 'traspasar') {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_tarea_anadir_nota($1, $2, $3)', [id, nota, modo]));
+}
+
 export async function comunicacion(jwt: string, id: string, accion: 'aprobar' | 'reabrir') {
   await comoCliente(jwt, (c) => c.query('SELECT dk.admin_comunicacion($1, $2)', [id, accion]));
 }
