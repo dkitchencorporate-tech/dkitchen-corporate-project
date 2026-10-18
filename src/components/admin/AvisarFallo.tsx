@@ -27,7 +27,7 @@ export default function AvisarFallo() {
   return (
     <>
       <button onClick={() => { setAbierto(true); setEstado(null); }}
-        className="fixed bottom-24 right-4 z-30 rounded-full border border-linea bg-white px-4 py-2 text-xs font-semibold text-vino shadow-[0_8px_24px_rgba(10,8,12,.12)] hover:border-vino md:bottom-5 md:right-5">
+        className="fixed bottom-24 right-4 z-[45] rounded-full border border-linea bg-white px-4 py-2 text-xs font-semibold text-vino shadow-[0_8px_24px_rgba(10,8,12,.12)] hover:border-vino md:bottom-20 md:right-5">
         Avisar de un fallo
       </button>
       {abierto && (
