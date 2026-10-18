@@ -23,7 +23,9 @@ export function tareasDeHoy(todas: Tarea[], hoy = hoyMadrid()): Hoy {
     return l.length ? { dia, lista: l } : null;
   };
   const mias = abiertas.filter((t) => esMia(t) && delDia(t));
-  const claude = abiertas.filter((t) => esDeClaude(t) && delDia(t));
+  // 0095: lo que karc0 pidió «implementar ya» va primero, en el orden en que lo pidió.
+  const claude = abiertas.filter((t) => esDeClaude(t) && (delDia(t) || !!t.implementarYaEn))
+    .sort((a, b) => (a.implementarYaEn ?? '9').localeCompare(b.implementarYaEn ?? '9'));
   const hechasHoy = todas.filter((t) => t.estado === 'hecha' && t.hechaEn && madrid(new Date(t.hechaEn)) === hoy);
   return {
     hoy, mias, claude,

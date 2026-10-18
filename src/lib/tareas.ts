@@ -27,6 +27,8 @@ export interface Tarea {
   comEstado: EstadoComunicacion | null; comResultado: ResultadoClaude | null; respuestaEn: string | null; resueltaEn: string | null; hito: string | null;
   /** 0092: fecha y hora de creación (karc0: «fecha y hora para todo, siempre»). */
   creadoEn: string | null;
+  /** 0095: karc0 pulsó «▶ Implementar ya» (orden de la cola de Claude). */
+  implementarYaEn: string | null;
 }
 export type EstadoComunicacion = 'abierta' | 'respondida' | 'resuelta' | 'reabierta';
 export type ResultadoClaude = 'listo' | 'falta_decidir' | 'falta_corregir';
@@ -44,13 +46,17 @@ export async function verTareas(jwt: string): Promise<Tarea[]> {
     leidoClaude: r.leido_claude, responsable: r.responsable ?? 'karc0', estimado: r.estimado ?? null,
     urgencia: r.urgencia ?? 'media', docEscritorio: r.doc_escritorio ?? null, docCentral: r.doc_central ?? null,
     notaEnviadaEn: iso(r.nota_enviada_en), traspasadaEn: iso(r.traspasada_en), hechaEn: iso(r.hecha_en),
-    comEstado: r.com_estado ?? null, comResultado: r.com_resultado ?? null, respuestaEn: iso(r.respuesta_en), resueltaEn: iso(r.resuelta_en), hito: r.hito ?? null, creadoEn: iso(r.creado_en),
+    comEstado: r.com_estado ?? null, comResultado: r.com_resultado ?? null, respuestaEn: iso(r.respuesta_en), resueltaEn: iso(r.resuelta_en), hito: r.hito ?? null, creadoEn: iso(r.creado_en), implementarYaEn: iso(r.implementar_ya_en),
   })));
 }
 
 /** 0093: añade una nota al hilo de la tarea (con fecha y hora) y reabre la comunicación para Claude. */
 export async function anadirNota(jwt: string, id: string, nota: string, modo: 'abierta' | 'cerrar' | 'traspasar') {
   await comoCliente(jwt, (c) => c.query('SELECT dk.admin_tarea_anadir_nota($1, $2, $3)', [id, nota, modo]));
+}
+
+export async function implementarYa(jwt: string, id: string) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_implementar_ya($1)', [id]));
 }
 
 export async function comunicacion(jwt: string, id: string, accion: 'aprobar' | 'reabrir') {

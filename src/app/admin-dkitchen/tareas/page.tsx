@@ -7,7 +7,7 @@ import GuiaZona from '@/components/admin/GuiaZona';
 import RevisionForm from '@/components/admin/RevisionForm';
 import PulirTexto from '@/components/admin/PulirTexto';
 import { tareasDeHoy, esMia, type Adelanto } from '@/lib/tareas-hoy';
-import { guardarTareaAction, materialAction, revisionAction, comunicacionAction } from './actions';
+import { guardarTareaAction, materialAction, revisionAction, comunicacionAction, implementarYaAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +17,7 @@ const OK: Record<string, string> = {
   hecha: 'Tarea cerrada. Pasa a «Resueltas».', bloqueada: 'Marcada como bloqueada. Claude leerá tu nota.', pendiente: 'Reabierta.',
   nota: 'Nota enviada a Claude. La tarea sigue abierta para ti y la nota está en «Comunicación».', cerrar: 'Nota enviada y tarea cerrada. Está en «Resueltas».',
   traspasar: 'Nota enviada: cerrada para ti y pendiente para Claude. La sigues en «Comunicación».',
+  implementar: 'En cola: Claude la tiene la primera en su arranque y está en Hoy · De Claude. Cuando la termine, te llega para aprobar.',
   aprobar: 'Aprobada: la comunicación pasa a Resueltas.', reabrir: 'Reabierta: Claude la verá al empezar su sesión.',
   revision: 'Enviada: la tiene Claude y está aquí, en «Enviadas a Claude», hasta que responda. Tus comentarios anteriores se conservan en el hilo.', aprobada: 'Aprobada: está en «Aprobadas».',
   material: 'Enviado al Buzón para Claude. Lo leerá al empezar su próxima sesión.',
@@ -128,7 +129,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
                 className={`rounded-full px-4 py-2 font-semibold ${filtroRev === k ? 'bg-tinta text-white' : 'border border-acero bg-white'}`}>{t} · {revisiones?.filter(GRUPOS_REV[k]).length ?? 0}</a>
             ))}
           </nav>
-          {revsVisibles.length ? <ul className="space-y-3">{revsVisibles.map((r) => <RevisionFicha key={r.id} r={r} />)}</ul>
+          {revsVisibles.length ? <ul className="space-y-3">{revsVisibles.map((r) => <RevisionFicha key={r.id} r={r} tarea={todas.find((t) => t.id === r.tareaId) ?? null} filtro={filtroRev} />)}</ul>
             : <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">Nada en este apartado.</p>}
         </>
       ) : zona === 'hoy' && tareas ? (
@@ -265,6 +266,7 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
               {t.respuestaEn && <p className="mt-1 text-xs text-niebla">{fecha.format(new Date(t.respuestaEn))}</p>}
             </div>
           )}
+          {deClaude && !hecha && <BotonImplementar t={t} zona={zona} ancla={`t-${t.id}`} />}
           {(t.comEstado === 'respondida' || t.comEstado === 'resuelta') && (
             <form action={comunicacionAction} className="flex flex-wrap items-center gap-2">
               <input type="hidden" name="id" value={t.id} />
@@ -320,7 +322,21 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
   );
 }
 
-function RevisionFicha({ r }: { r: Revision }) {
+/** 0095: botón «▶ Implementar ya» o, si ya está en cola, desde cuándo. */
+function BotonImplementar({ t, zona, ancla, r }: { t: Tarea; zona: string; ancla: string; r?: string }) {
+  if (t.estado === 'hecha') return null;
+  if (t.implementarYaEn) return <p className="rounded-2xl bg-noche px-4 py-2.5 text-sm font-semibold text-oro">▶ En cola para Claude desde el {fecha.format(new Date(t.implementarYaEn))} · la primera en su arranque</p>;
+  return (
+    <form action={implementarYaAction} className="flex flex-wrap items-center gap-2">
+      <input type="hidden" name="id" value={t.id} /><input type="hidden" name="zona" value={zona} /><input type="hidden" name="ancla" value={ancla} />
+      {r && <input type="hidden" name="r" value={r} />}
+      <button className="rounded-full bg-noche px-5 py-2.5 text-sm font-semibold text-oro">▶ Implementar ya</button>
+      <span className="text-xs text-niebla">Pasa a Hoy y Claude empieza por aquí en su próxima sesión.</span>
+    </form>
+  );
+}
+
+function RevisionFicha({ r, tarea, filtro }: { r: Revision; tarea: Tarea | null; filtro: string }) {
   const color = r.estado === 'por_revisar' ? 'bg-oro text-noche' : r.estado === 'cambios' ? 'bg-vino text-white' : 'bg-exito/15 text-exito';
   return (
     <li id={`r-${r.id}`} className={`scroll-mt-6 rounded-[22px] bg-white ${r.estado === 'por_revisar' ? 'border-2 border-oro' : 'border border-linea'}`}>
@@ -359,10 +375,16 @@ function RevisionFicha({ r }: { r: Revision }) {
           {r.estado === 'por_revisar' || (r.estado === 'cambios' && (r.estadoClaude === 'implementada' || r.estadoClaude === 'descartada'))
             ? <RevisionForm id={r.id} accion={revisionAction} comentario={null} />
             : r.estado === 'cambios' && (
+              <>
+              {tarea && <div className="rounded-2xl border border-linea bg-papel/60 p-3 text-sm">
+                <p className="mb-2 text-xs text-niebla">Se implementa en la tarea «{tarea.titulo}»{tarea.paraCuando ? ` · prevista para el ${dia.format(new Date(tarea.paraCuando + 'T12:00:00'))}` : ''}{tarea.estimado ? ` · ⏱ ${tarea.estimado}` : ''}</p>
+                <BotonImplementar t={tarea} zona="revisiones" ancla={`r-${r.id}`} r={filtro} />
+              </div>}
               <details className="rounded-2xl border border-linea p-3">
                 <summary className="cursor-pointer list-none text-sm font-semibold text-vino">✓ Ya está en manos de Claude · Añadir algo más ▾</summary>
                 <div className="mt-3"><RevisionForm id={r.id} accion={revisionAction} comentario={null} /></div>
               </details>
+              </>
             )}
         </div>
       </details>

@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { exigirAdmin } from '@/lib/guard-admin';
-import { guardarTarea, comunicacion, anadirNota, type EstadoTarea, type ModoNota } from '@/lib/tareas';
+import { guardarTarea, comunicacion, anadirNota, implementarYa, type EstadoTarea, type ModoNota } from '@/lib/tareas';
 import { pulirTextoLargo } from '@/lib/texto-ia';
 import { guardarRevision, type EstadoRevision } from '@/lib/revisiones';
 import { escribirBuzon } from '@/lib/buzon';
@@ -49,6 +49,20 @@ export async function comunicacionAction(f: FormData) {
   revalidatePath('/admin-dkitchen/tareas');
   revalidatePath('/admin-dkitchen/ruta');
   redirect(`/admin-dkitchen/tareas?zona=comunicacion&c=${accion === 'aprobar' ? 'resuelta' : 'reabierta'}&ok=${accion}`);
+}
+
+/** 0095: «▶ Implementar ya»: la tarea pasa a Hoy como urgente y la primera en el arranque de Claude. */
+export async function implementarYaAction(f: FormData) {
+  const jwt = await exigirAdmin();
+  const id = String(f.get('id') ?? '');
+  const zona = zonaDe(f);
+  const ancla = String(f.get('ancla') ?? '').replace(/[^a-z0-9-]/gi, '').slice(0, 60);
+  const r = String(f.get('r') ?? '').replace(/[^a-z_]/g, '').slice(0, 20);
+  if (!UUID.test(id)) redirect(`/admin-dkitchen/tareas?zona=${zona}&e=datos`);
+  try { await implementarYa(jwt, id); } catch { redirect(`/admin-dkitchen/tareas?zona=${zona}&e=base`); }
+  revalidatePath('/admin-dkitchen/tareas');
+  revalidatePath('/admin-dkitchen/ruta');
+  redirect(`/admin-dkitchen/tareas?zona=${zona}${r ? '&r=' + r : ''}&ok=implementar${ancla ? '#' + ancla : ''}`);
 }
 
 /** «✨ Pulir con IA» (18/10): corrige una nota de karc0 con AI Gateway. Solo admin y solo al pulsar. */

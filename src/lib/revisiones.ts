@@ -15,6 +15,8 @@ export interface Revision {
   id: string; titulo: string; queCambio: string | null; enlace: string | null; version: string | null;
   estado: EstadoRevision; comentario: string | null; imagenes: string[]; creadoEn: string; revisadoEn: string | null; leidoClaude: boolean;
   estadoClaude: string | null; respuestaClaude: string | null; respondidaEn: string | null;
+  /** Tarea ligada: al cerrarla, la revisión pasa a «Resueltas por Claude»; «▶ Implementar ya» actúa sobre ella. */
+  tareaId: string | null;
 }
 
 export async function verRevisiones(jwt: string): Promise<Revision[]> {
@@ -24,6 +26,7 @@ export async function verRevisiones(jwt: string): Promise<Revision[]> {
     creadoEn: new Date(r.creado_en).toISOString(), revisadoEn: r.revisado_en ? new Date(r.revisado_en).toISOString() : null,
     leidoClaude: !r.cambiado_en || (!!r.leido_claude_en && new Date(r.leido_claude_en) >= new Date(r.cambiado_en)),
     estadoClaude: r.estado_claude ?? null, respuestaClaude: r.respuesta_claude ?? null, respondidaEn: r.respondida_en ? new Date(r.respondida_en).toISOString() : null,
+    tareaId: r.tarea_id ?? null,
   })));
 }
 
