@@ -16,6 +16,8 @@ import { Titulo, BandaFoto } from '@/components/dk/Bloques';
 import { FondoVivo } from '@/components/dk/Movimiento';
 import { QR_MENU, PLANES_QR } from '@/lib/pricing-config';
 import EmbudoVista from '@/components/EmbudoVista';
+import TarjetaFundador from '@/components/dk/TarjetaFundador';
+import VentajasQr from '@/components/dk/VentajasQr';
 
 export const metadata: Metadata = {
   title: 'Carta digital QR para restaurantes · 1 € el primer mes',
@@ -81,7 +83,9 @@ export default function PaginaQr() {
       </section>
       <SalaViva />
       <TodoIncluidoQr />
+      <section className="bg-crema px-6 py-20 md:px-8 md:py-28"><div className="mx-auto max-w-6xl"><p className="etiqueta-dk text-vino">Lo que hace distinta tu carta</p><h2 className="font-display mt-3 max-w-3xl text-4xl font-semibold leading-[1.02] text-tinta md:text-5xl">Desde una foto, con tus platos y reseñas de toda la mesa.</h2><div className="mt-10"><VentajasQr /></div></div></section>
       <PlanesQr />
+      <div className="bg-white px-6 pb-16 md:px-8 md:pb-24"><TarjetaFundador className="mx-auto max-w-6xl" /></div>
       <ComparativaQr />
       <PreguntasQr />
     </div>

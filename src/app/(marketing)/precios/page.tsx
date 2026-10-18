@@ -9,9 +9,8 @@ import { Titulo } from '@/components/dk/Bloques';
 import {
   QR_MENU, QR_FISICOS, SERVICIOS_QR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES, DARK_KITCHEN, FUNDADOR, formatPrecio, puntosPlanQr,
 } from '@/lib/pricing-config';
-import { estadoFundador } from '@/lib/fundador';
 import { WHATSAPP_DEMO } from '@/lib/whatsapp';
-import ContadorFundador from '@/components/fundador/ContadorFundador';
+import TarjetaFundador from '@/components/dk/TarjetaFundador';
 
 // El contador Fundador sale de la base: la página se regenera cada 5 minutos.
 export const revalidate = 300;
@@ -116,7 +115,6 @@ function Tabla({ titulo, sub, filas }: { titulo: string; sub: string; filas: Lin
 }
 
 export default async function PaginaPrecios() {
-  const fundador = await estadoFundador();
   const mensual = (precio: number) => ({ '@type': 'UnitPriceSpecification', price: precio, priceCurrency: 'EUR', valueAddedTaxIncluded: false, unitCode: 'MON', referenceQuantity: { '@type': 'QuantitativeValue', value: 1, unitCode: 'MON' } });
   const producto = (nombre: string, url: string, offers: object) => ({ '@type': 'Product', name: nombre, url, brand: { '@type': 'Brand', name: 'DKitchen' }, offers: { '@type': 'Offer', priceCurrency: 'EUR', availability: 'https://schema.org/InStock', url, ...offers } });
   const ld = [
@@ -180,20 +178,8 @@ export default async function PaginaPrecios() {
             ))}
           </div>
 
-          {fundador?.abierto && (
-            <Aparecer>
-              <div className="mt-10 flex flex-col gap-5 rounded-[28px] border border-vino/40 bg-vino/[0.06] p-7 md:flex-row md:items-center md:justify-between md:p-9">
-                <div>
-                  <p className="etiqueta-dk text-vino">Oferta de lanzamiento · plazas limitadas</p>
-                  <p className="font-display mt-2 text-5xl font-semibold leading-none tracking-tight text-tinta md:text-7xl">Fundador</p>
-                  <p className="font-display mt-4 text-2xl font-semibold leading-tight md:text-3xl">Todo el plan {PS.nombre} por {eur(FUNDADOR.mensual)}/mes <span className="text-niebla line-through decoration-2">{eur(PS.mensual)}</span>, de por vida</p>
-                  <p className="mt-2 text-sm text-niebla">{eur(FUNDADOR.trimestre)} + IVA por trimestre, mientras sigas en {PS.nombre}. <a href="/terms#fundador" target="_blank" rel="noopener noreferrer" className="underline">Condiciones completas</a> (se abren aparte).</p>
-                  <ActivarPlanBoton plan="fundador" etiqueta="Hacerme Fundador →" className="mt-6 inline-flex rounded-full bg-vino px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(163,24,74,.35)] transition hover:bg-vino-hondo" />
-                </div>
-                <ContadorFundador quedan={fundador.quedan} plazas={fundador.plazas} cierraEn={fundador.cierraEn} />
-              </div>
-            </Aparecer>
-          )}
+          {/* 18/10 (karc0): Fundador realzado, con foto y alta directa (misma tarjeta que portada y /qr) */}
+          <TarjetaFundador className="mt-10" />
 
           <div id="modulos" className="scroll-mt-20 mt-24 border-t border-linea pt-16">
             <p className="etiqueta-dk text-vino">02 · Extras de la carta QR</p>

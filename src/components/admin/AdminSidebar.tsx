@@ -8,97 +8,111 @@ import { Icono } from '@/components/panel/Iconos';
 import MenuCuenta, { OpcionesCuenta, type Cuenta } from '@/components/admin/MenuCuenta';
 
 /**
- * Navegación de Central (29/09/2026): mismo modelo que el panel del cliente.
- * Raíl de iconos en escritorio y barra flotante en móvil con los espacios
- * principales; las herramientas antiguas quedan en «Más».
+ * Navegación de Central. 18/10/2026 (decisión de karc0): 6 zonas con submenú en vez de
+ * 5 espacios + 15 herramientas sueltas en «Más». Cada zona agrupa lo que se usa junto y
+ * se nutre entre sí (p. ej. Ventas: prospección, oportunidades, embudo, campañas,
+ * competencia). El raíl enseña las zonas; las pestañas de la zona van arriba (SubmenuZona).
  */
-const ESPACIOS = [
-  { nombre: 'Inicio', href: '/admin-dkitchen/inicio', icono: 'inicio' },
-  { nombre: 'Clientes', href: '/admin-dkitchen/qr', icono: 'carta' },
-  { nombre: 'Proyectos', href: '/admin-dkitchen/proyectos', icono: 'servicio' },
-  { nombre: 'Prospección', href: '/admin-dkitchen/prospeccion', icono: 'local' },
-  { nombre: 'Soporte', href: '/admin-dkitchen/soporte', icono: 'ayuda' },
+type Item = { nombre: string; href: string };
+type Zona = { id: string; nombre: string; icono: string; items: Item[] };
+export const ZONAS: Zona[] = [
+  { id: 'inicio', nombre: 'Inicio', icono: 'inicio', items: [{ nombre: 'Inicio', href: '/admin-dkitchen/inicio' }] },
+  { id: 'clientes', nombre: 'Clientes', icono: 'carta', items: [
+    { nombre: 'Clientes', href: '/admin-dkitchen/qr' }, { nombre: 'Proyectos', href: '/admin-dkitchen/proyectos' },
+    { nombre: 'Eventos (Experience)', href: '/admin-dkitchen/entradas' }, { nombre: 'Fundador', href: '/admin-dkitchen/fundador' }] },
+  { id: 'ventas', nombre: 'Ventas', icono: 'destello', items: [
+    { nombre: 'Prospección', href: '/admin-dkitchen/prospeccion' }, { nombre: 'Oportunidades', href: '/admin-dkitchen/oportunidades' },
+    { nombre: 'Embudo', href: '/admin-dkitchen/embudo' }, { nombre: 'Campañas y QR', href: '/admin-dkitchen/campanas' },
+    { nombre: 'Competencia', href: '/admin-dkitchen/competencia' }, { nombre: 'Socios', href: '/admin-dkitchen/socios' }] },
+  { id: 'soporte', nombre: 'Soporte', icono: 'ayuda', items: [
+    { nombre: 'Tickets y QR físicos', href: '/admin-dkitchen/soporte' }, { nombre: 'Avisos de fallo', href: '/admin-dkitchen/avisos' },
+    { nombre: 'Buzón', href: '/admin-dkitchen/buzon' }] },
+  { id: 'lanzamiento', nombre: 'Lanzamiento', icono: 'flecha', items: [
+    { nombre: 'Ruta', href: '/admin-dkitchen/ruta' }, { nombre: 'Mis tareas', href: '/admin-dkitchen/tareas' },
+    { nombre: 'Decisiones', href: '/admin-dkitchen/decisiones' }, { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' }] },
+  { id: 'conocimiento', nombre: 'Conocimiento', icono: 'negocio', items: [
+    { nombre: 'Manual de Central', href: '/admin-dkitchen/manual' }, { nombre: 'Documentos', href: '/admin-dkitchen/documentos' },
+    { nombre: 'Reportes', href: '/admin-dkitchen/reportes' }, { nombre: 'Equipo', href: '/admin-dkitchen/administradores' }] },
 ];
-const MAS = [
-  { nombre: 'Ruta de lanzamiento', href: '/admin-dkitchen/ruta' },
-  { nombre: 'Mis tareas', href: '/admin-dkitchen/tareas' },
-  { nombre: 'Decisiones', href: '/admin-dkitchen/decisiones' },
-  { nombre: 'Reportes', href: '/admin-dkitchen/reportes' },
-  { nombre: 'Documentos', href: '/admin-dkitchen/documentos' },
-  { nombre: 'Competencia', href: '/admin-dkitchen/competencia' },
-  { nombre: 'Entradas', href: '/admin-dkitchen/entradas' },
-  { nombre: 'Embudo', href: '/admin-dkitchen/embudo' },
-  { nombre: 'Oportunidades', href: '/admin-dkitchen/oportunidades' },
-  { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' },
-  { nombre: 'Fundador', href: '/admin-dkitchen/fundador' },
-  { nombre: 'Campañas y QR', href: '/admin-dkitchen/campanas' },
-  { nombre: 'Socios', href: '/admin-dkitchen/socios' },
-  { nombre: 'Avisos de fallo', href: '/admin-dkitchen/avisos' },
-  { nombre: 'Manual de Central', href: '/admin-dkitchen/manual' },
-];
+
+const activoEn = (ruta: string, href: string) => ruta === href || ruta.startsWith(href + '/');
+export const zonaDe = (ruta: string) => ZONAS.find((z) => z.items.some((i) => activoEn(ruta, i.href))) ?? null;
+
+/** Pestañas de la zona actual, arriba del contenido (solo si la zona tiene más de una). */
+export function SubmenuZona() {
+  const ruta = usePathname();
+  const z = zonaDe(ruta);
+  if (!z || z.items.length < 2) return null;
+  return (
+    <nav aria-label={`Zona ${z.nombre}`} className="sticky top-0 z-30 border-b border-linea bg-crema/90 px-4 py-2.5 backdrop-blur sm:px-6 lg:px-10">
+      <div className="flex items-center gap-1.5 overflow-x-auto text-sm">
+        <span className="mr-2 shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">{z.nombre}</span>
+        {z.items.map((i) => {
+          const a = activoEn(ruta, i.href);
+          return <Link key={i.href} href={i.href} aria-current={a ? 'page' : undefined} className={`shrink-0 rounded-full px-3.5 py-1.5 font-medium ${a ? 'bg-tinta text-white' : 'text-carbon hover:bg-white'}`}>{i.nombre}</Link>;
+        })}
+      </div>
+    </nav>
+  );
+}
 
 export default function AdminSidebar({ cuenta }: { cuenta: Cuenta }) {
   const [mas, setMas] = useState(false);
   const ruta = usePathname();
-  const activo = (href: string) => ruta === href || ruta.startsWith(href + '/');
-  const enMas = MAS.some((m) => activo(m.href)) || activo('/admin-dkitchen/administradores') || activo('/admin-dkitchen/buzon');
+  const actual = zonaDe(ruta)?.id;
+  const enMovil = ZONAS.filter((z) => z.id !== 'conocimiento');
 
   return (
     <>
       <aside className="sticky top-0 hidden h-screen w-[88px] shrink-0 flex-col items-center bg-noche py-5 text-white md:flex">
         <Link href="/admin-dkitchen/inicio" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.06] font-display text-lg font-semibold text-oro" title="DKitchen · Central">D</Link>
         <nav aria-label="Central" className="mt-8 flex flex-1 flex-col gap-1.5">
-          {ESPACIOS.map((e) => {
-            const a = activo(e.href);
+          {ZONAS.map((z) => {
+            const a = actual === z.id;
             return (
-              <Link key={e.href} href={e.href} aria-current={a ? 'page' : undefined}
-                className={`relative flex w-[68px] flex-col items-center gap-1 rounded-2xl py-2.5 text-[10.5px] font-medium transition-colors ${a ? 'text-white' : 'text-white/45 hover:text-white'}`}>
+              <Link key={z.id} href={z.items[0].href} aria-current={a ? 'page' : undefined} title={z.items.map((i) => i.nombre).join(' · ')}
+                className={`relative flex w-[72px] flex-col items-center gap-1 rounded-2xl py-2.5 text-[10px] font-medium transition-colors ${a ? 'text-white' : 'text-white/45 hover:text-white'}`}>
                 {a && <motion.span layoutId="central-rail" className="absolute inset-0 rounded-2xl bg-white/[0.08] ring-1 ring-oro/30" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-                <span className={`relative ${a ? 'text-oro' : ''}`}><Icono n={e.icono} /></span>
-                <span className="relative">{e.nombre}</span>
+                <span className={`relative ${a ? 'text-oro' : ''}`}><Icono n={z.icono} /></span>
+                <span className="relative">{z.nombre}</span>
               </Link>
             );
           })}
-          <button onClick={() => setMas(true)} className={`relative flex w-[68px] flex-col items-center gap-1 rounded-2xl py-2.5 text-[10.5px] font-medium ${enMas ? 'text-white' : 'text-white/45 hover:text-white'}`}>
-            <span className="text-lg leading-5">···</span>Más
-          </button>
         </nav>
         <MenuCuenta cuenta={cuenta} />
       </aside>
 
       <nav aria-label="Central" className="fixed inset-x-3 bottom-3 z-40 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <ul className="mx-auto flex max-w-md rounded-[26px] bg-noche/95 p-1.5 shadow-[0_16px_40px_rgba(10,8,12,.35)] backdrop-blur-xl">
-          {ESPACIOS.map((e) => {
-            const a = activo(e.href);
+          {enMovil.map((z) => {
+            const a = actual === z.id;
             return (
-              <li key={e.href} className="flex-1">
-                <Link href={e.href} aria-current={a ? 'page' : undefined} className={`relative flex flex-col items-center gap-0.5 rounded-[20px] py-2 text-[10.5px] font-medium ${a ? 'text-white' : 'text-white/50'}`}>
+              <li key={z.id} className="flex-1">
+                <Link href={z.items[0].href} aria-current={a ? 'page' : undefined} className={`relative flex flex-col items-center gap-0.5 rounded-[20px] py-2 text-[10px] font-medium ${a ? 'text-white' : 'text-white/50'}`}>
                   {a && <motion.span layoutId="central-barra" className="absolute inset-0 rounded-[20px] bg-white/[0.1]" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-                  <span className={`relative ${a ? 'text-oro' : ''}`}><Icono n={e.icono} /></span>
-                  <span className="relative">{e.nombre}</span>
+                  <span className={`relative ${a ? 'text-oro' : ''}`}><Icono n={z.icono} /></span>
+                  <span className="relative">{z.nombre}</span>
                 </Link>
               </li>
             );
           })}
           <li className="flex-1">
-            <button onClick={() => setMas(true)} className="flex w-full flex-col items-center gap-0.5 rounded-[20px] py-2 text-[10.5px] font-medium text-white/50"><span className="text-lg leading-5">···</span>Más</button>
+            <button onClick={() => setMas(true)} className={`flex w-full flex-col items-center gap-0.5 rounded-[20px] py-2 text-[10px] font-medium ${actual === 'conocimiento' ? 'text-white' : 'text-white/50'}`}><span className="text-lg leading-5">···</span>Más</button>
           </li>
         </ul>
       </nav>
 
       {mas && (
-        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Más herramientas">
+        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Más">
           <button aria-label="Cerrar" onClick={() => setMas(false)} className="absolute inset-0 bg-black/50" />
-          <div className="absolute bottom-3 left-3 right-3 max-h-[calc(100dvh-24px)] overflow-y-auto rounded-[28px] bg-white p-5 shadow-2xl md:bottom-6 md:left-[100px] md:right-auto md:w-80">
-            <div className="md:hidden">
-              <p className="text-xs text-niebla">Tu cuenta</p>
-              <div className="mt-3"><OpcionesCuenta cuenta={cuenta} alElegir={() => setMas(false)} /></div>
-              <hr className="my-4 border-linea" />
-            </div>
-            <p className="text-xs text-niebla">Otras herramientas</p>
+          <div className="absolute bottom-3 left-3 right-3 max-h-[calc(100dvh-24px)] overflow-y-auto rounded-[28px] bg-white p-5 shadow-2xl">
+            <p className="text-xs text-niebla">Tu cuenta</p>
+            <div className="mt-3"><OpcionesCuenta cuenta={cuenta} alElegir={() => setMas(false)} /></div>
+            <hr className="my-4 border-linea" />
+            <p className="text-xs text-niebla">Conocimiento</p>
             <ul className="mt-3 grid gap-1.5">
-              {MAS.map((m) => (
-                <li key={m.href}><Link href={m.href} onClick={() => setMas(false)} className={`block rounded-2xl px-4 py-3 text-sm font-medium ${activo(m.href) ? 'bg-tinta text-white' : 'bg-papel text-carbon'}`}>{m.nombre}</Link></li>
+              {ZONAS.find((z) => z.id === 'conocimiento')!.items.map((m) => (
+                <li key={m.href}><Link href={m.href} onClick={() => setMas(false)} className={`block rounded-2xl px-4 py-3 text-sm font-medium ${activoEn(ruta, m.href) ? 'bg-tinta text-white' : 'bg-papel text-carbon'}`}>{m.nombre}</Link></li>
               ))}
             </ul>
           </div>

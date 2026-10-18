@@ -45,6 +45,8 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
     resueltas: todas.filter((t) => t.estado === 'hecha').sort((a, b) => (b.hechaEn ?? '').localeCompare(a.hechaEn ?? '')),
   };
   const revPend = revisiones?.filter((r) => r.estado === 'por_revisar').length ?? 0;
+  const filtroRev = (['por_revisar', 'cambios', 'aprobada'] as const).find((k) => k === sp.r) ?? (revPend ? 'por_revisar' : 'cambios');
+  const revsVisibles = revisiones?.filter((x) => x.estado === filtroRev) ?? [];
   const ZONAS = [
     ['hoy', 'Hoy', zonas.hoy.length], ['mias', 'Lo mío', zonas.mias.length], ['claude', 'De Claude', zonas.claude.length],
     ['enviadas', 'Notas enviadas', zonas.enviadas.filter((t) => !t.leidoClaude).length], ['revisiones', 'Revisiones', revPend], ['resueltas', 'Resueltas', zonas.resueltas.length],
@@ -94,8 +96,17 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
       {!tareas && <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">No se pudieron leer las tareas.</p>}
 
       {zona === 'revisiones' ? (
-        revisiones && revisiones.length ? <ul className="space-y-3">{revisiones.map((r) => <RevisionFicha key={r.id} r={r} />)}</ul>
-          : <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">No hay nada que revisar ahora mismo.</p>
+        <>
+          {/* 18/10 (karc0): cada revisión en su sitio según su estado, sin que nada se pierda */}
+          <nav aria-label="Estado de las revisiones" className="flex flex-wrap gap-2 text-sm">
+            {([['por_revisar', 'Por revisar'], ['cambios', 'Enviadas a Claude (con cambios)'], ['aprobada', 'Aprobadas']] as const).map(([k, t]) => (
+              <a key={k} href={`/admin-dkitchen/tareas?zona=revisiones&r=${k}`} aria-current={filtroRev === k ? 'page' : undefined}
+                className={`rounded-full px-4 py-2 font-semibold ${filtroRev === k ? 'bg-tinta text-white' : 'border border-acero bg-white'}`}>{t} · {revisiones?.filter((x) => x.estado === k).length ?? 0}</a>
+            ))}
+          </nav>
+          {revsVisibles.length ? <ul className="space-y-3">{revsVisibles.map((r) => <RevisionFicha key={r.id} r={r} />)}</ul>
+            : <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">Nada en este apartado.</p>}
+        </>
       ) : lista.length === 0 && tareas ? (
         <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">Nada en esta zona. 🎉</p>
       ) : grupos.map(([b, l]) => (
@@ -127,8 +138,8 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
         </>
       )}
 
-      <nav aria-label="Zonas de tareas" className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-3">
-        <div className="flex max-w-full gap-1 overflow-x-auto rounded-full border border-white/10 bg-noche/95 p-1.5 text-sm shadow-[0_20px_50px_rgba(23,25,30,.35)] backdrop-blur">
+      <nav aria-label="Zonas de tareas" className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-3">
+        <div className="pointer-events-auto flex max-w-full gap-1 overflow-x-auto rounded-full border border-white/10 bg-noche/95 p-1.5 text-sm shadow-[0_20px_50px_rgba(23,25,30,.35)] backdrop-blur">
           {ZONAS.map(([k, txt, n]) => (
             <a key={k} href={`/admin-dkitchen/tareas?zona=${k}`} aria-current={zona === k ? 'page' : undefined}
               className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 font-semibold ${zona === k ? 'bg-oro text-noche' : 'text-white/80 hover:bg-white/10'}`}>

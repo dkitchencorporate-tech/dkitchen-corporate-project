@@ -6,6 +6,8 @@ import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
 import { NOMBRE_ALERTA, enlaceAlerta, type DatosMando, type Ventana } from '@/lib/mando';
 import { resumenProyectos } from '@/lib/proyectos';
 import GuiaZona from '@/components/admin/GuiaZona';
+import { recordatoriosPendientes } from '@/lib/comunicaciones';
+import { recordatorioHechoAction } from '../qr/comunicacion';
 
 export const dynamic = 'force-dynamic';
 
@@ -148,6 +150,8 @@ export default async function CentralInicio() {
     resumenProyectos(jwt).catch(() => undefined),
   ]);
   const avisos = evaluarCapacidad(capacidad);
+  // 0089: recordatorios de la ficha 360 («llámale el día X») de hoy, mañana o atrasados
+  const recordatorios = await recordatoriosPendientes(jwt).catch(() => []);
   const hace30 = Date.now() - 30 * 864e5;
   // 0061: las cuentas demo internas y las archivadas no cuentan en nada de esta portada.
   const reales = clientes.filter((c) => !c.demoInterna && !c.archivadoEn);
@@ -183,6 +187,23 @@ export default async function CentralInicio() {
         <p className="text-sm text-niebla">{saludo}</p>
         <h1 className="font-display mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">Central</h1>
       </header>
+
+      {recordatorios.length > 0 && (
+        <section className="rounded-[22px] border-2 border-oro bg-white p-5 sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Recordatorios de clientes</p>
+          <ul className="mt-3 space-y-2">
+            {recordatorios.map((x) => (
+              <li key={x.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-papel px-4 py-3 text-sm">
+                <span className="min-w-0 flex-1"><span className="font-semibold">{x.local ?? 'Cliente'}</span> · <span className="text-niebla">{x.recordarEn}</span><span className="mt-0.5 block line-clamp-2 text-carbon">{x.cuerpo}</span></span>
+                <span className="flex shrink-0 gap-2">
+                  {x.restauranteId && <Link href={`/admin-dkitchen/qr/${x.restauranteId}#comunicacion`} className="rounded-full bg-tinta px-3 py-1.5 text-xs font-semibold text-white">Abrir ficha</Link>}
+                  <form action={recordatorioHechoAction}><input type="hidden" name="id" value={x.id} /><input type="hidden" name="volver" value="/admin-dkitchen/inicio" /><button className="rounded-full border border-acero px-3 py-1.5 text-xs font-semibold">Hecho</button></form>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <GuiaZona titulo="Inicio" ancla="inicio"
         que="El estado del negocio de un vistazo y lo que necesita a una persona hoy. Las cuentas demo internas y las archivadas no cuentan aquí."

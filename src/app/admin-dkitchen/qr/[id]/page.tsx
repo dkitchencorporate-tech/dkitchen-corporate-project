@@ -12,7 +12,7 @@ import { resumenCobro, euros, fechaLarga, diasHasta } from '@/lib/prueba';
 import { obtenerCarta } from '@/lib/menu';
 import { listarTraducciones } from '@/lib/idiomas';
 import TraductorCarta from '@/components/admin/TraductorCarta';
-import { anularEnlaceAction, regalarTodoAction, cartaDemoAction, reenviarAccesoAction, cambiarEstadoAction, cambiarPlanAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction,
+import { anularEnlaceAction, regalarTodoAction, reenviarAccesoAction, cambiarEstadoAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction,
   darDeBajaAction, anularBajaAction, archivarAction, demoInternaAction, entrarSoporteAction } from '../actions';
 import { QR_MENU, PLANES_QR, esPlanQr, nombrePlan } from '@/lib/pricing-config';
 import GuiaZona from '@/components/admin/GuiaZona';
@@ -21,7 +21,7 @@ import { listarProyectos, nombreFase, PRODUCTOS_PROYECTO } from '@/lib/proyectos
 export const dynamic = 'force-dynamic';
 
 const CATALOGO_SERVICIOS: [string, string][] = [
-  ['setup_esencial', 'Setup Esencial'], ['setup_experto', 'Setup Experto · Carta de Autor'], ['idiomas', 'Pack de idiomas (antiguo)'], ['idioma_extra', 'Idioma extra'],
+  ['setup_esencial', 'Puesta a punto'], ['setup_experto', 'Carta de Autor (ya no se vende)'], ['idiomas', 'Pack de idiomas (antiguo)'], ['idioma_extra', 'Idioma extra'], ['bono_ia', 'Bono de 50 fotos con IA'],
 ];
 // 08/10 (karc0): plano de mesas, app de sala, TPV y Pack Sala ya no son módulos sueltos: van
 // incluidos según el plan (Carta/Local/Sala, 0050). La ficha solo enseña los extras de pago único.
@@ -390,33 +390,21 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           )}
           {/* 18/10 (karc0): cada acción dice qué hace y cuándo usarla */}
           <div className="grid w-full gap-3 sm:grid-cols-2">
-            {ficha.platos === 0 && (
-              <form action={cartaDemoAction} className="rounded-2xl border border-linea p-4">
-                <input type="hidden" name="restauranteId" value={r.id} />
-                <p className="font-semibold">Cargar carta de demostración</p>
-                <p className="mt-1 text-xs text-niebla">Rellena su carta vacía con platos de ejemplo para enseñarle cómo queda. Solo aparece si no tiene ningún plato: no borra nada. Úsala en la primera visita o en la demo.</p>
-                <button className="mt-3 rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Cargar ejemplo</button>
-              </form>
-            )}
-            {ficha.email && (
-              <form action={reenviarAccesoAction} className="rounded-2xl border border-linea p-4">
-                <input type="hidden" name="email" value={ficha.email} />
-                <p className="font-semibold">Reenviar enlace de acceso</p>
-                <p className="mt-1 text-xs text-niebla">Le llega a {ficha.email} el correo para fijar (o cambiar) su contraseña del panel. Úsalo si dice que no puede entrar o que no le llegó el correo de alta.</p>
-                <button className="mt-3 rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Reenviar acceso</button>
-              </form>
-            )}
+            {/* 18/10 (revisión de karc0): acciones con sentido para un cliente que ya paga: vender mejor, no regalar */}
             <div className="rounded-2xl border border-linea p-4">
-              <p className="font-semibold">Cambiar el plan sin cobrar</p>
-              <p className="mt-1 text-xs text-niebla">Corrige su plan en la base al momento, <strong>sin generar ningún cobro</strong> (cortesía o corrección). Para cobrar un cambio de plan usa «Cobrar» → «Cambiar de plan».</p>
+              <p className="font-semibold">Montar su carta desde una foto</p>
+              <p className="mt-1 text-xs text-niebla">{ficha.platos === 0 ? 'Su carta está vacía.' : `Tiene ${ficha.platos} platos.`} Pídele una foto o el PDF de su carta (plantilla «Mensaje libre» por WhatsApp) y la cargamos nosotros entrando en su panel. Si no tiene la Puesta a punto, ofrécesela con descuento.</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                {PLANES_QR.filter((p) => p !== r.plan).map((p) => (
-                  <form key={p} action={cambiarPlanAction}>
-                    <input type="hidden" name="restauranteId" value={r.id} />
-                    <input type="hidden" name="plan" value={p} />
-                    <button className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Pasar a {nombrePlan(p)} (sin cobro)</button>
-                  </form>
-                ))}
+                <a href="#comunicacion" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Pedirle la foto</a>
+                <a href="#enlace" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Puesta a punto con descuento</a>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-linea p-4">
+              <p className="font-semibold">Proponerle una mejora</p>
+              <p className="mt-1 text-xs text-niebla">Mira «Resumen»: si va por encima del 80 % de su plan, prepárale el cambio en «Cobrar → Cambiar de plan» (en el paso 2 puedes poner un precio con descuento) y mándaselo con la plantilla «Propuesta de mejora de plan». Si tiene volumen, la de «Invitación a Signature».</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a href="#enlace" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Preparar la mejora</a>
+                <Link href="/admin-dkitchen/oportunidades" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Ver oportunidades →</Link>
               </div>
             </div>
             <div className="rounded-2xl border border-linea p-4">
@@ -528,11 +516,11 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
 
       <section id="servicios" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6 space-y-4">
         <div>
-          <h2 className="font-display text-xl font-semibold tracking-tight">Extras contratados</h2>
+          <h2 className="font-display text-xl font-semibold tracking-tight">Extras contratados y lo que puedes ofrecerle</h2>
           <p className="text-xs text-niebla">Mesas, camareros, reservas, TPV y app de sala van incluidos según su plan ({nombrePlan(r.plan)}); para cambiarlos, cambia de plan. Aquí solo están los extras de pago único: se cobran en «Cobrar» y aquí se marcan como entregados o se cancelan. Todo queda en el historial.</p>
         </div>
         <ul className="divide-y divide-linea text-sm">
-          {CATALOGO_SERVICIOS.map(([clave, nombre]) => {
+          {CATALOGO_SERVICIOS.filter(([clave]) => servicios.some((x) => x.servicio === clave && x.estado !== 'cancelado')).map(([clave, nombre]) => {
             const s = servicios.find((x) => x.servicio === clave);
             const enPack = !s && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(clave) && servicios.some((x) => x.servicio === 'pack_sala' && x.estado !== 'cancelado');
             if (enPack) return (
@@ -563,6 +551,16 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
             );
           })}
         </ul>
+        {!servicios.some((x) => x.estado !== 'cancelado' && CATALOGO_SERVICIOS.some(([k]) => k === x.servicio)) && <p className="text-sm text-niebla">No tiene extras contratados.</p>}
+        {/* 18/10 (karc0): aquí se vende, no se listan cosas que ya no existen */}
+        <div className="grid gap-2 sm:grid-cols-2">
+          {!servicios.some((x) => x.servicio === 'setup_esencial' && x.estado !== 'cancelado') && (
+            <a href="#enlace" className="rounded-2xl border border-oro/50 bg-oro/10 p-4 text-sm"><span className="block font-semibold">Puesta a punto · 29 € en vez de 49 €</span><span className="mt-1 block text-xs text-niebla">Carta cargada, TPV conectado, formación y fotos con IA. Prepara el cobro con descuento en «Cobrar».</span></a>
+          )}
+          <a href="#enlace" className="rounded-2xl border border-linea p-4 text-sm"><span className="block font-semibold">Bono de 50 fotos con IA · 9 €</span><span className="mt-1 block text-xs text-niebla">Para que todos sus platos tengan foto (3 gratis siempre).</span></a>
+          <a href="#enlace" className="rounded-2xl border border-linea p-4 text-sm"><span className="block font-semibold">Idioma extra · 15 €</span><span className="mt-1 block text-xs text-niebla">Si recibe turistas y su plan ya tiene los idiomas ocupados.</span></a>
+          <Link href="/admin-dkitchen/soporte" className="rounded-2xl border border-linea p-4 text-sm"><span className="block font-semibold">QR físicos para las mesas</span><span className="mt-1 block text-xs text-niebla">Pegatinas o metacrilato con su QR (pedidos en Soporte).</span></Link>
+        </div>
 
         {servicios.filter((x) => x.servicio === 'setup_esencial' || x.servicio === 'setup_experto').map((s) => (
           <form key={s.servicio} action={checklistSetupAction} className="rounded-xl bg-white p-4 text-sm">
@@ -578,7 +576,8 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           </form>
         ))}
 
-        {servicios.some((x) => x.servicio === 'conexion_tpv' || x.servicio === 'pack_sala') && (
+        {/* 0050: la conexión con el TPV va incluida en todos los planes */}
+        {true && (
           <form action={conexionTpvAction} autoComplete="off" className="space-y-2 rounded-xl bg-white p-4 text-sm">
             <input type="hidden" name="restauranteId" value={r.id} />
             <p className="font-bold">Conexión con el TPV</p>

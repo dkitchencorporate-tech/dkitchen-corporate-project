@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { TextoRevelado, BotonMagnetico } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
 import VistaExplosionada from '@/components/dk/VistaExplosionada';
+import TarjetaFundador from '@/components/dk/TarjetaFundador';
+import VentajasQr from '@/components/dk/VentajasQr';
 import { QR_MENU, PLANES_QR, puntosPlanQr } from '@/lib/pricing-config';
 
 /**
@@ -42,7 +44,9 @@ export default function SeccionQrPortada() {
 
       <section className="relative z-10 bg-crema pb-24 pt-16 md:pb-32 md:pt-24">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <Aparecer><h3 className="font-display text-3xl font-semibold text-tinta md:text-4xl">Tres planes, por cantidades. Sin módulos sueltos.</h3></Aparecer>
+          <Aparecer><h3 className="font-display text-3xl font-semibold text-tinta md:text-4xl">Lo que hace distinta tu carta.</h3></Aparecer>
+          <div className="mt-8"><VentajasQr /></div>
+          <Aparecer className="mt-20"><h3 className="font-display text-3xl font-semibold text-tinta md:text-4xl">Tres planes, por cantidades. Sin módulos sueltos.</h3></Aparecer>
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {PLANES_QR.map((id, i) => {
               const pl = QR_MENU.planes[id];
@@ -65,6 +69,8 @@ export default function SeccionQrPortada() {
             <Link href="/demos/carta" className="font-semibold underline decoration-vino decoration-2 underline-offset-4">Ver una carta de muestra en vivo →</Link>
             <Link href="/qr" className="font-semibold underline decoration-vino decoration-2 underline-offset-4">Todo sobre la carta QR →</Link>
           </Aparecer>
+
+          <TarjetaFundador className="mt-16" />
 
           <Aparecer className="mt-16">
             <div className="relative overflow-hidden rounded-[32px] bg-noche p-8 text-white md:p-12">

@@ -14,7 +14,7 @@ const numero = (s: string) => Number(s.replace(',', '.'));
  * 1. Qué cobras · 2. Cuánto · 3. Enviar. El importe se guarda en la base
  * antes de ir al pago; al pagarlo se activa solo.
  */
-/** 18/10 (karc0): cada extra explica qué es y qué pasa al pagarlo; el pack de idiomas antiguo ya no se ofrece (los idiomas van por plan, 0086). */
+/** 18/10 (karc0): cada extra explica qué es y qué pasa al pagarlo; ni el pack de idiomas antiguo (idiomas por plan, 0086) ni la Carta de Autor (ya incluida en el diseño) se ofrecen. La Puesta a punto se vende con descuento. */
 const EXTRAS: Record<string, { que: string; despues: string }> = {
   bono_ia: { que: '50 fotos de plato generadas con IA a partir de sus fotos o del nombre del plato (3 gratis siempre).', despues: 'Al pagarlo, queda en sus extras contratados y el bono se suma a su Estudio de fotos.' },
   idioma_extra: { que: 'Un idioma más traducido por DKitchen, además de los que trae su plan.', despues: 'Al pagarlo, se suma solo a los idiomas que puede activar; la traducción la hacemos desde «Entrar en su panel» → Idiomas.' },
@@ -25,7 +25,7 @@ const EXTRAS: Record<string, { que: string; despues: string }> = {
 export default function EnlacesPago({ restauranteId, catalogo: todo, demo = false, planActual = null, pagando = false }: { restauranteId: string; catalogo: Cat[]; demo?: boolean; planActual?: string | null; pagando?: boolean }) {
   // 08/10 (karc0): los módulos mensuales sueltos quedaron sustituidos por los planes por cantidades
   // (Carta/Local/Sala). Aquí solo se ofrecen extras de pago único.
-  const catalogo = todo.filter((c) => c.tipo !== 'mensual' && c.servicio !== 'idiomas');
+  const catalogo = todo.filter((c) => c.tipo !== 'mensual' && c.servicio !== 'idiomas' && c.servicio !== 'setup_experto');
   const [paso, setPaso] = useState(1);
   const [plan, setPlan] = useState('');
   const [servicios, setServicios] = useState<string[]>([]);

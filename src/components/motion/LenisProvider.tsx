@@ -14,6 +14,9 @@ export default function LenisProvider() {
     const lenis = new Lenis({
       duration: 1.1,
       smoothWheel: true,
+      // 18/10 (karc0: «el modal de Fundador no hace scroll, se mueve la página de atrás»): dentro de
+      // cualquier diálogo o zona marcada, la rueda la gestiona el navegador y no Lenis.
+      prevent: (nodo: HTMLElement) => !!nodo.closest?.('[role="dialog"], [data-lenis-prevent]'),
     });
 
     let frame: number;
