@@ -59,7 +59,7 @@ export default function VistaExplosionada() {
   const publicada = useTransform(p, [0.76, 0.84], [0, 1]);
   // 18/10 (2.ª vuelta, fotos de karc0): la escala sale de MEDIR el hueco real del escenario (no de fórmulas):
   // móvil + capas miden ~620 × 980 px a escala 1 en escritorio (560 × 370 en móvil). Así siempre cabe entero,
-  // también al final, y en escritorio el título va a la izquierda para dejar todo el alto al móvil.
+  // también al final, y desde 1024 px el título va a la izquierda para dejar todo el alto al móvil (en tablet vertical, arriba).
   const escenario = useRef<HTMLDivElement>(null);
   const [ajuste, setAjuste] = useState(1);
   useEffect(() => {
@@ -76,13 +76,13 @@ export default function VistaExplosionada() {
 
   return (
     <section ref={ref} className="relative h-[280vh] bg-crema">
-      <div className="sticky top-0 flex h-[100dvh] flex-col items-center overflow-hidden pb-14 pt-24 md:flex-row md:items-stretch md:pb-4 md:pt-24">
+      <div className="sticky top-0 flex h-[100dvh] flex-col items-center overflow-hidden pb-14 pt-24 lg:flex-row lg:items-stretch md:pb-4 md:pt-24">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(23,25,30,.07)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
-        <div className="relative z-30 px-6 text-center md:w-[34%] md:shrink-0 md:self-center md:pl-[5vw] md:pr-4 md:text-left">
+        <div className="relative z-30 px-6 text-center lg:w-[34%] lg:shrink-0 lg:self-center lg:pl-[5vw] lg:pr-4 lg:text-left">
           <p className="etiqueta-dk text-vino">Por dentro</p>
           <motion.h2 key={fase} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
             className="font-display mt-3 text-3xl font-semibold leading-[1.05] text-tinta md:text-5xl">{titulos[fase]}</motion.h2>
-          <p className="mt-4 hidden max-w-xs text-niebla md:block">{['Así la ven tus clientes al escanear el QR de la mesa.', 'Fotos, precios al momento, alérgenos, reservas, idiomas y un QR para siempre.', 'Lo cambias en tu móvil y ya está en todas las mesas.'][fase]}</p>
+          <p className="mt-4 hidden max-w-xs text-niebla lg:block">{['Así la ven tus clientes al escanear el QR de la mesa.', 'Fotos, precios al momento, alérgenos, reservas, idiomas y un QR para siempre.', 'Lo cambias en tu móvil y ya está en todas las mesas.'][fase]}</p>
         </div>
         <GuiaScroll progreso={p} pasos={['Tu carta', 'Por dentro', 'Publicada']} cortes={[0.12, 0.7]} movil />
         <div ref={escenario} className="relative w-full flex-1 md:pr-20">
