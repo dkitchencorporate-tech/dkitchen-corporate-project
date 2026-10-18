@@ -58,7 +58,7 @@ export default function NavBar() {
           </ul>
 
           <div className="flex items-center gap-2">
-            <Link href="/panel/iniciar-sesion" className="hidden whitespace-nowrap rounded-full px-4 py-2 text-sm text-white/70 hover:text-white xl:block">Entrar</Link>
+            <Link href="/panel/iniciar-sesion" className="hidden whitespace-nowrap rounded-full px-4 py-2 text-sm text-white/70 hover:text-white xl:block">Zona cliente</Link>
             <Link href="/qr#planes" className="whitespace-nowrap rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-vino-hondo">Empieza por 1 €</Link>
             <button onClick={() => setAbierto(true)} aria-label="Abrir menú" aria-expanded={abierto} className="rounded-full p-2.5 text-white lg:hidden">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 8h16M4 16h16" /></svg>
@@ -86,7 +86,7 @@ export default function NavBar() {
             </ul>
             <div className="mt-auto space-y-3">
               <Link href="/qr#planes" onClick={() => setAbierto(false)} className="block rounded-full bg-vino py-4 text-center font-semibold">Empieza por 1 €</Link>
-              <Link href="/panel/iniciar-sesion" onClick={() => setAbierto(false)} className="block rounded-full border border-white/15 py-4 text-center font-semibold">Entrar en mi panel</Link>
+              <Link href="/panel/iniciar-sesion" onClick={() => setAbierto(false)} className="block rounded-full border border-white/15 py-4 text-center font-semibold">Zona cliente · mi panel</Link>
             </div>
           </motion.div>
         )}
