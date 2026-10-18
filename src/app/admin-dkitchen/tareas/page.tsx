@@ -18,7 +18,7 @@ const OK: Record<string, string> = {
   nota: 'Nota enviada a Claude. La tarea sigue abierta para ti y la nota está en «Comunicación».', cerrar: 'Nota enviada y tarea cerrada. Está en «Resueltas».',
   traspasar: 'Nota enviada: cerrada para ti y pendiente para Claude. La sigues en «Comunicación».',
   aprobar: 'Aprobada: la comunicación pasa a Resueltas.', reabrir: 'Reabierta: Claude la verá al empezar su sesión.',
-  revision: 'Revisión enviada a Claude con tus comentarios.', aprobada: 'Revisión aprobada.',
+  revision: 'Enviada: la tiene Claude y está aquí, en «Enviadas a Claude», hasta que responda. Tus comentarios anteriores se conservan en el hilo.', aprobada: 'Aprobada: está en «Aprobadas».',
   material: 'Enviado al Buzón para Claude. Lo leerá al empezar su próxima sesión.',
 };
 const ERR: Record<string, string> = { datos: 'Datos no válidos.', base: 'No se pudo guardar. Inténtalo de nuevo.', corto: 'Escribe al menos unas palabras (o añade una imagen).', muchos: 'Demasiados mensajes en una hora.' };
@@ -331,14 +331,15 @@ function RevisionFicha({ r }: { r: Revision }) {
             <span className="mt-1 flex flex-wrap gap-2 text-xs text-niebla">
               <span className={`rounded-full px-2.5 py-0.5 font-semibold ${color}`}>{ESTADOS_REVISION[r.estado]}</span>
               <span>{fecha.format(new Date(r.creadoEn))}{r.version ? ` · ${r.version}` : ''}</span>
-              {r.revisadoEn && <span>{r.leidoClaude ? '✓ Claude lo ha leído' : '● Pendiente de que Claude lo lea'}</span>}
+              {r.revisadoEn && r.estado !== 'aprobada' && <span>Enviada a Claude el {fecha.format(new Date(r.revisadoEn))} · {r.leidoClaude ? '✓ la ha leído' : '● aún sin leer'}</span>}
+              {r.estado === 'aprobada' && r.revisadoEn && <span>Aprobada el {fecha.format(new Date(r.revisadoEn))}</span>}
             </span>
           </span>
         </summary>
         <div className="space-y-3 px-5 pb-5">
           {r.queCambio && <p className="whitespace-pre-wrap text-sm leading-relaxed">{r.queCambio}</p>}
           {r.enlace && <a href={r.enlace} target="_blank" rel="noopener noreferrer" className="inline-block rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white">Abrir lo que hay que revisar →</a>}
-          {r.comentario && <div className="rounded-2xl border-l-[3px] border-oro bg-papel px-4 py-3 text-sm"><p className="text-[11px] font-semibold uppercase tracking-[0.15em]">Lo que dijiste</p><p className="mt-1 whitespace-pre-wrap">{r.comentario}</p></div>}
+          {r.comentario && <div className="rounded-2xl border-l-[3px] border-oro bg-papel px-4 py-3 text-sm"><p className="text-[11px] font-semibold uppercase tracking-[0.15em]">Tus comentarios (todos, con fecha)</p><p className="mt-1 whitespace-pre-wrap">{r.comentario}</p></div>}
           {r.estado === 'cambios' && (
             <div className={`rounded-2xl border-l-[3px] px-4 py-3 text-sm ${r.estadoClaude === 'implementada' ? 'border-exito bg-exito/5' : r.estadoClaude === 'en_preguntas' || r.estadoClaude === 'decision' ? 'border-vino bg-vino/5' : 'border-tinta bg-white ring-1 ring-linea'}`}>
               <p className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-[0.15em]">
@@ -355,7 +356,14 @@ function RevisionFicha({ r }: { r: Revision }) {
               {r.imagenes.map((u) => <li key={u}><a href={u} target="_blank" rel="noopener noreferrer"><img src={u} alt="" className="h-24 w-32 rounded-lg object-cover ring-1 ring-linea" /></a></li>)}
             </ul>
           )}
-          {r.estado !== 'aprobada' && <RevisionForm id={r.id} accion={revisionAction} comentario={null} />}
+          {r.estado === 'por_revisar' || (r.estado === 'cambios' && (r.estadoClaude === 'implementada' || r.estadoClaude === 'descartada'))
+            ? <RevisionForm id={r.id} accion={revisionAction} comentario={null} />
+            : r.estado === 'cambios' && (
+              <details className="rounded-2xl border border-linea p-3">
+                <summary className="cursor-pointer list-none text-sm font-semibold text-vino">✓ Ya está en manos de Claude · Añadir algo más ▾</summary>
+                <div className="mt-3"><RevisionForm id={r.id} accion={revisionAction} comentario={null} /></div>
+              </details>
+            )}
         </div>
       </details>
     </li>

@@ -71,7 +71,7 @@ export async function revisionAction(f: FormData) {
   if (estado === 'cambios' && !comentario && !imagenes.length) redirect(`/admin-dkitchen/tareas?zona=revisiones&e=corto#r-${id}`);
   try { await guardarRevision(jwt, id, estado, comentario, imagenes); } catch { redirect('/admin-dkitchen/tareas?zona=revisiones&e=base'); }
   revalidatePath('/admin-dkitchen/tareas');
-  redirect(`/admin-dkitchen/tareas?zona=revisiones&ok=${estado === 'aprobada' ? 'aprobada' : 'revision'}`);
+  redirect(`/admin-dkitchen/tareas?zona=revisiones&r=${estado === 'aprobada' ? 'aprobada' : 'enviadas'}&ok=${estado === 'aprobada' ? 'aprobada' : 'revision'}#r-${id}`);
 }
 
 /** Buzón privado: «te dejo material en mi equipo» (ruta de carpeta, archivo o dato). Va al Buzón para Claude. */
