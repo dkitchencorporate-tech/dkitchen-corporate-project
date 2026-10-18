@@ -128,7 +128,7 @@ function Ficha({ r, tareas, todos }: { r: ReporteMapa; tareas: Tarea[]; todos: R
       <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em]">
         <span className="rounded-full bg-papel px-2.5 py-1 text-vino">{CLASES[r.clase].nombre}</span>
         {r.vigente ? <span className="rounded-full bg-oro/20 px-2.5 py-1 text-carbon">Vigente</span> : <span className="rounded-full bg-acero/40 px-2.5 py-1 text-carbon">Superado</span>}
-        {tareas.length > 0 && <span className="rounded-full bg-noche px-2.5 py-1 text-white">{abiertas.length} {abiertas.length === 1 ? 'tarea abierta' : 'tareas abiertas'} · {tareas.length - abiertas.length} hechas</span>}
+        {tareas.length > 0 && (abiertas.length ? <span className="rounded-full bg-noche px-2.5 py-1 text-white">{abiertas.length} {abiertas.length === 1 ? 'tarea abierta' : 'tareas abiertas'} · {tareas.length - abiertas.length} {tareas.length - abiertas.length === 1 ? 'hecha' : 'hechas'}</span> : <span className="rounded-full bg-emerald-700 px-2.5 py-1 text-white">Cumplido · {tareas.length} {tareas.length === 1 ? 'tarea hecha' : 'tareas hechas'}</span>)}
       </div>
       <Link href={enlaceDocumento(r.ruta)} className="group mt-2 block">
         <p className="font-display text-xl font-semibold leading-snug group-hover:text-vino">{r.titulo}</p>
