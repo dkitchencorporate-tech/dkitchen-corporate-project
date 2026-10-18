@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion, useMotionValueEvent, useScroll, useSpring, useTransform, type MotionValue } from 'framer-motion';
 import CartaDemo from '@/components/qr-landing/CartaDemo';
 import { useAjusteAlto } from './useAjusteAlto';
+import GuiaScroll from './GuiaScroll';
 
 /**
  * Vista explosionada de la carta (29/09/2026, ref. «Camera» de Scrolltide,
@@ -31,11 +32,11 @@ const CAPAS: Capa[] = [
 
 function CapaFlotante({ c, p, movil, i }: { c: Capa; p: MotionValue<number>; movil: boolean; i: number }) {
   const ini = 0.12 + i * 0.03;
-  const x = useTransform(p, [ini, ini + 0.28, 0.78, 0.92], [0, movil ? c.xm : c.x, movil ? c.xm : c.x, 0]);
-  const y = useTransform(p, [ini, ini + 0.28, 0.78, 0.92], [0, movil ? c.ym : c.y, movil ? c.ym : c.y, 0]);
-  const op = useTransform(p, [ini, ini + 0.12, 0.8, 0.9], [0, 1, 1, 0]);
-  const esc = useTransform(p, [ini, ini + 0.28], [0.6, 1]);
-  const rot = useTransform(p, [ini, ini + 0.28], [i % 2 ? 12 : -12, i % 2 ? 2 : -2]);
+  const x = useTransform(p, [ini, ini + 0.26, 0.64, 0.76], [0, movil ? c.xm : c.x, movil ? c.xm : c.x, 0]);
+  const y = useTransform(p, [ini, ini + 0.26, 0.64, 0.76], [0, movil ? c.ym : c.y, movil ? c.ym : c.y, 0]);
+  const op = useTransform(p, [ini, ini + 0.12, 0.66, 0.74], [0, 1, 1, 0]);
+  const esc = useTransform(p, [ini, ini + 0.26], [0.6, 1]);
+  const rot = useTransform(p, [ini, ini + 0.26], [i % 2 ? 12 : -12, i % 2 ? 2 : -2]);
   return (
     <motion.div style={{ x, y, opacity: op, scale: esc, rotate: rot }} className="pointer-events-none absolute left-1/2 top-1/2 z-20 -ml-[66px] -mt-[48px] w-[132px] md:-ml-[110px] md:-mt-[60px] md:w-[220px]">
       <div className="rounded-2xl border border-linea bg-white p-2.5 text-tinta shadow-[0_24px_60px_rgba(23,25,30,.18)] md:p-4">
@@ -53,29 +54,26 @@ export default function VistaExplosionada() {
   useEffect(() => { const f = () => setMovil(window.innerWidth < 768); f(); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f); }, []);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
   const p = useSpring(scrollYProgress, { stiffness: 140, damping: 28, mass: 0.4 });
-  const escMovil = useTransform(p, [0, 0.12, 0.8, 0.95], movil ? [0.85, 0.5, 0.5, 0.8] : [1, 0.82, 0.82, 1]);
-  const giro = useTransform(p, [0, 0.12, 0.8, 0.95], [18, 0, 0, 0]);
-  const publicada = useTransform(p, [0.9, 0.97], [0, 1]);
-  const aviso = useTransform(p, [0, 0.03, 0.8, 0.86], [1, 1, 1, 0]);
+  // 18/10: la animación termina en el 82 % y el resto es reposo, para que el móvil se vea entero ANTES de soltar la sección (antes acababa a escala 1 justo al final y la sección siguiente lo cortaba)
+  const escMovil = useTransform(p, [0, 0.12, 0.66, 0.8], movil ? [0.85, 0.5, 0.5, 0.78] : [0.92, 0.8, 0.8, 0.88]);
+  const giro = useTransform(p, [0, 0.12], [18, 0]);
+  const publicada = useTransform(p, [0.76, 0.84], [0, 1]);
   // 08/10: en portátiles de 14" (≈730 px útiles) el móvil y las capas se salían por abajo
-  const ajuste = useAjusteAlto(680, 250);
+  const ajuste = useAjusteAlto(720, 240);
   const [fase, setFase] = useState(0);
-  useMotionValueEvent(p, 'change', (v) => setFase(v < 0.12 ? 0 : v < 0.8 ? 1 : 2));
+  useMotionValueEvent(p, 'change', (v) => setFase(v < 0.12 ? 0 : v < 0.7 ? 1 : 2));
   const titulos = ['Una carta, seis superpoderes.', 'Todo lo que lleva tu carta.', 'Y todo cabe en un QR.'];
 
   return (
     <section ref={ref} className="relative h-[280vh] bg-crema">
-      <div className="sticky top-0 flex h-[100dvh] flex-col items-center overflow-hidden pt-24 md:pt-28">
+      <div className="sticky top-0 flex h-[100dvh] flex-col items-center overflow-hidden pb-14 pt-24 md:pb-6 md:pt-28">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(23,25,30,.07)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
         <div className="relative z-30 px-6 text-center">
           <p className="etiqueta-dk text-vino">Por dentro</p>
           <motion.h2 key={fase} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
             className="font-display mt-3 text-3xl font-semibold leading-[1.05] text-tinta md:text-5xl">{titulos[fase]}</motion.h2>
         </div>
-        <motion.div style={{ opacity: aviso }} aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-6 z-30 flex flex-col items-center gap-1 text-niebla md:bottom-8">
-          <span className="rounded-full border border-linea bg-white/90 px-4 py-1.5 text-xs font-semibold shadow-sm backdrop-blur">Sigue bajando</span>
-          <svg viewBox="0 0 24 24" className="h-6 w-6 animate-bounce text-vino" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
-        </motion.div>
+        <GuiaScroll progreso={p} pasos={['Tu carta', 'Por dentro', 'Publicada']} cortes={[0.12, 0.7]} movil />
         <div className="relative flex w-full flex-1 items-center justify-center" style={{ transform: `scale(${ajuste})` }}>
           <motion.div style={{ scale: escMovil, rotateX: giro, transformPerspective: 1400 }} className="relative z-10 w-[230px] md:w-[270px]">
             <div className="rounded-[46px] p-[3px] shadow-[0_50px_100px_-20px_rgba(23,25,30,.45)] [background:linear-gradient(145deg,#6b707b,#1b1d22_35%,#0b0c0f_70%,#4a4e57)]">

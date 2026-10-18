@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import GuiaScroll from '@/components/dk/GuiaScroll';
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import CartaMini from './CartaMini';
 import { useAjusteAlto } from '@/components/dk/useAjusteAlto';
@@ -85,6 +86,7 @@ export default function ComoFuncionaQr() {
       <div id="como-funciona" className="scroll-mt-20" />
       <section ref={ref} className="relative hidden h-[240vh] bg-white md:block">
         <div className="sticky top-0 flex h-screen items-center pt-20">
+          <GuiaScroll progreso={scrollYProgress} pasos={['Alta', 'Tu panel', 'Tu cliente']} cortes={[0.34, 0.67]} />
           <div className="mx-auto grid w-full max-w-6xl grid-cols-[1fr_340px] gap-12 px-8" style={{ transform: `scale(${ajuste})` }}>
             <div>
               {cabecera}

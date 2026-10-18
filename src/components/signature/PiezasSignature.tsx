@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import GuiaScroll from '@/components/dk/GuiaScroll';
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion';
 import { CURVA } from '@/components/dk/Movimiento';
 import { BASE_OPERATIVA } from '@/lib/pricing-config';
@@ -169,6 +170,7 @@ export function CapitulosSignature() {
     <>
       <section ref={ref} className="relative hidden h-[400vh] bg-noche text-white md:block">
         <div className="sticky top-0 flex h-screen items-center">
+          <GuiaScroll progreso={scrollYProgress} pasos={CAPITULOS.map((x) => x.t)} oscuro />
           <div className="mx-auto grid w-full max-w-6xl grid-cols-[1fr_300px_1fr] items-center gap-10 px-8">
             <div className={c % 2 === 0 ? '' : 'order-3'}>
               <AnimatePresence mode="wait">

@@ -64,6 +64,7 @@
 @keyframes deriva2 { 0% { transform: translate(0,0) scale(1.1); } 100% { transform: translate(-14vw, 8vh) scale(0.95); } }
 @keyframes deriva3 { 0% { transform: translate(0,0); } 100% { transform: translate(-8vw, -12vh); } }
 @keyframes marquesina { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes rueda { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(8px); opacity: 0; } 100% { transform: translateY(0); opacity: 0; } }
 @keyframes reflejo { 0%, 60% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
 @media (prefers-reduced-motion: reduce) { [class*="animate-[deriva"], [class*="animate-[marquesina"], [class*="animate-[reflejo"] { animation: none !important; } }
 /* H1 revelado palabra a palabra sin JS (Core Web Vitals, 05/10): el LCP ya no espera a la hidratación. */

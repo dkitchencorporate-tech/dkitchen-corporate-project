@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import GuiaScroll from '@/components/dk/GuiaScroll';
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion';
 
 /**
@@ -67,6 +68,7 @@ export default function ProblemaQr() {
       {/* Escritorio: fijado, dos estados claros */}
       <section ref={ref} className="relative hidden h-[190vh] bg-crema md:block">
         <div className="sticky top-0 flex h-screen items-center">
+          <GuiaScroll progreso={scrollYProgress} pasos={['El problema', 'Con DKitchen']} cortes={[0.5]} />
           <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-8 md:grid-cols-2">
             <AnimatePresence mode="wait">
               <motion.div key={fase} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.45, ease: CURVA }}>
@@ -76,7 +78,6 @@ export default function ProblemaQr() {
                 <div className="mt-8 flex items-center gap-3 text-sm text-ceniza">
                   <span className={`h-1.5 w-8 rounded-full ${fase === 0 ? 'bg-vino' : 'bg-linea-fuerte'}`} />
                   <span className={`h-1.5 w-8 rounded-full ${fase === 1 ? 'bg-exito' : 'bg-linea-fuerte'}`} />
-                  <span>{fase === 0 ? 'Sigue bajando' : ''}</span>
                 </div>
               </motion.div>
             </AnimatePresence>

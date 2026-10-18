@@ -4,7 +4,7 @@ import Link from 'next/link';
 import DispositivoVivo from '@/components/dk/DispositivoVivo';
 import { FondoVivo, Marquesina, Contador, TextoRevelado, BotonMagnetico, TarjetaTilt } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
-import VistaExplosionada from '@/components/dk/VistaExplosionada';
+import SeccionQrPortada from '@/components/dk/SeccionQrPortada';
 import { BandaFoto } from '@/components/dk/Bloques';
 import ComparativaQr from '@/components/qr-landing/ComparativaQr';
 import { QR_MENU, BASE_OPERATIVA, EXPERIENCE } from '@/lib/pricing-config';
@@ -38,8 +38,7 @@ const DOLORES = [
 const ESCALERA = [
   { n: '01', t: 'DKitchen Signature', d: 'Tu propia app con tu marca, diseñada para tu local: tus clientes piden y pagan, cocina y TPV integrados. Sin comisiones por pedido y el código es tuyo.', p: `Entrada ${BASE_OPERATIVA.pagoUnico} € · desde ${BASE_OPERATIVA.mantenimiento.mensual} €/mes · + IVA`, href: '/signature', destacado: true, sello: 'Tu marca' },
   { n: '02', t: 'Experience', d: 'Eventos gastronómicos ya diseñados para llenar tus días flojos, con su propia web de reservas y entradas.', p: `Desde ${EXPERIENCE.tarifas.primeraVez.precio} € + IVA por evento`, href: '/experience' },
-  { n: '03', t: 'Carta QR', d: 'La puerta de entrada: carta digital con tu estilo, alérgenos, reservas, comandero y conexión con tu TPV.', p: `Desde ${QR_MENU.planes.basico.mensual} €/mes + IVA · plan ${QR_MENU.planes.ampliado.nombre}: primer mes ${QR_MENU.primerMes} €`, href: '/qr' },
-  { n: '04', t: 'Dark Kitchen', d: 'Marcas virtuales ya operadas para vender a domicilio con la cocina que ya tienes.', p: 'A medida', href: '/dark-kitchen' },
+  { n: '03', t: 'Dark Kitchen', d: 'Marcas virtuales ya operadas para vender a domicilio con la cocina que ya tienes.', p: 'A medida', href: '/dark-kitchen' },
 ];
 
 export default function Home() {
@@ -64,8 +63,6 @@ export default function Home() {
 
       <Marquesina oscura items={['Tu marca, tus clientes', 'Sin comisiones por pedido', 'Eventos para los días flojos', 'Se conecta con tu TPV', 'Alérgenos según la UE', 'Carta QR: primer mes por 1 €']} />
 
-      <VistaExplosionada />
-
       <BandaFoto src="/images/demo/s17.png" frase="La cocina ya es tuya. El cliente también debería serlo." firma="Sin intermediarios entre tu mesa y tu cliente" />
 
       <section className="bg-crema py-24 md:py-32">
@@ -87,7 +84,7 @@ export default function Home() {
       <section className="py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
           <p className="etiqueta-dk text-vino">Qué hacemos</p>
-          <TextoRevelado texto="Marca, eventos y carta. Todo hecho para tu local." className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] md:text-6xl" />
+          <TextoRevelado texto="Marca, eventos y cocina. Todo hecho para tu local." className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] md:text-6xl" />
           <div className="mt-14 space-y-4">
             {ESCALERA.map((e, i) => (
               <Aparecer key={e.n} retraso={i * 0.06}>
@@ -106,11 +103,14 @@ export default function Home() {
               </Aparecer>
             ))}
           </div>
-          <Aparecer className="mt-8">
+          <Aparecer className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-8">
+            <a href="#carta-qr" className="inline-block font-semibold underline decoration-vino decoration-2 underline-offset-4">¿Y la carta QR? Tiene su propia sección, es por donde se empieza ↓</a>
             <Link href="/precios" className="inline-block font-semibold underline decoration-vino decoration-2 underline-offset-4">Ver todos los precios →</Link>
           </Aparecer>
         </div>
       </section>
+
+      <SeccionQrPortada />
 
       <ComparativaQr variante="portada" />
 
