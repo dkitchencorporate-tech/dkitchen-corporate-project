@@ -5,7 +5,7 @@ import { QR_MENU, SERVICIOS_QR, puntosPlanQr } from '@/lib/pricing-config';
 /**
  * Precios de /qr. Planes por cantidades (decisión A de karc0, 07/10; 0050):
  * Carta 9 €, Local 29 € (el que se impulsa, único con el primer mes a 1 €)
- * y Sala 69 €; todos con TPV, comandero y español + inglés por cantidades (0068).
+ * y Sala 79 €; todos con TPV y comandero por cantidades (0068) e idiomas por plan (0086).
  */
 const { basico: C, ampliado: L, sala: S } = QR_MENU.planes;
 const EXTRAS = ['Fotos de platos con IA', 'Asistente con IA 24/7 + WhatsApp'];

@@ -313,7 +313,7 @@ export async function crearCheckoutCambioPlan(datos: DatosCambioPlan): Promise<{
 }
 
 // ─────────────────────────────────────────────────────────────
-// Fundador (0051): plan Sala al 40 %, 124,20 € + IVA cada trimestre, sin prueba
+// Fundador (0051): plan Sala a 49 €/mes, 147 € + IVA cada trimestre (18/10), sin prueba
 // ─────────────────────────────────────────────────────────────
 
 /**

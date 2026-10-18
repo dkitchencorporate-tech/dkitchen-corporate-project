@@ -47,7 +47,7 @@ export const QR_MENU = {
       /** Sin 1 € el primer mes: se paga la cuota desde el primer día. */
       primerMesSimbolico: false,
       topeProductos: 40,
-      topes: { productos: 40, mesas: 6, camareros: 1, reservasMes: 30, banners: 1, comandasTpvMes: 150, historialDias: 7 },
+      topes: { productos: 40, mesas: 6, camareros: 1, reservasMes: 30, banners: 1, comandasTpvMes: 150, historialDias: 7, idiomas: 1 },
       plantillas: 3,
       personalizacionQr: false,
       promocionesVisibles: true,
@@ -61,7 +61,7 @@ export const QR_MENU = {
       /** El único con el primer mes a 1 € + IVA. */
       primerMesSimbolico: true,
       topeProductos: 80,
-      topes: { productos: 80, mesas: 15, camareros: 3, reservasMes: 120, banners: 2, comandasTpvMes: 600, historialDias: 30 },
+      topes: { productos: 80, mesas: 15, camareros: 3, reservasMes: 120, banners: 2, comandasTpvMes: 600, historialDias: 30, idiomas: 2 },
       plantillas: 3,
       personalizacionQr: true,
       promocionesVisibles: true,
@@ -74,10 +74,11 @@ export const QR_MENU = {
     sala: {
       id: 'sala',
       nombre: 'Sala',
-      mensual: 69,
+      /** 0086 (18/10, decisión 42): 79 € (antes 69 €); trae el pedido desde la mesa. */
+      mensual: 79,
       primerMesSimbolico: false,
       topeProductos: 120,
-      topes: { productos: 120, mesas: 30, camareros: 6, reservasMes: 350, banners: 3, comandasTpvMes: 1800, historialDias: 90 },
+      topes: { productos: 120, mesas: 30, camareros: 6, reservasMes: 350, banners: 3, comandasTpvMes: 1500, historialDias: 90, idiomas: 3 },
       plantillas: 3,
       personalizacionQr: true,
       promocionesVisibles: true,
@@ -106,18 +107,31 @@ export const QR_MENU = {
  */
 export function puntosPlanQr(id: 'basico' | 'ampliado' | 'sala'): string[] {
   const t = QR_MENU.planes[id].topes;
+  const p = QR_MENU.planes[id];
+  // 18/10 (karc0): las diferencias entre planes, explícitas; lo que sube de un plan a otro va primero
   return [
+    IDIOMAS_PLAN[id],
     `Hasta ${t.productos} platos y ${t.mesas} mesas`,
     t.camareros === 1 ? 'App de sala para 1 camarero' : `App de sala para ${t.camareros} camareros`,
     `${t.reservasMes} reservas al mes`,
     `Conexión con tu TPV: ${t.comandasTpvMes.toLocaleString('es-ES')} comandas al mes`,
     `Comandero con ${t.historialDias} días de historial`,
-    'Carta en español e inglés',
+    t.banners === 1 ? '1 banner de promoción' : `${t.banners} banners de promoción a la vez`,
+    'Llamar al camarero y pedir la cuenta desde la mesa',
+    ...(p.personalizacionQr ? ['QR con tu logo y tus colores', 'Ficha de Google sincronizada y botón de reseñas'] : []),
+    ...(id === 'sala' ? ['Pedido desde la mesa: tu cliente pide y paga sin esperar (en camino)', `¿Más de ${t.comandasTpvMes.toLocaleString('es-ES')} comandas? Plan a medida`] : []),
   ];
 }
 
+/** Idiomas por plan (0086, decisión 43): `topes.idiomas` cuenta el español. Espejo de dk.plan_tope(plan, 'idiomas') + 1. */
+export const IDIOMAS_PLAN = {
+  basico: 'Carta solo en español',
+  ampliado: 'Carta en español e inglés',
+  sala: 'Carta en 3 idiomas: español, inglés y otro a elegir',
+} as const;
+
 /**
- * Fundador (decisiones de karc0 del 07/10; 0051): 40 % sobre Sala, cobrado por
+ * Fundador (decisiones de karc0 del 07/10; 0051; precio del 18/10): 49 €/mes sobre Sala, cobrado por
  * trimestre, vitalicio mientras siga activo en Sala y sin impagos. 100 plazas o
  * 90 días desde que se abre en Central, lo primero. El estado vivo (abierto,
  * quedan) lo da dk.fundador_estado(); esto son solo las cifras de texto.
@@ -128,10 +142,11 @@ export const esPlanQr = (p: unknown): p is PlanQr => typeof p === 'string' && (P
 export const nombrePlan = (p: string) => (esPlanQr(p) ? QR_MENU.planes[p].nombre : p);
 
 export const FUNDADOR = {
-  descuento: 0.4,
+  /** 18/10 (decisión 42): 49 €/mes (147 € + IVA por trimestre) sobre Sala a 79 €: un 38 %. Antes 41,40 € (40 % sobre 69 €). */
+  descuento: 0.38,
   plan: 'sala' as const,
-  mensual: 41.4,
-  trimestre: 124.2,
+  mensual: 49,
+  trimestre: 147,
   plazas: 100,
   dias: 90,
   /**
@@ -374,7 +389,7 @@ export const SERVICIOS_QR = {
   bonoIa: 9,
   imagenesBonoIa: 50,
   imagenesGratisIa: 3,
-  /** Idiomas (0068): español + inglés incluidos en todos los planes; cada idioma más, pago único por idioma. Espejo de catalogo_servicios (idioma_extra). */
+  /** Idiomas (0086): Carta español, Local + inglés, Sala + inglés y otro (IDIOMAS_PLAN); cada idioma más, pago único por idioma. Espejo de catalogo_servicios (idioma_extra). */
   idiomaExtra: 15,
-  idiomasIncluidos: 'español e inglés',
+  idiomasIncluidos: 'según tu plan: Carta en español, Local en español e inglés, Sala en 3 idiomas',
 } as const;

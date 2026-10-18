@@ -30,7 +30,7 @@ export default async function FundadorCentral() {
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Central · Fundador</p>
         <h1 className="font-display mt-2 text-3xl font-semibold md:text-4xl">Programa Fundador</h1>
-        <p className="mt-1 text-sm text-niebla">Plan Sala al 40 % ({FUNDADOR.trimestre.toLocaleString('es-ES')} € + IVA por trimestre). {FUNDADOR.plazas} plazas o {FUNDADOR.dias} días desde la apertura, lo primero.</p>
+        <p className="mt-1 text-sm text-niebla">Plan Sala a 49 €/mes ({FUNDADOR.trimestre.toLocaleString('es-ES')} € + IVA por trimestre). {FUNDADOR.plazas} plazas o {FUNDADOR.dias} días desde la apertura, lo primero.</p>
       </div>
 
       <GuiaZona titulo="Fundador" ancla="fundador"

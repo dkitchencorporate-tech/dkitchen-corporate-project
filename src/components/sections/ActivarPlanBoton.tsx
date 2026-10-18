@@ -27,7 +27,7 @@ const PLANES: Record<Opcion, { nombre: string; resumen: string; cuando: string; 
   fundador: {
     nombre: 'Sala · Fundador', resumen: QR_MENU.planes.sala.resumen, cuando: 'Primer trimestre',
     hoy: eur(FUNDADOR.trimestre),
-    despues: `Después ${eur(FUNDADOR.trimestre)} cada trimestre · 40 % de por vida`,
+    despues: `Después ${eur(FUNDADOR.trimestre)} cada trimestre (${eur(FUNDADOR.mensual)}/mes en vez de ${eur(QR_MENU.planes.sala.mensual)}) · de por vida`,
   },
 };
 
@@ -49,6 +49,8 @@ export default function ActivarPlanBoton({
   const [vendedor, setVendedor] = useState('');
   const [vendedorEnlace, setVendedorEnlace] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
+  // 18/10 (karc0): el Fundador acepta sus condiciones aquí mismo, sin salir a /terms
+  const [acepta, setAcepta] = useState(plan !== 'fundador');
   const [error, setError] = useState<string | null>(null);
   const p = PLANES[plan];
 
@@ -131,6 +133,22 @@ export default function ActivarPlanBoton({
                   <p className="text-3xl font-bold tracking-tight">{p.hoy}</p>
                 </div>
 
+                {plan === 'fundador' && (
+                  <div className="mx-7 mt-4 rounded-2xl border border-vino/30 bg-vino/[0.05] px-5 py-4 text-[13px] leading-relaxed text-black/70">
+                    <p className="font-semibold text-black">Condiciones Fundador</p>
+                    <ul className="mt-2 list-disc space-y-1 pl-4">
+                      <li>Todo el plan {QR_MENU.planes.sala.nombre} por {eur(FUNDADOR.mensual)}/mes + IVA en vez de {eur(QR_MENU.planes.sala.mensual)}, cobrado por trimestre y por adelantado ({eur(FUNDADOR.trimestre)} + IVA).</li>
+                      <li>De por vida mientras sigas en {QR_MENU.planes.sala.nombre} y sin impagos. Las funciones nuevas de {QR_MENU.planes.sala.nombre} te llegan al mismo precio.</li>
+                      <li>Solo para los primeros {FUNDADOR.plazas} locales o {FUNDADOR.dias} días desde la apertura, lo que llegue antes.</li>
+                      <li>Sin permanencia: si te das de baja, pierdes el precio Fundador.</li>
+                    </ul>
+                    <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-black/80">
+                      <input type="checkbox" checked={acepta} onChange={(e) => setAcepta(e.target.checked)} required className="mt-0.5 h-4 w-4 accent-[#6E0C2B]" />
+                      <span>Acepto las condiciones Fundador (<a href="/terms#fundador" target="_blank" rel="noopener noreferrer" className="underline">texto completo</a>, se abre aparte).</span>
+                    </label>
+                  </div>
+                )}
+
                 <div className="space-y-4 px-7 pt-5">
                   <label className="block text-sm font-medium">Nombre del restaurante
                     <input type="text" required maxLength={80} autoComplete="organization" value={nombre} onChange={(e) => setNombre(e.target.value)} className={campo} />
@@ -174,7 +192,7 @@ export default function ActivarPlanBoton({
                 {error && <p className="px-7 pt-3 text-sm text-red-700">{error}</p>}
 
                 <div className="px-7 pb-7 pt-6">
-                  <button type="submit" disabled={cargando}
+                  <button type="submit" disabled={cargando || !acepta}
                     className="w-full rounded-full bg-[#1A1714] py-4 text-[15px] font-semibold text-white transition hover:bg-black disabled:opacity-50">
                     {cargando ? 'Abriendo el pago seguro…' : 'Continuar al pago seguro'}
                   </button>

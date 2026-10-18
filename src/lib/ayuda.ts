@@ -265,7 +265,7 @@ export const TEMAS_PANEL: TemaAyuda[] = [
     id: 'idiomas', pregunta: 'Cómo pongo mi carta en otros idiomas', secciones: ['idiomas', 'modulos'],
     claves: ['idioma', 'ingles', 'frances', 'aleman', 'traducir', 'traduccion', 'turistas', 'extranjeros'],
     respuesta: [
-      'Español e inglés vienen en todos los planes. Cada idioma más se añade en Negocio → Mejoras por un pago único y nosotros traducimos tu carta. Tus clientes ven un selector de idioma.',
+      'Idiomas por plan: Carta en español, Local en español e inglés y Sala en 3 (español, inglés y otro a elegir). Cada idioma más se añade en Negocio → Mejoras por un pago único y nosotros traducimos tu carta. Tus clientes ven un selector de idioma.',
       'En el plan Sala viene incluido. Con Carta o Local es un pago único, sin cuota. Si ya lo tienes, lo gestionas en Carta → Idiomas; si no, está en Negocio → Mejoras.',
       'Cuando cambies o añadas platos, avísanos y traducimos lo nuevo.',
     ],
@@ -397,7 +397,7 @@ export const TEMAS_WEB: TemaAyuda[] = [
     claves: ['incluye', 'funciones', 'que tiene', 'alergenos', 'fotos', 'reservas', 'camarero', 'idiomas'],
     respuesta: [
       'Carta con fotos, precios y alérgenos según el Reglamento UE, que cambias desde el móvil al momento; cuatro estilos de diseño; un QR que nunca reimprimes y estadísticas de visitas.',
-      'Todos los planes traen plano de mesas, app de sala, conexión con tu TPV, comandero y español + inglés; Local y Sala suben las cantidades y añaden más banners y reseñas de Google.',
+      'Todos los planes traen plano de mesas, app de sala, conexión con tu TPV, comandero; Local y Sala suben las cantidades y los idiomas (Carta 1, Local 2, Sala 3) y añaden más banners y reseñas de Google.',
     ],
     acciones: [{ tipo: 'enlace', href: '/qr', texto: 'Ver cómo funciona' }],
     siguientes: ['precio-qr', 'tpv-web', 'puesta-web'],

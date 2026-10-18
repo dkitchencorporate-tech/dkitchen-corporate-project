@@ -27,6 +27,17 @@ export default function DispositivoVivo({ ancho = 300 }: { ancho?: number }) {
   const quieto = useReducedMotion();
   const [i, setI] = useState(0);
   const [aviso, setAviso] = useState(0);
+  // 18/10 (karc0: «el móvil de la cabecera es gigante»): el ancho sale del alto útil
+  // (ventana − menú flotante − margen; el móvil mide ~2,2 veces su ancho), sin pasar de
+  // `ancho` en portátiles ni de un 15 % más en pantallas grandes; en móvil, del ancho.
+  const [w, setW] = useState(ancho);
+  useEffect(() => {
+    const f = () => {
+      const porAlto = (window.innerHeight - 190) / 2.2;
+      setW(window.innerWidth < 768 ? Math.min(ancho, window.innerWidth - 96) : Math.round(Math.max(210, Math.min(ancho * 1.15, porAlto))));
+    };
+    f(); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f);
+  }, [ancho]);
   useEffect(() => {
     if (quieto) return;
     const a = setInterval(() => setI((x) => (x + 1) % ESTILOS.length), 4200);
@@ -35,7 +46,7 @@ export default function DispositivoVivo({ ancho = 300 }: { ancho?: number }) {
   }, [quieto]);
 
   return (
-    <div className="relative mx-auto" style={{ width: ancho, perspective: 1600 }}>
+    <div className="relative mx-auto" style={{ width: w, perspective: 1600 }}>
       <div aria-hidden="true" className="absolute inset-[-18%] rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.35),transparent)] blur-2xl" />
       <motion.div
         initial={quieto ? false : { opacity: 0, rotateX: 24, y: 90, scale: 0.88 }}

@@ -6,7 +6,7 @@ import { estadoFundador } from '@/lib/fundador';
 export const runtime = 'nodejs';
 
 /**
- * Alta de Fundador (0051): plan Sala al 40 %, 124,20 € + IVA por trimestre.
+ * Alta de Fundador (0051): plan Sala a 49 €/mes, 147 € + IVA por trimestre (18/10).
  * Solo si el programa está abierto (lo decide la base). Igual que /api/checkout/qr,
  * esta ruta nunca escribe en la base: aprovisiona el webhook tras el pago.
  * Desde el 08/10 (#247) comparte con QR la validación (teléfono y dirección),

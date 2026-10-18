@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import GuiaScroll from '@/components/dk/GuiaScroll';
+import { useAjusteAlto } from '@/components/dk/useAjusteAlto';
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion';
 import { CURVA } from '@/components/dk/Movimiento';
 import { BASE_OPERATIVA } from '@/lib/pricing-config';
@@ -163,13 +164,15 @@ export function CapitulosSignature() {
   const [c, setC] = useState(0);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
   useMotionValueEvent(scrollYProgress, 'change', (v) => setC(Math.min(3, Math.floor(v * 4))));
+  // 18/10 (karc0): el móvil (300 px, ~690 de alto con los puntos) quedaba tapado por el menú flotante
+  const ajuste = useAjusteAlto(700, 150, 1.1, 0.55);
   const marco = (n: number) => (
     <div className="rounded-[46px] p-[3px] [background:linear-gradient(145deg,#6b707b,#1b1d22_35%,#0b0c0f_70%,#4a4e57)]"><div className="rounded-[43px] bg-obsidiana p-[9px]"><div className="relative aspect-[9/19.5] overflow-hidden rounded-[35px]"><Pantalla n={n} /></div></div></div>
   );
   return (
     <>
       <section ref={ref} className="relative hidden h-[400vh] bg-noche text-white md:block">
-        <div className="sticky top-0 flex h-screen items-center">
+        <div className="sticky top-0 flex h-screen items-center pt-20">
           <GuiaScroll progreso={scrollYProgress} pasos={CAPITULOS.map((x) => x.t)} oscuro />
           <div className="mx-auto grid w-full max-w-6xl grid-cols-[1fr_300px_1fr] items-center gap-10 px-8">
             <div className={c % 2 === 0 ? '' : 'order-3'}>
@@ -181,7 +184,7 @@ export function CapitulosSignature() {
                 </motion.div>
               </AnimatePresence>
             </div>
-            <div className="order-2">
+            <div className="order-2" style={{ transform: `scale(${ajuste})` }}>
               <AnimatePresence mode="wait"><motion.div key={c} initial={{ opacity: 0, scale: 0.95, rotateY: -12 }} animate={{ opacity: 1, scale: 1, rotateY: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.5, ease: CURVA }} style={{ transformPerspective: 1200 }}>{marco(c)}</motion.div></AnimatePresence>
               <div className="mt-6 flex justify-center gap-2">{CAPITULOS.map((_, i) => <span key={i} className={`h-1.5 rounded-full transition-all ${i === c ? 'w-8 bg-vino' : 'w-3 bg-white/20'}`} />)}</div>
             </div>

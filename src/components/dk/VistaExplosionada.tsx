@@ -26,7 +26,7 @@ const CAPAS: Capa[] = [
     contenido: <svg viewBox="0 0 21 21" className="h-11 w-11 md:h-16 md:w-16" shapeRendering="crispEdges" aria-hidden="true"><path fill="#17191E" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0z" /><path fill="#fff" d="M1 1h5v5H1zM15 1h5v5h-5zM1 15h5v5H1z" /><path fill="#17191E" d="M2 2h3v3H2zM16 2h3v3h-3zM2 16h3v3H2zM9 0h2v2H9zM8 3h3v2H8zM9 8h3v3H9zM14 9h2v3h-2zM17 8h3v2h-3zM8 13h2v4H8zM12 14h3v2h-3zM16 13h2v2h-2zM13 17h2v3h-2zM17 17h3v3h-3zM3 9h3v2H3z" /><path fill="#6E0C2B" d="M11 11h2v2h-2z" /></svg> },
   { id: 'reservas', t: 'Reservas', d: 'Te avisan al momento y confirmas con un toque.', x: -300, y: 220, xm: -112, ym: 205,
     contenido: <div className="flex flex-wrap items-center justify-between gap-1 rounded-xl bg-papel px-2.5 py-2 text-xs md:text-sm"><span className="font-semibold">21:30 · 4 pers.</span><span className="rounded-full bg-exito/15 px-2 py-0.5 text-[11px] text-exito">Confirmada</span></div> },
-  { id: 'idiomas', t: 'En su idioma', d: 'Español e inglés incluidos; más idiomas, a la carta.', x: 310, y: 230, xm: 112, ym: 205,
+  { id: 'idiomas', t: 'En su idioma', d: 'Hasta 3 idiomas según tu plan; más, a la carta.', x: 310, y: 230, xm: 112, ym: 205,
     contenido: <div className="flex gap-1.5">{['ES', 'EN', 'FR', 'DE'].map((l, i) => <span key={l} className={`rounded-lg px-2.5 py-1 text-xs font-bold ${i === 1 ? 'bg-tinta text-white' : 'bg-papel'}`}>{l}</span>)}</div> },
 ];
 
@@ -55,11 +55,12 @@ export default function VistaExplosionada() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
   const p = useSpring(scrollYProgress, { stiffness: 140, damping: 28, mass: 0.4 });
   // 18/10: la animación termina en el 82 % y el resto es reposo, para que el móvil se vea entero ANTES de soltar la sección (antes acababa a escala 1 justo al final y la sección siguiente lo cortaba)
-  const escMovil = useTransform(p, [0, 0.12, 0.66, 0.8], movil ? [0.85, 0.5, 0.5, 0.78] : [0.92, 0.8, 0.8, 0.88]);
+  const escMovil = useTransform(p, [0, 0.12, 0.66, 0.8], movil ? [0.85, 0.5, 0.5, 0.78] : [1, 0.86, 0.86, 1]);
   const giro = useTransform(p, [0, 0.12], [18, 0]);
   const publicada = useTransform(p, [0.76, 0.84], [0, 1]);
   // 08/10: en portátiles de 14" (≈730 px útiles) el móvil y las capas se salían por abajo
-  const ajuste = useAjusteAlto(720, 240);
+  // 18/10: el escenario (móvil + capas) mide ~600 px a escala 1; crece hasta 1,2 en pantallas altas y no baja de 0,6
+  const ajuste = useAjusteAlto(600, 230, 1.2, 0.6, 960);
   const [fase, setFase] = useState(0);
   useMotionValueEvent(p, 'change', (v) => setFase(v < 0.12 ? 0 : v < 0.7 ? 1 : 2));
   const titulos = ['Una carta, seis superpoderes.', 'Todo lo que lleva tu carta.', 'Y todo cabe en un QR.'];

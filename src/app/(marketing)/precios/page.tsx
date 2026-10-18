@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import ActivarPlanBoton from '@/components/sections/ActivarPlanBoton';
 import { FondoVivo, TextoRevelado, BotonMagnetico } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
 import TodoIncluidoQr from '@/components/qr-landing/TodoIncluidoQr';
@@ -56,7 +57,7 @@ const MODULOS: Linea[] = [
 ];
 const SERVICIOS: Linea[] = [
   { nombre: 'Puesta a punto', detalle: `Carta cargada, conexión con tu TPV, formación de tu equipo y fotos con IA · ${eur(SERVICIOS_QR.puestaAPuntoBienvenida)} si la pides al darte de alta, antes de montar tu carta`, precio: eur(SERVICIOS_QR.puestaAPunto) },
-  { nombre: 'Idioma extra', detalle: `Español e inglés ya van incluidos; cada idioma más, traducido por DKitchen`, precio: `${eur(SERVICIOS_QR.idiomaExtra)} por idioma` },
+  { nombre: 'Idioma extra', detalle: `Carta: español; Local: español e inglés; Sala: 3 idiomas. Cada idioma más, traducido por DKitchen`, precio: `${eur(SERVICIOS_QR.idiomaExtra)} por idioma` },
   { nombre: 'Bono de imágenes con IA', detalle: `${SERVICIOS_QR.imagenesBonoIa} fotos de plato (${SERVICIOS_QR.imagenesGratisIa} gratis siempre)`, precio: eur(SERVICIOS_QR.bonoIa) },
   { nombre: 'Etiquetas QR para mesas', detalle: `Desde ${QR_FISICOS.etiquetas.tandas[0].unidades} unidades`, precio: `desde ${eur(QR_FISICOS.etiquetas.tandas[0].precio)}` },
 ];
@@ -183,9 +184,11 @@ export default async function PaginaPrecios() {
             <Aparecer>
               <div className="mt-10 flex flex-col gap-5 rounded-[28px] border border-vino/40 bg-vino/[0.06] p-7 md:flex-row md:items-center md:justify-between md:p-9">
                 <div>
-                  <p className="etiqueta-dk text-vino">Oferta Fundador · plazas limitadas</p>
-                  <p className="font-display mt-3 text-3xl font-semibold leading-tight md:text-4xl">Plan {PS.nombre} al 40 % de por vida: {eur(FUNDADOR.mensual)}/mes</p>
-                  <p className="mt-2 text-sm text-niebla">{eur(FUNDADOR.trimestre)} + IVA por trimestre, mientras sigas en {PS.nombre}. Condiciones en <Link href="/terms#fundador" className="underline">las condiciones del servicio</Link>.</p>
+                  <p className="etiqueta-dk text-vino">Oferta de lanzamiento · plazas limitadas</p>
+                  <p className="font-display mt-2 text-5xl font-semibold leading-none tracking-tight text-tinta md:text-7xl">Fundador</p>
+                  <p className="font-display mt-4 text-2xl font-semibold leading-tight md:text-3xl">Todo el plan {PS.nombre} por {eur(FUNDADOR.mensual)}/mes <span className="text-niebla line-through decoration-2">{eur(PS.mensual)}</span>, de por vida</p>
+                  <p className="mt-2 text-sm text-niebla">{eur(FUNDADOR.trimestre)} + IVA por trimestre, mientras sigas en {PS.nombre}. <a href="/terms#fundador" target="_blank" rel="noopener noreferrer" className="underline">Condiciones completas</a> (se abren aparte).</p>
+                  <ActivarPlanBoton plan="fundador" etiqueta="Hacerme Fundador →" className="mt-6 inline-flex rounded-full bg-vino px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(163,24,74,.35)] transition hover:bg-vino-hondo" />
                 </div>
                 <ContadorFundador quedan={fundador.quedan} plazas={fundador.plazas} cierraEn={fundador.cierraEn} />
               </div>
@@ -197,7 +200,7 @@ export default async function PaginaPrecios() {
             <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl">Sin módulos sueltos. Solo extras de un pago.</h2>
           </div>
           <div className="mt-12 grid gap-14 md:grid-cols-2">
-            <Tabla titulo="¿Más grande que Sala?" sub="Sin cuotas sueltas: cada plan ya trae TPV, comandero y español + inglés" filas={MODULOS} />
+            <Tabla titulo="¿Más grande que Sala?" sub="Sin cuotas sueltas: cada plan ya trae TPV, comandero y sus idiomas" filas={MODULOS} />
             <Tabla titulo="Servicios y extras" sub="Pago único · sin suscripción" filas={SERVICIOS} />
           </div>
         </div>

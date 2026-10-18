@@ -126,7 +126,7 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
       <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-linea bg-white p-6">
         <div className="max-w-md">
           <p className="text-xs font-bold uppercase tracking-widest text-vino">Carta en idiomas</p>
-          <h3 className="font-display mt-1 text-xl font-semibold tracking-tight">🇪🇸 🇬🇧 Español e inglés ya vienen en tu plan</h3>
+          <h3 className="font-display mt-1 text-xl font-semibold tracking-tight">🌍 Los idiomas de tu plan ya están incluidos</h3>
           <p className="mt-1 text-sm text-niebla">¿Recibes turistas de otros países? Añade cada idioma que necesites y <strong className="text-grafito">nosotros traducimos tu carta</strong>. Pago único por idioma, sin cuota.</p>
         </div>
         <div className="w-full sm:w-56"><Boton s="idioma_extra" texto={`Añadir un idioma · ${euros(precio('idioma_extra')?.precioCentimos ?? 1500)}`} /></div>

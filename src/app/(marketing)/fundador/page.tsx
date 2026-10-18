@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { QR_MENU, FUNDADOR, BASE_OPERATIVA } from '@/lib/pricing-config';
+import { QR_MENU, FUNDADOR, BASE_OPERATIVA, IDIOMAS_PLAN } from '@/lib/pricing-config';
 import { estadoFundador } from '@/lib/fundador';
 import ContadorFundador from '@/components/fundador/ContadorFundador';
 import ActivarPlanBoton from '@/components/sections/ActivarPlanBoton';
@@ -8,7 +8,7 @@ import EmbudoVista from '@/components/EmbudoVista';
 
 export const metadata: Metadata = {
   title: 'Fundador · DKitchen Corporate',
-  description: `Plan ${QR_MENU.planes.sala.nombre} al 40 % de por vida para los primeros ${FUNDADOR.plazas} locales.`,
+  description: `Plan ${QR_MENU.planes.sala.nombre} a ${FUNDADOR.mensual} €/mes de por vida para los primeros ${FUNDADOR.plazas} locales.`,
   robots: { index: false, follow: false },
 };
 
@@ -24,13 +24,13 @@ const INCLUYE = [
   `${S.topes.reservasMes} reservas al mes con aviso al momento`,
   `Conexión con tu TPV: ${S.topes.comandasTpvMes.toLocaleString('es-ES')} comandas al mes`,
   `Comandero con ${S.topes.historialDias} días de historial`,
-  'Carta en español e inglés',
+  IDIOMAS_PLAN.sala,
 ];
 const REGLAS = [
   'El precio se mantiene de por vida mientras sigas activo en el plan Sala y sin impagos.',
   'Se pierde si te das de baja o si bajas a un plan inferior. No es transferible.',
   'Se cobra por trimestre, por adelantado. Sin permanencia: si te vas, no se renueva (lo pagado no se devuelve).',
-  'Las funciones nuevas que añadamos a Sala te llegan con el mismo 40 %.',
+  'Las funciones nuevas que añadamos a Sala te llegan al mismo precio.',
 ];
 
 export default async function Fundador() {
