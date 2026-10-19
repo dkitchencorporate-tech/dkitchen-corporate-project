@@ -8,7 +8,7 @@ import { QR_MENU, SERVICIOS_QR, puntosPlanQr } from '@/lib/pricing-config';
  * y Sala 79 €; todos con TPV y comandero por cantidades (0068) e idiomas por plan (0086).
  */
 const { basico: C, ampliado: L, sala: S } = QR_MENU.planes;
-const EXTRAS = ['Fotos de platos con IA', 'Asistente con IA 24/7 + WhatsApp'];
+const EXTRAS = ['Fotos de platos con IA', 'Asistente en tu panel + una persona por WhatsApp'];
 const CARTA = [...puntosPlanQr('basico'), '1 banner de promoción', 'QR que nunca reimprimes', ...EXTRAS];
 const LOCAL = [...puntosPlanQr('ampliado'), 'Llamada al camarero y petición de la cuenta', `${L.topes.banners} banners programables`, 'Botón de reseñas de Google', ...EXTRAS];
 const SALA = [...puntosPlanQr('sala'), 'Encargados en el equipo', `${S.topes.banners} banners programables`, 'Botón de reseñas de Google', ...EXTRAS];

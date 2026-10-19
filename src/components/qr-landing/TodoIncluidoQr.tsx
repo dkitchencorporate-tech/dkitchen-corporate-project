@@ -17,7 +17,7 @@ const PIEZAS: { t: string; d: string; precio: string }[] = [
   { t: 'Fotos de tus platos con IA', d: '¿No tienes fotos? Las creamos a partir del nombre y la descripción de cada plato. Empiezas con imágenes gratis.', precio: `Más: ${SERVICIOS_QR.imagenesBonoIa} por ${SERVICIOS_QR.bonoIa} €, sin caducidad` },
   { t: 'Botón de reseñas de Google', d: 'Tus clientes dejan su reseña desde la carta, cuando mejor lo han pasado. Más estrellas y más visitas en Google Maps.', precio: `Incluido en ${L.nombre} y ${S.nombre}` },
   { t: 'Carta en otros idiomas', d: 'Carta en español, Local en español e inglés y Sala en 3 idiomas. ¿Más? Traducimos cada idioma por ti, para que el turista pida sin señalar con el dedo.', precio: `${SERVICIOS_QR.idiomaExtra} € por idioma extra, una vez` },
-  { t: 'Asistente 24/7 y una persona', d: 'El asistente con IA de tu panel responde a cualquier hora con los datos de tu local. Y una persona te atiende por WhatsApp.', precio: 'Incluido en todos los planes' },
+  { t: 'Asistente en tu panel y una persona', d: 'El asistente de tu panel te guía paso a paso con los datos de tu local. Y una persona te atiende por WhatsApp.', precio: 'Incluido en todos los planes' },
 ];
 
 export default function TodoIncluidoQr({ fondo = 'crema' }: { fondo?: 'crema' | 'blanco' }) {

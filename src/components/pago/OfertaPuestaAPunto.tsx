@@ -16,7 +16,7 @@ const INCLUYE = [
   'Configuramos tu panel: horarios, datos del local, estilo y QR listo para imprimir.',
   'No cambias de sistema: revisamos tu TPV o POS y tus impresoras térmicas de tickets en remoto, sin visitas.',
   'Conectamos tu TPV y lo adaptamos a tu configuración (también VeriFactu): las comandas llegan a tu TPV y salen por tus impresoras de siempre.',
-  'Asistente con IA en tu panel las 24 h, los 7 días, y una persona por WhatsApp el mismo día del arranque.',
+  'Asistente en tu panel y una persona por WhatsApp el mismo día del arranque.',
 ];
 
 export default function OfertaPuestaAPunto({ r }: { r?: string }) {
