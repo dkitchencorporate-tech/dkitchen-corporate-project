@@ -70,7 +70,7 @@ export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: {
 
       {vista === 'diseno' && (<>
       <EstiloCarta fotos={fotos} logo={restaurante.logoUrl ?? null} portada={portada.url} portadaConNombre={portada.conNombre} nombre={restaurante.nombre} bloqueado={restaurante.nivelDiseno !== 'esencial'}
-        inicial={{ plantilla: restaurante.plantilla || 'clasica', fondo: restaurante.estiloFondo || 'papel', letra: restaurante.estiloLetra || 'sans', color: (restaurante.colorMarca || '#E8592A').toUpperCase() }} />
+        inicial={{ plantilla: restaurante.plantilla || 'clasica', fondo: restaurante.estiloFondo || 'papel', letra: restaurante.estiloLetra || 'sans', color: (restaurante.colorMarca || '#E8592A').toUpperCase(), firma: restaurante.firma ?? {} }} slug={restaurante.slug} />
       <PortadaCarta inicial={restaurante.portadaUrl ?? null} conNombreInicial={!!restaurante.portadaConNombre} demo={restaurante.id === 'demo'} onCambio={(url, conNombre) => setPortada({ url, conNombre })} />
       <section className="space-y-4">
         <div>

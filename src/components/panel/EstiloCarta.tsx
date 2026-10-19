@@ -1,8 +1,9 @@
 'use client';
 
 import { mensajeError } from '@/lib/mensaje-error';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, type ReactNode } from 'react';
 import { guardarEstiloAction } from '@/app/panel/actions';
+import { FICHAS_COMPOSICION, ADORNOS, esComposicion, type Firma } from '@/lib/composiciones';
 
 /**
  * Selectores de estilo de la carta (0031): estilo, fondo, letra y color de
@@ -27,12 +28,105 @@ export const COLORES = [
   { hex: '#3B6EA5', nombre: 'Azul' }, { hex: '#5B3E8A', nombre: 'Ciruela' }, { hex: '#17191E', nombre: 'Grafito' },
 ];
 
-type Estilo = { plantilla: string; fondo: string; letra: string; color: string };
+type Estilo = { plantilla: string; fondo: string; letra: string; color: string; firma?: Firma };
 
 /** Fotos de ejemplo: solo se usan hasta que el cliente sube las suyas. */
 const FOTOS_EJEMPLO = ['/images/demo/s5.png', '/images/demo/s18.png', '/images/demo/s22.png'];
 
+/** Vista previa de las cartas de autor (R3): cada composición con su maquetación y su letra. */
+export function VistaAutor({ e, nombre, fotos, portada = null, logo = null }: { e: Estilo; nombre: string; fotos: string[]; portada?: string | null; logo?: string | null }) {
+  const img = (i: number) => fotos.length ? fotos[i % fotos.length] : FOTOS_EJEMPLO[i % FOTOS_EJEMPLO.length];
+  const oscuro = e.fondo === 'oscuro';
+  const f = e.firma ?? {};
+  const platos: [string, string][] = [['Croquetas caseras', '9,50'], ['Arroz de la casa', '16,00'], ['Tarta de queso', '6,50']];
+  const marco = (hijos: ReactNode, fondo: string, tinta: string) => (
+    <div className="mx-auto w-[230px] rounded-[34px] border border-linea bg-tinta p-2 shadow-xl">
+      <div className="h-[400px] overflow-hidden rounded-[27px]" style={{ background: fondo, color: tinta }}>{hijos}</div>
+      <p className="mt-2 text-center text-[10px] leading-snug text-white/60">{fotos.length ? 'Con tus fotos reales' : 'Fotos de ejemplo: se cambian por las tuyas al subirlas'}</p>
+    </div>
+  );
+  const serif = { fontFamily: 'Georgia, serif' };
+  if (e.plantilla === 'gastro') {
+    const acento = oscuro ? `color-mix(in srgb, ${e.color} 55%, #F2D9A6)` : e.color;
+    return marco(<>
+      <div className="relative flex h-36 flex-col items-center justify-center px-3 text-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={portada || img(0)} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35" style={{ mixBlendMode: oscuro ? 'luminosity' : 'multiply' }} />
+        <p className="relative text-[7px] uppercase tracking-[0.35em]" style={{ color: acento }}>{f.lema || 'Menú de temporada'}</p>
+        <p className="relative mt-2 text-[22px] font-light leading-none" style={serif}>{nombre}</p>
+      </div>
+      <div className="px-3">
+        <p className="mt-2 flex items-center gap-2 text-[11px] font-light" style={serif}><span className="text-[7px] tracking-widest" style={{ color: acento }}>01</span><span className="h-px w-5" style={{ background: acento }} />Para compartir</p>
+        {platos.map(([n, pr], i) => (
+          <div key={n} className={`mt-2 flex items-center gap-2 ${i % 2 ? 'flex-row-reverse' : ''}`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={img(i)} alt="" className="h-11 w-16 shrink-0 object-cover" />
+            <div className="min-w-0 flex-1"><p className="truncate text-[10px] font-light" style={serif}>{n}</p><p className="text-[9px]" style={{ color: acento }}>{pr} €</p></div>
+          </div>
+        ))}
+        {f.nota && <p className="mt-3 text-center text-[9px] italic opacity-70" style={serif}>«{f.nota.slice(0, 60)}{f.nota.length > 60 ? '…' : ''}»</p>}
+      </div>
+    </>, oscuro ? '#0A0A0A' : '#F4F0E8', oscuro ? '#F5F2EC' : '#1A1714');
+  }
+  if (e.plantilla === 'taberna') {
+    const pizarra = `color-mix(in srgb, ${e.color} 28%, #1C261D)`;
+    const linea = oscuro ? 'rgba(255,255,255,.1)' : '#E8E1D2';
+    return marco(<>
+      <div className="px-3 pb-3 pt-4 text-center text-[#F4ECD8]" style={{ background: pizarra }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {logo && <img src={logo} alt="" className="mx-auto mb-1 h-7 w-7 rounded-full object-cover" />}
+        <p className="text-[20px] font-extrabold italic leading-none" style={serif}>{nombre}</p>
+        <p className="mx-auto mt-1.5 inline-block border-t border-white/25 pt-1 text-[6.5px] font-bold uppercase tracking-[0.2em]">{f.lema || 'Tapas, raciones y vinos'}</p>
+      </div>
+      <div className="px-2 py-2 text-white" style={{ background: e.color }}>
+        <div className="flex items-center gap-1.5 rounded-lg border border-dashed border-white/50 p-1.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={img(0)} alt="" className="h-7 w-7 rounded-md object-cover" />
+          <span className="flex-1 text-[8px] font-bold uppercase">{f.destacados || 'Hoy recomendamos'}</span><span className="text-[9px] font-black">9,50 €</span>
+        </div>
+      </div>
+      <div className="m-2 rounded-2xl border p-2" style={{ background: oscuro ? '#1D241E' : '#fff', borderColor: linea }}>
+        <p className="inline-block border-b-2 text-[13px] font-bold" style={{ borderColor: e.color, ...serif }}>Para compartir</p>
+        {platos.map(([n, pr], i) => (
+          <div key={n} className="mt-1.5 flex items-center gap-1.5 rounded-xl border p-1" style={{ borderColor: linea }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={img(i)} alt="" className="h-8 w-8 rounded-lg object-cover" />
+            <span className="flex-1 text-[9px] font-bold">{n}</span>
+            <span className="rounded-md px-1 text-[9px] font-black" style={{ background: `color-mix(in srgb, ${e.color} 14%, transparent)`, color: e.color }}>{pr}</span>
+          </div>
+        ))}
+      </div>
+    </>, oscuro ? '#151A16' : '#FAF7F1', oscuro ? '#F1EADB' : '#26332A');
+  }
+  return marco(<>
+    <div className="flex items-center gap-1.5 px-2.5 py-2">
+      <span className="grid h-6 w-6 place-items-center rounded-md text-[11px] font-black text-white" style={{ background: e.color }}>{nombre.charAt(0)}</span>
+      <span className="truncate text-[11px] font-black uppercase italic">{nombre}</span>
+    </div>
+    <div className="relative mx-2 overflow-hidden rounded-2xl p-3 text-white" style={{ background: `linear-gradient(120deg, ${e.color}, color-mix(in srgb, ${e.color} 45%, #FF9F1C))` }}>
+      <span className="rounded-full bg-black px-1.5 py-0.5 text-[6px] font-black uppercase">{f.lema || 'Recién hecho'}</span>
+      <p className="relative z-10 mt-1.5 max-w-[65%] text-[17px] font-black uppercase italic leading-[0.95]">{nombre}</p>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={portada || img(0)} alt="" className="absolute -bottom-4 -right-4 h-20 w-20 rotate-[-12deg] rounded-full border-4 border-white/35 object-cover" />
+    </div>
+    <p className="mx-2.5 mt-2.5 text-[12px] font-black uppercase italic">Para compartir</p>
+    <div className="mx-2 mt-1.5 grid grid-cols-2 gap-1.5">
+      {platos.slice(0, 2).map(([n, pr], i) => (
+        <div key={n} className="overflow-hidden rounded-xl" style={{ background: oscuro ? '#1D1811' : '#fff', border: oscuro ? '1px solid rgba(255,255,255,.08)' : '1.5px solid #141009' }}>
+          <div className="relative h-14">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={img(i)} alt="" className="h-full w-full object-cover" />
+            <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1 text-[8px] font-black text-white">{pr}</span>
+          </div>
+          <p className="truncate px-1.5 py-1 text-[8px] font-black uppercase">{n}</p>
+        </div>
+      ))}
+    </div>
+  </>, oscuro ? '#141009' : '#FFF7EC', oscuro ? '#fff' : '#141009');
+}
+
 function Vista({ e, nombre, fotos, portada = null, portadaConNombre = false, logo = null }: { e: Estilo; nombre: string; fotos: string[]; portada?: string | null; portadaConNombre?: boolean; logo?: string | null }) {
+  if (esComposicion(e.plantilla)) return <VistaAutor e={e} nombre={nombre} fotos={fotos} portada={portada} logo={logo} />;
   const img = (i: number) => fotos.length ? fotos[i % fotos.length] : FOTOS_EJEMPLO[i];
   const conFoto = e.plantilla === 'visual' || e.plantilla === 'clasica' || e.plantilla === 'premium';
   const f = FONDOS.find((x) => x.id === e.fondo) ?? FONDOS[0];
@@ -94,7 +188,7 @@ function Vista({ e, nombre, fotos, portada = null, portadaConNombre = false, log
   );
 }
 
-export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [], portada = null, portadaConNombre = false, logo = null }: { inicial: Estilo; nombre: string; bloqueado: boolean; fotos?: string[]; portada?: string | null; portadaConNombre?: boolean; logo?: string | null }) {
+export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [], portada = null, portadaConNombre = false, logo = null, slug }: { inicial: Estilo; nombre: string; bloqueado: boolean; fotos?: string[]; portada?: string | null; portadaConNombre?: boolean; logo?: string | null; slug?: string }) {
   const [e, setE] = useState<Estilo>(inicial);
   const [pendiente, iniciar] = useTransition();
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
@@ -118,7 +212,18 @@ export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [], po
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_260px]">
         <div className="space-y-6">
           <div>
-            <p className="text-sm font-semibold">1. Estilo</p>
+            <p className="text-sm font-semibold">1. Composición</p>
+            <p className="mt-0.5 text-xs text-niebla">De autor: tres cartas distintas, cada una con su letra y su maquetación. Con tu color, tu portada y tu firma, ninguna sale igual a otra.</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {FICHAS_COMPOSICION.map((x) => (
+                <button key={x.id} type="button" onClick={() => setE({ ...e, plantilla: x.id })} className={opcion(e.plantilla === x.id)} aria-pressed={e.plantilla === x.id}>
+                  <span className="block font-semibold">{x.nombre}</span>
+                  <span className="mt-0.5 block text-xs text-niebla">{x.para}</span>
+                  <span className="mt-2 flex flex-wrap gap-1">{x.muestra.map((m) => <span key={m} className="rounded-full bg-vino/[.06] px-2 py-0.5 text-[10.5px] font-medium text-vino">{m}</span>)}</span>
+                </button>
+              ))}
+            </div>
+            <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-ceniza">Premium</p>
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
               {ESTILOS.map((x) => (
                 <button key={x.id} type="button" onClick={() => setE({ ...e, plantilla: x.id })} className={opcion(e.plantilla === x.id)} aria-pressed={e.plantilla === x.id}>
@@ -161,10 +266,34 @@ export default function EstiloCarta({ inicial, nombre, bloqueado, fotos = [], po
               ))}
             </div>
           </div>
+          <div>
+            <p className="text-sm font-semibold">5. Tu firma</p>
+            <p className="mt-0.5 text-xs text-niebla">Lo que hace tuya la carta. Todo opcional.</p>
+            <div className="mt-2 grid gap-3 sm:grid-cols-2">
+              {([['lema', 'Lema bajo el nombre', 'Cocina de mercado desde 1987', 120], ['destacados', 'Título de tus recomendados', 'Selección del chef', 40], ['autor', 'Quién firma la nota', 'Chef Marta Ruiz', 60]] as const).map(([k, l, ph, max]) => (
+                <label key={k} className="block text-xs font-medium text-niebla">{l}
+                  <input value={e.firma?.[k] ?? ''} maxLength={max} placeholder={ph} onChange={(ev) => setE({ ...e, firma: { ...e.firma, [k]: ev.target.value } as Firma })}
+                    className="mt-1 w-full rounded-xl border border-linea px-3 py-2 text-sm text-tinta" />
+                </label>
+              ))}
+              <label className="block text-xs font-medium text-niebla">Adorno
+                <select value={e.firma?.adorno ?? 'rombo'} onChange={(ev) => setE({ ...e, firma: { ...e.firma, adorno: ev.target.value as Firma['adorno'] } })} className="mt-1 w-full rounded-xl border border-linea bg-white px-3 py-2 text-sm text-tinta">
+                  {ADORNOS.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                </select>
+              </label>
+              <label className="block text-xs font-medium text-niebla sm:col-span-2">Nota del chef o de la casa
+                <textarea value={e.firma?.nota ?? ''} maxLength={400} rows={3} placeholder="Cocinamos con lo que trae el mercado cada mañana…" onChange={(ev) => setE({ ...e, firma: { ...e.firma, nota: ev.target.value } })}
+                  className="mt-1 w-full rounded-xl border border-linea px-3 py-2 text-sm text-tinta" />
+              </label>
+            </div>
+          </div>
         </div>
         <div className="lg:sticky lg:top-6 lg:self-start">
           <p className="mb-3 text-center text-xs font-medium uppercase tracking-[0.18em] text-ceniza">Vista previa</p>
           <Vista e={e} nombre={nombre} fotos={fotos} portada={portada} portadaConNombre={portadaConNombre} logo={logo} />
+          {slug && esComposicion(e.plantilla) && (
+            <a href={`/m/${slug}?vista=${e.plantilla}&tema=${e.fondo === 'oscuro' ? 'noir' : 'crema'}`} target="_blank" rel="noopener" className="mt-3 block text-center text-xs font-semibold text-vino underline-offset-2 hover:underline">Ver tu carta entera así →</a>
+          )}
         </div>
       </div>
 

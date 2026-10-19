@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 
 /** Evento que lanzan las pantallas del Estudio al guardar (recarga el móvil) o al probar un estilo sin guardar. */
 export const EVENTO_ESTUDIO = 'dk:estudio';
-export type DetalleEstudio = { recargar?: boolean; vista?: 'foto' | 'autor'; tema?: 'noir' | 'crema'; ver?: 'carta' | 'landing' };
+export type DetalleEstudio = { recargar?: boolean; vista?: 'foto' | 'autor' | 'gastro' | 'taberna' | 'urbano'; tema?: 'noir' | 'crema'; ver?: 'carta' | 'landing' };
 export const avisarEstudio = (d: DetalleEstudio = { recargar: true }) => {
   try { window.dispatchEvent(new CustomEvent<DetalleEstudio>(EVENTO_ESTUDIO, { detail: d })); } catch { /* sin ventana */ }
 };

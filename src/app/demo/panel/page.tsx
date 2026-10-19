@@ -18,7 +18,7 @@ const restaurante: MiRestaurante = {
   id: 'demo', slug: 'demo', nombre: 'Casa Brasa', logoUrl: null, plan: 'ampliado', activo: true, colorMarca: '#E8592A', estadoAcceso: 'activo',
   descripcion: 'Cocina de mercado y brasa', telefono: '+34 600 000 000', direccion: 'Calle Mayor 1, Madrid', horario: 'Martes a domingo, 13:00–16:00 y 20:00–23:30',
   instagram: 'casabrasa', urlResenas: null, plantilla: 'editorial', nivelDiseno: 'esencial', idiomas: ['en'], whatsapp: '+34600000000',
-  creadoEn: new Date(hoy.getTime() - 40 * 864e5).toISOString(), estiloFondo: 'papel', estiloLetra: 'serif',
+  creadoEn: new Date(hoy.getTime() - 40 * 864e5).toISOString(), estiloFondo: 'papel', estiloLetra: 'serif', firma: { lema: 'Cocina de mercado desde 1987', adorno: 'rombo' },
 };
 
 const secciones = [{ id: 's1', nombre: 'Para compartir', orden: 1 }, { id: 's2', nombre: 'Principales', orden: 2 }, { id: 's3', nombre: 'Postres', orden: 3 }];

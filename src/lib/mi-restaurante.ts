@@ -1,3 +1,4 @@
+import { limpiarFirma, type Firma } from '@/lib/composiciones';
 import 'server-only';
 import { cookies } from 'next/headers';
 import { comoCliente } from '@/lib/db';
@@ -30,6 +31,8 @@ export interface MiRestaurante {
   creadoEn: string;
   estiloFondo: string;
   estiloLetra: string;
+  /** Firma de autor de la carta (0096). */
+  firma: Firma;
   /** Lo abre su socio en modo puesta a punto (0052): sin plan, pagos ni operativa del dueño. */
   puestaAPunto?: boolean;
   /** Lo abre DKitchen desde Central en modo soporte (0061): mismo alcance que la puesta a punto. */
@@ -71,11 +74,12 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       creado_en: Date;
       estilo_fondo: string;
       estilo_letra: string;
+      firma: Record<string, unknown> | null;
       puesta: boolean;
       soporte: boolean;
     }>(
       `SELECT id, slug, nombre, logo_url, plan, (fundador_desde IS NOT NULL AND fundador_perdido_en IS NULL) AS fundador, activo, color_marca, estado_acceso,
-              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en, estilo_fondo, estilo_letra, portada_url, portada_con_nombre,
+              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en, estilo_fondo, estilo_letra, firma, portada_url, portada_con_nombre,
               propietario IS DISTINCT FROM dk.identidad_actual() AS puesta,
               (propietario IS DISTINCT FROM dk.identidad_actual() AND coalesce(dk.es_admin(), false)) AS soporte
          FROM restaurantes
@@ -112,6 +116,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
       creadoEn: new Date(fila.creado_en).toISOString(),
       estiloFondo: fila.estilo_fondo,
       estiloLetra: fila.estilo_letra,
+      firma: limpiarFirma(fila.firma),
       puestaAPunto: fila.puesta === true,
       soporte: fila.soporte === true,
     };
@@ -156,10 +161,10 @@ export async function actualizarDatosLocal(jwt: string, restauranteId: string, d
 }
 
 /** Estilo de la carta (0031). El disparador dk.control_diseno_cliente valida nivel y paleta. */
-export async function guardarEstilo(jwt: string, restauranteId: string, e: { plantilla: string; fondo: string; letra: string; color: string }) {
+export async function guardarEstilo(jwt: string, restauranteId: string, e: { plantilla: string; fondo: string; letra: string; color: string; firma?: Firma }) {
   await comoCliente(jwt, (c) => c.query(
-    'UPDATE restaurantes SET plantilla = $2, estilo_fondo = $3, estilo_letra = $4, color_marca = $5 WHERE id = $1',
-    [restauranteId, e.plantilla, e.fondo, e.letra, e.color]));
+    'UPDATE restaurantes SET plantilla = $2, estilo_fondo = $3, estilo_letra = $4, color_marca = $5, firma = coalesce($6::jsonb, firma) WHERE id = $1',
+    [restauranteId, e.plantilla, e.fondo, e.letra, e.color, e.firma ? JSON.stringify(e.firma) : null]));
 }
 
 /** Foto de portada (0043). */

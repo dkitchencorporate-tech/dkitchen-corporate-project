@@ -15,9 +15,14 @@ import Reservar from '@/components/carta/Reservar';
 import IndiceSecciones, { type VarianteIndice } from '@/components/carta/IndiceSecciones';
 import { traducirCarta, IDIOMAS } from '@/lib/idiomas';
 import { metadatosCarta, urlResenas } from '@/lib/carta-compartir';
-import { Cormorant_Garamond } from 'next/font/google';
+import CartaComposicion from '@/components/carta/CartaComposicion';
+import { COMPOSICIONES, type Composicion } from '@/lib/composiciones';
+import { Cormorant_Garamond, Playfair_Display, Anton } from 'next/font/google';
 
-const serifCarta = Cormorant_Garamond({ weight: ['500', '600', '700'], style: ['normal', 'italic'], subsets: ['latin'], display: 'swap', variable: '--fuente-serif' });
+const serifCarta = Cormorant_Garamond({ weight: ['300', '500', '600', '700'], style: ['normal', 'italic'], subsets: ['latin'], display: 'swap', variable: '--fuente-serif' });
+// Letras de las composiciones de autor (R3): Playfair para la taberna, Anton de cartel para la urbana.
+const tabernaCarta = Playfair_Display({ weight: ['700', '800'], style: ['normal', 'italic'], subsets: ['latin'], display: 'swap', preload: false });
+const cartelCarta = Anton({ weight: '400', subsets: ['latin'], display: 'swap', preload: false });
 
 /** Fondos cerrados del selector de estilo (0031). */
 const FONDO: Record<string, string> = {
@@ -88,7 +93,7 @@ export default async function CartaPublica({
   const legal = await obtenerLegalPublico(carta.slug).then(Boolean).catch(() => false);
 
   // Nivel 2 / 3 (asignado por DKitchen): Carta de Autor
-  if (vista !== 'premium' && (carta.nivelDiseno === 'autor' || carta.nivelDiseno === 'signature')) {
+  if (vista !== 'premium' && !(COMPOSICIONES as string[]).includes(vista || carta.plantilla || '') && (carta.nivelDiseno === 'autor' || carta.nivelDiseno === 'signature')) {
     return <>{selector}<CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} legal={legal} /></>;
   }
 
@@ -113,6 +118,29 @@ export default async function CartaPublica({
   const ancho = plantilla === 'visual' ? 'max-w-5xl' : 'max-w-2xl';
   const reservar = <Reservar slug={carta.slug} color={color} nombreLocal={carta.nombre} />;
 
+  // Cartas de autor (R3, 0096): gastro, taberna y urbano. ?vista=<composición> enseña cualquiera (vista previa de Central y del panel).
+  const composicion = (COMPOSICIONES as string[]).includes(vista ?? '') ? (vista as Composicion)
+    : !vista && (COMPOSICIONES as string[]).includes(carta.plantilla ?? '') ? (carta.plantilla as Composicion) : null;
+  if (composicion) {
+    const oscuro = tema === 'noir' ? true : tema === 'crema' ? false
+      : carta.estiloFondo === 'oscuro' || (composicion !== 'taberna' && carta.estiloFondo !== 'papel' && carta.estiloFondo !== 'blanco');
+    return (
+      <main className={`min-h-screen ${serifCarta.variable}`} style={{ background: composicion === 'gastro' ? (oscuro ? '#0A0A0A' : '#F4F0E8') : composicion === 'taberna' ? (oscuro ? '#151A16' : '#FAF7F1') : (oscuro ? '#141009' : '#FFF7EC') }}>
+        <CartaComposicion
+          carta={carta} grupos={grupos} nombres={nombres} color={color} oscuro={oscuro} composicion={composicion} resenas={urlResenas(carta)}
+          serif={serifCarta.className} display={tabernaCarta.className} cartel={cartelCarta.className} accion={reservar} portadaFallback={fotoPortada}
+          tras={<>
+            {desdeRespaldo && <p className="bg-amber-50 px-5 py-2 text-center text-xs text-amber-800">Puede que esta carta no refleje los últimos cambios en los próximos minutos.</p>}
+            {selector}
+            <CarruselBanners banners={banners} color={color} />
+          </>}
+        />
+        <PieCarta carta={carta} oscuro={oscuro} color={color} serif={composicion === 'gastro' ? serifCarta.className : composicion === 'taberna' ? tabernaCarta.className : cartelCarta.className} alergenos={alergenosEnCarta} nombres={nombres} legal={legal} />
+        <BotonesMesa slug={carta.slug} color={color} siempre reservar />
+      </main>
+    );
+  }
+
   // Carta Premium (12/10, karc0): estilo incluido en todos los planes; sustituye a la Carta de Autor de pago.
   if (plantilla === 'premium') {
     const oscuro = tema === 'noir' ? true : tema === 'crema' ? false : carta.estiloFondo !== 'papel' && carta.estiloFondo !== 'blanco';
@@ -127,39 +155,7 @@ export default async function CartaPublica({
             <CarruselBanners banners={banners} color={color} />
           </>}
         />
-        <div className="mx-auto max-w-2xl px-6 pb-32 text-center" style={{ color: oscuro ? '#F4EEE4' : '#221D17' }}>
-          {alergenosEnCarta.length > 0 && (
-            <section className="mt-24 border-t pt-10" style={{ borderColor: oscuro ? 'rgba(244,238,228,.14)' : 'rgba(34,29,23,.15)' }}>
-              <p className="text-[11px] font-medium uppercase tracking-[0.28em] opacity-50">Alérgenos</p>
-              <p className="mx-auto mt-4 max-w-md text-[13px] leading-relaxed opacity-60">{alergenosEnCarta.map((c) => `${c} · ${nombres[c]}`).join('   ·   ')}</p>
-              <p className="mx-auto mt-4 max-w-md text-xs leading-relaxed opacity-50">Información conforme al Reglamento (UE) 1169/2011. Si tienes una alergia o intolerancia, consúltalo con nuestro equipo antes de pedir: en cocina pueden existir trazas que no figuran en la carta.</p>
-            </section>
-          )}
-          {(
-            <section className="mt-16">
-              <p className={`${serifCarta.className} text-3xl italic`}>¿Te ha gustado?</p>
-              <a href={urlResenas(carta)} target="_blank" rel="noopener" className="mt-5 inline-block border px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.28em]" style={{ borderColor: color, color: oscuro ? '#F4EEE4' : color }}>Déjanos tu opinión en Google</a>
-            </section>
-          )}
-          {(carta.direccion || carta.horario || carta.telefono || carta.instagram) && (
-            <section className="mt-20 border-t pt-12" style={{ borderColor: oscuro ? 'rgba(244,238,228,.14)' : 'rgba(34,29,23,.15)' }}>
-              <p className="text-[11px] font-medium uppercase tracking-[0.28em] opacity-50">Dónde encontrarnos</p>
-              {carta.direccion && <p className={`${serifCarta.className} mx-auto mt-4 max-w-sm text-2xl leading-snug`}>{carta.direccion}</p>}
-              {carta.horario && <p className="mt-2 text-sm opacity-60">{carta.horario}</p>}
-              <p className="mt-7 flex flex-wrap justify-center gap-x-6 gap-y-3 text-[11px] font-medium uppercase tracking-[0.28em] opacity-75">
-                {carta.direccion && <a href={`https://maps.google.com/?q=${encodeURIComponent(carta.direccion)}`} target="_blank" rel="noopener" className="border-b border-current pb-0.5">Cómo llegar</a>}
-                {carta.telefono && <a href={`tel:${carta.telefono.replace(/\s/g, '')}`} className="border-b border-current pb-0.5">Llamar</a>}
-                {carta.instagram && <a href={`https://instagram.com/${carta.instagram.replace('@', '')}`} target="_blank" rel="noopener" className="border-b border-current pb-0.5">Instagram</a>}
-              </p>
-            </section>
-          )}
-          <footer className="mt-20">
-            {legal && <p className="mb-2 text-[11px] opacity-40"><a href={`/m/${carta.slug}/legal#aviso`} className="hover:underline">Aviso legal</a> · <a href={`/m/${carta.slug}/legal#privacidad`} className="hover:underline">Privacidad</a> · <a href={`/m/${carta.slug}/legal#cookies`} className="hover:underline">Cookies</a></p>}
-            <p className={`${serifCarta.className} text-2xl`}>{carta.nombre}</p>
-            {carta.plan !== 'basico' && <a href={`/l/${carta.slug}`} className="mt-3 inline-block border-b border-current pb-0.5 text-[11px] font-medium uppercase tracking-[0.28em] opacity-70">Conoce el local</a>}
-            <p className="mt-3 text-[10px] uppercase tracking-[0.2em] opacity-35">Carta digital · <a href="https://dkitchencorporate.es/qr" className="hover:opacity-80">DKitchen</a></p>
-          </footer>
-        </div>
+        <PieCarta carta={carta} oscuro={oscuro} color={color} serif={serifCarta.className} alergenos={alergenosEnCarta} nombres={nombres} legal={legal} />
         <BotonesMesa slug={carta.slug} color={color} siempre reservar />
       </main>
     );
@@ -541,5 +537,47 @@ function SelectorIdioma({ slug, idiomas, actual }: { slug: string; idiomas: stri
         </a>
       ))}
     </nav>
+  );
+}
+
+/** Pie común de las cartas Premium y de autor: alérgenos, reseñas, dónde encontrarnos y aviso legal. */
+function PieCarta({ carta, oscuro, color, serif, alergenos: alergenosEnCarta, nombres, legal }: {
+  carta: Carta; oscuro: boolean; color: string; serif: string; alergenos: string[]; nombres: Record<string, string>; legal: boolean;
+}) {
+  const serifCarta = { className: serif };
+  return (
+    <div className="mx-auto max-w-2xl px-6 pb-32 text-center" style={{ color: oscuro ? '#F4EEE4' : '#221D17' }}>
+      {alergenosEnCarta.length > 0 && (
+        <section className="mt-24 border-t pt-10" style={{ borderColor: oscuro ? 'rgba(244,238,228,.14)' : 'rgba(34,29,23,.15)' }}>
+          <p className="text-[11px] font-medium uppercase tracking-[0.28em] opacity-50">Alérgenos</p>
+          <p className="mx-auto mt-4 max-w-md text-[13px] leading-relaxed opacity-60">{alergenosEnCarta.map((c) => `${c} · ${nombres[c]}`).join('   ·   ')}</p>
+          <p className="mx-auto mt-4 max-w-md text-xs leading-relaxed opacity-50">Información conforme al Reglamento (UE) 1169/2011. Si tienes una alergia o intolerancia, consúltalo con nuestro equipo antes de pedir: en cocina pueden existir trazas que no figuran en la carta.</p>
+        </section>
+      )}
+      {(
+        <section className="mt-16">
+          <p className={`${serifCarta.className} text-3xl italic`}>¿Te ha gustado?</p>
+          <a href={urlResenas(carta)} target="_blank" rel="noopener" className="mt-5 inline-block border px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.28em]" style={{ borderColor: color, color: oscuro ? '#F4EEE4' : color }}>Déjanos tu opinión en Google</a>
+        </section>
+      )}
+      {(carta.direccion || carta.horario || carta.telefono || carta.instagram) && (
+        <section className="mt-20 border-t pt-12" style={{ borderColor: oscuro ? 'rgba(244,238,228,.14)' : 'rgba(34,29,23,.15)' }}>
+          <p className="text-[11px] font-medium uppercase tracking-[0.28em] opacity-50">Dónde encontrarnos</p>
+          {carta.direccion && <p className={`${serifCarta.className} mx-auto mt-4 max-w-sm text-2xl leading-snug`}>{carta.direccion}</p>}
+          {carta.horario && <p className="mt-2 text-sm opacity-60">{carta.horario}</p>}
+          <p className="mt-7 flex flex-wrap justify-center gap-x-6 gap-y-3 text-[11px] font-medium uppercase tracking-[0.28em] opacity-75">
+            {carta.direccion && <a href={`https://maps.google.com/?q=${encodeURIComponent(carta.direccion)}`} target="_blank" rel="noopener" className="border-b border-current pb-0.5">Cómo llegar</a>}
+            {carta.telefono && <a href={`tel:${carta.telefono.replace(/\s/g, '')}`} className="border-b border-current pb-0.5">Llamar</a>}
+            {carta.instagram && <a href={`https://instagram.com/${carta.instagram.replace('@', '')}`} target="_blank" rel="noopener" className="border-b border-current pb-0.5">Instagram</a>}
+          </p>
+        </section>
+      )}
+      <footer className="mt-20">
+        {legal && <p className="mb-2 text-[11px] opacity-40"><a href={`/m/${carta.slug}/legal#aviso`} className="hover:underline">Aviso legal</a> · <a href={`/m/${carta.slug}/legal#privacidad`} className="hover:underline">Privacidad</a> · <a href={`/m/${carta.slug}/legal#cookies`} className="hover:underline">Cookies</a></p>}
+        <p className={`${serifCarta.className} text-2xl`}>{carta.nombre}</p>
+        {carta.plan !== 'basico' && <a href={`/l/${carta.slug}`} className="mt-3 inline-block border-b border-current pb-0.5 text-[11px] font-medium uppercase tracking-[0.28em] opacity-70">Conoce el local</a>}
+        <p className="mt-3 text-[10px] uppercase tracking-[0.2em] opacity-35">Carta digital · <a href="https://dkitchencorporate.es/qr" className="hover:opacity-80">DKitchen</a></p>
+      </footer>
+    </div>
   );
 }

@@ -307,7 +307,7 @@ export default function PanelShell({
             {pestana === 'promociones' && <Promociones promociones={promociones} secciones={carta.secciones} plan={restaurante.plan} platos={carta.platos.map((p) => ({ id: p.id, nombre: p.nombre }))} />}
             {pestana === 'diseno' && (
               <div className="space-y-10">
-                <EstiloPremium inicial={{ plantilla: restaurante.plantilla || 'premium', fondo: restaurante.estiloFondo || 'oscuro', letra: restaurante.estiloLetra || 'sans', color: (restaurante.colorMarca || '#B23A48').toUpperCase() }} />
+                <EstiloPremium inicial={{ plantilla: restaurante.plantilla || 'premium', fondo: restaurante.estiloFondo || 'oscuro', letra: restaurante.estiloLetra || 'sans', color: (restaurante.colorMarca || '#B23A48').toUpperCase(), firma: restaurante.firma ?? {} }} />
                 <PortadaCarta inicial={restaurante.portadaUrl ?? null} conNombreInicial={!!restaurante.portadaConNombre} demo={demo} onCambio={() => avisarEstudio({ recargar: true })} />
               </div>
             )}
