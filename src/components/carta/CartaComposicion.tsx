@@ -37,6 +37,12 @@ type Props = {
 };
 
 /** Lo común: buscador, sección activa al bajar y los destacados «de la casa». */
+/** Foto de ambiente: la portada, salvo que ya lleve el nombre escrito (cartel): entonces, la de un plato. */
+function ambiente(carta: Carta, grupos: SeccionCarta[], respaldo: string | null) {
+  if (carta.portadaUrl && !carta.portadaConNombre) return carta.portadaUrl;
+  return grupos.flatMap((g) => g.platos).find((p) => p.fotoUrl)?.fotoUrl ?? (carta.portadaConNombre ? null : respaldo);
+}
+
 function useCarta(grupos: SeccionCarta[]) {
   const [busca, setBusca] = useState('');
   const [activa, setActiva] = useState(grupos[0]?.id ?? '');
@@ -106,7 +112,7 @@ export default function CartaComposicion(p: Props) {
 function Gastro({ carta, grupos, nombres, color, oscuro, serif, accion, portadaFallback, tras, resenas }: Props) {
   const c = useCarta(grupos);
   const f = carta.firma ?? {};
-  const portada = carta.portadaUrl || portadaFallback;
+  const portada = ambiente(carta, grupos, portadaFallback);
   const t = oscuro
     ? { fondo: '#0A0A0A', tinta: '#F5F2EC', suave: 'rgba(245,242,236,.6)', linea: 'rgba(245,242,236,.1)', vidrio: 'rgba(10,10,10,.82)', acento: `color-mix(in srgb, ${color} 55%, #F2D9A6)` }
     : { fondo: '#F4F0E8', tinta: '#1A1714', suave: 'rgba(26,23,20,.6)', linea: 'rgba(26,23,20,.12)', vidrio: 'rgba(244,240,232,.86)', acento: color };
@@ -126,7 +132,7 @@ function Gastro({ carta, grupos, nombres, color, oscuro, serif, accion, portadaF
         <span className="absolute inset-0" style={{ background: `radial-gradient(ellipse at center, transparent 0%, ${t.fondo} 78%)` }} />
         <div className="relative max-w-2xl">
           <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: t.acento }}>{f.lema || 'Menú de temporada'}</p>
-          {!carta.portadaConNombre && <h1 className={`${serif} mt-6 text-[clamp(44px,11vw,96px)] font-light leading-[0.95]`}>{carta.nombre}</h1>}
+          <h1 className={`${serif} mt-6 text-[clamp(44px,11vw,96px)] font-light leading-[0.95]`}>{carta.nombre}</h1>
           <div className="mt-7"><Adorno tipo={f.adorno} color={t.acento} /></div>
           {carta.descripcion && <p className={`${serif} mx-auto mt-6 max-w-md text-xl font-light italic leading-snug`} style={{ color: t.suave }}>{carta.descripcion}</p>}
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
@@ -139,8 +145,8 @@ function Gastro({ carta, grupos, nombres, color, oscuro, serif, accion, portadaF
       {tras}
 
       <div className="sticky top-0 z-30 border-y backdrop-blur-xl" style={{ background: t.vidrio, borderColor: t.linea }}>
-        <div className="mx-auto flex max-w-5xl items-center gap-4 px-5">
-          <nav ref={c.nav} aria-label="Secciones de la carta" className="flex flex-1 gap-6 overflow-x-auto py-4 [scrollbar-width:none]">
+        <div className="mx-auto flex max-w-5xl flex-col gap-1 px-5 pb-3 sm:flex-row sm:items-center sm:gap-4 sm:pb-0">
+          <nav ref={c.nav} aria-label="Secciones de la carta" className="flex min-w-0 flex-1 gap-6 overflow-x-auto py-3.5 [scrollbar-width:none] sm:py-4">
             {grupos.map((g, i) => (
               <a key={g.id} href={`#p-${g.id}`} data-g={g.id} className="shrink-0 text-[10px] uppercase tracking-[0.28em] transition"
                 style={{ color: c.activa === g.id ? t.acento : t.suave }}>
@@ -148,7 +154,7 @@ function Gastro({ carta, grupos, nombres, color, oscuro, serif, accion, portadaF
               </a>
             ))}
           </nav>
-          <Buscador valor={c.busca} cambiar={c.setBusca} clase="w-36 border-b py-1 sm:w-56" estilo={{ borderColor: t.linea }} />
+          <Buscador valor={c.busca} cambiar={c.setBusca} clase="w-full border-b py-1 sm:w-56" estilo={{ borderColor: t.linea }} />
         </div>
       </div>
 
@@ -234,7 +240,7 @@ function FilaGastro({ plato, t, serif, nombres, invertir }: { plato: PlatoCarta;
 function Taberna({ carta, grupos, nombres, color, oscuro, display, accion, portadaFallback, tras, resenas }: Props) {
   const c = useCarta(grupos);
   const f = carta.firma ?? {};
-  const portada = carta.portadaUrl || portadaFallback;
+  const portada = ambiente(carta, grupos, portadaFallback);
   const pizarra = `color-mix(in srgb, ${color} 28%, #1C261D)`;
   const t = oscuro
     ? { fondo: '#151A16', ficha: '#1D241E', tarjeta: '#232B24', tinta: '#F1EADB', suave: 'rgba(241,234,219,.62)', linea: 'rgba(241,234,219,.1)', chip: 'rgba(241,234,219,.08)' }
@@ -247,7 +253,7 @@ function Taberna({ carta, grupos, nombres, color, oscuro, display, accion, porta
         <span className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent, ${pizarra})` }} />
         <div className="relative mx-auto flex max-w-5xl flex-col items-center px-6 pb-12 pt-10 text-center">
           {carta.logoUrl && <img src={carta.logoUrl} alt="" className="h-16 w-16 rounded-full object-cover ring-2 ring-[#F4ECD8]/40" />}
-          {!carta.portadaConNombre && <h1 className={`${display} mt-4 text-[clamp(42px,11vw,80px)] font-extrabold italic leading-[0.95] tracking-tight`}>{carta.nombre}</h1>}
+          <h1 className={`${display} mt-4 text-[clamp(42px,11vw,80px)] font-extrabold italic leading-[0.95] tracking-tight`}>{carta.nombre}</h1>
           <p className="mt-4 inline-block border-t border-[#F4ECD8]/25 pt-2 text-[11px] font-semibold uppercase tracking-[0.26em] opacity-85">{f.lema || carta.descripcion || 'Tapas, raciones y vinos'}</p>
           {carta.horario && <p className="mt-3 rounded-full bg-black/25 px-3.5 py-1.5 text-xs">{carta.horario}</p>}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -264,7 +270,7 @@ function Taberna({ carta, grupos, nombres, color, oscuro, display, accion, porta
               <img src={hoy.fotoUrl!} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
               <span className="min-w-0 flex-1">
                 <span className="block text-[10px] font-bold uppercase tracking-[0.24em] opacity-85">{f.destacados || 'Hoy recomendamos'}</span>
-                <span className={`${display} block truncate text-2xl font-bold italic`}>{hoy.nombre}</span>
+                <span className={`${display} line-clamp-2 block text-xl font-bold italic leading-tight sm:text-2xl`}>{hoy.nombre}</span>
               </span>
               <span className="shrink-0 rounded-xl bg-white/20 px-3 py-1.5 text-lg font-black tabular-nums">{euros(hoy.precio)}</span>
             </span>
@@ -302,8 +308,9 @@ function Taberna({ carta, grupos, nombres, color, oscuro, display, accion, porta
                       <span className="min-w-0 flex-1">
                         <span className="flex items-start justify-between gap-2">
                           <span className="text-[17px] font-bold leading-tight"><EtiquetaPlato plato={p} />{p.nombre}</span>
-                          <span className="shrink-0 rounded-xl px-2.5 py-1 text-[15px] font-black tabular-nums" style={{ background: `color-mix(in srgb, ${color} 13%, transparent)`, color: oscuro ? `color-mix(in srgb, ${color} 50%, #fff)` : color }}><PrecioAnterior plato={p} />{euros(p.precio)}</span>
+                          <span className="shrink-0 whitespace-nowrap rounded-xl px-2.5 py-1 text-[15px] font-black tabular-nums" style={{ background: `color-mix(in srgb, ${color} 13%, transparent)`, color: oscuro ? `color-mix(in srgb, ${color} 50%, #fff)` : color }}>{euros(p.precio)}</span>
                         </span>
+                        {p.precioAnterior && <span className="mt-0.5 block text-xs" style={{ color: t.suave }}>Antes <PrecioAnterior plato={p} /></span>}
                         <ComboPlato plato={p} />
                         {p.descripcion && <span className="mt-1.5 line-clamp-3 block text-[13.5px] leading-relaxed" style={{ color: t.suave }}>{p.descripcion}</span>}
                         <Alergenos plato={p} nombres={nombres} clase="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase" estilo={{ background: t.chip }} />
@@ -331,7 +338,7 @@ function Taberna({ carta, grupos, nombres, color, oscuro, display, accion, porta
 function Urbano({ carta, grupos, nombres, color, oscuro, cartel, accion, portadaFallback, tras, resenas }: Props) {
   const c = useCarta(grupos);
   const f = carta.firma ?? {};
-  const portada = carta.portadaUrl || portadaFallback;
+  const portada = ambiente(carta, grupos, portadaFallback);
   const t = oscuro
     ? { fondo: '#141009', tarjeta: '#1D1811', tinta: '#FFFFFF', suave: '#A8A29E', linea: 'rgba(255,255,255,.08)', borde: '1px solid rgba(255,255,255,.08)', chip: '#2A241C' }
     : { fondo: '#FFF7EC', tarjeta: '#FFFFFF', tinta: '#141009', suave: '#5B534A', linea: '#141009', borde: '2px solid #141009', chip: '#F3E6D2' };
@@ -362,7 +369,7 @@ function Urbano({ carta, grupos, nombres, color, oscuro, cartel, accion, portada
         <div className="relative overflow-hidden rounded-[28px] p-7 text-white sm:p-12" style={{ background: `linear-gradient(120deg, ${color}, color-mix(in srgb, ${color} 45%, #FF9F1C))`, boxShadow: `0 24px 60px color-mix(in srgb, ${color} 28%, transparent)` }}>
           <div className="relative z-10 max-w-[62%] sm:max-w-xl">
             <span className="inline-block rounded-full bg-black px-3 py-1 text-[10px] font-black uppercase tracking-widest">{f.lema || 'Recién hecho'}</span>
-            {!carta.portadaConNombre && <h1 className={`${cartel} mt-4 text-[clamp(40px,10vw,84px)] uppercase leading-[0.9] drop-shadow-lg`}>{carta.nombre}</h1>}
+            <h1 className={`${cartel} mt-4 text-[clamp(40px,10vw,84px)] uppercase leading-[0.9] drop-shadow-lg`}>{carta.nombre}</h1>
             {carta.descripcion && <p className="mt-3 text-[15px] font-bold leading-snug opacity-90 sm:text-lg">{carta.descripcion}</p>}
             <div className="mt-6 flex flex-wrap gap-2.5">
               {accion}
