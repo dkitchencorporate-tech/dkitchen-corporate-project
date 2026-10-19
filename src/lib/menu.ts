@@ -42,6 +42,8 @@ export interface SeccionCarta {
   platos: PlatoCarta[];
 }
 
+export interface FirmaCarta { lema?: string; destacados?: string; nota?: string; autor?: string; adorno?: 'rombo' | 'estrella' | 'ola' | 'sello' | 'ninguno' }
+
 export interface Carta {
   slug: string;
   nombre: string;
@@ -65,6 +67,8 @@ export interface Carta {
   portadaUrl?: string | null;
   /** La portada ya lleva el nombre escrito: no se repite encima (0044). */
   portadaConNombre?: boolean;
+  /** Firma de autor de la carta (0096): lema, título de los destacados, nota del chef, autor y adorno. */
+  firma?: FirmaCarta;
   /** Idiomas activos del Pack de idiomas (0027). */
   idiomas?: string[];
   secciones: SeccionCarta[];
@@ -107,10 +111,11 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       portada_con_nombre: boolean;
       estilo_fondo: string;
       estilo_letra: string;
+      firma: FirmaCarta | null;
       idiomas: string[];
     }>(
       `SELECT id, slug, nombre, logo_url, plan, color_marca, descripcion, telefono,
-              direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, estilo_fondo, estilo_letra, portada_url, portada_con_nombre
+              direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, estilo_fondo, estilo_letra, firma, portada_url, portada_con_nombre
          FROM restaurantes WHERE slug = $1`,
       [slug]
     );
@@ -188,6 +193,7 @@ export async function obtenerCarta(slugOriginal: string): Promise<Carta | null> 
       portadaConNombre: !!restaurante.portada_con_nombre,
       estiloFondo: restaurante.estilo_fondo,
       estiloLetra: restaurante.estilo_letra,
+      firma: restaurante.firma ?? {},
       idiomas: restaurante.idiomas ?? [],
       secciones: secciones
         .map((s) => ({

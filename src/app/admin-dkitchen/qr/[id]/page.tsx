@@ -1,3 +1,5 @@
+import DisenoCentral from '@/components/admin/DisenoCentral';
+import { limpiarFirma } from '@/lib/composiciones';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
@@ -80,6 +82,11 @@ const CAMPO: Record<string, string> = {
   plantilla: 'Plantilla', estilo_fondo: 'Fondo', estilo_letra: 'Letra', etiqueta: 'Etiqueta', capacidad: 'Plazas', x: 'Posición', y: 'Posición',
   zona: 'Zona', numero: 'Número', activo: 'Activo', idiomas: 'Idiomas', estado: 'Estado', plan: 'Plan',
 };
+const EDITORES_360: [string, string][] = [
+  ['carta', 'Carta y platos'], ['estudio', 'Categorías y combos'], ['local', 'Datos del local'], ['landing', 'Landing'],
+  ['idiomas', 'Idiomas'], ['promociones', 'Promociones y banners'], ['sala', 'Plano y mesas'], ['qr', 'QR y kit'], ['legal', 'Textos legales'],
+];
+
 function nombreAccion(accion: string): string {
   if (ACCION[accion]) return ACCION[accion];
   const [tabla, op] = accion.split('.');
@@ -138,6 +145,9 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
   const [cartaCliente, traducciones] = conIdiomas
     ? await Promise.all([obtenerCarta(r.slug), listarTraducciones(jwt, id)])
     : [null, []];
+  // Ficha 360 · Diseño: fotos reales de su carta para la vista previa.
+  const cartaDiseno = cartaCliente ?? await obtenerCarta(r.slug).catch(() => null);
+  const fotosCarta = cartaDiseno ? [...cartaDiseno.secciones.flatMap((x) => x.platos), ...cartaDiseno.sueltos].map((p) => p.fotoUrl).filter((u): u is string => !!u).slice(0, 3) : [];
   const maxDia = Math.max(1, ...ficha.escaneos_30d.map((d) => d.n));
   const total30 = ficha.escaneos_30d.reduce((s, d) => s + d.n, 0);
   const bajaPendiente = r.baja_programada_en && r.estado_acceso !== 'suspendido' ? r.baja_programada_en.slice(0, 10) : null;
@@ -595,34 +605,28 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
       </section>
 
       <section id="diseno" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <h2 className="font-display text-xl font-semibold tracking-tight">Diseño de la carta</h2>
+        <h2 className="font-display text-xl font-semibold tracking-tight">Ficha 360 · Diseño y editores</h2>
         <p className="text-xs text-niebla">
-          Solo DKitchen lo asigna (el cliente administra contenido). Esencial = incluido · Autor = Setup Experto · Signature = a medida.
+          La carta de autor se monta aquí: composición, fondo, color libre y firma, con vista previa. Con nivel Esencial el cliente puede seguir cambiándolo en su panel; con Autor o Signature queda bloqueado para él.
         </p>
-        <form action={asignarDisenoAction} className="mt-4 flex flex-wrap items-end gap-3 text-sm">
-          <input type="hidden" name="restauranteId" value={r.id} />
-          <label className="space-y-1">
-            <span className="block text-xs text-niebla">Plantilla</span>
-            <select name="plantilla" defaultValue={r.plantilla ?? 'clasica'} className="rounded-lg border border-acero bg-white px-3 py-2">
-              <option value="clasica">Clásica</option>
-              <option value="visual">Visual</option>
-              <option value="express">Express</option>
-            </select>
-          </label>
-          <label className="space-y-1">
-            <span className="block text-xs text-niebla">Nivel</span>
-            <select name="nivel" defaultValue={r.nivel_diseno ?? 'esencial'} className="rounded-lg border border-acero bg-white px-3 py-2">
-              <option value="esencial">Esencial</option>
-              <option value="autor">Carta de Autor</option>
-              <option value="signature">Signature</option>
-            </select>
-          </label>
-          <label className="space-y-1">
-            <span className="block text-xs text-niebla">Color (libre)</span>
-            <input type="color" name="color" defaultValue={r.color_marca ?? '#6E0C2B'} className="h-[38px] w-16 rounded-lg border border-acero bg-white p-1" />
-          </label>
-          <button className="rounded-full bg-vino px-4 py-2 font-bold hover:bg-vino-hondo">Aplicar diseño</button>
-        </form>
+        <DisenoCentral accion={asignarDisenoAction} restauranteId={r.id} slug={r.slug} nombre={r.nombre} logo={r.logo_url} portada={r.portada_url ?? null}
+          fotos={fotosCarta}
+          inicial={{ plantilla: r.plantilla ?? 'clasica', nivel: r.nivel_diseno ?? 'esencial', fondo: r.estilo_fondo ?? 'papel', letra: r.estilo_letra ?? 'sans', color: (r.color_marca ?? '#6E0C2B').toUpperCase(), firma: limpiarFirma(r.firma) }} />
+        {r.estado_acceso !== 'suspendido' && (
+          <div className="mt-8 border-t border-linea pt-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ceniza">Editar el resto de su carta</p>
+            <p className="mt-1 text-xs text-niebla">Cada botón abre esa pantalla de su panel en modo soporte (franja vino arriba; «Salir y volver a su ficha» para regresar). Cada cambio queda en su historial como DKitchen.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {EDITORES_360.map(([pestana, texto]) => (
+                <form key={pestana} action={entrarSoporteAction}>
+                  <input type="hidden" name="restauranteId" value={r.id} />
+                  <input type="hidden" name="pestana" value={pestana} />
+                  <button className="rounded-full border border-linea-fuerte px-4 py-2 text-sm font-semibold hover:border-vino hover:text-vino">{texto}</button>
+                </form>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       {cartaCliente && (

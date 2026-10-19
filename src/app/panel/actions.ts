@@ -1,5 +1,6 @@
 'use server';
 
+import { PLANTILLAS, limpiarFirma } from '@/lib/composiciones';
 import { revalidatePath } from 'next/cache';
 import { claveDeLimite, limiteSuperado } from '@/lib/limite-frecuencia';
 import { escaneosRango as dbEscaneosRango } from '@/lib/escaneos-cliente';
@@ -624,11 +625,11 @@ export async function asignarMesasAction(camareroId: string | null, mesaIds: str
 }
 
 /** Estilo de la carta elegido por el cliente (0031). Lista blanca aquí y en la base. */
-export async function guardarEstiloAction(e: { plantilla: string; fondo: string; letra: string; color: string }) {
-  if (!['premium', 'clasica', 'editorial', 'visual', 'express'].includes(e?.plantilla) || !['papel', 'blanco', 'oscuro'].includes(e?.fondo)
+export async function guardarEstiloAction(e: { plantilla: string; fondo: string; letra: string; color: string; firma?: unknown }) {
+  if (!(PLANTILLAS as readonly string[]).includes(e?.plantilla) || !['papel', 'blanco', 'oscuro'].includes(e?.fondo)
       || !['sans', 'serif'].includes(e?.letra) || !/^#[0-9a-f]{6}$/i.test(e?.color ?? '')) throw new Error('Estilo no válido.');
   const { jwt, restaurante } = await requerirSesionYRestaurante();
-  await guardarEstilo(jwt, restaurante.id, { ...e, color: e.color.toUpperCase() }).catch((err: unknown) => {
+  await guardarEstilo(jwt, restaurante.id, { ...e, color: e.color.toUpperCase(), firma: e.firma === undefined ? undefined : limpiarFirma(e.firma) }).catch((err: unknown) => {
     const m = err instanceof Error ? err.message : '';
     throw new Error(/paleta|DKitchen/.test(m) ? m : 'No se pudo guardar el estilo.');
   });

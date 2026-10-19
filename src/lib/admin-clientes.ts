@@ -87,7 +87,7 @@ export interface FichaCliente {
     creado_en: string; pago_fallido_desde: string | null; logo_url: string | null; color_marca: string | null;
     descripcion: string | null; telefono: string | null; direccion: string | null; horario: string | null;
     instagram: string | null; url_resenas: string | null;
-    plantilla?: string; nivel_diseno?: string;
+    plantilla?: string; nivel_diseno?: string; estilo_fondo?: string; estilo_letra?: string; firma?: Record<string, unknown> | null; portada_url?: string | null;
     demo_interna?: boolean; archivado_en?: string | null; baja_programada_en?: string | null; baja_motivo?: string | null; baja_por?: string | null; baja_desde?: string | null;
     prueba_hasta?: string | null; propietario?: string;
   };
@@ -180,6 +180,12 @@ export async function responderTicket(
 
 export async function cambiarEstadoSolicitudQr(jwt: string, solicitudId: string, estado: string) {
   await comoCliente(jwt, (c) => c.query('SELECT dk.admin_estado_solicitud_qr($1, $2)', [solicitudId, estado]));
+}
+
+/** Central asigna TODO el diseño de la carta (0096): composición, nivel, color libre, fondo, letra y firma. */
+export async function guardarDisenoCentral(jwt: string, restauranteId: string, d: { plantilla: string; nivel: string; color: string | null; fondo: string; letra: string; firma: Record<string, unknown> }) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_guardar_diseno($1, $2, $3, $4, $5, $6, $7::jsonb)',
+    [restauranteId, d.plantilla, d.nivel, d.color, d.fondo, d.letra, JSON.stringify(d.firma)]));
 }
 
 /** Asigna plantilla, nivel y color de la carta (0026: solo DKitchen puede). */

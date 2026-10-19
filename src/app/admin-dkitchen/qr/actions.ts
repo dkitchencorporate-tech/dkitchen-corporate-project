@@ -1,5 +1,6 @@
 'use server';
 
+import { PLANTILLAS, limpiarFirma } from '@/lib/composiciones';
 import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { crearCuentaCliente, enviarEnlaceDeContrasena } from '@/lib/neon-auth';
@@ -8,7 +9,7 @@ import { comoAprovisionamiento } from '@/lib/db';
 import { crearCheckoutEnlaceAdmin } from '@/lib/payments/cobros';
 import { exigirAdmin } from '@/lib/guard-admin';
 import {
-  cambiarEstadoCliente, cambiarPlanCliente, regalarTodo, cargarCartaDemo, crearEnlace, fijarUrlEnlace, anularEnlace, fichaCliente, responderTicket, cambiarEstadoSolicitudQr, asignarDiseno, adminServicio, adminConexionTpv,
+  cambiarEstadoCliente, cambiarPlanCliente, regalarTodo, cargarCartaDemo, crearEnlace, fijarUrlEnlace, anularEnlace, fichaCliente, responderTicket, cambiarEstadoSolicitudQr, guardarDisenoCentral, adminServicio, adminConexionTpv,
   archivarCliente, marcarDemo, programarBaja, anularBaja, clienteStripeAdmin,
 } from '@/lib/admin-clientes';
 import { cookies } from 'next/headers';
@@ -98,12 +99,22 @@ export async function asignarDisenoAction(formulario: FormData) {
   const id = uuid(formulario.get('restauranteId'));
   const plantilla = String(formulario.get('plantilla'));
   const nivel = String(formulario.get('nivel'));
+  const fondo = String(formulario.get('fondo') ?? 'papel');
+  const letra = String(formulario.get('letra') ?? 'sans');
   const colorBruto = String(formulario.get('color') ?? '').trim();
-  if (!['clasica', 'visual', 'express'].includes(plantilla) || !['esencial', 'autor', 'signature'].includes(nivel)) {
+  if (!(PLANTILLAS as readonly string[]).includes(plantilla) || !['esencial', 'autor', 'signature'].includes(nivel)
+      || !['papel', 'blanco', 'oscuro'].includes(fondo) || !['sans', 'serif'].includes(letra)) {
     throw new Error('Diseño no válido.');
   }
   const color = /^#[0-9a-fA-F]{6}$/.test(colorBruto) ? colorBruto.toUpperCase() : null;
-  await asignarDiseno(jwt, id, plantilla, nivel, color);
+  // R3 (0096): la firma de la carta también se monta desde Central.
+  const firma = limpiarFirma({
+    lema: formulario.get('lema'), destacados: formulario.get('destacados'), nota: formulario.get('nota'),
+    autor: formulario.get('autor'), adorno: formulario.get('adorno'),
+  });
+  await guardarDisenoCentral(jwt, id, { plantilla, nivel, color, fondo, letra, firma });
+  const slug = String(formulario.get('slug') ?? '').replace(/[^a-z0-9-]/gi, '');
+  if (slug) revalidatePath(`/m/${slug}`);
   revalidatePath(`/admin-dkitchen/qr/${id}`);
 }
 
@@ -388,5 +399,9 @@ export async function entrarSoporteAction(formulario: FormData) {
   await exigirAdmin();
   const id = uuid(formulario.get('restauranteId'));
   (await cookies()).set(COOKIE_PUESTA, id, { path: '/', maxAge: 12 * 3600, httpOnly: true, secure: true, sameSite: 'lax' });
-  redirect('/panel');
+  // Ficha 360 (tarea 4): cada editor se abre directamente en su pantalla del panel.
+  const pestana = String(formulario.get('pestana') ?? '');
+  redirect(PESTANAS_SOPORTE.includes(pestana) ? `/panel?pestana=${pestana}` : '/panel');
 }
+
+const PESTANAS_SOPORTE = ['local', 'carta', 'estudio', 'diseno', 'landing', 'idiomas', 'promociones', 'sala', 'qr', 'legal'];
