@@ -5,6 +5,8 @@ import { clavePuerta, euros, leerLanding, urlAltaCobro } from '@/lib/entradas';
 import { FORMATOS_EXPERIENCE } from '@/lib/experience-formatos';
 import { cambiarEstadoAction, conectarCobroAction, guardarEventoAction, nuevaClavePuertaAction } from './actions';
 import GuiaZona from '@/components/admin/GuiaZona';
+import AsistenteEvento, { type EventoAsistente, type FormatoAsistente } from '@/components/admin/AsistenteEvento';
+import { listarProyectos } from '@/lib/proyectos';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,48 +35,29 @@ const MENSAJES: Record<string, string> = {
 };
 const aLocal = (s: string) => new Date(s).toLocaleString('sv-SE', { timeZone: 'Europe/Madrid' }).slice(0, 16).replace(' ', 'T');
 
-function Formulario({ e }: { e?: Evento }) {
-  const l = leerLanding(e?.landing);
+/** Datos del evento para el asistente (edición): las listas de la landing vuelven a su forma de texto. */
+function paraAsistente(e: Evento): EventoAsistente {
+  const l = leerLanding(e.landing);
   const area = (filas: string[]) => filas.join('\n');
-  return (
-    <form action={guardarEventoAction} className="grid gap-3 sm:grid-cols-2">
-      {e && <input type="hidden" name="id" value={e.id} />}
-      <label className="grid gap-1 text-sm">Local<input name="local_nombre" required defaultValue={e?.local_nombre} className={input} /></label>
-      <label className="grid gap-1 text-sm">Título del evento<input name="titulo" required defaultValue={e?.titulo} className={input} /></label>
-      {!e && <label className="grid gap-1 text-sm">Dirección web (slug)<input name="slug" required pattern="[a-z0-9-]{3,60}" placeholder="cata-vinos-bar-pepe-nov" className={input} /></label>}
-      <label className="grid gap-1 text-sm">Fecha y hora (Madrid)<input type="datetime-local" name="fecha" required defaultValue={e ? aLocal(e.fecha) : undefined} className={input} /></label>
-      <label className="grid gap-1 text-sm">Precio por entrada (€, IVA incluido)<input name="precio" required inputMode="decimal" defaultValue={e ? String(e.precio_centimos / 100) : undefined} className={input} /></label>
-      <label className="grid gap-1 text-sm">Aforo<input type="number" name="aforo" min={1} max={5000} required defaultValue={e?.aforo} className={input} /></label>
-      <label className="grid gap-1 text-sm">Máximo por compra<input type="number" name="max_por_compra" min={1} max={20} defaultValue={e?.max_por_compra ?? 6} className={input} /></label>
-      <label className="grid gap-1 text-sm">Lugar<input name="lugar" defaultValue={e?.lugar} className={input} /></label>
-      <label className="grid gap-1 text-sm sm:col-span-2">Imagen (URL https de Vercel Blob, o /images/experience/experience-&lt;formato&gt;-16x9.webp)<input name="imagen_url" defaultValue={e?.imagen_url ?? ''} className={input} /></label>
-      <label className="grid gap-1 text-sm">Formato
-        <select name="formato" defaultValue={e?.formato ?? ''} className={input}>
-          <option value="">Sin formato</option>
-          {FORMATOS_EXPERIENCE.map((f) => <option key={f.slug} value={f.slug}>{f.nombre}</option>)}
-        </select>
-      </label>
-      <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="muestra" value="1" defaultChecked={!!e?.muestra} /> Evento de muestra (nunca vende)</label>
-      <label className="grid gap-1 text-sm sm:col-span-2">Descripción corta (si no hay historia)<textarea name="descripcion" rows={2} defaultValue={e?.descripcion} className={input} /></label>
-      <fieldset className="grid gap-3 rounded-2xl border border-oro/40 bg-papel p-4 sm:col-span-2 sm:grid-cols-2">
-        <legend className="px-2 text-xs font-semibold uppercase tracking-[0.18em] text-vino">Landing de venta (lo que ve el comensal)</legend>
-        <label className="grid gap-1 text-sm sm:col-span-2">Subtítulo (fecha, hora, plazas…)<input name="l_subtitulo" maxLength={160} defaultValue={l.subtitulo} className={input} /></label>
-        <label className="grid gap-1 text-sm sm:col-span-2">Historia del evento (un párrafo por bloque, separados por una línea en blanco)<textarea name="l_historia" rows={4} maxLength={3000} defaultValue={l.historia.join('\n\n')} className={input} /></label>
-        <label className="grid gap-1 text-sm sm:col-span-2">Menú: una línea por pase · «Pase | Plato | Bebida»<textarea name="l_menu" rows={5} defaultValue={area(l.menu.map((m) => `${m.pase} | ${m.plato} | ${m.bebida}`))} className={input} /></label>
-        <label className="grid gap-1 text-sm">Programa: «Hora | Qué pasa»<textarea name="l_programa" rows={4} defaultValue={area(l.programa.map((p) => `${p.hora} | ${p.que}`))} className={input} /></label>
-        <label className="grid gap-1 text-sm">La entrada incluye (una por línea)<textarea name="l_incluye" rows={4} defaultValue={area(l.incluye)} className={input} /></label>
-        <label className="grid gap-1 text-sm">Anfitrión o chef<input name="l_anf_nombre" maxLength={80} defaultValue={l.anfitrion?.nombre ?? ''} className={input} /></label>
-        <label className="grid gap-1 text-sm">Su papel<input name="l_anf_rol" maxLength={80} defaultValue={l.anfitrion?.rol ?? ''} className={input} /></label>
-        <label className="grid gap-1 text-sm sm:col-span-2">Sobre el anfitrión<input name="l_anf_texto" maxLength={400} defaultValue={l.anfitrion?.texto ?? ''} className={input} /></label>
-        <label className="grid gap-1 text-sm">Dirección<input name="l_direccion" maxLength={200} defaultValue={l.direccion} className={input} /></label>
-        <label className="grid gap-1 text-sm">Enlace de Google Maps<input name="l_mapa" maxLength={400} defaultValue={l.mapa ?? ''} className={input} /></label>
-        <label className="grid gap-1 text-sm sm:col-span-2">Preguntas: «Pregunta | Respuesta»<textarea name="l_faq" rows={3} defaultValue={area(l.faq.map((x) => `${x.p} | ${x.r}`))} className={input} /></label>
-        <label className="grid gap-1 text-sm sm:col-span-2">Avisos (edad, alérgenos, aforo…)<input name="l_avisos" maxLength={400} defaultValue={l.avisos} className={input} /></label>
-      </fieldset>
-      <div className="sm:col-span-2"><button className={boton}>{e ? 'Guardar cambios' : 'Crear evento'}</button></div>
-    </form>
-  );
+  return {
+    id: e.id, slug: e.slug, local_nombre: e.local_nombre, titulo: e.titulo, fecha: aLocal(e.fecha), precio: String(e.precio_centimos / 100),
+    aforo: e.aforo, max_por_compra: e.max_por_compra, lugar: e.lugar ?? '', imagen_url: e.imagen_url ?? '', formato: e.formato ?? '',
+    muestra: !!e.muestra, descripcion: e.descripcion ?? '',
+    l: {
+      subtitulo: l.subtitulo, historia: l.historia.join('\n\n'), menu: area(l.menu.map((m) => `${m.pase} | ${m.plato} | ${m.bebida}`)),
+      programa: area(l.programa.map((p) => `${p.hora} | ${p.que}`)), incluye: area(l.incluye), anf_nombre: l.anfitrion?.nombre ?? '',
+      anf_rol: l.anfitrion?.rol ?? '', anf_texto: l.anfitrion?.texto ?? '', direccion: l.direccion, mapa: l.mapa ?? '',
+      faq: area(l.faq.map((x) => `${x.p} | ${x.r}`)), avisos: l.avisos,
+    },
+  };
 }
+const FORMATOS: FormatoAsistente[] = FORMATOS_EXPERIENCE.map((f) => ({
+  slug: f.slug, nombre: f.nombre, etiqueta: f.etiqueta, frase: f.frase, dias: f.dias, aforo: f.aforo, entrada: f.entrada, faq: f.faq, claves: f.claves,
+}));
+const ESTADO: Record<string, [string, string]> = {
+  borrador: ['Borrador', 'bg-papel text-grafito'], venta: ['En venta', 'bg-emerald-100 text-emerald-800'], cerrado: ['Venta cerrada', 'bg-zinc-100 text-zinc-600'],
+};
+const chip = (e: string) => ESTADO[e] ?? [e, 'bg-papel text-grafito'];
 
 export default async function Entradas({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAdmin();
@@ -83,9 +66,11 @@ export default async function Entradas({ searchParams }: { searchParams: Promise
   const sel = eventos?.find((x) => x.id === q.ev);
   const entradas = sel ? await comoCliente(jwt, async (c) => (await c.query<Entrada>('SELECT * FROM dk.admin_entradas($1)', [sel.id])).rows).catch(() => []) : [];
   const aviso = q.ok ? MENSAJES[q.ok] : q.e ? MENSAJES[q.e] ?? MENSAJES.datos : null;
+  const clientes = await listarProyectos(jwt, { producto: 'experience' }).then((l) => [...new Set(l.map((p) => p.negocio).filter(Boolean) as string[])]).catch(() => []);
+  const nuevo = q.nuevo === '1' || eventos?.length === 0;
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-6 px-4 py-6">
+    <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6">
       <header>
         <h1 className="font-display text-3xl font-semibold">Entradas · Experience</h1>
         <p className="mt-1 text-sm text-pizarra">Eventos con venta de entradas. El dinero va directo a la cuenta de Stripe del local; DKitchen no cobra comisión.</p>
@@ -119,7 +104,7 @@ export default async function Entradas({ searchParams }: { searchParams: Promise
               <form action={cambiarEstadoAction}><input type="hidden" name="id" value={sel.id} /><input type="hidden" name="estado" value="cerrado" /><button className={boton}>Cerrar venta</button></form>
             )}
           </div>
-          <details className="mt-6"><summary className="cursor-pointer text-sm font-semibold">Editar evento</summary><div className="mt-4"><Formulario e={sel} /></div></details>
+          <details className="mt-6 rounded-[22px] border border-linea p-4"><summary className="cursor-pointer text-sm font-semibold">✎ Editar evento (asistente)</summary><div className="mt-4"><AsistenteEvento accion={guardarEventoAction} formatos={FORMATOS} clientes={clientes} e={paraAsistente(sel)} /></div></details>
           <h3 className="mt-6 font-semibold">Entradas ({entradas.length})</h3>
           <ul className="mt-2 divide-y divide-linea text-sm">
             {entradas.map((x) => (
@@ -132,22 +117,51 @@ export default async function Entradas({ searchParams }: { searchParams: Promise
         </section>
       ) : (
         <>
-          <section className={tarjeta}>
-            <h2 className="font-semibold">Eventos</h2>
-            {eventos === null && <p className="mt-2 text-sm text-vino">No se pudieron cargar los eventos.</p>}
-            {eventos?.length === 0 && <p className="mt-2 text-sm text-pizarra">Aún no hay eventos.</p>}
-            <ul className="mt-2 divide-y divide-linea">
-              {eventos?.map((x) => (
-                <li key={x.id}>
-                  <Link href={`/admin-dkitchen/entradas?ev=${x.id}`} className="flex flex-wrap justify-between gap-2 py-3 hover:text-vino">
-                    <span className="font-semibold">{x.titulo} · {x.local_nombre}</span>
-                    <span className="text-sm text-pizarra">{new Date(x.fecha).toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid' })} · {x.vendidas}/{x.aforo} · {x.estado}</span>
-                  </Link>
-                </li>
-              ))}
+          {nuevo ? (
+            <section className="rounded-[26px] border border-oro/40 bg-[linear-gradient(160deg,#FFFDF8,#F6EEDD)] p-5 sm:p-7">
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="font-display text-2xl font-semibold">Nuevo evento</h2>
+                {!!eventos?.length && <Link href="/admin-dkitchen/entradas" className="text-sm font-semibold text-vino">Cancelar</Link>}
+              </div>
+              <AsistenteEvento accion={guardarEventoAction} formatos={FORMATOS} clientes={clientes} />
+            </section>
+          ) : (
+            <Link href="/admin-dkitchen/entradas?nuevo=1" className="flex items-center justify-between gap-3 rounded-[26px] bg-noche p-5 text-white transition hover:shadow-lg sm:p-6">
+              <span><span className="block font-display text-2xl font-semibold">Crear un evento</span><span className="text-sm text-white/65">Elige el formato y el asistente te guía en 5 pasos.</span></span>
+              <span className="rounded-full bg-oro px-5 py-2.5 text-sm font-bold text-noche">+ Nuevo</span>
+            </Link>
+          )}
+          {eventos === null && <p className="text-sm text-vino">No se pudieron cargar los eventos.</p>}
+          {!!eventos?.length && (
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {eventos.map((x) => {
+                const d = new Date(x.fecha);
+                const pct = x.aforo ? Math.min(100, Math.round((Number(x.vendidas) / x.aforo) * 100)) : 0;
+                const [nEstado, cEstado] = chip(x.estado);
+                return (
+                  <li key={x.id}>
+                    <Link href={`/admin-dkitchen/entradas?ev=${x.id}`} className="group block overflow-hidden rounded-[22px] border border-linea bg-white transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(20,16,12,.45)]">
+                      <div className="relative aspect-[16/9] bg-noche">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        {x.imagen_url && <img src={x.imagen_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-105" />}
+                        <span className="absolute left-3 top-3 flex flex-col items-center rounded-2xl bg-white/95 px-3 py-1.5 text-center leading-none text-noche shadow">
+                          <span className="font-display text-xl font-semibold">{d.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric' })}</span>
+                          <span className="text-[10px] font-bold uppercase">{d.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', month: 'short' })}</span>
+                        </span>
+                        <span className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-bold ${cEstado}`}>{x.muestra ? 'Muestra' : nEstado}</span>
+                      </div>
+                      <div className="p-4">
+                        <p className="truncate font-display text-lg font-semibold group-hover:text-vino">{x.titulo}</p>
+                        <p className="truncate text-xs text-niebla">{x.local_nombre} · {d.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' })} · {euros(x.precio_centimos)}</p>
+                        <div className="mt-3 h-2 overflow-hidden rounded-full bg-papel"><div className="h-full rounded-full bg-oro" style={{ width: `${pct}%` }} /></div>
+                        <p className="mt-1.5 flex justify-between text-[11px] text-grafito"><span>{x.vendidas}/{x.aforo} vendidas</span><span className="font-semibold">{euros(Number(x.ingresos_centimos))}</span></p>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
-          </section>
-          <section className={tarjeta}><h2 className="mb-4 font-semibold">Nuevo evento</h2><Formulario /></section>
+          )}
         </>
       )}
     </div>
