@@ -10,6 +10,8 @@ export const BLOQUES: Record<string, string> = {
   propuestas: 'Propuestas', redes: 'Redes sociales', anuncios: 'Anuncios de Meta', cobro: 'Antes del primer cobro',
   legal: 'Legal', flyers: 'Flyers y visitas', central: 'Central y paneles', producto: 'Producto (QR, Signature, Experience)',
   desarrollo: 'Desarrollo y automatización', auditoria: 'Auditorías y reportes', otro: 'Otras',
+  /** 22/10 (karc0): área propia en Central → Fiscal; no sale en Mis tareas. */
+  fiscal: 'Fiscal',
 };
 /** Quién la hace (0082). Mis tareas es también la hoja de ruta: nada vive solo en el chat. */
 export const RESPONSABLES: Record<string, string> = { karc0: 'Tú', claude: 'Claude', antigravity: 'Antigravity', ambos: 'Tú + Claude' };

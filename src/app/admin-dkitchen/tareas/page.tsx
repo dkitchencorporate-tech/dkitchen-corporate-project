@@ -36,7 +36,8 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const [tareas, revisiones, decisiones] = await Promise.all([verTareas(jwt).catch(() => null), verRevisiones(jwt).catch(() => null), verDecisiones(jwt).catch(() => null)]);
   const porDecidir = decisiones?.filter((d) => d.estado === 'pendiente').length ?? 0;
-  const todas = tareas ?? [];
+  // 22/10: lo fiscal vive en su área (Central → Fiscal); aquí solo con ?area=fiscal.
+  const todas = (tareas ?? []).filter((t) => (sp.area === 'fiscal') === (t.bloque === 'fiscal'));
   const H = tareasDeHoy(todas);
   const hoy = H.hoy;
   const abiertas = todas.filter((t) => t.estado !== 'hecha');

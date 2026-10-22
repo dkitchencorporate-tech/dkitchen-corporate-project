@@ -30,6 +30,8 @@ export const ZONAS: Zona[] = [
   { id: 'lanzamiento', nombre: 'Lanzamiento', icono: 'flecha', items: [
     { nombre: 'Ruta', href: '/admin-dkitchen/ruta' }, { nombre: 'Mis tareas', href: '/admin-dkitchen/tareas' },
     { nombre: 'Decisiones', href: '/admin-dkitchen/decisiones' }, { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' }] },
+  { id: 'fiscal', nombre: 'Fiscal', icono: 'negocio', items: [
+    { nombre: 'Fiscal', href: '/admin-dkitchen/fiscal' }, { nombre: 'Tareas fiscales', href: '/admin-dkitchen/tareas?area=fiscal' }] },
   { id: 'conocimiento', nombre: 'Conocimiento', icono: 'negocio', items: [
     { nombre: 'Manual de Central', href: '/admin-dkitchen/manual' }, { nombre: 'Documentos', href: '/admin-dkitchen/documentos' },
     { nombre: 'Reportes', href: '/admin-dkitchen/reportes' }, { nombre: 'Equipo', href: '/admin-dkitchen/administradores' }] },

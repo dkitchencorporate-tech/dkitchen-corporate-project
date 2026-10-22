@@ -26,7 +26,7 @@ const MAPA = [
 export default async function Reportes({ searchParams }: { searchParams: Promise<{ clase?: string; q?: string }> }) {
   const jwt = await exigirAdmin();
   const sp = await searchParams;
-  const [lista, tareas] = await Promise.all([verDocumentos(jwt, 'reporte').catch(() => null), verTareas(jwt).catch(() => [] as Tarea[])]);
+  const [lista, tareas] = await Promise.all([verDocumentos(jwt, 'reporte').then((l) => l.filter((d) => !d.ruta.startsWith('fiscal/'))).catch(() => null), verTareas(jwt).catch(() => [] as Tarea[])]);
   const todos = mapaReportes(lista ?? []);
   const clase = (ORDEN_CLASES as string[]).includes(sp.clase ?? '') ? (sp.clase as ClaseReporte) : null;
   const q = (sp.q ?? '').trim().toLowerCase().slice(0, 80);
