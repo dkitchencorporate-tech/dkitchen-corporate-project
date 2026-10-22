@@ -1,6 +1,7 @@
 import 'server-only';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { FUNDADOR } from '@/lib/pricing-config';
+import { enviarCorreoInterno } from '@/lib/email';
 
 /**
  * Stripe (08/10/2026, único proveedor de pago; decisión de karc0 del 07/10).
@@ -18,6 +19,21 @@ import { FUNDADOR } from '@/lib/pricing-config';
  */
 
 const BASE = 'https://api.stripe.com/v1';
+
+/**
+ * 22/10: cobros en pausa mientras DKitchen pasa a facturar desde Francia
+ * (PAGOS_PAUSADOS=1 en Vercel). Nada se crea en Stripe: el cliente ve
+ * «plaza reservada» (/pago/reserva) y Central recibe sus datos por correo.
+ */
+export const pagosPausados = () => process.env.PAGOS_PAUSADOS === '1';
+const RESERVA = 'reserva';
+const escapar = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string);
+async function avisarReserva(cliente: string, concepto: string, metadata: Record<string, string | undefined>): Promise<string> {
+  const filas = Object.entries({ cliente: cliente.replace(/^reserva:/, ''), concepto, ...metadata })
+    .filter(([, v]) => v).map(([k, v]) => `<tr><td><b>${escapar(k)}</b></td><td>${escapar(String(v)).slice(0, 400)}</td></tr>`).join('');
+  await enviarCorreoInterno(`Reserva sin cobro (pagos en pausa): ${concepto}`, `<p>Un cliente ha intentado pagar con los cobros en pausa. Contactar y cobrar cuando Stripe Francia esté activa.</p><table>${filas}</table>`).catch(() => {});
+  return RESERVA;
+}
 export const VERSION_API_STRIPE = '2026-09-30.endive';
 export const IVA_PORCENTAJE = 21;
 
@@ -64,6 +80,8 @@ export async function stripe(
   /** Cuenta conectada (Connect): la operación se hace en la cuenta del local (entradas de Experience). */
   cuenta?: string
 ): Promise<ObjetoStripe> {
+  // Pausa: nada se escribe en la cuenta propia; las entradas de Experience (Connect, cuenta del local) siguen.
+  if (pagosPausados() && metodo !== 'GET' && !cuenta) throw new Error('Cobros en pausa (PAGOS_PAUSADOS).');
   const cuerpo = codificar(params);
   const url = metodo === 'GET' && cuerpo ? `${BASE}${ruta}?${cuerpo}` : `${BASE}${ruta}`;
   const r = await fetch(url, {
@@ -111,6 +129,7 @@ export async function asegurarProducto(id: string, nombre: string): Promise<stri
 
 /** IVA y productos de un cobro, todo a la vez; luego crearSuscripcion los encuentra en caché. */
 export async function prepararCatalogo(productos: { producto: string; nombre: string }[]): Promise<void> {
+  if (pagosPausados()) return;
   await Promise.all([tipoIva(), ...productos.map((p) => asegurarProducto(p.producto, p.nombre))]);
 }
 
@@ -145,6 +164,7 @@ export interface DatosCliente {
 /** Reutiliza el cliente por correo; si no existe, lo crea (facturas en español). */
 export async function asegurarCliente(d: DatosCliente): Promise<string> {
   const email = d.email.trim().toLowerCase();
+  if (pagosPausados()) return `${RESERVA}:${email}`;
   const lista = await stripe('GET', '/customers', { email, limit: 1 });
   const existente = (lista.data as ObjetoStripe[])[0];
   const datos = {
@@ -188,7 +208,8 @@ function origenPago(origen: string): string {
   return rama ? `https://${rama}` : origen;
 }
 
-export const urlPago = (origen: string, id: string) => `${origenPago(origen)}/pago?r=${encodeURIComponent(refPago(id))}`;
+export const urlPago = (origen: string, id: string) =>
+  id === RESERVA ? `${origenPago(origen)}/pago/reserva` : `${origenPago(origen)}/pago?r=${encodeURIComponent(refPago(id))}`;
 
 // ─────────────────────────────────────────────────────────────
 // Cobros
@@ -222,6 +243,7 @@ const descuentos = (promocion?: string) => (promocion ? [{ promotion_code: promo
 
 /** Pago único: factura suelta con sus líneas e IVA, finalizada y lista para pagar en /pago. */
 export async function crearFacturaUnica(cliente: string, lineas: Linea[], metadata: Metadata, descripcion: string, promocion?: string): Promise<string> {
+  if (pagosPausados()) return avisarReserva(cliente, descripcion, metadata);
   const [, factura] = await Promise.all([
     prepararCatalogo(lineas),
     stripe('POST', '/invoices', {
@@ -292,6 +314,7 @@ export async function asegurarCupon(id: string, d: { nombre: string; centimos: n
  * se cobra cada día 12.
  */
 export async function crearSuscripcion(d: DatosSuscripcion): Promise<string> {
+  if (pagosPausados()) return avisarReserva(d.cliente, d.cuota.nombre, d.metadata);
   await prepararCatalogo([d.cuota, ...(d.hoy ?? [])]);
   const iva = await tipoIva();
   const sub = await stripe('POST', '/subscriptions', {
