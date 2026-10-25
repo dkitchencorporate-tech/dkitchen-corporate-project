@@ -9,12 +9,15 @@ import type { Equipo } from '@/lib/equipo-tipos';
 interface MesaSala { id: string; numero: string; zona: string; forma: string; plazas: number; x: number; y: number; mia: boolean; camarero: string | null; ancho?: number; alto?: number }
 interface Elemento { tipo: string; x: number; y: number; ancho: number; alto: number; etiqueta: string | null; color: string | null }
 interface Llamada { id: string; mesa: string; motivo: 'camarero' | 'cuenta'; creada_en: string }
+/** Pedido del comensal desde la mesa (0099): no va a cocina hasta que el camarero lo confirma. */
+interface PedidoMesa { id: string; mesa: string; nota: string | null; creado_en: string; lineas: { plato_id: string; nombre: string; cantidad: number; nota: string; precio: number }[] }
 interface Contexto {
   camarero: { id: string; nombre: string; rol?: 'camarero' | 'encargado' };
   restaurante: { nombre: string; color: string | null; tpv: boolean };
   mesas: MesaSala[];
   elementos?: Elemento[];
   llamadas: Llamada[];
+  pedidos?: PedidoMesa[];
   carta: { id: string; nombre: string; precio: number; seccion_id: string | null; seccion: string | null }[];
   secciones?: { id: string; nombre: string }[];
   cuentas?: { id: string; mesa: string; comensales: number | null; minutos: number; importe: number }[];
@@ -63,7 +66,15 @@ export default function AppSala({ token }: { token: string }) {
   // El encargado supervisa toda la sala: empieza viendo todas las mesas
   useEffect(() => { if (encargado) setSoloMias(false); }, [encargado]);
   const pendientes = ctx?.llamadas ?? [];
-  const { listo, activar } = useAlarmaLlamadas(pendientes.length > 0, pendientes.length === 1 ? `Mesa ${pendientes[0].mesa} llama` : `${pendientes.length} mesas llaman`);
+  const pedidosMesa = ctx?.pedidos ?? [];
+  const avisos = pendientes.length + pedidosMesa.length;
+  const { listo, activar } = useAlarmaLlamadas(avisos > 0, pendientes.length === 1 && !pedidosMesa.length ? `Mesa ${pendientes[0].mesa} llama`
+    : pedidosMesa.length === 1 && !pendientes.length ? `Mesa ${pedidosMesa[0].mesa} hace un pedido` : `${avisos} avisos de mesa`);
+  const [resolviendo, setResolviendo] = useState<string | null>(null);
+  const resolverPedido = useCallback(async (id: string, aceptar: boolean) => {
+    setResolviendo(id);
+    try { await pedir({ accion: 'pedido', pedidoId: id, aceptar }); await cargar(); } finally { setResolviendo(null); }
+  }, [pedir, cargar]);
   // B4: el encargado recibe las reservas en vivo (cada 10 s) con campanilla hasta «Visto». Solo lectura.
   const cargarReservas = useCallback(async () => {
     const { status, json } = await pedir({ accion: 'reservas' });
@@ -111,6 +122,37 @@ export default function AppSala({ token }: { token: string }) {
       )}
 
       <div className="mx-auto max-w-3xl space-y-5 px-4 pt-4">
+        {pedidosMesa.length > 0 && (
+          <section className="space-y-2 rounded-2xl bg-amber-500/10 p-2 ring-2 ring-amber-500">
+            <h2 className="px-1 text-xs font-bold uppercase tracking-wider text-black/50">Pedidos de las mesas ({pedidosMesa.length}) · confírmalos para que entren en la cuenta</h2>
+            {pedidosMesa.map((p) => (
+              <div key={p.id} className="space-y-3 rounded-2xl bg-white p-4 shadow-sm" style={{ borderLeft: `5px solid ${color}` }}>
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="text-lg font-bold">Mesa {p.mesa}</p>
+                  <p className="text-xs text-black/50">hace {Math.max(0, Math.round((Date.now() - new Date(p.creado_en).getTime()) / 60000))} min</p>
+                </div>
+                <ul className="space-y-1 text-sm">
+                  {p.lineas.map((l, i) => (
+                    <li key={i} className="flex justify-between gap-3">
+                      <span><strong>{l.cantidad}×</strong> {l.nombre}{l.nota ? <span className="text-black/50"> · {l.nota}</span> : null}</span>
+                      <span className="tabular-nums text-black/60">{euros(l.cantidad * l.precio)}</span>
+                    </li>
+                  ))}
+                </ul>
+                {p.nota && <p className="rounded-xl bg-black/5 px-3 py-2 text-sm">«{p.nota}»</p>}
+                <div className="grid grid-cols-[1fr_auto] gap-2">
+                  <button disabled={resolviendo === p.id} onClick={() => resolverPedido(p.id, true)} className="rounded-xl py-3 text-sm font-bold text-white disabled:opacity-60" style={{ background: color }}>
+                    Confirmar · {euros(p.lineas.reduce((t, l) => t + l.cantidad * l.precio, 0))}
+                  </button>
+                  <button disabled={resolviendo === p.id} onClick={() => resolverPedido(p.id, false)} className="rounded-xl border border-black/15 px-4 py-3 text-sm font-semibold text-black/70 disabled:opacity-60">
+                    Rechazar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
         {ctx.llamadas.length > 0 && (
           <section className="space-y-2 rounded-2xl bg-red-600/10 p-2 ring-2 ring-red-600 animate-pulse">
             {esIOS() && <p className="px-2 text-xs font-semibold text-red-700">En iPhone, quita el modo silencio para oír la alarma.</p>}

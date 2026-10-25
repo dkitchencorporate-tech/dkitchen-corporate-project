@@ -4,6 +4,7 @@ import { Cormorant_Garamond } from 'next/font/google';
 import type { Banner, Carta, PlatoCarta, SeccionCarta } from '@/lib/menu';
 import { nombreAlergeno } from '@/lib/alergenos';
 import BotonesMesa from '@/components/carta/BotonesMesa';
+import type { PlatoPedido } from '@/components/carta/PedidoMesa';
 import CarruselBanners from '@/components/carta/CarruselBanners';
 import FichaPlato from '@/components/carta/FichaPlato';
 import Reservar from '@/components/carta/Reservar';
@@ -28,7 +29,10 @@ const ROMANOS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'X
 const versalitas = 'text-[11px] font-medium uppercase tracking-[0.28em]';
 
 export default function CartaAutor({
-  carta, banners, desdeRespaldo = false, vistaPrevia = false, legal = false }: { carta: Carta; banners: Banner[]; desdeRespaldo?: boolean; vistaPrevia?: boolean; legal?: boolean }) {
+  carta, banners, desdeRespaldo = false, vistaPrevia = false, legal = false, pedido = null, platos = [] }: {
+  carta: Carta; banners: Banner[]; desdeRespaldo?: boolean; vistaPrevia?: boolean; legal?: boolean;
+  pedido?: 'real' | 'demo' | null; platos?: PlatoPedido[];
+}) {
   const color = carta.colorMarca || '#8A5A2B';
   const ampliado = carta.plan !== 'basico';
   const grupos: SeccionCarta[] = [
@@ -167,7 +171,7 @@ export default function CartaAutor({
         </footer>
       </div>
 
-      {!vistaPrevia && <BotonesMesa slug={carta.slug} color={color} />}
+      {!vistaPrevia && <BotonesMesa slug={carta.slug} color={color} pedido={pedido} platos={platos} />}
     </main>
   );
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { contextoSala, atenderLlamadaSala, registrarSala } from '@/lib/sala';
+import { resolverPedidoMesa } from '@/lib/pedido-mesa';
 import { enviarRegistroAlTpv } from '@/lib/envio-tpv';
 import { abrirCuenta, cuentaDeMesa, cerrarCuentaCamarero } from '@/lib/comandero';
 import { claveDeLimite, ipDeLaPeticion, algunLimiteSuperado } from '@/lib/limite-frecuencia';
@@ -64,6 +65,15 @@ export async function POST(peticion: Request) {
         if (!id) return NextResponse.json({ error: 'acceso' }, { status: 401 });
         const tpv = await enviarRegistroAlTpv(token, id);
         return NextResponse.json({ ok: true, id, tpv });
+      }
+      case 'pedido': {
+        // Pedido del comensal desde la mesa (0099): confirmar lo registra como ronda y lo manda al TPV.
+        const id = String(c?.pedidoId ?? '');
+        if (!UUID.test(id)) return NextResponse.json({ error: 'datos' }, { status: 400 });
+        const aceptar = c?.aceptar === true;
+        const res = await resolverPedidoMesa(token, id, aceptar);
+        if (!res) return NextResponse.json({ ok: false });
+        return NextResponse.json({ ok: true, id: res, tpv: aceptar ? await enviarRegistroAlTpv(token, res) : null });
       }
       case 'abrir': {
         const mesa = String(c?.mesa ?? '');

@@ -6,6 +6,7 @@ import { type Carta, type PlatoCarta, type SeccionCarta, type Banner, obtenerBan
 import { obtenerCartaConRespaldo } from '@/lib/cache-resiliencia';
 import { nombreAlergeno } from '@/lib/alergenos';
 import BotonesMesa from '@/components/carta/BotonesMesa';
+import { modoPedidoMesa } from '@/lib/pedido-mesa';
 import CarruselBanners from '@/components/carta/CarruselBanners';
 import CartaAutor from '@/components/carta/CartaAutor';
 import CartaPremium from '@/components/carta/CartaPremium';
@@ -92,9 +93,16 @@ export default async function CartaPublica({
   }
   const legal = await obtenerLegalPublico(carta.slug).then(Boolean).catch(() => false);
 
+  // G (0099): pedido desde la mesa en plan Sala y simulado en las demos internas.
+  const pedidoMesa = await modoPedidoMesa(carta.slug);
+  const platosPedido = pedidoMesa ? [
+    ...carta.secciones.flatMap((g) => g.platos.map((p) => ({ id: p.id, nombre: p.nombre, precio: p.precio, seccion: g.nombre }))),
+    ...carta.sueltos.map((p) => ({ id: p.id, nombre: p.nombre, precio: p.precio, seccion: 'Otros platos' })),
+  ] : [];
+
   // Nivel 2 / 3 (asignado por DKitchen): Carta de Autor
   if (vista !== 'premium' && !(COMPOSICIONES as string[]).includes(vista || carta.plantilla || '') && (carta.nivelDiseno === 'autor' || carta.nivelDiseno === 'signature')) {
-    return <>{selector}<CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} legal={legal} /></>;
+    return <>{selector}<CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} legal={legal} pedido={pedidoMesa} platos={platosPedido} /></>;
   }
 
   // 13/10 (karc0): TODAS las cartas salen en Premium (nivel de autor). La plantilla guardada solo elige la
@@ -136,7 +144,7 @@ export default async function CartaPublica({
           </>}
         />
         <PieCarta carta={carta} oscuro={oscuro} color={color} serif={composicion === 'gastro' ? serifCarta.className : composicion === 'taberna' ? tabernaCarta.className : cartelCarta.className} alergenos={alergenosEnCarta} nombres={nombres} legal={legal} />
-        <BotonesMesa slug={carta.slug} color={color} siempre reservar />
+        <BotonesMesa slug={carta.slug} color={color} siempre reservar pedido={pedidoMesa} platos={platosPedido} />
       </main>
     );
   }
@@ -156,7 +164,7 @@ export default async function CartaPublica({
           </>}
         />
         <PieCarta carta={carta} oscuro={oscuro} color={color} serif={serifCarta.className} alergenos={alergenosEnCarta} nombres={nombres} legal={legal} />
-        <BotonesMesa slug={carta.slug} color={color} siempre reservar />
+        <BotonesMesa slug={carta.slug} color={color} siempre reservar pedido={pedidoMesa} platos={platosPedido} />
       </main>
     );
   }
@@ -287,7 +295,7 @@ export default async function CartaPublica({
         </footer>
       </div>
 
-      <BotonesMesa slug={carta.slug} color={color} />
+      <BotonesMesa slug={carta.slug} color={color} pedido={pedidoMesa} platos={platosPedido} />
     </main>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import useAtrasCierra from './useAtrasCierra';
+import PedidoMesa, { type PlatoPedido } from './PedidoMesa';
 
 const MESA = /^[A-Za-z0-9-]{1,12}$/;
 const CLAVE = 'dk-mesa';
@@ -17,12 +18,17 @@ const CLAVE = 'dk-mesa';
  * La mesa llega rellenada si el QR es de mesa (`?mesa=N`) y se puede cambiar
  * (mesas juntadas). Antirrepetición y límites: /api/camarero + dk.llamar_camarero.
  */
-export default function BotonesMesa({ slug, color, siempre = false, reservar = false }: { slug: string; color: string; siempre?: boolean; reservar?: boolean }) {
+export default function BotonesMesa({ slug, color, siempre = false, reservar = false, pedido = null, platos = [] }: {
+  slug: string; color: string; siempre?: boolean; reservar?: boolean;
+  /** Pedido desde la mesa (G, 0099): 'real' en plan Sala (solo si llegó escaneando el QR), 'demo' en las demos internas. */
+  pedido?: 'real' | 'demo' | null; platos?: PlatoPedido[];
+}) {
   const [desdeQr, setDesdeQr] = useState(false);
   const [abierto, setAbierto] = useState(false);
   const [mesa, setMesa] = useState('');
   const [estado, setEstado] = useState<'idle' | 'enviando' | 'ok' | 'error'>('idle');
   const [mensaje, setMensaje] = useState('');
+  const [pidiendo, setPidiendo] = useState(false);
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -40,7 +46,11 @@ export default function BotonesMesa({ slug, color, siempre = false, reservar = f
   const cerrar = useCallback(() => setAbierto(false), []);
   useAtrasCierra(abierto, cerrar, 'camarero');
 
-  if (!desdeQr && !siempre) return null;
+  // En las demos se enseña siempre; en un local real solo a quien está sentado (llegó por el QR).
+  const puedePedir = platos.length > 0 && (pedido === 'demo' || (pedido === 'real' && desdeQr));
+  const cerrarPedido = () => setPidiendo(false);
+
+  if (!desdeQr && !siempre && !puedePedir) return null;
 
   async function llamar(motivo: 'camarero' | 'cuenta') {
     const m = mesa.trim();
@@ -87,12 +97,29 @@ export default function BotonesMesa({ slug, color, siempre = false, reservar = f
                 Reservar mesa
               </button>
             )}
+            {puedePedir ? (
+              <>
+                <button onClick={() => { setAbierto(true); setEstado('idle'); }} className="flex-1 rounded-full px-3 py-3 text-sm font-semibold text-white">
+                  Camarero{mesa ? ` · ${mesa}` : ''}
+                </button>
+                <button onClick={() => setPidiendo(true)} className="flex-1 rounded-full px-4 py-3 text-sm font-bold text-white" style={{ backgroundColor: color }}>
+                  Pedir desde la mesa
+                </button>
+              </>
+            ) : (
             <button onClick={() => { setAbierto(true); setEstado('idle'); }} className="flex-1 rounded-full px-4 py-3 text-sm font-bold text-white" style={{ backgroundColor: color }}>
               Llamar al camarero{mesa ? ` · ${mesa}` : ''}
             </button>
+            )}
           </div>
         </div>
       ) : (
+      <>
+      {puedePedir && (
+        <button onClick={() => setPidiendo(true)} className="fixed bottom-[76px] right-5 z-20 rounded-full bg-[#0B0A09] px-5 py-3.5 text-sm font-bold text-white shadow-lg">
+          Pedir desde la mesa
+        </button>
+      )}
       <button
         onClick={() => { setAbierto(true); setEstado('idle'); }}
         className="fixed bottom-5 right-5 z-20 flex items-center gap-2 rounded-full px-5 py-3.5 text-sm font-bold text-white shadow-lg"
@@ -100,7 +127,10 @@ export default function BotonesMesa({ slug, color, siempre = false, reservar = f
       >
         Llamar al camarero{mesa ? ` · Mesa ${mesa}` : ''}
       </button>
+      </>
       )}
+
+      {pidiendo && pedido && <PedidoMesa slug={slug} color={color} platos={platos} modo={pedido} mesa={mesa} setMesa={setMesa} onCerrar={cerrarPedido} />}
 
       {abierto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md" onClick={() => setAbierto(false)} role="presentation">
