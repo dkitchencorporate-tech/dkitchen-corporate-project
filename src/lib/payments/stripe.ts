@@ -295,6 +295,7 @@ export interface DatosSuscripcion {
  * `meses`: cuántos meses se aplica desde que empieza la suscripción (incluida la prueba).
  */
 export async function asegurarCupon(id: string, d: { nombre: string; centimos: number; meses: number }): Promise<string> {
+  if (pagosPausados()) return id;
   try {
     await stripe('GET', `/coupons/${id}`);
   } catch (e) {
