@@ -20,7 +20,7 @@ const CLAVE = 'dk-mesa';
  */
 export default function BotonesMesa({ slug, color, siempre = false, reservar = false, pedido = null, platos = [] }: {
   slug: string; color: string; siempre?: boolean; reservar?: boolean;
-  /** Pedido desde la mesa (G, 0099): 'real' en plan Sala (solo si llegó escaneando el QR), 'demo' en las demos internas. */
+  /** Pedido desde la mesa (G, 0099): 'real' en Local y Sala (solo si llegó escaneando el QR), 'demo' en las demos internas. */
   pedido?: 'real' | 'demo' | null; platos?: PlatoPedido[];
 }) {
   const [desdeQr, setDesdeQr] = useState(false);

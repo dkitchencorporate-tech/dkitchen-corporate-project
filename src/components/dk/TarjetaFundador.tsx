@@ -30,7 +30,7 @@ export default async function TarjetaFundador({ className = '' }: { className?: 
           </p>
           <p className="mt-2 text-white/65">En vez de <span className="line-through decoration-2">{eur(sala.mensual)}</span>. Se paga por trimestre ({eur(FUNDADOR.trimestre)} + IVA) y el precio se queda contigo mientras sigas en {sala.nombre}.</p>
           <ul className="mt-6 grid gap-2 text-[15px] text-white/85 sm:grid-cols-2">
-            {['El plan más completo: 120 platos y 30 mesas', 'Carta en 3 idiomas', 'Pedido desde la mesa (en camino)', 'Lo nuevo de Sala, al mismo precio'].map((x) => (
+            {['El plan más completo: 120 platos y 30 mesas', 'Carta en 3 idiomas', 'Pedido desde la mesa', 'Lo nuevo de Sala, al mismo precio'].map((x) => (
               <li key={x} className="flex gap-2"><span className="text-oro">✓</span>{x}</li>
             ))}
           </ul>

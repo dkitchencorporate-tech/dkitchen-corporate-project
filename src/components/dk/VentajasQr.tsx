@@ -11,7 +11,7 @@ import { QR_MENU, SERVICIOS_QR } from '@/lib/pricing-config';
 const CARTAS = [
   { n: '01', t: 'Te la montamos desde una foto', d: 'Nos mandas una foto de tu carta (o el PDF) y la pasamos a digital con tus platos, tus precios y tu estilo. No tienes que teclear nada.', l: { href: '/carta-de-autor', t: 'Mandar mi foto' } },
   { n: '02', t: 'Fotos de tus platos, perfeccionadas con IA', d: `Partimos de tus fotos y las dejamos de carta: idénticas o muy cercanas a tu plato real, siempre como imagen orientativa. ${SERVICIOS_QR.imagenesGratisIa} gratis siempre y bonos de ${SERVICIOS_QR.imagenesBonoIa} por ${SERVICIOS_QR.bonoIa} €.` },
-  { n: '03', t: 'Tu cliente pide desde la mesa', d: `Con el plan ${QR_MENU.planes.sala.nombre}, el comensal pide y paga desde su móvil sin esperar al camarero; el pedido entra en cocina y en tu TPV con el número de mesa. En camino.` },
+  { n: '03', t: 'Tu cliente pide desde la mesa', d: `Desde el plan ${QR_MENU.planes.ampliado.nombre}, el comensal pide desde su móvil sin esperar al camarero; tu camarero lo confirma con un toque y entra en la cuenta de la mesa y en tu TPV. Se paga en la barra, como siempre.` },
   { n: '04', t: 'Reseñas de toda la mesa, no solo del que paga', d: `Un botón dedicado en la carta invita a cada comensal a dejar su reseña en Google, sea una mesa de 1 o de 100. Más reseñas, mejor posición en Google Maps. En los planes ${QR_MENU.planes.ampliado.nombre} y ${QR_MENU.planes.sala.nombre}.` },
 ];
 

@@ -3,7 +3,7 @@ import { comoVisitante } from '@/lib/db';
 import { huellaToken } from '@/lib/sala';
 
 /**
- * Pedido del comensal desde la mesa (G, 0099). Solo plan Sala; en las demos internas se simula.
+ * Pedido del comensal desde la mesa (G, 0099). Planes Local y Sala (0100; Carta no); en las demos internas se simula.
  * El pedido no va a cocina: el camarero lo confirma en su app y entonces es una ronda normal.
  * Validación, precios y antiabuso viven en la base (dk.mesa_pedir, dk.sala_pedido_resolver).
  */

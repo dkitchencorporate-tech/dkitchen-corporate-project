@@ -93,7 +93,7 @@ export default async function CartaPublica({
   }
   const legal = await obtenerLegalPublico(carta.slug).then(Boolean).catch(() => false);
 
-  // G (0099): pedido desde la mesa en plan Sala y simulado en las demos internas.
+  // G (0099): pedido desde la mesa en Local y Sala (0100) y simulado en las demos internas.
   const pedidoMesa = await modoPedidoMesa(carta.slug);
   const platosPedido = pedidoMesa ? [
     ...carta.secciones.flatMap((g) => g.platos.map((p) => ({ id: p.id, nombre: p.nombre, precio: p.precio, seccion: g.nombre }))),

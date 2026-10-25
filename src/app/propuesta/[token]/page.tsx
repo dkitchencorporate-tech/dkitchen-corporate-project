@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { comoVisitante } from '@/lib/db';
 import { estadoFundador } from '@/lib/fundador';
-import { QR_MENU, FUNDADOR } from '@/lib/pricing-config';
+import { QR_MENU, FUNDADOR, puntosPlanQr } from '@/lib/pricing-config';
 import { TIPOS, enlaceWhatsapp } from '@/lib/prospeccion';
 import BotonImprimir from '@/components/prospeccion/BotonImprimir';
 
@@ -24,6 +24,18 @@ type Propuesta = {
   demo_slug?: string | null; pago_url?: string | null;
 };
 const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: Number.isInteger(n) ? 0 : 2 }) + ' €';
+/** Lo que cambia en el local (mismas ventajas que /qr; sin cifras ni clientes inventados). */
+const CAMBIOS = [
+  { t: 'Fotos que abren el apetito', d: 'Mejoramos tus fotos con IA (o las hacemos desde tu carta) para que cada plato se vea como en la mesa.' },
+  { t: 'Alérgenos siempre al día', d: 'Los 14 alérgenos en cada plato, como pide la normativa, y los cambias tú desde el móvil en un minuto.' },
+  { t: 'Tu carta en otros idiomas', d: 'El turista la lee en su idioma sin que tengas que traducir nada.' },
+  { t: 'La mesa avisa al camarero', d: 'Llamar al camarero y pedir la cuenta desde el móvil: suena en el de tu equipo y sabe a qué mesa ir.' },
+];
+const PASOS = [
+  { n: '1', t: 'Nos mandas una foto de tu carta', d: 'Por WhatsApp o por correo. Nada más.' },
+  { n: '2', t: 'Te la montamos', d: 'Con tus platos, tus precios y tus colores. La revisas en tu móvil antes de ponerla.' },
+  { n: '3', t: 'QR en las mesas', d: 'Te damos los QR listos para imprimir y la cambias tú cuando quieras.' },
+];
 const PREMIUM: Record<string, { ruta: string; nombre: string }> = {
   signature: { ruta: 'signature', nombre: 'Signature' },
   experience: { ruta: 'experience', nombre: 'Experience' },
@@ -75,19 +87,48 @@ export default async function PropuestaPublica({ params }: { params: Promise<{ t
         </section>
 
         <section className="space-y-3">
+          <h2 className="font-semibold">Qué cambia en tu local</h2>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {CAMBIOS.map((c) => (
+              <li key={c.t} className="rounded-2xl p-4 ring-1 ring-linea">
+                <p className="font-semibold">{c.t}</p>
+                <p className="mt-1 text-sm leading-relaxed text-niebla">{c.d}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="font-semibold">Cómo empezamos</h2>
+          <ol className="grid gap-3 sm:grid-cols-3">
+            {PASOS.map((x) => (
+              <li key={x.n} className="rounded-2xl bg-papel p-4">
+                <p className="font-display text-2xl font-semibold text-vino">{x.n}</p>
+                <p className="mt-1 font-semibold">{x.t}</p>
+                <p className="mt-1 text-sm text-niebla">{x.d}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="space-y-3">
           <h2 className="font-semibold">La oferta</h2>
           {premium ? (
             <p className="text-[15px]">Para un local como el tuyo encaja <span className="font-semibold">{premium.nombre}</span>: te lo explicamos en una llamada de 15 minutos y te damos el precio cerrado. Mientras tanto, puedes empezar con la carta QR.</p>
           ) : conFundador && fundador ? (
             <p className="text-[15px]"><span className="font-semibold">Plan Fundador:</span> todo el plan {sala.nombre} con un {Math.round(FUNDADOR.descuento * 100)} % de descuento de por vida: {eur(FUNDADOR.mensual)} al mes + IVA, pagado por trimestre ({eur(FUNDADOR.trimestre)} + IVA). Quedan {fundador.quedan} de {FUNDADOR.plazas} plazas.</p>
           ) : (
-            <p className="text-[15px]"><span className="font-semibold">Plan {ampliado.nombre}: el primer mes por {eur(QR_MENU.primerMes)} + IVA.</span> Después, {eur(ampliado.mensual)} al mes + IVA, sin permanencia.</p>
+            <p className="text-[15px]"><span className="font-semibold">Plan {ampliado.nombre}: el primer mes por {eur(QR_MENU.primerMes)} + IVA.</span> Después, {eur(ampliado.mensual)} al mes + IVA, sin permanencia. Si en 30 días no te convence, te devolvemos ese euro y te quedas tu carta en PDF.</p>
           )}
           <ul className="grid gap-2 text-sm sm:grid-cols-3">
             {[basico, ampliado, sala].map((pl) => (
-              <li key={pl.id} className={`rounded-2xl p-3 ring-1 ${pl.id === 'ampliado' ? 'bg-vino/5 ring-vino/30' : 'ring-linea'}`}>
-                <p className="font-semibold">{pl.nombre}</p>
+              <li key={pl.id} className={`rounded-2xl p-4 ring-1 ${pl.id === 'ampliado' ? 'bg-vino/5 ring-vino/30' : 'ring-linea'}`}>
+                <p className="font-semibold">{pl.nombre}{pl.id === 'ampliado' ? <span className="ml-2 text-xs font-semibold text-vino">el más elegido</span> : null}</p>
                 <p className="text-niebla">{eur(pl.mensual)}/mes + IVA</p>
+                <ul className="mt-2 space-y-1 text-[13px] text-carbon/80">
+                  {puntosPlanQr(pl.id as 'basico' | 'ampliado' | 'sala').slice(0, 3).map((x) => <li key={x}>· {x}</li>)}
+                  {pl.id !== 'basico' && <li>· Pedido desde la mesa</li>}
+                </ul>
               </li>
             ))}
           </ul>

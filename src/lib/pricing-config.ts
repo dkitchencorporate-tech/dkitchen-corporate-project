@@ -119,7 +119,8 @@ export function puntosPlanQr(id: 'basico' | 'ampliado' | 'sala'): string[] {
     t.banners === 1 ? '1 banner de promoción' : `${t.banners} banners de promoción a la vez`,
     'Llamar al camarero y pedir la cuenta desde la mesa',
     ...(p.personalizacionQr ? ['QR con tu logo y tus colores', 'Ficha de Google sincronizada y botón de reseñas'] : []),
-    ...(id === 'sala' ? ['Pedido desde la mesa: tu cliente pide y paga sin esperar (en camino)', `¿Más de ${t.comandasTpvMes.toLocaleString('es-ES')} comandas? Plan a medida`] : []),
+    ...(id !== 'basico' ? ['Pedido desde la mesa: tu cliente pide desde el móvil y el camarero lo confirma con un toque'] : []),
+    ...(id === 'sala' ? [`¿Más de ${t.comandasTpvMes.toLocaleString('es-ES')} comandas? Plan a medida`] : []),
   ];
 }
 

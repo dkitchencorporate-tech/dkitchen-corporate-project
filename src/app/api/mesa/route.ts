@@ -9,7 +9,7 @@ const MESA_VALIDA = /^[A-Za-z0-9-]{1,12}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * Pedido del comensal desde la carta (G, 0099). Plan Sala y validación de platos,
+ * Pedido del comensal desde la carta (G, 0099). Plan (Local o Sala) y validación de platos,
  * precios y antiabuso en dk.mesa_pedir; aquí solo se limpia la entrada y se frena por IP.
  */
 export async function POST(peticion: Request) {

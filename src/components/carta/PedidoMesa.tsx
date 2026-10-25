@@ -12,7 +12,7 @@ const euros = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency',
 /**
  * Pedido del comensal desde la mesa (G, 0099). Pide en la mesa y paga en la barra:
  * el pedido llega a la app del camarero como «por confirmar» y solo entra en la cuenta
- * (y en el TPV) cuando él lo confirma. Plan Sala; en las demos internas se simula y se
+ * (y en el TPV) cuando él lo confirma. Planes Local y Sala (0100); en las demos internas se simula y se
  * enseña cómo le llega al camarero. Los precios de aquí son orientativos: los pone la base.
  */
 export default function PedidoMesa({ slug, color, platos, modo, mesa, setMesa, onCerrar }: {
@@ -92,7 +92,7 @@ export default function PedidoMesa({ slug, color, platos, modo, mesa, setMesa, o
                 <span className="rounded-xl border border-black/15 px-4 py-3 text-sm font-semibold text-black/70">Rechazar</span>
               </div>
             </div>
-            <p className="text-sm text-black/60">Con un toque entra en la cuenta de la mesa (y en tu TPV, si está conectado). El cliente paga en la barra. Incluido en el plan Sala.</p>
+            <p className="text-sm text-black/60">Con un toque entra en la cuenta de la mesa (y en tu TPV, si está conectado). El cliente paga en la barra. Incluido en los planes Local y Sala.</p>
             <button onClick={onCerrar} className="w-full rounded-2xl py-3.5 text-sm font-bold text-white" style={{ backgroundColor: color }}>Volver a la carta</button>
           </div>
         ) : (
