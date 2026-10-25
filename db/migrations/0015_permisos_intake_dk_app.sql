@@ -1,0 +1,21 @@
+-- 0015 · CORREGIDA 2026-09-22 — esta migracion quedo revertida, ver abajo
+--
+-- Version original (aplicada y luego revertida el mismo dia): concedia
+-- EXECUTE sobre dk.pedido_por_token(text) y dk.guardar_intake(text, jsonb)
+-- a dk_app, basandose en la suposicion de que /api/intake/[token]
+-- conectaba con DK_DATABASE_URL (dk_app).
+--
+-- Esa suposicion era incorrecta: src/lib/pedidos-nivel-b.ts usa
+-- comoAprovisionamiento() (src/lib/db.ts), que conecta con
+-- DK_WEBHOOK_DATABASE_URL (dk_webhook) y hace SET LOCAL ROLE
+-- dk_aprovisionamiento -- rol que YA tenia EXECUTE sobre ambas funciones
+-- desde 0013. No existia ningun hueco de permisos en la Fase 5 -- el
+-- diagnostico de esta migracion fue un error, no un fix real.
+--
+-- Revertido en la misma sesion:
+--   REVOKE EXECUTE ON FUNCTION dk.pedido_por_token(text) FROM dk_app;
+--   REVOKE EXECUTE ON FUNCTION dk.guardar_intake(text, jsonb) FROM dk_app;
+--
+-- Se deja este archivo como registro honesto del error y su correccion, en
+-- vez de borrarlo -- coherente con el resto del proyecto (Parte 15 del plan,
+-- seccion de correcciones documentadas).

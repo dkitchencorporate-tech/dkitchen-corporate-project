@@ -1,0 +1,127 @@
+import type { Metadata } from 'next';
+import { HeroPagina, Titulo, Dolores, Faq, Cierre } from '@/components/dk/Bloques';
+import { Marquesina, TarjetaTilt } from '@/components/dk/Movimiento';
+import Aparecer from '@/components/qr-landing/Aparecer';
+import { TaquillaViva, EscaleraPrecios } from '@/components/dk/PiezasProductos';
+import Link from 'next/link';
+import Image from 'next/image';
+import { FORMATOS_EXPERIENCE, rutaImagen } from '@/lib/experience-formatos';
+import { EXPERIENCE } from '@/lib/pricing-config';
+
+const { primeraVez, nuevoEvento, reuso, reusoFidelizado, primeraParaClienteQr } = EXPERIENCE.tarifas;
+
+/** DKitchen Experience — rediseño 29/09/2026. Palabra clave: eventos para restaurantes llave en mano. */
+export const metadata: Metadata = {
+  title: 'Eventos para restaurantes llave en mano · DKitchen Corporate',
+  description: `Evento completo para tu restaurante: concepto, marketing, anuncios y web de entradas. Sin comisión de DKitchen sobre la taquilla. Desde ${primeraVez.precio} € + IVA.`,
+  alternates: { canonical: 'https://dkitchencorporate.es/experience' },
+};
+
+const WA = '/pagar/experience';
+
+export default function PaginaExperience() {
+  return (
+    <div className="bg-white text-tinta">
+      <HeroPagina etiqueta="DKitchen Experience"
+        titulo="Tu martes vacío, convertido en taquilla llena."
+        sub="Te entregamos un evento completo y ya diseñado: concepto, marketing, anuncios y web de venta de entradas. Tú cocinas y la taquilla va directa a tu cuenta, sin comisión de DKitchen."
+        ctas={[{ href: WA, t: 'Montar mi primer evento' }, { href: '#precios', t: 'Ver precios', secundario: true }]}
+        nota="Unas 3 semanas desde el pago hasta el día del evento."
+        visual={<TaquillaViva />} />
+
+      <Marquesina oscura items={['0 % de comisión', 'La taquilla, directa a tu cuenta', '7 formatos listos', 'QR de entrada único', 'Anuncios gestionados', 'Listo en 3 semanas']} />
+
+      <section className="bg-crema py-24 md:py-32">
+        <div className="mx-auto max-w-6xl px-6 md:px-8">
+          <Titulo etiqueta="El problema" texto="Cada mesa vacía es dinero que no vuelve." sub="El local, el equipo y el alquiler cuestan lo mismo lleno que vacío. La diferencia es quién decide venir." />
+          <Dolores items={[
+            ['Tienes días que no pagan ni la luz.', 'Y bajar precios solo te enseña a cobrar menos.'],
+            ['Montar un evento te roba semanas.', 'Idea, cartelería, anuncios, venta de entradas… y aun así no sabes si vendrá alguien.'],
+            ['Las ticketeras se quedan su trozo.', 'Y el dinero tarda en llegarte.'],
+            ['Nadie controla la puerta.', 'Listas en papel, efectivo y discusiones en la entrada.'],
+          ]} cta={{ href: WA, t: 'Quiero llenar esos días →' }} />
+        </div>
+      </section>
+
+      <section id="formatos" className="scroll-mt-20 py-24 md:py-32">
+        <div className="mx-auto max-w-6xl px-6 md:px-8">
+          <Titulo etiqueta="Siete formatos listos" texto="No inventamos desde cero. El formato ya está hecho." sub="Siete formatos pensados para cualquier tipo de cocina. El formato lo ponemos nosotros; el menú y la esencia de tu local, tú." />
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {FORMATOS_EXPERIENCE.map(({ slug, nombre: t, etiqueta: m, frase: d, imagen }, i) => (
+              <Aparecer key={slug} retraso={(i % 3) * 0.07}>
+                <TarjetaTilt className="group relative flex h-full flex-col overflow-hidden rounded-[28px] bg-noche text-white">
+                  {/* 18/10 (karc0): cada formato con su foto y dos salidas claras */}
+                  <Link href={`/experience/${slug}`} className="relative block aspect-[16/10] overflow-hidden">
+                    {imagen ? <Image src={rutaImagen(slug, '16x9')} alt={imagen.alt} fill sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                      : <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(closest-side,rgba(163,24,74,.45),transparent)]" />}
+                    <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-noche via-noche/20 to-transparent" />
+                    <p className="etiqueta-dk absolute bottom-3 left-6 text-oro">{m}</p>
+                  </Link>
+                  <div className="relative flex flex-1 flex-col p-6 pt-3">
+                    <p className="font-display text-3xl font-semibold">{t}</p>
+                    <p className="mt-2 flex-1 text-white/60">{d}</p>
+                    <div className="mt-5 flex flex-col gap-2">
+                      <Link href={`/experience/${slug}`} className="rounded-full bg-vino px-5 py-3 text-center text-sm font-semibold">Ver el formato y calcular mi evento →</Link>
+                      <Link href={`/e/muestra-${slug}`} className="rounded-full border border-white/20 px-5 py-2.5 text-center text-sm font-semibold text-white/85 hover:border-white/50">Así lo verán tus clientes (ejemplo)</Link>
+                    </div>
+                  </div>
+                </TarjetaTilt>
+              </Aparecer>
+            ))}
+          </div>
+          <p className="mt-8 rounded-2xl border border-linea bg-crema px-5 py-4 text-sm text-carbon/80"><strong className="text-tinta">Son ejemplos, no un evento cerrado.</strong> Cuando contratas, lo adaptamos a tu local en la llamada de arranque: tu nombre, tu menú, tus fechas, tu aforo y tus precios.</p>
+        </div>
+      </section>
+
+      <section className="bg-noche py-24 text-white md:py-32">
+        <div className="mx-auto max-w-6xl px-6 md:px-8">
+          <Titulo oscuro etiqueta="Quién hace qué" texto="Nosotros montamos. Tú cocinas y cobras." />
+          <div className="mt-14 grid gap-4 md:grid-cols-2">
+            {([['Lo hacemos nosotros', ['Concepto y guía del evento', 'Plan operativo: antes, durante y después', 'Diseño de piezas digitales y flyer', 'Web de venta de entradas conectada a tu cobro', 'Campaña de anuncios, montada y gestionada', 'Informe final con entradas e ingresos']], ['Lo haces tú', ['Tener tu cuenta de cobro', 'Elegir fecha, aforo y precio', 'Pagar la publicidad y los flyers', 'Escanear las entradas en la puerta', 'Cocinar y dar una noche que se recuerde', 'Cobrar la taquilla, sin comisión de DKitchen']]] as [string, string[]][]).map(([t, l], i) => (
+              <Aparecer key={t} retraso={i * 0.1} className={`rounded-[28px] p-8 ${i ? 'border border-white/10' : 'bg-vino'}`}>
+                <p className="font-display text-2xl font-semibold">{t}</p>
+                <ul className="mt-5 space-y-2.5">{l.map((x) => <li key={x} className="flex gap-3 text-[15px]"><span>✓</span><span className={i ? 'text-white/75' : ''}>{x}</span></li>)}</ul>
+              </Aparecer>
+            ))}
+          </div>
+          <p className="mt-6 text-sm text-white/70">Cada entrada genera un QR único de un solo uso. La publicidad la pagas directo a Meta o Google: nunca tocamos tu dinero.</p>
+        </div>
+      </section>
+
+      <section id="precios" className="scroll-mt-20 bg-crema py-24 md:py-32">
+        <div className="mx-auto max-w-6xl px-6 md:px-8">
+          <Titulo etiqueta="Precios" texto="Cuanto más repites, menos pagas." sub="Cuatro tarifas fijas, sin porcentaje ni letra pequeña. El trabajo pesado ya está hecho, así que el precio baja con cada evento." />
+          <EscaleraPrecios tramos={[[primeraVez.precio, 'Primera vez', 'Cliente nuevo, cualquiera de los 7 formatos.'], [nuevoEvento.precio, 'Nuevo evento', 'Ya trabajaste con nosotros y quieres otro formato.'], [reuso.precio, 'Reuso', 'El mismo evento, en una fecha nueva.'], [reusoFidelizado.precio, 'Reuso fidelizado', 'A partir de tu tercer evento.']]} />
+          <Aparecer className="mt-10 rounded-[24px] bg-noche p-6 text-white md:flex md:items-center md:justify-between md:p-8">
+            <p className="text-lg"><strong className="text-oro">¿Tienes la Carta QR con nosotros?</strong> Tu primer evento cuesta {primeraParaClienteQr.precio} € en lugar de {primeraVez.precio} € (+ IVA). Tarifa publicada, sin negociar.</p>
+          </Aparecer>
+          {/* 18/10 (karc0): los precios ya no son tarjetas planas: cómo se compra y qué pasa después */}
+          <Aparecer className="mt-10 grid gap-6 rounded-[28px] border border-linea bg-white p-7 md:grid-cols-[1.2fr_1fr] md:p-10">
+            <div>
+              <p className="etiqueta-dk text-vino">Cómo se contrata</p>
+              <ol className="mt-4 space-y-3 text-[15px]">
+                {[['Eliges el formato y pagas la tarifa', 'Te damos de alta y te confirmamos la forma de pago por correo.'], ['Entras en tu zona de Experience', 'Con tu usuario: el briefing, los pasos y el estado de tu evento.'], ['Llamada de arranque', 'La agendas tú desde tu zona y personalizamos el evento contigo.'], ['En unas tres semanas, tu evento en marcha', 'Web de entradas, piezas y campaña listas.']].map(([t, d], i) => (
+                  <li key={t} className="flex gap-3"><span className="font-display text-xl font-semibold text-vino">{i + 1}</span><span><span className="font-semibold">{t}</span><span className="block text-sm text-niebla">{d}</span></span></li>
+                ))}
+              </ol>
+            </div>
+            <div className="flex flex-col justify-center gap-3">
+              <Link href={WA} className="rounded-full bg-vino px-6 py-4 text-center text-[15px] font-semibold text-white">Contratar mi primer evento · {primeraVez.precio} € + IVA</Link>
+              <Link href="#formatos" className="rounded-full border border-tinta px-6 py-3.5 text-center text-[15px] font-semibold">Ver los 7 eventos de ejemplo</Link>
+              <p className="text-center text-xs text-niebla">Los eventos que ves son ejemplos: el tuyo se personaliza después de contratarlo.</p>
+            </div>
+          </Aparecer>
+        </div>
+      </section>
+
+      <Faq preguntas={[
+        ['¿Cómo se cobran las entradas?', 'Con tu propia cuenta de cobro. Te la configuramos y la conectamos a la web de venta, y el dinero cae directo en tu cuenta.'],
+        ['¿Quién paga los anuncios?', 'Tú, directamente a Meta o Google. Nosotros creamos y gestionamos la campaña, pero nunca ponemos ni intermediamos ese dinero.'],
+        ['¿Cuánto tarda en montarse?', 'Unas tres semanas desde el pago hasta el día del evento: tiempo para el concepto, la campaña y la venta de entradas.'],
+        ['¿Puedo usar mi propia carta?', 'Sí. El formato se mantiene y el menú lo pones tú.'],
+      ]} />
+
+      <Cierre titulo="Ese día flojo tiene arreglo." sub="Cuéntanos qué día te cuesta llenar y te proponemos el formato que mejor encaja con tu local." cta={{ href: WA, t: 'Montar mi primer evento' }} secundario={{ href: '/qr', t: 'Ver la carta QR' }} />
+    </div>
+  );
+}

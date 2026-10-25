@@ -1,0 +1,275 @@
+'use client';
+
+import { mensajeError } from '@/lib/mensaje-error';
+import { useState, useTransition } from 'react';
+import type { EstadoServicios, Servicio } from '@/lib/servicios';
+import type { MiRestaurante } from '@/lib/mi-restaurante';
+import { QR_MENU, puntosPlanQr } from '@/lib/pricing-config';
+import { comprarServicioAction } from '@/app/panel/actions';
+import EstiloCarta from './EstiloCarta';
+import SaltoSignature from './SaltoSignature';
+import PortadaCarta from './PortadaCarta';
+import ActivarNucleoOperativoBoton from '@/components/sections/ActivarNucleoOperativoBoton';
+
+const WHATSAPP_DK = '#solicitud-signature';
+
+const euros = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: c % 100 ? 2 : 0 }).format(c / 100);
+
+const MODULOS: { id: Servicio; titulo: string; resuelve: string; como: string; incluye: string[] }[] = [
+  { id: 'plano_mesas', titulo: 'Plano de mesas', resuelve: 'Ves tu local de un vistazo: qué mesa llama, cuál pide la cuenta y de quién es cada mesa.',
+    como: 'Dibujas tu local una vez (paredes, barra, puertas, terraza) y colocas tus mesas. Creas zonas y se las asignas a cada camarero.',
+    incluye: ['Editor de sala en pantalla completa', 'Zonas por camarero con un toque', 'Mesas que llaman, resaltadas en el plano'] },
+  { id: 'app_sala', titulo: 'App de sala', resuelve: 'Adiós a las comandas en papel y a las mesas olvidadas: cada camarero lleva sus mesas en el móvil.',
+    como: 'Cada camarero recibe un enlace personal (sin contraseñas). Ve sus mesas y llamadas, y anota lo que pide cada mesa en segundos.',
+    incluye: ['Avisos de llamada con sonido y vibración', 'Registro de comandas por mesa', 'Informe por camarero: comandas, productos, llamadas y tiempo de respuesta', 'Mesa sin dueño: la toma quien la atiende'] },
+  { id: 'conexion_tpv', titulo: 'Conexión con tu TPV', resuelve: 'Lo que anota el camarero llega a tu TPV (lo conectamos y lo adaptamos a tu configuración), hasta las comandas al mes de tu plan. Sin teclear dos veces ni errores.',
+    como: 'DKitchen configura la conexión con tu TPV. Tu TPV sigue siendo quien cobra y factura.',
+    incluye: ['Compatible con la mayoría de TPV en España', 'Tu facturación no cambia (Verifactu, gestoría)', 'Instalación y pruebas hechas por DKitchen'] },
+];
+
+export default function Mejoras({ restaurante, servicios, vista, fotos = [] }: { restaurante: MiRestaurante; servicios: EstadoServicios; vista: 'diseno' | 'modulos'; fotos?: string[] }) {
+  const [pendiente, iniciar] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  // Portada compartida con la vista previa de Diseño (se actualiza al momento).
+  const [portada, setPortada] = useState<{ url: string | null; conNombre: boolean }>({ url: restaurante.portadaUrl ?? null, conNombre: !!restaurante.portadaConNombre });
+  const plan = QR_MENU.planes[(restaurante.plan in QR_MENU.planes ? restaurante.plan : 'basico') as 'basico' | 'ampliado' | 'sala'];
+  const precio = (s: Servicio) => servicios.catalogo.find((c) => c.servicio === s);
+  const tiene = (s: Servicio) => servicios.contratados.some((c) => c.servicio === s || (c.servicio === 'pack_sala' && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(s)));
+  const nModulos = MODULOS.length;
+
+  function comprar(s: Servicio) {
+    setError(null);
+    iniciar(async () => {
+      try { const { url } = await comprarServicioAction(s); window.location.href = url; }
+      catch (e) { setError(mensajeError(e, 'No se pudo iniciar el pago.')); }
+    });
+  }
+
+  const Boton = ({ s, texto }: { s: Servicio; texto?: string }) =>
+    s !== 'idioma_extra' && tiene(s) ? (
+      <span className="block rounded-xl bg-green-500/15 py-3 text-center text-sm font-bold text-green-700">✓ Activo en tu cuenta</span>
+    ) : (
+      <button disabled={pendiente} onClick={() => comprar(s)} className="w-full rounded-full bg-vino py-3 text-sm font-bold hover:bg-vino-hondo disabled:opacity-50">
+        {pendiente ? 'Abriendo pago seguro…' : texto ?? 'Activar'}
+      </button>
+    );
+
+  const esencial = precio('setup_esencial');
+  const credito = servicios.credito;
+  const diasCredito = credito ? Math.max(0, Math.ceil((new Date(credito.venceEn).getTime() - Date.now()) / 86400000)) : 0;
+
+  return (
+    <div className="space-y-12">
+      <header>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">{vista === 'diseno' ? 'Diseño de tu carta' : 'Extras para tu local'}</h2>
+        <p className="mt-1 text-sm text-niebla">{vista === 'diseno'
+          ? (restaurante.nivelDiseno === 'esencial' ? 'Elige cómo se ve tu carta: estilo, fondo, letra, color y foto de portada. La vista previa cambia al momento.' : 'Tú gestionas platos, precios y fotos. El diseño de autor lo prepara DKitchen.')
+          : 'Tu plan ya trae la sala completa por cantidades. Aquí añades extras de pago único.'}</p>
+        {error && <p className="mt-3 rounded-lg bg-red-500/10 p-3 text-sm text-red-600">{error}</p>}
+      </header>
+
+      {vista === 'diseno' && (<>
+      <EstiloCarta fotos={fotos} logo={restaurante.logoUrl ?? null} portada={portada.url} portadaConNombre={portada.conNombre} nombre={restaurante.nombre} bloqueado={restaurante.nivelDiseno !== 'esencial'}
+        inicial={{ plantilla: restaurante.plantilla || 'clasica', fondo: restaurante.estiloFondo || 'papel', letra: restaurante.estiloLetra || 'sans', color: (restaurante.colorMarca || '#E8592A').toUpperCase(), firma: restaurante.firma ?? {} }} slug={restaurante.slug} />
+      <PortadaCarta inicial={restaurante.portadaUrl ?? null} conNombreInicial={!!restaurante.portadaConNombre} demo={restaurante.id === 'demo'} onCambio={(url, conNombre) => setPortada({ url, conNombre })} />
+      <section className="space-y-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-vino">Niveles de diseño</p>
+          <h3 className="font-display mt-1 text-2xl font-semibold tracking-tight">Tu carta es tu escaparate. Que se vea a la altura de tu cocina.</h3>
+          <p className="mt-1 text-sm text-niebla">Tú gestionas platos, precios y fotos. El estilo Premium va incluido en tu plan; Signature es tu propia app.</p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <NivelCard titulo="Esencial" subtitulo="Incluida en tu plan" actual={restaurante.nivelDiseno === 'esencial'}
+            puntos={['Carta clara por categorías', 'Tu logo y un color de la paleta', 'Fotos pequeñas por plato']}
+            maqueta={<MaquetaEsencial />} />
+          <NivelCard titulo="Premium" subtitulo="Incluida en tu plan · sin coste" destacada actual={restaurante.nivelDiseno === 'autor' || restaurante.plantilla === 'premium'}
+            puntos={['Portada a pantalla completa con tu mejor foto', 'Buscador y «Sorpréndeme» para tus clientes', '«Los que más salen» y categorías fijas al bajar', 'Fichas grandes con foto y alérgenos', 'Modo Noir con fondo Oscuro']}
+            maqueta={<MaquetaAutor />}
+            pie={<a href="/panel?pestana=diseno" className="block rounded-xl bg-vino py-2.5 text-center text-sm font-semibold text-white">Activar en Carta → Diseño</a>} />
+          <NivelCard titulo="DKitchen Signature" subtitulo="Tu propia app, con tu marca y en propiedad" actual={restaurante.nivelDiseno === 'signature'}
+            puntos={['App instalable (PWA) con tu marca y tu dominio', 'Tus clientes piden y pagan: en mesa, recogida y domicilio', 'Comandas a cocina, TPV propio e historial de ventas', 'El código de tu app es tuyo: entrada única y desde 99 €/mes según tus ventas']}
+            maqueta={<MaquetaSignature />}
+            pie={
+              <div className="space-y-2">
+                <a href="/signature" target="_blank" rel="noopener" className="block rounded-xl border border-linea-fuerte py-2.5 text-center text-sm font-semibold hover:border-linea-fuerte">Ver cómo es DKitchen Signature</a>
+                <a href={WHATSAPP_DK} className="block rounded-xl border border-linea-fuerte py-2.5 text-center text-sm font-semibold hover:border-linea-fuerte">Pedir propuesta de Signature</a>
+                <ActivarNucleoOperativoBoton className="w-full rounded-full bg-tinta py-3 text-sm font-bold text-white" />
+              </div>
+            } />
+        </div>
+        {esencial && !tiene('setup_experto') && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-linea bg-white p-5">
+            <div>
+              <p className="font-bold">Puesta a punto: te dejamos tu carta perfecta, sin cambiar el diseño</p>
+              <p className="text-sm text-niebla">Un experto de DKitchen revisa y configura tu carta contigo: categorías, textos, alérgenos, fotos, horarios y tu ficha de Google.</p>
+            </div>
+            <div className="w-full sm:w-56"><Boton s="setup_esencial" texto={`Puesta a punto · ${euros(esencial.precioCentimos)}`} /></div>
+          </div>
+        )}
+      </section>
+      </>)}
+
+      {vista === 'modulos' && (<>
+      <SaltoSignature />
+      {/* IMÁGENES CON IA (0038) */}
+      <section className="rounded-2xl border border-linea bg-white p-6">
+        <p className="text-xs font-bold uppercase tracking-widest text-vino">Imágenes con IA</p>
+        <h3 className="font-display mt-1 text-xl font-semibold tracking-tight">✨ Fotos de tus platos y banners, creadas o mejoradas con IA</h3>
+        <ul className="mt-3 space-y-1.5 text-sm text-grafito">
+          <li>• <strong>3 imágenes gratis</strong>, siempre.</li>
+          <li>• ¿Necesitas más? <strong>Bono de 50 imágenes por 9 € + IVA</strong>: pago único, no es una cuota. Lo vuelves a comprar solo si lo necesitas.</li>
+          <li>• Las imágenes compradas <strong>nunca caducan</strong> y las fotos creadas son tuyas.</li>
+        </ul>
+        <p className="mt-3 text-sm text-niebla">Lo encontrarás en el botón <strong>«✨ Crear con IA»</strong> al poner la foto de un plato o la imagen de un banner. En tu carta llevan la nota «Imagen orientativa».</p>
+      </section>
+      {/* IDIOMAS (0068): español + inglés incluidos; cada idioma más, pago único */}
+      <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-linea bg-white p-6">
+        <div className="max-w-md">
+          <p className="text-xs font-bold uppercase tracking-widest text-vino">Carta en idiomas</p>
+          <h3 className="font-display mt-1 text-xl font-semibold tracking-tight">🌍 Los idiomas de tu plan ya están incluidos</h3>
+          <p className="mt-1 text-sm text-niebla">¿Recibes turistas de otros países? Añade cada idioma que necesites y <strong className="text-grafito">nosotros traducimos tu carta</strong>. Pago único por idioma, sin cuota.</p>
+        </div>
+        <div className="w-full sm:w-56"><Boton s="idioma_extra" texto={`Añadir un idioma · ${euros(precio('idioma_extra')?.precioCentimos ?? 1500)}`} /></div>
+      </section>
+
+      {/* 3. SALA: incluida en todos los planes por cantidades (0068) */}
+      <section className="space-y-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-vino">Incluido en tu plan {plan.nombre}</p>
+          <h3 className="font-display mt-1 text-2xl font-semibold tracking-tight">Organiza el servicio en sala sin cambiar tu TPV</h3>
+          <p className="mt-1 text-sm text-niebla">Plano, app de sala, conexión con tu TPV y comandero vienen en todos los planes. Lo que cambia es la cantidad: {puntosPlanQr(plan.id).slice(0, 5).join(' · ')}.</p>
+        </div>
+        <div className="space-y-4">
+          {MODULOS.map((m) => (
+            <article key={m.id} className="grid gap-4 rounded-2xl border border-linea bg-white p-5 md:grid-cols-[1fr_14rem]">
+              <div>
+                <h4 className="text-lg font-bold">{m.titulo}</h4>
+                <p className="mt-1 text-sm text-grafito">{m.resuelve}</p>
+                <p className="mt-2 text-sm text-niebla"><strong className="text-grafito">Cómo funciona:</strong> {m.como}</p>
+                <ul className="mt-3 grid gap-1 text-sm text-grafito sm:grid-cols-2">{m.incluye.map((i) => <li key={i}>✓ {i}</li>)}</ul>
+              </div>
+              <div className="flex flex-col justify-center gap-2">
+                <span className="block rounded-xl bg-green-500/15 py-3 text-center text-sm font-bold text-green-700">✓ Incluido en tu plan</span>
+              </div>
+            </article>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-vino/50 bg-vino/10 p-5">
+          <div>
+            <p className="font-bold">¿Se te queda pequeño?</p>
+            <p className="text-sm text-niebla">{restaurante.plan === 'sala' ? 'Si superas los topes de Sala o tienes varios locales, te preparamos un plan personalizado.' : 'Sube de plan y tendrás más platos, mesas, camareros y comandas al TPV.'}</p>
+          </div>
+          <div className="w-full sm:w-56">
+            {restaurante.plan === 'sala'
+              ? <a href={WHATSAPP_DK} className="block rounded-xl border border-linea-fuerte py-3 text-center text-sm font-bold">Pedir plan personalizado</a>
+              : <a href="/panel?pestana=plan" className="block rounded-xl border border-linea-fuerte py-3 text-center text-sm font-bold">Ver planes</a>}
+          </div>
+        </div>
+      </section>
+
+      </>)}
+
+      {/* QR ≠ DKitchen Signature (Núcleo Operativo), en ambas pestañas */}
+      <MapaNucleo credito={credito ? { euros: euros(credito.centimos), dias: diasCredito } : null} nModulos={nModulos} precioTodo={euros(QR_MENU.planes.sala.mensual * 100)} />
+    </div>
+  );
+}
+
+function NivelCard({ titulo, subtitulo, puntos, maqueta, pie, actual, destacada }: {
+  titulo: string; subtitulo: string; puntos: string[]; maqueta: React.ReactNode; pie?: React.ReactNode; actual?: boolean; destacada?: boolean;
+}) {
+  return (
+    <article className={`flex flex-col rounded-2xl border p-5 ${destacada ? 'border-vino/60 bg-vino/[0.06]' : 'border-linea bg-white'}`}>
+      <div className="mb-3 overflow-hidden rounded-xl">{maqueta}</div>
+      <div className="flex items-center justify-between">
+        <h4 className="text-lg font-bold">{titulo}</h4>
+        {actual && <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] font-bold text-green-700">Tu diseño</span>}
+      </div>
+      <p className="text-xs text-niebla">{subtitulo}</p>
+      <ul className="mt-3 flex-1 space-y-1 text-sm text-grafito">{puntos.map((p) => <li key={p}>✓ {p}</li>)}</ul>
+      {pie && <div className="mt-4">{pie}</div>}
+    </article>
+  );
+}
+
+const barra = 'h-1.5 rounded bg-white';
+function MaquetaEsencial() {
+  return (
+    <div className="h-40 space-y-2 bg-crema p-3" aria-hidden="true">
+      <div className="mx-auto h-5 w-5 rounded-full bg-vino" /><div className={`mx-auto w-16 ${barra}`} />
+      <div className="space-y-1.5 rounded-lg bg-white p-2 shadow-sm">
+        {[0, 1, 2].map((i) => <div key={i} className="flex items-center gap-2"><div className="flex-1 space-y-1"><div className={barra} /><div className="h-1 w-2/3 rounded bg-white" /></div><div className="h-6 w-6 rounded bg-white" /></div>)}
+      </div>
+    </div>
+  );
+}
+function MaquetaAutor() {
+  return (
+    <div className="h-40 space-y-2 bg-[#FBF7F0] p-3" aria-hidden="true">
+      <div className="h-12 rounded-xl bg-gradient-to-br from-[#8A5A2B] to-[#C58B2A]" />
+      <p className="text-center font-serif text-sm text-[#1C1712]">Nuestra carta</p>
+      <div className="grid grid-cols-3 gap-1.5">{[0, 1, 2].map((i) => <div key={i} className="h-10 rounded-lg bg-gradient-to-t from-black/50 to-black/10" />)}</div>
+      <div className="flex justify-between"><div className={`w-20 ${barra}`} /><div className="h-3 w-8 rounded-full bg-[#C58B2A]/40" /></div>
+    </div>
+  );
+}
+function MaquetaSignature() {
+  return (
+    <div className="flex h-40 flex-col justify-end bg-gradient-to-br from-[#111] via-[#2a1d12] to-[#5c3a1e] p-3" aria-hidden="true">
+      <p className="font-serif text-lg text-carbon">Tu marca</p>
+      <p className="text-[10px] uppercase tracking-[0.3em] text-niebla">tu app · tus pedidos · tu propiedad</p>
+    </div>
+  );
+}
+
+function MapaNucleo({ credito, nModulos, precioTodo }: { credito: { euros: string; dias: number } | null; nModulos: number; precioTodo: string }) {
+  const filas: [string, string, string][] = [
+    ['Qué es', 'Tu carta digital y herramientas de sala', 'Tu propio sistema operativo del restaurante'],
+    ['El cliente final', 'Mira la carta (no pide)', 'Pide y paga: en mesa, para recoger y a domicilio'],
+    ['Pedidos y cocina', '—', 'Comandas y tickets automáticos a cocina y barra'],
+    ['Cobros y ventas', 'Los gestiona tu TPV', 'TPV propio, historial de ventas y cierres'],
+    ['Marca', 'Plantillas de DKitchen', 'App/web con tu marca, diseño de autor'],
+    ['Propiedad', 'Servicio mensual: si lo dejas, se apaga', 'En propiedad: el sistema es tuyo'],
+    ['Precio', `Plan Sala, todo incluido = ${precioTodo}/mes`, 'Entrada + desde 99 €/mes (según volumen)'],
+  ];
+  return (
+    <section className="space-y-4">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest text-vino">El siguiente nivel</p>
+        <h3 className="font-display mt-1 text-2xl font-semibold tracking-tight">QR Menú y DKitchen Signature no son lo mismo</h3>
+        <p className="mt-1 text-sm text-niebla">
+          El QR es una herramienta para tu carta y tu sala. DKitchen Signature es el sistema que gestiona todo tu restaurante, y el código de tu app es tuyo.
+        </p>
+      </div>
+      <div className="overflow-hidden rounded-2xl border border-linea">
+        <div className="grid grid-cols-2 bg-papel text-xs font-semibold uppercase tracking-wider">
+          <p className="p-3 text-niebla">QR Menú · lo que tienes</p>
+          <p className="border-l border-linea p-3 text-vino">DKitchen Signature</p>
+        </div>
+        {filas.map(([k, a, b]) => (
+          <div key={k} className="border-t border-linea">
+            <p className="px-3 pt-3 text-[11px] font-semibold uppercase tracking-wider text-ceniza">{k}</p>
+            <div className="grid grid-cols-2 text-sm">
+              <p className="p-3 pt-1 text-grafito">{a}</p>
+              <p className="border-l border-linea p-3 pt-1 font-medium">{b}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="rounded-2xl bg-gradient-to-r from-vino/25 to-transparent p-5">
+        <p className="font-bold">Con el plan más completo del QR pagarías {precioTodo}/mes y la app nunca sería tuya. Con DKitchen Signature empiezas desde 99 €/mes y el código de tu app es tuyo.</p>
+        {credito && nModulos > 0 ? (
+          <p className="mt-2 text-sm">
+            🎁 Te descontamos lo que ya llevas pagado: <strong>{credito.euros}</strong> de la entrada de Signature (hasta la mitad).
+            <strong className="text-vino"> Te quedan {credito.dias} días</strong> para aprovecharlo.
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-niebla">Si das el salto, parte de lo que hayas pagado se descuenta de la entrada de Signature.</p>
+        )}
+        <a href="/panel?pestana=soporte&asunto=Quiero%20conocer%20DKitchen%20Signature" className="mt-4 inline-block rounded-full bg-tinta px-5 py-2.5 text-sm font-bold text-white">
+          Quiero conocer DKitchen Signature
+        </a>
+      </div>
+    </section>
+  );
+}

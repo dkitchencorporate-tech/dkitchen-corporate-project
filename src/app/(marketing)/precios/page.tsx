@@ -1,0 +1,287 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import ActivarPlanBoton from '@/components/sections/ActivarPlanBoton';
+import { FondoVivo, TextoRevelado, BotonMagnetico } from '@/components/dk/Movimiento';
+import Aparecer from '@/components/qr-landing/Aparecer';
+import TodoIncluidoQr from '@/components/qr-landing/TodoIncluidoQr';
+import { PREGUNTAS_SIN_CAMBIAR } from '@/lib/preguntas-sin-cambiar';
+import { Titulo } from '@/components/dk/Bloques';
+import {
+  QR_MENU, QR_FISICOS, SERVICIOS_QR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES, DARK_KITCHEN, FUNDADOR, formatPrecio, puntosPlanQr,
+} from '@/lib/pricing-config';
+import { WHATSAPP_DEMO } from '@/lib/whatsapp';
+import TarjetaFundador from '@/components/dk/TarjetaFundador';
+
+// El contador Fundador sale de la base: la página se regenera cada 5 minutos.
+export const revalidate = 300;
+
+/**
+ * Página de precios (SEO bloque 2, 05/10/2026). Todo el catálogo en una sola
+ * página, sin un solo importe escrito a mano: sale de pricing-config (y de su
+ * espejo SERVICIOS_QR, que copia catalogo_servicios). Todos los precios + IVA.
+ * Fundador (0051): el bloque solo aparece con el programa abierto en Central.
+ */
+const URL_PRECIOS = 'https://dkitchencorporate.es/precios';
+const eur = (n: number) => formatPrecio(n) as string;
+
+/** Comparativa por categorías (sin nombrar marcas de terceros). */
+const COMPARATIVA: [string, string, string, string][] = [
+  ['Carta digital con el diseño de tu local', 'Plantilla igual para todos', 'Sí, a precio de proyecto', 'Sí, con tu estilo desde el plan Carta'],
+  ['App propia con tu marca y pedidos sin comisión', 'No', 'A medida y cara', `Signature: entrada ${BASE_OPERATIVA.pagoUnico} € + IVA`],
+  ['Eventos para llenar los días flojos', 'No', 'No', `Experience: desde ${EXPERIENCE.tarifas.primeraVez.precio} € + IVA`],
+  ['Google Maps, redes y carta que vende', 'No', 'A veces, aparte', 'Incluido en el arranque de Signature'],
+  ['Comandas, mesas y reservas', 'Sí', 'No', 'Sí, en todos los planes QR'],
+  ['Ticket fiscal (VeriFactu)', 'Sí', 'No', 'Con tu TPV (lo conectamos y lo adaptamos) o, si no tienes, con nuestro proveedor de VeriFactu'],
+  ['Alguien que viene a tu local', 'Soporte a distancia', 'Reuniones', 'Sí: estamos en la calle, en tu zona'],
+];
+
+export const metadata: Metadata = {
+  title: 'Precios: carta QR y app propia para restaurantes · DKitchen Corporate',
+  description: `Carta QR desde ${QR_MENU.planes.basico.mensual} €/mes; plan ${QR_MENU.planes.ampliado.nombre} con el primer mes a ${QR_MENU.primerMes} €. App propia desde ${BASE_OPERATIVA.pagoUnico} €. Sala con TPV y comandero incluidos, y eventos. Sin comisiones. Precios + IVA.`,
+  alternates: { canonical: URL_PRECIOS },
+};
+
+type Linea = { nombre: string; detalle: string; precio: string; ancla?: string; mensual?: number };
+
+const { basico: PC, ampliado: PL, sala: PS } = QR_MENU.planes;
+const QR_PLANES = [
+  { id: PC.id, nombre: PC.nombre, mensual: PC.mensual, unEuro: false, puntos: puntosPlanQr('basico') },
+  { id: PL.id, nombre: PL.nombre, mensual: PL.mensual, unEuro: true, destacado: true, puntos: puntosPlanQr('ampliado') },
+  { id: PS.id, nombre: PS.nombre, mensual: PS.mensual, unEuro: false, puntos: puntosPlanQr('sala') },
+];
+
+/** Sin cuotas sueltas (0068): todo plan trae TPV, comandero y español + inglés por cantidades. */
+const MODULOS: Linea[] = [
+  { nombre: 'Plan personalizado', detalle: `Si tu local supera los topes de ${PS.nombre} (${PS.topes.productos} platos, ${PS.topes.mesas} mesas o ${PS.topes.comandasTpvMes.toLocaleString('es-ES')} comandas al mes) o tienes varios locales`, precio: 'A medida' },
+];
+const SERVICIOS: Linea[] = [
+  { nombre: 'Puesta a punto', detalle: `Carta cargada, conexión con tu TPV, formación de tu equipo y fotos con IA · ${eur(SERVICIOS_QR.puestaAPuntoBienvenida)} si la pides al darte de alta, antes de montar tu carta`, precio: eur(SERVICIOS_QR.puestaAPunto) },
+  { nombre: 'Idioma extra', detalle: `Carta: español; Local: español e inglés; Sala: 3 idiomas. Cada idioma más, traducido por DKitchen`, precio: `${eur(SERVICIOS_QR.idiomaExtra)} por idioma` },
+  { nombre: 'Bono de imágenes con IA', detalle: `${SERVICIOS_QR.imagenesBonoIa} fotos de plato (${SERVICIOS_QR.imagenesGratisIa} gratis siempre)`, precio: eur(SERVICIOS_QR.bonoIa) },
+  { nombre: 'Etiquetas QR para mesas', detalle: `Desde ${QR_FISICOS.etiquetas.tandas[0].unidades} unidades`, precio: `desde ${eur(QR_FISICOS.etiquetas.tandas[0].precio)}` },
+];
+
+const TRAMOS_SIG = BASE_OPERATIVA.mantenimiento.tramos;
+const OTROS = [
+  { id: 'signature', n: '03', t: 'DKitchen Signature', lema: 'Tu propia app de pedidos. El código de tu app es tuyo.',
+    d: `Pagas una entrada única y el código de tu app, con tu marca, es tuyo. Los ${BASE_OPERATIVA.mantenimiento.mesesGratis} primeros meses de cuota son gratis y la cuota solo sube si tus ventas por la app crecen.`,
+    incluye: ['App instalable con tu marca y tu dominio', 'Pedidos en mesa, recogida y domicilio, con pago', 'Pantalla de cocina y comandero (Comandero Pro incluido)', 'Club de fidelización con puntos y avisos', 'Conexión con tu TPV y con tu cierre fiscal', 'Sin comisión por pedido, nunca'],
+    p: eur(BASE_OPERATIVA.pagoUnico), unidad: 'entrada única', nota: `Fraccionable · cuota desde el mes ${BASE_OPERATIVA.mantenimiento.empiezaEnMes}`,
+    tabla: [...TRAMOS_SIG.map((x) => [x.nombre, `hasta ${eur(x.hastaVentas)} o ${x.hastaPedidos.toLocaleString('es-ES')} pedidos al mes`, `${eur(x.cuota)}/mes`]), ['A medida', `más de ${eur(TRAMOS_SIG[TRAMOS_SIG.length - 1].hastaVentas)}/mes o varios locales`, `desde ${eur(BASE_OPERATIVA.mantenimiento.aMedida.desde)}/mes`]],
+    cta: { href: '/pagar/signature', t: 'Quiero mi app' }, ver: '/signature', oscuro: true },
+  { id: 'experience', n: '04', t: 'Experience', lema: 'Eventos listos para llenar tus días flojos.',
+    d: 'Siete formatos ya diseñados que se adaptan a tu cocina: tú pones el menú, nosotros montamos el evento, la web de entradas y la campaña.',
+    incluye: ['Concepto y guía del evento adaptados a tu cocina', 'Web de venta de entradas con tu propia pasarela', 'Campaña de anuncios montada (la inversión la pagas tú)', '0 % de comisión sobre la taquilla', 'Informe final del evento'],
+    p: eur(EXPERIENCE.tarifas.primeraVez.precio), unidad: 'primer evento', nota: `${eur(EXPERIENCE.tarifas.primeraParaClienteQr.precio)} si ya tienes la carta QR · repetir desde ${eur(EXPERIENCE.tarifas.reusoFidelizado.precio)}`,
+    cta: { href: '/pagar/experience', t: 'Reservar mi evento' }, ver: '/experience' },
+  { id: 'auditoria', n: '05', t: 'Auditoría de canales', lema: 'Por qué algunos clientes no te encuentran.',
+    d: 'Un diagnóstico 1 a 1 de tu ficha de Google Maps, tus redes y tus plataformas, con las prioridades ordenadas.',
+    incluye: ['Revisión de tu ficha de Google y de tus canales', 'Diagnóstico con prioridades', 'Reunión 1 a 1 para explicártelo'],
+    p: eur(AUDITORIA_CANALES.precioOferta), unidad: 'pago único · precio de lanzamiento', nota: 'Sin suscripción',
+    cta: { href: '/pagar/auditoria', t: 'Pedir mi auditoría' }, ver: '/auditoria' },
+  { id: 'dark-kitchen', n: '06', t: 'Dark Kitchen', lema: 'Vende a domicilio con la cocina que ya tienes.',
+    d: 'Marcas virtuales ya operadas, o un proyecto completo desde cero.',
+    incluye: [`Desarrollo de marca desde ${eur(DARK_KITCHEN.rutaB.desarrolloPorMarca.primera)} por marca`, `Proyecto completo de ${eur(DARK_KITCHEN.rutaA.rangoMin)} a ${eur(DARK_KITCHEN.rutaA.rangoMax)}`, 'Fichas técnicas, carta y lanzamiento'],
+    p: `desde ${eur(DARK_KITCHEN.rutaB.desarrolloPorMarca.primera)}`, unidad: 'por marca', nota: 'Presupuesto según el proyecto',
+    cta: { href: '/dark-kitchen', t: 'Ver cómo funciona' }, ver: '/dark-kitchen' },
+];
+
+const PREGUNTAS: [string, string][] = [
+  ['¿Los precios llevan IVA?', 'No. Todos los precios de esta página son sin IVA; el 21 % se suma al pagar.'],
+  ['¿Cobráis comisión por pedido o por entrada?', 'No. DKitchen nunca cobra comisión ni toca el dinero de tus ventas: pagas tu cuota y lo que vendes es tuyo.'],
+  ['¿Cómo funciona el primer mes a 1 €?', `Es del plan ${QR_MENU.planes.ampliado.nombre}: registras la tarjeta y pagas ${eur(QR_MENU.primerMes)} el primer mes. Después, ${eur(QR_MENU.planes.ampliado.mensual)} + IVA al mes, sin permanencia. Sin coste de alta.`],
+  ...PREGUNTAS_SIN_CAMBIAR,
+  ['¿Puedo empezar con la carta QR y pasar a Signature más adelante?', 'Sí. Tu carta y tus datos pasan a Signature, y lo que llevas pagado en tu plan de carta QR se descuenta en parte de la entrada durante los primeros meses.'],
+];
+
+function Tabla({ titulo, sub, filas }: { titulo: string; sub: string; filas: Linea[] }) {
+  return (
+    <Aparecer>
+      <h3 className="font-display text-2xl font-semibold">{titulo}</h3>
+      <p className="mt-1 text-sm text-niebla">{sub}</p>
+      <ul className="mt-6 divide-y divide-linea border-y border-linea">
+        {filas.map((f) => (
+          <li key={f.nombre} className="grid grid-cols-[1fr_auto] items-baseline gap-4 py-4">
+            <div><p className="font-semibold">{f.nombre}</p><p className="mt-0.5 text-sm text-niebla">{f.detalle}</p></div>
+            <p className="text-right font-semibold whitespace-nowrap">
+              {f.ancla && <span className="mr-2 text-sm font-normal text-ceniza line-through">{f.ancla}</span>}
+              {f.precio}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </Aparecer>
+  );
+}
+
+export default async function PaginaPrecios() {
+  const mensual = (precio: number) => ({ '@type': 'UnitPriceSpecification', price: precio, priceCurrency: 'EUR', valueAddedTaxIncluded: false, unitCode: 'MON', referenceQuantity: { '@type': 'QuantitativeValue', value: 1, unitCode: 'MON' } });
+  const producto = (nombre: string, url: string, offers: object) => ({ '@type': 'Product', name: nombre, url, brand: { '@type': 'Brand', name: 'DKitchen' }, offers: { '@type': 'Offer', priceCurrency: 'EUR', availability: 'https://schema.org/InStock', url, ...offers } });
+  const ld = [
+    { '@context': 'https://schema.org', '@type': 'OfferCatalog', name: 'Precios DKitchen', url: URL_PRECIOS, itemListElement: [
+      ...QR_PLANES.map((p) => producto(`Carta digital QR · Plan ${p.nombre}`, 'https://dkitchencorporate.es/qr#planes', { price: String(p.mensual), priceSpecification: mensual(p.mensual) })),
+      producto('DKitchen Signature', 'https://dkitchencorporate.es/signature', { price: String(BASE_OPERATIVA.pagoUnico), priceSpecification: [
+        { '@type': 'UnitPriceSpecification', name: 'Entrada (pago único)', price: BASE_OPERATIVA.pagoUnico, priceCurrency: 'EUR', valueAddedTaxIncluded: false },
+        { ...mensual(BASE_OPERATIVA.mantenimiento.mensual), name: `Mantenimiento desde el mes ${BASE_OPERATIVA.mantenimiento.empiezaEnMes}` },
+      ] }),
+      producto('Experience', 'https://dkitchencorporate.es/experience', { price: String(EXPERIENCE.tarifas.primeraVez.precio) }),
+      producto('Auditoría de canales', 'https://dkitchencorporate.es/auditoria', { price: String(AUDITORIA_CANALES.precioOferta) }),
+    ] },
+    { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://dkitchencorporate.es' },
+      { '@type': 'ListItem', position: 2, name: 'Precios', item: URL_PRECIOS },
+    ] },
+    { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: PREGUNTAS.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
+  ];
+
+  return (
+    <div className="bg-white text-tinta">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+
+      <section className="relative overflow-hidden bg-noche pb-20 pt-36 text-white md:pb-28 md:pt-44">
+        <FondoVivo />
+        <div className="relative mx-auto max-w-6xl px-6 md:px-8">
+          <Aparecer><p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/80"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-vino" /> Precios · todo + IVA</p></Aparecer>
+          <TextoRevelado como="h1" texto="Precios claros. Cero comisiones." className="font-display mt-6 max-w-4xl text-[46px] font-semibold leading-[0.98] sm:text-7xl lg:text-[84px]" />
+          <Aparecer retraso={0.3}><p className="mt-7 max-w-2xl text-lg leading-relaxed text-white/70">Lo que cuesta cada cosa, sin letra pequeña. Empieza con la carta QR por {eur(QR_MENU.primerMes)} el primer mes o ve directo a tu propia app. Cada plan lo trae todo; solo cambian las cantidades.</p></Aparecer>
+          <Aparecer retraso={0.4} className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <BotonMagnetico href="/qr#planes" className="inline-flex items-center justify-center rounded-full bg-vino px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(163,24,74,.45)]">Empezar por {eur(QR_MENU.primerMes)} →</BotonMagnetico>
+            <BotonMagnetico href="#signature" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-8 py-4 text-[15px] font-semibold">Ver tu app propia</BotonMagnetico>
+          </Aparecer>
+        </div>
+      </section>
+
+      <div className="border-b border-linea bg-white">
+        <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-6 py-4 md:px-8">
+          {[['carta-qr', '01 Carta QR'], ['modulos', '02 Extras'], ['signature', '03 Signature'], ['experience', '04 Experience'], ['auditoria', '05 Auditoría'], ['dark-kitchen', '06 Dark Kitchen']].map(([id, t]) => (
+            <a key={id} href={`#${id}`} className="shrink-0 rounded-full border border-linea px-4 py-2 text-sm font-semibold hover:border-vino">{t}</a>
+          ))}
+        </div>
+      </div>
+
+      <section id="carta-qr" className="scroll-mt-20 bg-crema py-24 md:py-32">
+        <div className="mx-auto max-w-6xl px-6 md:px-8">
+          <Titulo etiqueta="01 · Carta digital QR" texto="Planes por tamaño, no por módulos." sub={`Sin coste de alta (otros TPV cobran 400–900 € de instalación). Con ${PL.nombre}, el primer mes cuesta ${eur(QR_MENU.primerMes)}.`} />
+          <div className="mt-14 grid gap-5 md:grid-cols-3">
+            {QR_PLANES.map((p, i) => (
+              <Aparecer key={p.id} retraso={i * 0.08}>
+                <div className={`relative h-full overflow-hidden rounded-[28px] border p-8 md:p-10 ${p.destacado ? 'border-tinta bg-noche text-white' : 'border-linea bg-white'}`}>
+                  {p.destacado && <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgba(163,24,74,.45),transparent)]" />}
+                  <p className="relative etiqueta-dk text-vino">Plan {p.nombre}</p>
+                  <p className="relative font-display mt-4 text-6xl font-semibold">{eur(p.mensual)}<span className={`ml-1 font-sans text-base font-normal ${p.destacado ? 'text-white/60' : 'text-niebla'}`}>/mes + IVA</span></p>
+                  <ul className={`relative mt-7 space-y-3 ${p.destacado ? 'text-white/75' : 'text-grafito'}`}>
+                    {p.puntos.map((x) => <li key={x} className="flex gap-3"><span aria-hidden="true" className="text-vino">✓</span>{x}</li>)}
+                  </ul>
+                  <Link href="/qr#planes" className={`relative mt-9 inline-flex rounded-full px-7 py-3.5 text-[15px] font-semibold ${p.destacado ? 'bg-vino text-white' : 'bg-tinta text-white'}`}>{p.unEuro ? `Empezar con ${p.nombre} por ${eur(QR_MENU.primerMes)}` : `Empezar con ${p.nombre}`} →</Link>
+                </div>
+              </Aparecer>
+            ))}
+          </div>
+
+          {/* 18/10 (karc0): Fundador realzado, con foto y alta directa (misma tarjeta que portada y /qr) */}
+          <TarjetaFundador className="mt-10" />
+
+          <div id="modulos" className="scroll-mt-20 mt-24 border-t border-linea pt-16">
+            <p className="etiqueta-dk text-vino">02 · Extras de la carta QR</p>
+            <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl">Sin módulos sueltos. Solo extras de un pago.</h2>
+          </div>
+          <div className="mt-12 grid gap-14 md:grid-cols-2">
+            <Tabla titulo="¿Más grande que Sala?" sub="Sin cuotas sueltas: cada plan ya trae TPV, comandero y sus idiomas" filas={MODULOS} />
+            <Tabla titulo="Servicios y extras" sub="Pago único · sin suscripción" filas={SERVICIOS} />
+          </div>
+        </div>
+      </section>
+
+      <TodoIncluidoQr fondo="blanco" />
+
+      {OTROS.map((o) => (
+        <section key={o.id} id={o.id} className={`scroll-mt-20 py-24 md:py-32 ${o.oscuro ? 'bg-noche text-white' : 'border-t border-linea bg-white'}`}>
+          <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-[1.1fr_1fr] md:px-8">
+            <Aparecer>
+              <p className="etiqueta-dk text-vino">{o.n} · {o.t}</p>
+              <h2 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-5xl">{o.lema}</h2>
+              <p className={`mt-5 text-lg ${o.oscuro ? 'text-white/65' : 'text-niebla'}`}>{o.d}</p>
+              <ul className={`mt-7 space-y-3 ${o.oscuro ? 'text-white/80' : 'text-grafito'}`}>
+                {o.incluye.map((x) => <li key={x} className="flex gap-3"><span aria-hidden="true" className="text-vino">✓</span>{x}</li>)}
+              </ul>
+              <Link href={o.ver} className="mt-7 inline-block text-sm font-semibold underline decoration-vino decoration-2 underline-offset-4">Ver {o.t} en detalle</Link>
+            </Aparecer>
+            <Aparecer retraso={0.1}>
+              <div className={`rounded-[28px] p-8 md:p-10 ${o.oscuro ? 'border border-white/10 bg-white/5' : 'bg-crema'}`}>
+                <p className="font-display text-5xl font-semibold">
+
+                  {o.p}
+                </p>
+                <p className={`mt-2 text-sm ${o.oscuro ? 'text-white/60' : 'text-niebla'}`}>{o.unidad} · {o.nota} · + IVA</p>
+                {o.tabla && (
+                  <div className="mt-7">
+                    <p className="text-sm font-semibold">Cuota mensual según tus ventas por la app</p>
+                    <ul className="mt-3 divide-y divide-white/10 border-y border-white/10">
+                      {o.tabla.map(([nombre, cuando, cuota]) => (
+                        <li key={nombre} className="grid grid-cols-[1fr_auto] items-baseline gap-4 py-3">
+                          <div><p className="font-semibold">{nombre}</p><p className="text-xs text-white/55">{cuando}</p></div>
+                          <p className="font-semibold whitespace-nowrap">{cuota}</p>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-3 text-xs text-white/50">Solo sube tras 2 meses seguidos por encima de tu tramo y con 30 días de aviso; baja sola si tus ventas bajan.</p>
+                  </div>
+                )}
+                <Link href={o.cta.href} className="mt-8 inline-flex rounded-full bg-vino px-7 py-3.5 text-[15px] font-semibold text-white">{o.cta.t} →</Link>
+              </div>
+            </Aparecer>
+          </div>
+        </section>
+      ))}
+
+      <section className="border-t border-linea bg-white py-24 md:py-32">
+        <div className="mx-auto max-w-5xl px-6 md:px-8">
+          <Titulo etiqueta="Antes de comparar" texto="Un TPV cobra. Una marca vende." centrado />
+          <p className="mx-auto mt-5 max-w-2xl text-center text-niebla">Un TPV te deja la caja en orden y una agencia te hace una web. DKitchen te da la marca, la app y los eventos, y se conecta con el TPV que ya tienes.</p>
+          <div className="mt-12 overflow-x-auto">
+            <table className="w-full min-w-[620px] border-collapse text-left text-[15px]">
+              <thead>
+                <tr className="border-b-2 border-tinta">
+                  <th className="py-4 pr-4 font-semibold">Lo que necesitas</th>
+                  <th className="px-3 py-4 font-semibold text-niebla">TPV de cuota mensual</th>
+                  <th className="px-3 py-4 font-semibold text-niebla">Agencia web</th>
+                  <th className="px-3 py-4 font-semibold text-vino">DKitchen</th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARATIVA.map(([q, tpv, agencia, dk]) => (
+                  <tr key={q} className="border-b border-linea align-top">
+                    <td className="py-4 pr-4 font-semibold">{q}</td>
+                    <td className="px-3 py-4 text-niebla">{tpv}</td>
+                    <td className="px-3 py-4 text-niebla">{agencia}</td>
+                    <td className="px-3 py-4 font-semibold">{dk}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-4 text-xs text-niebla">Comparativa orientativa con soluciones habituales del mercado; cada proveedor tiene sus condiciones.</p>
+          <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link href="/signature" className="inline-flex justify-center rounded-full bg-vino px-7 py-3.5 text-[15px] font-semibold text-white">Ver Signature →</Link>
+            <a href={WHATSAPP_DEMO} target="_blank" rel="noopener noreferrer" className="inline-flex justify-center rounded-full border border-tinta px-7 py-3.5 text-[15px] font-semibold">Pedir demo por WhatsApp</a>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-crema py-24 md:py-32">
+        <div className="mx-auto max-w-3xl px-6 md:px-8">
+          <Titulo etiqueta="Preguntas sobre precios" texto="Lo que nos preguntan antes de pagar." centrado />
+          <div className="mt-12 divide-y divide-linea border-y border-linea">
+            {PREGUNTAS.map(([q, a]) => (
+              <details key={q} className="group py-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold">{q}<span aria-hidden="true" className="text-vino transition-transform group-open:rotate-45">+</span></summary>
+                <p className="mt-3 text-niebla">{a}</p>
+              </details>
+            ))}
+          </div>
+          <p className="mt-10 text-center text-sm text-niebla">¿Dudas con tu caso? <Link href="/faq" className="font-semibold underline decoration-vino decoration-2 underline-offset-4">Más preguntas frecuentes</Link></p>
+        </div>
+      </section>
+    </div>
+  );
+}

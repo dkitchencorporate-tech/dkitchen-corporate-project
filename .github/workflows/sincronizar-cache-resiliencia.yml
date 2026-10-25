@@ -1,0 +1,58 @@
+# DESACTIVADO el 20/09/2026 a petición explícita del titular del proyecto:
+# un programador de tareas de CI de mejor esfuerzo, sin garantía de horario,
+# no es un disparador profesional para la disponibilidad de un sistema del
+# que dependen clientes de pago. Ver MOTOR_QR_ANALISIS_PROFESIONAL_Y_PLAN.md,
+# Sección 4.2, antes de reactivar el `schedule` de más abajo.
+#
+# El código de este flujo sigue siendo correcto y queda disponible para un
+# disparador profesional (Vercel Cron Job) si tras subir Neon a un plan de
+# pago sin scale-to-zero (Sección 4.1 del documento citado) se decide que
+# aún hace falta una capa de resiliencia adicional.
+#
+# Mantiene viva la caché de resiliencia del motor de QR (ver
+# src/lib/cache-resiliencia.ts y db/sincronizar-cache-resiliencia.mjs).
+#
+# POR QUÉ NO CORRÍA EN VERCEL: el token que puede escribir en Global Config
+# no se puede acotar solo a esa capacidad —el más restringido que ofrece
+# Vercel sigue pudiendo tocar despliegues, dominios y variables de entorno
+# del proyecto—. Meterlo en una variable de entorno del despliegue lo pondría
+# al alcance de cualquier ruta pública de la aplicación, repitiendo
+# exactamente el fallo que se cerró con Neon (un despliegue con más autoridad
+# de la que necesita), solo que sobre la cuenta de Vercel en vez de la base
+# de datos. Esa parte del razonamiento sigue vigente; lo que se retira es
+# solo el disparador, no el diseño del aislamiento de credenciales.
+name: Sincronizar caché de resiliencia (desactivado)
+
+on:
+  # El disparador programado queda comentado, no borrado, para que quede
+  # constancia de qué había y por qué se quitó. No reactivar sin haber leído
+  # MOTOR_QR_ANALISIS_PROFESIONAL_Y_PLAN.md, Sección 4.2.
+  # schedule:
+  #   - cron: '*/5 * * * *'
+  workflow_dispatch: {} # solo ejecución manual, para pruebas puntuales
+
+concurrency:
+  group: sincronizar-cache-resiliencia
+  cancel-in-progress: true
+
+jobs:
+  sincronizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar dependencias mínimas
+        run: npm install --no-save @neondatabase/serverless ws
+
+      - name: Sincronizar
+        env:
+          DK_DATABASE_URL: ${{ secrets.DK_DATABASE_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN_CACHE_RESILIENCIA }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          GLOBAL_CONFIG_ID: ${{ secrets.GLOBAL_CONFIG_ID }}
+        run: node db/sincronizar-cache-resiliencia.mjs

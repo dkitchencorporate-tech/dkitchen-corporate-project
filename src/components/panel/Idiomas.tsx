@@ -1,0 +1,70 @@
+'use client';
+
+import { mensajeError } from '@/lib/mensaje-error';
+import { useState, useTransition } from 'react';
+import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
+import { fijarIdiomasAction } from '@/app/panel/actions';
+
+const DISPONIBLES: Record<string, string> = { en: '🇬🇧 Inglés', fr: '🇫🇷 Francés', de: '🇩🇪 Alemán', it: '🇮🇹 Italiano', pt: '🇵🇹 Portugués', ca: 'Catalán' };
+type T = { entidad: 'plato' | 'seccion'; entidadId: string; idioma: string; campo: 'nombre' | 'descripcion'; texto: string };
+
+/**
+ * Idiomas (0068): español + inglés incluidos; cada idioma más se compra en Mejoras (pago único). DKitchen traduce su carta
+ * (servicio hecho por nosotros, 0028). Aquí solo ve el progreso.
+ */
+export default function Idiomas({ maximo, activos, platos, traducciones }: {
+  maximo: number; activos: string[]; secciones: SeccionPropia[]; platos: PlatoPropio[]; traducciones: T[];
+}) {
+  const [pendiente, iniciar] = useTransition();
+  const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
+  const [idiomas, setIdiomas] = useState<string[]>(activos);
+  const hechos = (i: string) => platos.filter((p) => traducciones.some((t) => t.entidadId === p.id && t.idioma === i && t.campo === 'nombre')).length;
+
+  function guardar() {
+    setAviso(null);
+    iniciar(async () => {
+      try { await fijarIdiomasAction(idiomas); setAviso({ ok: true, texto: 'Idiomas guardados. DKitchen se pone con la traducción.' }); }
+      catch (e) { setAviso({ ok: false, texto: mensajeError(e, 'No se pudo guardar.') }); }
+    });
+  }
+
+  return (
+    <div className="space-y-6">
+      <header>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Idiomas de tu carta</h2>
+        <p className="text-sm text-niebla">Tu plan incluye {maximo === 1 ? '1 idioma' : `${maximo} idiomas`} además del español (el inglés, o el que prefieras). Cada idioma más se añade en Negocio → Mejoras. <strong className="text-grafito">Nosotros traducimos tu carta</strong> (nombres, descripciones y secciones) y tus clientes verán un selector de idioma. Si cambias un plato, lo actualizamos.</p>
+        {aviso && <p className={`mt-2 text-sm ${aviso.ok ? 'text-green-700' : 'text-red-600'}`}>{aviso.texto}</p>}
+      </header>
+
+      <section className="space-y-3 rounded-2xl border border-linea bg-white p-5">
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(DISPONIBLES).map(([c, n]) => {
+            const on = idiomas.includes(c);
+            return (
+              <button key={c} type="button" aria-pressed={on} disabled={!on && idiomas.length >= maximo}
+                onClick={() => setIdiomas((l) => (on ? l.filter((x) => x !== c) : [...l, c]))}
+                className={`rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-30 ${on ? 'bg-vino' : 'bg-papel'}`}>{n}</button>
+            );
+          })}
+        </div>
+        <button disabled={pendiente} onClick={guardar} className="rounded-lg bg-papel px-4 py-2 text-sm font-bold hover:bg-linea">Guardar idiomas ({idiomas.length}/{maximo})</button>
+      </section>
+
+      {activos.length > 0 && (
+        <section className="space-y-3 rounded-2xl border border-linea bg-white p-5">
+          <h3 className="text-lg font-semibold">Estado de la traducción</h3>
+          {activos.map((i) => {
+            const n = hechos(i), total = platos.length, pct = total ? Math.round((n / total) * 100) : 100;
+            return (
+              <div key={i} className="space-y-1">
+                <div className="flex justify-between text-sm"><span>{DISPONIBLES[i]}</span><span className="text-niebla">{pct === 100 ? '✓ Lista' : `DKitchen está traduciendo · ${n}/${total}`}</span></div>
+                <div className="h-2 overflow-hidden rounded-full bg-papel"><div className="h-full bg-vino" style={{ width: `${pct}%` }} /></div>
+              </div>
+            );
+          })}
+          <p className="text-xs text-ceniza">¿Ves algo que cambiarías? Escríbenos desde Soporte y lo corregimos.</p>
+        </section>
+      )}
+    </div>
+  );
+}

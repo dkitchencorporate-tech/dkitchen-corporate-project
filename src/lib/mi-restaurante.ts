@@ -1,0 +1,173 @@
+import { limpiarFirma, type Firma } from '@/lib/composiciones';
+import 'server-only';
+import { cookies } from 'next/headers';
+import { comoCliente } from '@/lib/db';
+import { COOKIE_PUESTA } from '@/lib/socio-codigo';
+
+export interface MiRestaurante {
+  id: string;
+  slug: string;
+  nombre: string;
+  logoUrl: string | null;
+  plan: string;
+  /** Precio Fundador vigente (0051): plan Sala al 40 %, por trimestre. */
+  fundador?: boolean;
+  activo: boolean;
+  colorMarca: string | null;
+  estadoAcceso: string;
+  descripcion: string | null;
+  telefono: string | null;
+  direccion: string | null;
+  horario: string | null;
+  instagram: string | null;
+  urlResenas: string | null;
+  plantilla: string;
+  nivelDiseno: string;
+  /** Foto de cabecera de la carta (0043). Sin ella, la carta usa la primera foto de un plato. */
+  portadaUrl?: string | null;
+  portadaConNombre?: boolean;
+  idiomas: string[];
+  whatsapp: string | null;
+  creadoEn: string;
+  estiloFondo: string;
+  estiloLetra: string;
+  /** Firma de autor de la carta (0096). */
+  firma: Firma;
+  /** Lo abre su socio en modo puesta a punto (0052): sin plan, pagos ni operativa del dueño. */
+  puestaAPunto?: boolean;
+  /** Lo abre DKitchen desde Central en modo soporte (0061): mismo alcance que la puesta a punto. */
+  soporte?: boolean;
+}
+
+/**
+ * El restaurante del cliente que ha iniciado sesión — nunca de otro. Si la
+ * sesión es de un socio con la puesta a punto abierta (cookie de /socio), el
+ * de ese cliente: la base solo lo devuelve si dk.gestiona() lo permite (0052).
+ * El super admin con 2FA entra igual desde Central («Entrar en su panel», 0061).
+ */
+export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante | null> {
+  const puesta = (await cookies()).get(COOKIE_PUESTA)?.value ?? null;
+  const idPuesta = puesta && /^[0-9a-f-]{36}$/i.test(puesta) ? puesta : null;
+  return comoCliente(jwt, async (c) => {
+    const { rows } = await c.query<{
+      id: string;
+      slug: string;
+      nombre: string;
+      logo_url: string | null;
+      plan: string;
+      fundador: boolean;
+      activo: boolean;
+      color_marca: string | null;
+      estado_acceso: string;
+      descripcion: string | null;
+      telefono: string | null;
+      direccion: string | null;
+      horario: string | null;
+      instagram: string | null;
+      url_resenas: string | null;
+      plantilla: string;
+      nivel_diseno: string;
+      portada_url: string | null;
+      portada_con_nombre: boolean;
+      idiomas: string[];
+      whatsapp: string | null;
+      creado_en: Date;
+      estilo_fondo: string;
+      estilo_letra: string;
+      firma: Record<string, unknown> | null;
+      puesta: boolean;
+      soporte: boolean;
+    }>(
+      `SELECT id, slug, nombre, logo_url, plan, (fundador_desde IS NOT NULL AND fundador_perdido_en IS NULL) AS fundador, activo, color_marca, estado_acceso,
+              descripcion, telefono, direccion, horario, instagram, url_resenas, plantilla, nivel_diseno, idiomas, whatsapp, creado_en, estilo_fondo, estilo_letra, firma, portada_url, portada_con_nombre,
+              propietario IS DISTINCT FROM dk.identidad_actual() AS puesta,
+              (propietario IS DISTINCT FROM dk.identidad_actual() AND coalesce(dk.es_admin(), false)) AS soporte
+         FROM restaurantes
+        WHERE propietario = dk.identidad_actual()
+           OR (id = $1 AND ((socio_id = dk.identidad_actual() AND dk.gestiona(id)) OR coalesce(dk.es_admin(), false)))
+        ORDER BY (id = $1) DESC NULLS LAST, (propietario = dk.identidad_actual()) DESC NULLS LAST
+        LIMIT 1`,
+      [idPuesta]
+    );
+    const fila = rows[0];
+    if (!fila) return null;
+    return {
+      id: fila.id,
+      slug: fila.slug,
+      nombre: fila.nombre,
+      logoUrl: fila.logo_url,
+      plan: fila.plan,
+      fundador: fila.fundador === true,
+      activo: fila.activo,
+      colorMarca: fila.color_marca,
+      estadoAcceso: fila.estado_acceso,
+      descripcion: fila.descripcion,
+      telefono: fila.telefono,
+      direccion: fila.direccion,
+      horario: fila.horario,
+      instagram: fila.instagram,
+      urlResenas: fila.url_resenas,
+      plantilla: fila.plantilla,
+      nivelDiseno: fila.nivel_diseno,
+      portadaUrl: fila.portada_url,
+      portadaConNombre: fila.portada_con_nombre,
+      idiomas: fila.idiomas ?? [],
+      whatsapp: fila.whatsapp,
+      creadoEn: new Date(fila.creado_en).toISOString(),
+      estiloFondo: fila.estilo_fondo,
+      estiloLetra: fila.estilo_letra,
+      firma: limpiarFirma(fila.firma),
+      puestaAPunto: fila.puesta === true,
+      soporte: fila.soporte === true,
+    };
+  });
+}
+
+/** El código QR activo del restaurante — la carta apunta siempre a /r/{codigo}. */
+export async function obtenerCodigoQr(jwt: string, restauranteId: string): Promise<string | null> {
+  return comoCliente(jwt, async (c) => {
+    const { rows } = await c.query<{ codigo: string }>(
+      `SELECT codigo FROM codigos_qr WHERE restaurante_id = $1 AND activo = true LIMIT 1`,
+      [restauranteId]
+    );
+    return rows[0]?.codigo ?? null;
+  });
+}
+
+export interface DatosLocal {
+  nombre: string;
+  logoUrl: string | null;
+  colorMarca: string | null;
+  descripcion: string | null;
+  telefono: string | null;
+  direccion: string | null;
+  horario: string | null;
+  instagram: string | null;
+  urlResenas: string | null;
+  whatsapp: string | null;
+}
+
+/** Solo columnas con GRANT UPDATE a dk_auth (plan y estado quedan fuera por diseño). */
+export async function actualizarDatosLocal(jwt: string, restauranteId: string, d: DatosLocal): Promise<void> {
+  await comoCliente(jwt, async (c) => {
+    await c.query(
+      `UPDATE restaurantes
+          SET nombre = $2, logo_url = $3, color_marca = $4, descripcion = $5, telefono = $6,
+              direccion = $7, horario = $8, instagram = $9, url_resenas = $10, whatsapp = $11
+        WHERE id = $1`,
+      [restauranteId, d.nombre, d.logoUrl, d.colorMarca, d.descripcion, d.telefono, d.direccion, d.horario, d.instagram, d.urlResenas, d.whatsapp]
+    );
+  });
+}
+
+/** Estilo de la carta (0031). El disparador dk.control_diseno_cliente valida nivel y paleta. */
+export async function guardarEstilo(jwt: string, restauranteId: string, e: { plantilla: string; fondo: string; letra: string; color: string; firma?: Firma }) {
+  await comoCliente(jwt, (c) => c.query(
+    'UPDATE restaurantes SET plantilla = $2, estilo_fondo = $3, estilo_letra = $4, color_marca = $5, firma = coalesce($6::jsonb, firma) WHERE id = $1',
+    [restauranteId, e.plantilla, e.fondo, e.letra, e.color, e.firma ? JSON.stringify(e.firma) : null]));
+}
+
+/** Foto de portada (0043). */
+export async function guardarPortada(jwt: string, restauranteId: string, url: string | null, conNombre = false) {
+  await comoCliente(jwt, (c) => c.query('UPDATE restaurantes SET portada_url = $2, portada_con_nombre = $3 WHERE id = $1', [restauranteId, url, !!url && conNombre]));
+}

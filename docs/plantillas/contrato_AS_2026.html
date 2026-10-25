@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contrato de Servicios Digitales &mdash; DKitchen</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --dark: #111111; --mid: #444444; --light: #888888;
+  --rule: #E0E0E0; --bg: #FAFAFA; --white: #FFFFFF;
+  --gold: #B8862A;
+}
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--dark); font-size: 10.5px; line-height: 1.65; padding-bottom: 70px; }
+
+/* PAGES */
+.page {
+  width: 210mm;
+  height: 297mm;
+  background: var(--white);
+  margin: 0 auto 32px;
+  padding: 0;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.09);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  page-break-after: always;
+}
+
+/* HEADER */
+.doc-header {
+  padding: 28px 44px 22px;
+  border-bottom: 2px solid var(--dark);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.brand-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: var(--dark); letter-spacing: 1px; }
+.brand-name span { color: var(--gold); }
+.brand-sub { font-size: 7.5px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--light); margin-top: 3px; }
+.doc-meta { text-align: right; }
+.doc-type { font-size: 8px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+.doc-number { font-size: 16px; font-weight: 700; color: var(--dark); }
+.doc-date { font-size: 8.5px; color: var(--light); margin-top: 2px; }
+
+/* PARTIES */
+.parties { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--rule); flex-shrink: 0; }
+.party { padding: 18px 44px; }
+.party:first-child { border-right: 1px solid var(--rule); }
+.party-role { font-size: 7px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.party-name { font-size: 12px; font-weight: 700; color: var(--dark); margin-bottom: 5px; }
+.party-detail { font-size: 9px; color: var(--mid); line-height: 1.7; }
+.field.empty { color: var(--light); font-style: italic; }
+
+/* VALIDITY BANNER */
+.validity-banner { background: var(--dark); color: #fff; padding: 11px 44px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.validity-banner span:first-child { font-size: 8.5px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+.validity-banner span:last-child { font-size: 8.5px; color: rgba(255,255,255,0.5); }
+
+/* SECTIONS */
+.section { padding: 0 44px; margin-top: 18px; }
+.section-sm { padding: 0 44px; margin-top: 14px; }
+.section-title { font-size: 7.5px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 9px; display: flex; align-items: center; gap: 8px; }
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+/* SERVICE TABLE */
+.service-table { width: 100%; border-collapse: collapse; }
+.service-table thead tr { border-bottom: 1px solid var(--dark); }
+.service-table th { font-size: 7.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--light); padding: 5px 8px; text-align: left; }
+.service-table th:last-child { text-align: right; }
+.service-table td { font-size: 9.5px; padding: 8px; color: var(--mid); border-bottom: 1px solid var(--rule); vertical-align: top; }
+.service-table td:last-child { text-align: right; color: var(--dark); font-weight: 600; white-space: nowrap; }
+.service-table td strong { color: var(--dark); font-weight: 600; display: block; margin-bottom: 1px; }
+.service-table td small { font-size: 8px; color: var(--light); }
+.service-table .total-row td { border-top: 2px solid var(--dark); border-bottom: none; padding-top: 10px; font-weight: 700; color: var(--dark); font-size: 11px; }
+.service-table .total-row td:first-child { color: var(--light); font-size: 8.5px; font-weight: 400; }
+
+/* PAYMENT */
+.payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.payment-box { border: 1px solid var(--rule); border-radius: 5px; padding: 12px 14px; }
+.payment-box-label { font-size: 7px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+.payment-box-amount { font-size: 22px; font-weight: 800; color: var(--dark); letter-spacing: -1px; }
+.payment-box-amount sup { font-size: 11px; font-weight: 600; vertical-align: super; }
+.payment-box-note { font-size: 8px; color: var(--light); margin-top: 3px; }
+
+/* DELIVERY */
+.delivery-row { display: flex; gap: 10px; margin-top: 4px; }
+.delivery-item { flex: 1; border: 1px solid var(--rule); border-radius: 5px; padding: 10px 12px; display: flex; align-items: flex-start; gap: 8px; }
+.delivery-icon { font-size: 16px; flex-shrink: 0; }
+.delivery-label { font-size: 7.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--light); margin-bottom: 2px; }
+.delivery-value { font-size: 10.5px; font-weight: 700; color: var(--dark); }
+.delivery-note { font-size: 8px; color: var(--light); margin-top: 2px; }
+
+/* CLAUSES */
+.clauses-wrap { padding: 0 44px; margin-top: 16px; flex: 1; }
+.clause { margin-bottom: 13px; }
+.clause-num { font-size: 7px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 3px; }
+.clause-title { font-size: 10px; font-weight: 700; color: var(--dark); margin-bottom: 3px; }
+.clause-body { font-size: 9px; color: var(--mid); line-height: 1.7; }
+
+/* SIGNATURES */
+.sig-section { padding: 0 44px; margin-top: auto; padding-bottom: 0; }
+.sig-acceptance-note { background: #F7F7F7; border-radius: 5px; padding: 10px 14px; margin-bottom: 14px; font-size: 9px; color: var(--mid); border-left: 3px solid var(--gold); }
+.sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+.sig-label { font-size: 7.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--light); margin-bottom: 36px; }
+.sig-line { border-top: 1px solid var(--dark); padding-top: 6px; }
+.sig-name { font-size: 9.5px; font-weight: 600; color: var(--dark); }
+.sig-role { font-size: 8px; color: var(--light); margin-top: 1px; }
+
+/* FOOTER */
+.doc-footer { margin-top: auto; padding: 12px 44px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.doc-footer-left { font-size: 7.5px; color: var(--light); }
+.doc-footer-right { font-size: 7.5px; color: var(--gold); font-weight: 600; letter-spacing: 1px; }
+
+/* PRINT */
+@page { size: A4; margin: 0; }
+@media print {
+  body { background: white; padding-bottom: 0; }
+  .page { box-shadow: none; margin: 0; width: 100%; height: 100vh; }
+  .no-print { display: none !important; }
+}
+
+/* TOOLBAR */
+.toolbar { position: fixed; bottom: 0; left: 0; right: 0; background: #111; padding: 12px 24px; display: flex; justify-content: center; gap: 12px; z-index: 100; }
+.btn { background: var(--gold); color: #fff; border: none; border-radius: 6px; padding: 10px 26px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; letter-spacing: 0.3px; }
+.btn:hover { opacity: 0.88; }
+.btn-sec { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- ===== P&Aacute;GINA 1: PARTES + SERVICIOS ===== -->
+<div class="page">
+  <div class="doc-header">
+    <div>
+      <div class="brand-name">DKITCHEN<span> CORPORATE</span></div>
+      <div class="brand-sub">Digital Solutions &middot; dkitchencorporate.es</div>
+    </div>
+    <div class="doc-meta">
+      <div class="doc-type">Contrato + Factura de Servicios Digitales</div>
+      <div class="doc-number">REF: DK-<span style="color:var(--gold)">[ N&Uacute;MERO ]</span></div>
+      <div class="doc-date">Fecha de emisi&oacute;n: ____________________</div>
+    </div>
+  </div>
+
+  <div class="parties">
+    <div class="party">
+      <div class="party-role">Prestador del Servicio</div>
+      <div class="party-name">DKitchen Corporate SL</div>
+      <div class="party-detail">
+        CIF: <span class="field empty">[ _ _ _ _ _ _ _ _ _ ]</span><br>
+        Calle La Granja 1, Alcobendas, CP 28108, Espa&ntilde;a<br>
+        Web: dkitchencorporate.es<br>
+        Contacto: +34 622 65 26 59 &middot; hola@dkitchencorporate.es
+      </div>
+    </div>
+    <div class="party">
+      <div class="party-role">Cliente / Beneficiario</div>
+      <div class="party-name"><span class="field empty">[ Nombre o Raz&oacute;n Social ]</span></div>
+      <div class="party-detail">
+        NIF / CIF: <span class="field empty">[ _ _ _ _ _ _ _ _ _ ]</span><br>
+        Direcci&oacute;n fiscal: <span class="field empty">[ Direcci&oacute;n completa ]</span><br>
+        Email: <span class="field empty">[ email@dominio.com ]</span><br>
+        Tel&eacute;fono: <span class="field empty">[ + _ _ _ _ _ _ _ _ _ _ ]</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="validity-banner">
+    <span>&#128203; Propuesta aceptada &mdash; Acuerdo vinculante</span>
+    <span>Comprobante v&aacute;lido de servicio digital profesional contratado</span>
+  </div>
+
+  <div class="section" style="margin-top:18px;">
+    <div class="section-title">Detalle de Servicios Contratados</div>
+    <table class="service-table">
+      <thead>
+        <tr>
+          <th style="width:36%">Servicio</th>
+          <th style="width:46%">Descripci&oacute;n</th>
+          <th>Importe</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Presencia Web Profesional</strong><small>Dominio propio (1 a&ntilde;o) + alojamiento</small></td>
+          <td style="font-size:8.5px;">Dise&ntilde;o, desarrollo y publicaci&oacute;n de sitio web. Configuraci&oacute;n t&eacute;cnica, velocidad y adaptaci&oacute;n multidispositivo.</td>
+          <td>Incluido</td>
+        </tr>
+        <tr>
+          <td><strong>Carta Digital con QR</strong><small>Actualizaciones ilimitadas durante el periodo</small></td>
+          <td style="font-size:8.5px;">Carta digital v&iacute;a QR accesible desde cualquier dispositivo. Actualizable en tiempo real sin coste adicional.</td>
+          <td>Incluido</td>
+        </tr>
+        <tr>
+          <td><strong>Google Business &mdash; Ficha Optimizada</strong><small>Fotos, horarios, categor&iacute;as, keywords</small></td>
+          <td style="font-size:8.5px;">Configuraci&oacute;n y optimizaci&oacute;n completa del perfil en Google Maps orientada a captaci&oacute;n y visibilidad.</td>
+          <td>Incluido</td>
+        </tr>
+        <tr>
+          <td><strong>Motor de Reservas Online</strong><small>Sin comisiones externas ni intermediarios</small></td>
+          <td style="font-size:8.5px;">Sistema de reservas integrado en la web y Google. Sin plataformas intermediarias ni comisiones por reserva.</td>
+          <td>Incluido</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="2">Inversi&oacute;n total &middot; Todo incluido &middot; Sin pagos mensuales ni permanencias</td>
+          <td>250 &euro;</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section" style="margin-top:16px;">
+    <div class="section-title">Condiciones de Pago</div>
+    <div class="payment-grid">
+      <div class="payment-box">
+        <div class="payment-box-label">1.er pago &mdash; Inicio de producci&oacute;n</div>
+        <div class="payment-box-amount">125 <sup>&euro;</sup></div>
+        <div class="payment-box-note">Abonado en el momento de la firma. Activa el proyecto inmediatamente.</div>
+      </div>
+      <div class="payment-box">
+        <div class="payment-box-label">2.&ordm; pago &mdash; Entrega y activaci&oacute;n</div>
+        <div class="payment-box-amount">125 <sup>&euro;</sup></div>
+        <div class="payment-box-note">Abonado en la entrega, previo a la transferencia de accesos y dominio.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="margin-top:16px; margin-bottom:14px;">
+    <div class="section-title">Plazos de Entrega</div>
+    <div class="delivery-row">
+      <div class="delivery-item">
+        <div class="delivery-icon">&#9889;</div>
+        <div>
+          <div class="delivery-label">Plazo est&aacute;ndar</div>
+          <div class="delivery-value">3 &mdash; 5 d&iacute;as h&aacute;biles</div>
+          <div class="delivery-note">Desde el pago inicial y recepci&oacute;n de materiales.</div>
+        </div>
+      </div>
+      <div class="delivery-item">
+        <div class="delivery-icon">&#128197;</div>
+        <div>
+          <div class="delivery-label">M&aacute;ximo con pr&oacute;rroga</div>
+          <div class="delivery-value">Hasta 15 d&iacute;as h&aacute;biles</div>
+          <div class="delivery-note">Para proyectos con alto volumen de contenido. Se notifica con antelaci&oacute;n.</div>
+        </div>
+      </div>
+      <div class="delivery-item">
+        <div class="delivery-icon">&#10003;</div>
+        <div>
+          <div class="delivery-label">Activaci&oacute;n final</div>
+          <div class="delivery-value">Tras 2.&ordm; pago</div>
+          <div class="delivery-note">Accesos, dominio y transferencia completa confirmados.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    <div class="doc-footer-left">DKitchen &middot; dkitchencorporate.es &middot; +34 622 65 26 59</div>
+    <div class="doc-footer-right">P&aacute;gina 1 / 3</div>
+  </div>
+</div>
+
+
+<!-- ===== P&Aacute;GINA 2: CL&Aacute;USULAS 1&ndash;6 ===== -->
+<div class="page">
+  <div class="doc-header" style="padding:22px 44px 18px;">
+    <div>
+      <div class="brand-name" style="font-size:16px;">DKITCHEN<span> CORPORATE</span></div>
+      <div class="brand-sub">Condiciones Generales del Servicio</div>
+    </div>
+    <div class="doc-meta">
+      <div class="doc-type">T&eacute;rminos, Cl&aacute;usulas y Garant&iacute;as</div>
+      <div class="doc-number" style="font-size:13px;">REF: DK-<span style="color:var(--gold)">[ N&Uacute;MERO ]</span></div>
+    </div>
+  </div>
+
+  <div class="clauses-wrap">
+    <div class="section-title" style="margin-bottom:14px;">T&eacute;rminos y Condiciones del Acuerdo</div>
+
+    <div class="clause">
+      <div class="clause-num">Cl&aacute;usula 1 &mdash; Objeto del Contrato</div>
+      <div class="clause-title">Alcance Espec&iacute;fico del Servicio</div>
+      <div class="clause-body">El presente contrato tiene por objeto exclusivo la prestaci&oacute;n de los servicios digitales descritos en la P&aacute;gina 1. Cualquier servicio adicional, modificaci&oacute;n sustancial, nueva funcionalidad o proyecto distinto requerir&aacute; nueva propuesta comercial y contrato independiente suscrito por ambas partes.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-num">Cl&aacute;usula 2 &mdash; Naturaleza del Servicio</div>
+      <div class="clause-title">Proveedor Digital Global de Jurisdicci&oacute;n Independiente</div>
+      <div class="clause-body">DKitchen actúa como proveedor independiente de servicios digitales de alcance global, operando bajo jurisdicción digital autónoma. La prestación se realiza íntegramente por medios electrónicos, sin vinculación a ningún territorio específico. Este documento constituye un comprobante válido de servicio profesional contratado; su tratamiento contable o fiscal estará sujeto a la normativa aplicable al cliente y al criterio de su asesoría.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-num">Cl&aacute;usula 3 &mdash; Obligaciones del Prestador</div>
+      <div class="clause-title">Compromisos de DKitchen</div>
+      <div class="clause-body">El prestador se compromete a: (a) ejecutar los servicios con diligencia y calidad profesional; (b) respetar los plazos acordados o comunicar variaciones justificadas con antelaci&oacute;n; (c) entregar acceso completo a todos los activos digitales generados, tras la recepci&oacute;n del pago final; (d) mantener estricta confidencialidad sobre la informaci&oacute;n del cliente; (e) realizar hasta dos rondas de revisi&oacute;n dentro del alcance contratado.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-num">Cl&aacute;usula 4 &mdash; Obligaciones del Cliente</div>
+      <div class="clause-title">Compromisos del Beneficiario</div>
+      <div class="clause-body">El cliente se compromete a: (a) realizar los pagos en los t&eacute;rminos acordados; (b) facilitar en tiempo y forma los materiales necesarios para la ejecuci&oacute;n del servicio (im&aacute;genes, textos, carta, horarios, accesos); (c) revisar las entregas y comunicar observaciones dentro de los 5 d&iacute;as h&aacute;biles siguientes. El silencio tras dicho plazo se interpretar&aacute; como aceptaci&oacute;n t&aacute;cita de la entrega.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-num">Cl&aacute;usula 5 &mdash; Garant&iacute;as del Servicio</div>
+      <div class="clause-title">Garant&iacute;a T&eacute;cnica Post-Entrega</div>
+      <div class="clause-body">DKitchen garantiza el correcto funcionamiento t&eacute;cnico de los entregables durante 30 d&iacute;as naturales desde la fecha de activaci&oacute;n. Cualquier incidencia t&eacute;cnica imputable directamente al prestador ser&aacute; corregida sin coste adicional. Esta garant&iacute;a no ampara cambios de contenido, nuevas funcionalidades solicitadas por el cliente ni ca&iacute;das de servicios de terceros.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-num">Cl&aacute;usula 6 &mdash; Propiedad y Transferencia de Activos</div>
+      <div class="clause-title">Titularidad Digital</div>
+      <div class="clause-body">Una vez completado el pago &iacute;ntegro, el cliente adquiere la propiedad plena del dominio y todos los activos digitales desarrollados espec&iacute;ficamente para su proyecto. DKitchen conserva el derecho a incluir el trabajo como referencia en su portfolio p&uacute;blico, salvo oposici&oacute;n expresa y por escrito por parte del cliente.</div>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    <div class="doc-footer-left">DKitchen &middot; dkitchencorporate.es &middot; +34 622 65 26 59</div>
+    <div class="doc-footer-right">P&aacute;gina 2 / 3</div>
+  </div>
+</div>
+
+
+<!-- ===== P&Aacute;GINA 3: CL&Aacute;USULAS 7&ndash;10 + FIRMAS ===== -->
+<div class="page">
+  <div class="doc-header" style="padding:22px 44px 18px;">
+    <div>
+      <div class="brand-name" style="font-size:16px;">DKITCHEN<span> CORPORATE</span></div>
+      <div class="brand-sub">Condiciones Generales &mdash; Continuaci&oacute;n y Firma</div>
+    </div>
+    <div class="doc-meta">
+      <div class="doc-type">Responsabilidad, Privacidad y Aceptaci&oacute;n</div>
+      <div class="doc-number" style="font-size:13px;">REF: DK-<span style="color:var(--gold)">[ N&Uacute;MERO ]</span></div>
+    </div>
+  </div>
+
+  <div class="clauses-wrap">
+    <div class="clause">
+      <div class="clause-num">Cl&aacute;usula 7 &mdash; Limitaci&oacute;n de Responsabilidad</div>
+      <div class="clause-title">Alcance M&aacute;ximo de la Responsabilidad</div>
+      <div class="clause-body">La responsabilidad total del prestador frente al cliente queda limitada al importe efectivamente abonado en el marco de este contrato. DKitchen no responde por p&eacute;rdidas econ&oacute;micas indirectas, lucro cesante, da&ntilde;os reputacionales, ca&iacute;das de plataformas de terceros ni retrasos derivados de la falta o demora en la entrega de materiales por parte del cliente.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-num">Cl&aacute;usula 8 &mdash; Cancelaci&oacute;n y Reembolso</div>
+      <div class="clause-title">Pol&iacute;tica de Cancelaci&oacute;n</div>
+      <div class="clause-body">El primer pago no es reembolsable una vez iniciada la fase de producci&oacute;n. Si el cliente decide cancelar antes de la entrega final, queda eximido de abonar el segundo pago. En caso de cancelaci&oacute;n tras la entrega y antes de efectuar el segundo pago, los activos digitales entregados no podr&aacute;n ser utilizados hasta la regularizaci&oacute;n del pago pendiente.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-num">Cl&aacute;usula 9 &mdash; Privacidad y Protecci&oacute;n de Datos</div>
+      <div class="clause-title">Tratamiento de Informaci&oacute;n Confidencial</div>
+      <div class="clause-body">Toda la informaci&oacute;n facilitada por el cliente ser&aacute; tratada con absoluta confidencialidad y utilizada &uacute;nica y exclusivamente para la prestaci&oacute;n del servicio contratado. No se ceder&aacute;n datos a terceros sin consentimiento expreso. El tratamiento de datos personales se rige por los principios de minimizaci&oacute;n, licitud y seguridad conforme a los est&aacute;ndares internacionales del RGPD/GDPR.</div>
+    </div>
+
+    <div class="clause">
+      <div class="clause-num">Cl&aacute;usula 10 &mdash; Resoluci&oacute;n de Conflictos</div>
+      <div class="clause-title">Mediaci&oacute;n y Acuerdo Amistoso</div>
+      <div class="clause-body">Ante cualquier discrepancia derivada del presente contrato, ambas partes se comprometen a buscar una soluci&oacute;n amistosa como v&iacute;a preferente. De no alcanzarse acuerdo, la controversia se someter&aacute; a mediaci&oacute;n online conforme a los reglamentos de resoluci&oacute;n alternativa de disputas aplicables al comercio electr&oacute;nico internacional.</div>
+    </div>
+  </div>
+
+  <!-- SEPARADOR -->
+  <div style="margin: 0 44px; border-top: 1px solid var(--rule);"></div>
+
+  <!-- FIRMAS -->
+  <div class="sig-section" style="padding: 20px 44px 0;">
+    <div class="section-title" style="margin-bottom:12px;">Aceptaci&oacute;n y Firma del Acuerdo</div>
+    <div class="sig-acceptance-note">
+      La firma o aceptaci&oacute;n expresa de este documento &mdash;incluyendo la confirmaci&oacute;n por cualquier medio escrito o el abono del primer importe&mdash; implica la aceptaci&oacute;n plena, voluntaria y sin reservas de todas las cl&aacute;usulas aqu&iacute; recogidas por ambas partes.
+    </div>
+    <div class="sig-grid">
+      <div>
+        <div class="sig-label">Por el Prestador &mdash; DKitchen</div>
+        <div class="sig-line">
+          <div class="sig-name">DKitchen</div>
+          <div class="sig-role">Proveedor de Servicios Digitales Independiente</div>
+        </div>
+      </div>
+      <div>
+        <div class="sig-label">Por el Cliente &mdash; Beneficiario</div>
+        <div class="sig-line">
+          <div class="sig-name">___________________________</div>
+          <div class="sig-role">Nombre y cargo &middot; Fecha: ________________</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-footer" style="margin-top:auto;">
+    <div class="doc-footer-left">DKitchen &middot; dkitchencorporate.es &middot; +34 622 65 26 59 &middot; Documento v&aacute;lido como comprobante de servicio digital profesional contratado</div>
+    <div class="doc-footer-right">P&aacute;gina 3 / 3</div>
+  </div>
+</div>
+
+<div class="toolbar no-print">
+  <button class="btn" onclick="beforePrint();window.print();">&#128438; Imprimir / Guardar PDF</button>
+  <button class="btn btn-sec" onclick="beforePrint();window.print();">&#128196; PDF limpio</button>
+</div>
+<script>
+  function beforePrint(){ var tb=document.querySelector('.toolbar'); if(tb) tb.style.display='none'; }
+  window.addEventListener('beforeprint',function(){ var tb=document.querySelector('.toolbar'); if(tb) tb.style.display='none'; });
+  window.addEventListener('afterprint',function(){ var tb=document.querySelector('.toolbar'); if(tb) tb.style.display='flex'; });
+</script>
+</body>
+</html>
