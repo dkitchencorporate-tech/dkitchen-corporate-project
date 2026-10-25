@@ -7,7 +7,8 @@ import type { Tarea } from '@/lib/tareas';
  */
 const madrid = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(d);
 export const hoyMadrid = () => madrid(new Date());
-export const esMia = (t: Tarea) => t.responsable === 'karc0' || t.responsable === 'ambos';
+// 0101: desde el 25/10 DKitchen es de dk-vzl (operadores en Venezuela); karc0 solo conserva los flyers.
+export const esMia = (t: Tarea) => t.responsable === 'dk-vzl' || t.responsable === 'karc0' || t.responsable === 'ambos';
 export const esDeClaude = (t: Tarea) => t.responsable === 'claude' || t.responsable === 'antigravity';
 
 export interface Adelanto { dia: string | null; lista: Tarea[] }

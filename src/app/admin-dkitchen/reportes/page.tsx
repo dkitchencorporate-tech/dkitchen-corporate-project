@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { verDocumentos, enlaceDocumento, mapaReportes, base, CLASES, type ClaseReporte, type ReporteMapa } from '@/lib/documentos';
-import { verTareas, type Tarea } from '@/lib/tareas';
+import { RESPONSABLES, verTareas, type Tarea } from '@/lib/tareas';
 import GuiaZona from '@/components/admin/GuiaZona';
 
 export const dynamic = 'force-dynamic';
@@ -143,7 +143,7 @@ function Ficha({ r, tareas, todos }: { r: ReporteMapa; tareas: Tarea[]; todos: R
             {abiertas.slice(0, 8).map((t) => (
               <li key={t.id} className="flex flex-wrap justify-between gap-x-3">
                 <Link href={`/admin-dkitchen/tareas#t-${t.id}`} className="min-w-0 flex-1 break-words hover:text-vino">{t.titulo}</Link>
-                <span className="text-xs text-niebla">{t.responsable === 'claude' ? 'Claude' : t.responsable === 'karc0' ? 'Tú' : t.responsable}{t.paraCuando ? ` · ${t.paraCuando.slice(8, 10)}/${t.paraCuando.slice(5, 7)}` : ''}</span>
+                <span className="text-xs text-niebla">{t.responsable === 'claude' ? 'Claude' : (RESPONSABLES[t.responsable] ?? t.responsable)}{t.paraCuando ? ` · ${t.paraCuando.slice(8, 10)}/${t.paraCuando.slice(5, 7)}` : ''}</span>
               </li>
             ))}
             {abiertas.length > 8 && <li className="text-xs text-niebla">y {abiertas.length - 8} más en Mis tareas</li>}

@@ -14,7 +14,7 @@ export const BLOQUES: Record<string, string> = {
   fiscal: 'Fiscal',
 };
 /** Quién la hace (0082). Mis tareas es también la hoja de ruta: nada vive solo en el chat. */
-export const RESPONSABLES: Record<string, string> = { karc0: 'Tú', claude: 'Claude', antigravity: 'Antigravity', ambos: 'Tú + Claude' };
+export const RESPONSABLES: Record<string, string> = { 'dk-vzl': 'dk-vzl', karc0: 'karc0 (flyers)', claude: 'Claude', antigravity: 'Antigravity', ambos: 'dk-vzl + Claude' };
 /** Urgencia (0083): ordena la lista y el tablero. */
 export const URGENCIAS: Record<string, string> = { urgente: 'Urgente', alta: 'Alta', media: 'Media', baja: 'Baja' };
 
