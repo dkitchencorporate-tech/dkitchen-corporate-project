@@ -17,7 +17,8 @@ export async function enviarBienvenidaQr(email: string, nombre: string, local: s
      <ol style="margin:0 0 12px;padding-left:20px">
        <li style="margin-bottom:6px"><strong>Crea tu contraseña.</strong> En unos minutos recibirás otro correo nuestro con el asunto <em>«Crea tu contraseña de DKitchen»</em>. Pulsa su botón y elige tu contraseña. Si no lo ves, revisa la carpeta de spam.</li>
        <li style="margin-bottom:6px"><strong>Entra en tu panel</strong> con tu correo y esa contraseña.</li>
-       <li><strong>Completa los primeros pasos</strong> que verás en la portada: logo, fotos, horario y tu QR impreso.</li>
+       <li style="margin-bottom:6px"><strong>Completa los primeros pasos</strong> que verás en la portada: logo, fotos, horario y tu QR impreso.</li>
+       <li><strong>Imprime tu kit.</strong> En «QR y kit» tienes listos el cartel, las tarjetas de mesa (cada una con el QR de su mesa), las pegatinas y el flyer, con tu logo y tus colores: <a href="https://dkitchencorporate.es/kit">dkitchencorporate.es/kit</a>.</li>
      </ol>
      <p style="margin:0">Si tienes cualquier duda, responde a este correo o escríbenos desde Soporte en tu panel.</p>`,
     { titulo: 'Tu carta ya está en marcha', boton: { texto: 'Entrar en mi panel', url: 'https://dkitchencorporate.es/panel/iniciar-sesion' } }

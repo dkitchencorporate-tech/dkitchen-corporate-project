@@ -45,6 +45,9 @@ export default function MiQr({
             >
               Descargar PNG en alta resolución
             </a>
+            <a href="/kit" className="ml-2 inline-block mt-3 rounded-full border border-tinta px-5 py-2.5 text-sm font-bold">
+              Kit para imprimir: cartel, mesas, pegatinas y flyer
+            </a>
           </div>
         </div>
       ) : (

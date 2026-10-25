@@ -376,6 +376,7 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           <p className="text-niebla">{r.telefono ?? 'Sin teléfono'} · {r.direccion ?? 'Sin dirección'}</p>
           <p className="text-niebla">{ficha.secciones} secciones · {ficha.platos} platos</p>
           <p className="text-niebla">QR: {ficha.codigos.join(', ') || '—'}</p>
+          {ficha.codigos.length > 0 && <a href={`/kit/${r.id}`} className="inline-block font-semibold text-vino hover:underline">Kit para imprimir (cartel, mesas, pegatinas, flyer) →</a>}
         </section>
       </div>
 
