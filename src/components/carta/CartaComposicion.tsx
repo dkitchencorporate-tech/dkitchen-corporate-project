@@ -248,6 +248,12 @@ function SinPlatos({ serif, suave, acento, nombre }: { serif: string; suave: str
   );
 }
 
+/** La descripción no se repite si ya la dice el lema (p. ej. «Pizzería en Baza desde 1992»). */
+const otraFrase = (texto: string | null | undefined, lema?: string) => {
+  const n = (s: string) => normal(s).replace(/[^a-z0-9]+/g, ' ').trim();
+  return texto && (!lema || n(texto) !== n(lema)) ? texto : null;
+};
+
 const ROMANOS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX'];
 const listaAlergenos = (p: PlatoCarta, nombres: Record<string, string>) => p.alergenos.map((a) => nombres[a] ?? a).join(' · ');
 
@@ -276,7 +282,7 @@ function Taberna({ carta, grupos, nombres, color, oscuro, serif, display, accion
           <p className="text-[10px] font-semibold uppercase tracking-[0.42em] opacity-85">{f.lema}</p>
           <h1 className={`${display} mt-5 text-[clamp(46px,12.5vw,108px)] font-extrabold italic leading-[0.92] [text-wrap:balance]`}>{carta.nombre}</h1>
           <div className="mt-7"><Adorno tipo={f.adorno} color="#F2D9A6" claro /></div>
-          {carta.descripcion && <p className={`${serif} mt-5 max-w-md text-[20px] italic leading-snug opacity-90`}>{carta.descripcion}</p>}
+          {otraFrase(carta.descripcion, f.lema) && <p className={`${serif} mt-5 max-w-md text-[20px] italic leading-snug opacity-90`}>{carta.descripcion}</p>}
           {carta.horario && <p className="mt-4 text-[10px] uppercase tracking-[0.3em] opacity-70">{carta.horario}</p>}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
             {accion}
@@ -340,8 +346,9 @@ function Taberna({ carta, grupos, nombres, color, oscuro, serif, display, accion
                     <span className="flex items-start gap-4 sm:gap-5">
                       {p.fotoUrl && <img src={p.fotoUrl} alt={p.nombre} loading="lazy" className="h-[84px] w-[84px] shrink-0 rounded-full object-cover sm:h-24 sm:w-24" style={{ boxShadow: `0 0 0 4px ${t.fondo}, 0 0 0 5px ${t.linea}` }} />}
                       <span className="min-w-0 flex-1">
+                        {(p.etiqueta || p.combo?.length || p.precioAnterior) && <span className="mb-1 block"><EtiquetaPlato plato={p} /></span>}
                         <span className="flex items-baseline gap-2">
-                          <span className={`${display} text-[19px] font-bold leading-snug`}><EtiquetaPlato plato={p} />{p.nombre}</span>
+                          <span className={`${display} text-[19px] font-bold leading-snug`}>{p.nombre}</span>
                           <span aria-hidden="true" className="mb-1.5 min-w-4 flex-1 border-b-2 border-dotted" style={{ borderColor: t.linea }} />
                           <span className={`${display} shrink-0 whitespace-nowrap text-[19px] font-bold tabular-nums`} style={{ color: t.acento }}><PrecioAnterior plato={p} />{euros(p.precio)}</span>
                         </span>
@@ -399,7 +406,7 @@ function Urbano({ carta, grupos, nombres, color, oscuro, cartel, accion, portada
           </span>
           <span className="mt-7 inline-block w-fit -rotate-2 px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-white shadow-lg" style={{ background: color }}>{f.lema}</span>
           <h1 className={`${cartel} mt-4 text-[clamp(56px,16vw,156px)] uppercase leading-[0.86] [text-wrap:balance]`}>{carta.nombre}</h1>
-          {carta.descripcion && <p className="mt-4 max-w-lg text-[16px] font-semibold leading-snug text-white/85 sm:text-lg">{carta.descripcion}</p>}
+          {otraFrase(carta.descripcion, f.lema) && <p className="mt-4 max-w-lg text-[16px] font-semibold leading-snug text-white/85 sm:text-lg">{carta.descripcion}</p>}
           <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
             {accion}
             {resenas && <a href={resenas} target="_blank" rel="noopener" className={`${cartel} text-lg uppercase tracking-wide text-white/90 underline decoration-2 underline-offset-[6px]`} style={{ textDecorationColor: color }}>★ Reseñas</a>}
