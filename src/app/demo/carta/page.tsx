@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
+import { wa } from '@/lib/whatsapp';
 import { 
   DEMO_MENU_SUSHI, CATEGORIES_SUSHI, 
   DEMO_MENU_TAPAS, CATEGORIES_TAPAS,
@@ -614,6 +615,11 @@ function CartaContent() {
   const incrustada = searchParams.get('embed') === '1';
   // ?muestra=local (propuestas del CRM): sin comensales, carrito ni chat, que son de Signature
   const muestraLocal = searchParams.get('muestra') === 'local';
+  // R2 (25/10): si se llega desde /demos/carta (flyer, tarjeta, QR…), «volver» lleva allí con el mismo origen
+  // y «Quiero esta carta» lleva al alta de 1 € con la foto de la carta (/carta-de-autor), sin perder el origen.
+  const origenDemo = (searchParams.get('utm_source') ?? '').replace(/[^a-z0-9_-]/gi, '').slice(0, 30);
+  const volverHref = origenDemo ? `/demos/carta?utm_source=${origenDemo}` : '/qr';
+  const altaHref = `/carta-de-autor?utm_source=${origenDemo || 'demo'}&utm_medium=demo`;
   const [activeTemplate, setActiveTemplate] = useState<TemplateType>(plantillaParam === 'tapas' || plantillaParam === 'burger' ? plantillaParam : 'sushi');
   const [activeDiner, setActiveDiner] = useState<number>(1);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -741,8 +747,8 @@ function CartaContent() {
           {/* GLOBAL BACK BUTTON (MOVED HERE) */}
           {!incrustada && (
           <div className="flex justify-center pointer-events-auto">
-            <a href="/qr" className="rounded-full border border-white/10 bg-tinta/70 px-4 py-2 text-xs font-medium text-white/70 backdrop-blur-sm hover:text-white">
-              Volver a DKitchen
+            <a href={volverHref} className="rounded-full border border-white/10 bg-tinta/70 px-4 py-2 text-xs font-medium text-white/70 backdrop-blur-sm hover:text-white">
+              {origenDemo ? '← Volver a las demos' : 'Volver a DKitchen'}
             </a>
           </div>
           )}
@@ -781,10 +787,11 @@ function CartaContent() {
               {t.sales_desc}
             </p>
             <div className="space-y-4">
-              <a href="/qr#planes" className="block w-full rounded-full bg-vino py-4 text-[15px] font-semibold text-white hover:bg-vino-hondo">
+              <a href={altaHref} className="block w-full rounded-full bg-vino py-4 text-[15px] font-semibold text-white hover:bg-vino-hondo">
                 Quiero mi carta · primer mes 1 €
               </a>
-              <a href="/qr#solicitud-diseno-autor" target="_blank" rel="noopener noreferrer" className="block w-full rounded-full border border-white/20 py-4 text-[15px] font-semibold text-white hover:border-white/50">
+              <p className="-mt-2 text-xs text-white/45">Nos mandas una foto de tu carta y te la montamos así.</p>
+              <a href={wa('Hola, he visto las demos de carta QR de DKitchen y quiero la mía.')} target="_blank" rel="noopener noreferrer" className="block w-full rounded-full border border-white/20 py-4 text-[15px] font-semibold text-white hover:border-white/50">
                 Hablar por WhatsApp
               </a>
               <a href="https://calendly.com/dkitchencorporate/30min" target="_blank" rel="noopener noreferrer" className="block w-full py-2 text-sm text-white/55 hover:text-white">
