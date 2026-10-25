@@ -9,7 +9,17 @@ export interface MiExperience {
   id: string; fase: string; origen: string; negocio: string | null; nombre: string | null; importe: number | null;
   datos: Record<string, string>; briefing: Record<string, string> | null; briefingEn: string | null;
   llamadaEn: string | null; siguientePaso: string | null; creadoEn: string;
+  // 0103: lo contratado, la cronología (solo hitos) y el evento enlazado con sus ventas
+  fotos: string[]; contratoEstado: string | null; cronologia: { tipo: string; fase: string | null; en: string }[];
+  evento: EventoVentas | null;
 }
+
+export interface EventoVentas {
+  slug: string; titulo: string; fecha: string; estado: 'borrador' | 'venta' | 'cerrado'; aforo: number; precio: number;
+  vendidas: number; usadas: number; ingresos: number; hoy: number; tieneClave: boolean;
+}
+
+export interface Comprador { nombre: string; email: string; entradas: number; usadas: number; importe: number; compradoEn: string }
 
 const iso = (x: unknown) => (x ? new Date(x as string).toISOString() : null);
 
@@ -19,7 +29,27 @@ export async function misExperiences(jwt: string): Promise<MiExperience[]> {
     datos: (r.datos && typeof r.datos === 'object' ? r.datos : {}) as Record<string, string>,
     briefing: r.briefing ?? null, briefingEn: iso(r.briefing_en), llamadaEn: iso(r.llamada_en),
     siguientePaso: r.siguiente_paso, creadoEn: new Date(r.creado_en).toISOString(),
+    fotos: Array.isArray(r.fotos) ? r.fotos : [], contratoEstado: r.contrato_estado ?? null,
+    cronologia: Array.isArray(r.cronologia) ? r.cronologia.map((e: { tipo: string; fase: string | null; en: string }) => ({ tipo: e.tipo, fase: e.fase, en: iso(e.en)! })) : [],
+    evento: r.evento ? {
+      slug: r.evento.slug, titulo: r.evento.titulo, fecha: iso(r.evento.fecha)!, estado: r.evento.estado, aforo: Number(r.evento.aforo),
+      precio: Number(r.evento.precio_centimos), vendidas: Number(r.evento.vendidas), usadas: Number(r.evento.usadas),
+      ingresos: Number(r.evento.ingresos_centimos), hoy: Number(r.evento.hoy), tieneClave: !!r.evento.tiene_clave,
+    } : null,
   })));
+}
+
+/** Compradores del evento del proyecto (0103): una fila por compra, sin anuladas. */
+export async function misCompradores(jwt: string, id: string): Promise<Comprador[]> {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT * FROM dk.mi_experience_compradores($1)', [id])).rows.map((r) => ({
+    nombre: r.nombre ?? '', email: r.email ?? '', entradas: Number(r.entradas), usadas: Number(r.usadas),
+    importe: Number(r.importe_centimos), compradoEn: new Date(r.comprado_en).toISOString(),
+  })));
+}
+
+/** Sustituye la lista de fotos del briefing (0103: la base solo acepta las de experience/<proyecto>/). */
+export async function guardarMisFotos(jwt: string, id: string, fotos: string[]) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.mi_experience_fotos($1, $2::jsonb)', [id, JSON.stringify(fotos)]));
 }
 
 export async function guardarMiBriefing(jwt: string, id: string, briefing: Record<string, string>) {

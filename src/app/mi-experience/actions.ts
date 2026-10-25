@@ -2,14 +2,19 @@
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { randomUUID } from 'node:crypto';
+import { put } from '@vercel/blob';
 import { obtenerJwtDeSesion } from '@/lib/sesion';
-import { guardarMiBriefing, agendarMiLlamada } from '@/lib/mi-experience';
+import { guardarMiBriefing, agendarMiLlamada, misExperiences, guardarMisFotos } from '@/lib/mi-experience';
 import { enviarCorreoInterno, enviarCorreoCliente, filasCorreo, escaparHtml } from '@/lib/email';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CAMPOS: [string, string, number][] = [
-  ['formato', 'Formato', 60], ['cocina', 'Tipo de cocina', 60], ['fecha', 'Fecha deseada', 10], ['aforo', 'Aforo', 6],
-  ['precio', 'Precio de la entrada (€)', 6], ['menu', 'Menú o idea', 1500], ['pasarela', 'Pasarela de cobro', 40],
+  ['formato', 'Formato', 60], ['cocina', 'Gastronomía', 60], ['fecha', 'Fecha deseada', 10], ['aforo', 'Aforo', 6],
+  ['precio', 'Precio de la entrada (€)', 6],
+  // 0103: menú por pases (hasta 6); «menu» queda para la idea general
+  ...[1, 2, 3, 4, 5, 6].map((n): [string, string, number] => [`pase${n}`, `Pase ${n}`, 200]),
+  ['menu', 'Menú o idea', 1500], ['pasarela', 'Pasarela de cobro', 40],
   ['licencias', 'Licencias (alcohol, música, aforo)', 300], ['notas', 'Notas', 1000],
 ];
 const sesion = async () => { const jwt = await obtenerJwtDeSesion().catch(() => null); if (!jwt) redirect('/panel/iniciar-sesion'); return jwt; };
@@ -45,4 +50,44 @@ export async function llamadaAction(f: FormData) {
   }
   revalidatePath('/mi-experience');
   redirect('/mi-experience?ok=llamada#llamada');
+}
+
+const TIPOS_FOTO = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const MAX_FOTOS = 8;
+
+/** Proyecto del cliente (por el correo de su cuenta) o null: nadie sube a la carpeta de otro. */
+async function miProyecto(jwt: string, id: string) {
+  if (!UUID.test(id)) return null;
+  return (await misExperiences(jwt).catch(() => [])).find((p) => p.id === id) ?? null;
+}
+
+/** Foto del briefing (0103), ya comprimida en el navegador: Vercel Blob en experience/<proyecto>/. */
+export async function subirFotoAction(f: FormData): Promise<{ ok?: true; error?: string }> {
+  const jwt = await sesion();
+  const p = await miProyecto(jwt, String(f.get('id') ?? ''));
+  if (!p) return { error: 'No encontramos tu evento.' };
+  if (p.fotos.length >= MAX_FOTOS) return { error: `Máximo ${MAX_FOTOS} fotos. Quita alguna para subir otra.` };
+  const archivo = f.get('archivo');
+  if (!(archivo instanceof File)) return { error: 'No se recibió ninguna foto.' };
+  if (!TIPOS_FOTO.has(archivo.type)) return { error: 'Formato no admitido (usa JPG, PNG o WebP).' };
+  if (archivo.size > 950_000) return { error: 'La foto supera el tamaño máximo.' };
+  const ext = archivo.type === 'image/png' ? 'png' : archivo.type === 'image/webp' ? 'webp' : 'jpg';
+  try {
+    const { url } = await put(`experience/${p.id}/${randomUUID()}.${ext}`, archivo, { access: 'public', contentType: archivo.type });
+    await guardarMisFotos(jwt, p.id, [...p.fotos, url]);
+  } catch {
+    return { error: 'No se pudo guardar la foto. Inténtalo de nuevo.' };
+  }
+  revalidatePath('/mi-experience');
+  return { ok: true };
+}
+
+export async function quitarFotoAction(f: FormData) {
+  const jwt = await sesion();
+  const p = await miProyecto(jwt, String(f.get('id') ?? ''));
+  if (!p) redirect('/mi-experience?e=datos#fotos');
+  const url = String(f.get('url') ?? '');
+  try { await guardarMisFotos(jwt, p.id, p.fotos.filter((x) => x !== url)); } catch { redirect('/mi-experience?e=base#fotos'); }
+  revalidatePath('/mi-experience');
+  redirect('/mi-experience?ok=foto#fotos');
 }
