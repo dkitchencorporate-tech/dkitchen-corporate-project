@@ -19,11 +19,11 @@ type Tema = 'noir' | 'crema';
 
 // R3 (19/10): tres cartas de autor al nivel de las demos, cada una con su letra y su maquetación.
 const COMPOSICIONES: { id: Comp; nombre: string; frase: string; puntos: string[] }[] = [
+  { id: 'autor', nombre: 'Automática', frase: 'La elegimos por ti según tu local (alta cocina, taberna o urbana) y la firmamos con tu nombre. Recomendada.', puntos: ['Diseño de autor siempre', 'Se adapta a tu carta', 'Firma propia'] },
   { id: 'gastro', nombre: 'Alta cocina', frase: 'Negro editorial y letra fina. Cocina de autor, menú degustación, vinos.', puntos: ['Platos en filas con foto grande', 'Selección del chef', 'Nota del chef firmada'] },
-  { id: 'taberna', nombre: 'Taberna', frase: 'Pizarra, papel y la recomendación del día. Tapas, raciones, bar.', puntos: ['Cabecera de pizarra', 'Recomendación del día', 'Precio en pastilla'] },
-  { id: 'urbano', nombre: 'Urbana', frase: 'Letra de cartel y tu color en degradado. Hamburguesas, pizza, street food.', puntos: ['Tarjetón de marca', 'Los que más piden', 'Precio sobre la foto'] },
+  { id: 'taberna', nombre: 'Taberna', frase: 'Carta impresa de taberna: pizarra, romanos y filete de puntos. Tapas, raciones, bar.', puntos: ['Portada de pizarra', 'De la pizarra', 'Filete hasta el precio'] },
+  { id: 'urbano', nombre: 'Urbana', frase: 'Póster de street food con letra de cartel y tu color. Hamburguesas, pizza, fries.', puntos: ['Portada a sangre', 'Ranking de los más pedidos', 'Precio estampado'] },
   { id: 'foto', nombre: 'Gran foto', frase: 'La foto vende. Brunch, hamburguesas, gastro, cocina de producto.', puntos: ['Portada a sangre', 'Foto grande en cada plato', 'Los que más salen', 'Buscador y «Sorpréndeme»'] },
-  { id: 'autor', nombre: 'Autor', frase: 'Como una carta impresa de autor. Restaurante, vinos, tapas, bar.', puntos: ['Secciones con romanos', 'Filete de puntos hasta el precio', 'Una foto por sección', 'Buscador y «Sorpréndeme»'] },
 ];
 
 function Miniatura({ comp, tema, color }: { comp: Comp; tema: Tema; color: string }) {
@@ -77,6 +77,16 @@ function Miniatura({ comp, tema, color }: { comp: Comp; tema: Tema; color: strin
       </div>
     );
   }
+  if (comp === 'autor') {
+    return (
+      <div className={`${caja} relative grid grid-cols-3`}>
+        <span style={{ background: noir ? '#0A0A0A' : '#F4F0E8' }} />
+        <span style={{ background: `color-mix(in srgb, ${color} 24%, #141A13)` }} />
+        <span style={{ background: color }} />
+        <span className="absolute inset-0 grid place-items-center"><span className="rounded-full bg-black/70 px-2.5 py-1 font-display text-[11px] italic text-[#F2C14E]">Auto</span></span>
+      </div>
+    );
+  }
   const fondo = noir ? '#0B0A09' : '#F7F1E6';
   const tinta = noir ? '#F4EEE4' : '#221D17';
   const suave = noir ? 'rgba(244,238,228,.45)' : 'rgba(34,29,23,.45)';
@@ -123,7 +133,8 @@ export default function EstiloPremium({ inicial }: { inicial: { plantilla: strin
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
   const cambiado = comp !== base.comp || tema !== base.tema || color !== base.color || JSON.stringify(firma) !== firmaBase;
 
-  const probar = (c: Comp, t: Tema) => avisarEstudio({ vista: c, tema: t });
+  // «Automática» se previsualiza con ?vista=auto: la carta pública elige la composición como lo hará al guardar.
+  const probar = (c: Comp, t: Tema) => avisarEstudio({ vista: c === 'autor' ? 'auto' : c, tema: t });
   const elegirComp = (c: Comp) => { setComp(c); probar(c, tema); };
   const elegirTema = (t: Tema) => { setTema(t); probar(comp, t); };
 

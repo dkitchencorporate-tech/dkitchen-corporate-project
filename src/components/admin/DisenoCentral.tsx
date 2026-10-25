@@ -11,8 +11,8 @@ import { FICHAS_COMPOSICION, ADORNOS, esComposicion, type Firma } from '@/lib/co
  * en vivo. Guarda con dk.admin_guardar_diseno (0096).
  */
 const PREMIUM = [
-  { id: 'premium', nombre: 'Premium · Gran foto' }, { id: 'clasica', nombre: 'Premium · Autor' },
-  { id: 'editorial', nombre: 'Premium · Autor (vinos)' }, { id: 'visual', nombre: 'Premium · Gran foto (brunch)' }, { id: 'express', nombre: 'Premium · Autor (bar)' },
+  { id: 'clasica', nombre: 'Automática · composición de autor según el tipo de local (recomendada)' }, { id: 'premium', nombre: 'Premium · Gran foto' },
+  { id: 'editorial', nombre: 'Automática (antes «Autor vinos»)' }, { id: 'visual', nombre: 'Automática (antes «Gran foto brunch»)' }, { id: 'express', nombre: 'Automática (antes «Autor bar»)' },
 ];
 
 export default function DisenoCentral({ accion, restauranteId, slug, nombre, logo, portada, fotos, inicial }: {
@@ -39,7 +39,7 @@ export default function DisenoCentral({ accion, restauranteId, slug, nombre, log
               </button>
             ))}
           </div>
-          <label className="mt-3 block text-xs text-niebla">O una Premium
+          <label className="mt-3 block text-xs text-niebla">O automática (26/10: toda carta sin composición elegida sale de autor según su tipo de local) o Premium
             <select name="plantilla" value={d.plantilla} onChange={(e) => setD({ ...d, plantilla: e.target.value })} className={caja}>
               {FICHAS_COMPOSICION.map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}
               {PREMIUM.map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}

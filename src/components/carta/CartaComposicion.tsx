@@ -159,6 +159,7 @@ function Gastro({ carta, grupos, nombres, color, oscuro, serif, accion, portadaF
       </div>
 
       <main className="mx-auto max-w-5xl px-5 sm:px-8">
+        {grupos.length === 0 && <SinPlatos serif={serif} suave={t.suave} acento={t.acento} nombre={carta.nombre} />}
         {c.resultados ? (
           <section className="space-y-10 py-16">
             <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: t.suave }}>{c.resultados.length} resultados · «{c.busca.trim()}»</p>
@@ -236,84 +237,117 @@ function FilaGastro({ plato, t, serif, nombres, invertir }: { plato: PlatoCarta;
   );
 }
 
-/* ───────────────────────────── TABERNA · bar de tapas ───────────────────────────── */
-function Taberna({ carta, grupos, nombres, color, oscuro, display, accion, portadaFallback, tras, resenas }: Props) {
+/** Carta aún sin platos: se dice con la misma voz de la composición, nunca un hueco. */
+function SinPlatos({ serif, suave, acento, nombre }: { serif: string; suave: string; acento: string; nombre: string }) {
+  return (
+    <section className="mx-auto max-w-md py-28 text-center">
+      <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: acento }}>La carta</p>
+      <p className={`${serif} mt-5 text-[32px] font-light italic leading-tight`}>Estamos escribiendo la carta de {nombre}.</p>
+      <p className="mt-4 text-sm leading-relaxed" style={{ color: suave }}>Vuelve en un rato o pregunta al equipo: te cuentan lo que hay hoy.</p>
+    </section>
+  );
+}
+
+const ROMANOS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX'];
+const listaAlergenos = (p: PlatoCarta, nombres: Record<string, string>) => p.alergenos.map((a) => nombres[a] ?? a).join(' · ');
+
+/* ───────────────────────────── TABERNA · bar de tapas ─────────────────────────────
+ * 26/10 (karc0: «subir a autor premium»): carta impresa de taberna. Portada de pizarra a sangre con la
+ * foto del local, la recomendación del día como pieza de revista, secciones numeradas en romanos con su
+ * adorno y platos en filas con filete de puntos hasta el precio, foto redonda como un plato visto desde
+ * arriba y alérgenos en versalitas. Sin cajas ni pastillas: tipografía (Playfair + Cormorant) y aire. */
+function Taberna({ carta, grupos, nombres, color, oscuro, serif, display, accion, portadaFallback, tras, resenas }: Props) {
   const c = useCarta(grupos);
   const f = carta.firma ?? {};
   const portada = ambiente(carta, grupos, portadaFallback);
-  const pizarra = `color-mix(in srgb, ${color} 28%, #1C261D)`;
+  const pizarra = `color-mix(in srgb, ${color} 24%, #141A13)`;
   const t = oscuro
-    ? { fondo: '#151A16', ficha: '#1D241E', tarjeta: '#232B24', tinta: '#F1EADB', suave: 'rgba(241,234,219,.62)', linea: 'rgba(241,234,219,.1)', chip: 'rgba(241,234,219,.08)' }
-    : { fondo: '#FAF7F1', ficha: '#FFFFFF', tarjeta: '#FEFCF8', tinta: '#26332A', suave: '#6B7264', linea: '#E8E1D2', chip: '#F3EAD6' };
+    ? { fondo: '#131711', tinta: '#EFE8D8', suave: 'rgba(239,232,216,.62)', linea: 'rgba(239,232,216,.14)', vidrio: 'rgba(19,23,17,.86)', acento: `color-mix(in srgb, ${color} 55%, #F2D9A6)` }
+    : { fondo: '#F6F1E7', tinta: '#1F241D', suave: 'rgba(31,36,29,.62)', linea: 'rgba(31,36,29,.16)', vidrio: 'rgba(246,241,231,.9)', acento: color };
   const hoy = c.destacados[0];
+  const lista = c.resultados ? [{ id: 'busca', nombre: `${c.resultados.length} resultados`, platos: c.resultados } as SeccionCarta] : grupos;
   return (
     <div className="min-h-screen antialiased" style={{ background: t.fondo, color: t.tinta, '--marca': color } as CSSProperties}>
-      <header className="relative overflow-hidden text-[#F4ECD8]" style={{ background: pizarra }}>
-        {portada && <img src={portada} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />}
-        <span className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent, ${pizarra})` }} />
-        <div className="relative mx-auto flex max-w-5xl flex-col items-center px-6 pb-12 pt-10 text-center">
-          {carta.logoUrl && <img src={carta.logoUrl} alt="" className="h-16 w-16 rounded-full object-cover ring-2 ring-[#F4ECD8]/40" />}
-          <h1 className={`${display} mt-4 text-[clamp(42px,11vw,80px)] font-extrabold italic leading-[0.95] tracking-tight`}>{carta.nombre}</h1>
-          <p className="mt-4 inline-block border-t border-[#F4ECD8]/25 pt-2 text-[11px] font-semibold uppercase tracking-[0.26em] opacity-85">{f.lema || carta.descripcion || 'Tapas, raciones y vinos'}</p>
-          {carta.horario && <p className="mt-3 rounded-full bg-black/25 px-3.5 py-1.5 text-xs">{carta.horario}</p>}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+      <header className="relative isolate overflow-hidden text-[#F4ECD8]" style={{ background: pizarra }}>
+        {portada && <img src={portada} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-50 motion-safe:animate-[dkzoom_20s_ease-out_both]" />}
+        <span className="absolute inset-0 -z-10" style={{ background: `linear-gradient(180deg, rgba(0,0,0,.35) 0%, transparent 30%, color-mix(in srgb, ${pizarra} 70%, transparent) 62%, ${pizarra} 100%)` }} />
+        <div className="mx-auto flex min-h-[76svh] max-w-4xl flex-col items-center justify-end px-6 pb-14 pt-24 text-center sm:min-h-[72vh] sm:pb-20">
+          {carta.logoUrl && <img src={carta.logoUrl} alt="" className="mb-6 h-16 w-16 rounded-full object-cover ring-1 ring-[#F4ECD8]/40" />}
+          <p className="text-[10px] font-semibold uppercase tracking-[0.42em] opacity-85">{f.lema}</p>
+          <h1 className={`${display} mt-5 text-[clamp(46px,12.5vw,108px)] font-extrabold italic leading-[0.92] [text-wrap:balance]`}>{carta.nombre}</h1>
+          <div className="mt-7"><Adorno tipo={f.adorno} color="#F2D9A6" claro /></div>
+          {carta.descripcion && <p className={`${serif} mt-5 max-w-md text-[20px] italic leading-snug opacity-90`}>{carta.descripcion}</p>}
+          {carta.horario && <p className="mt-4 text-[10px] uppercase tracking-[0.3em] opacity-70">{carta.horario}</p>}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
             {accion}
-            {resenas && <a href={resenas} target="_blank" rel="noopener" className="rounded-full border border-[#F4ECD8]/40 px-4 py-2.5 text-sm font-semibold"><span className="text-[#F2C14E]">★★★★★</span> Google</a>}
+            {resenas && <a href={resenas} target="_blank" rel="noopener" className="border-b border-[#F4ECD8]/50 pb-0.5 text-[11px] font-semibold uppercase tracking-[0.24em] transition hover:border-[#F4ECD8]"><span className="text-[#F2C14E]">★</span> Reseñas en Google</a>}
           </div>
         </div>
       </header>
 
-      {hoy && (
-        <FichaPlato plato={hoy} nombresAlergenos={nombres} className="block">
-          <span className="block px-4 py-6 text-white" style={{ background: color }}>
-            <span className="mx-auto flex max-w-xl items-center gap-4 rounded-2xl border-2 border-dashed border-white/40 p-4 text-left">
-              <img src={hoy.fotoUrl!} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
-              <span className="min-w-0 flex-1">
-                <span className="block text-[10px] font-bold uppercase tracking-[0.24em] opacity-85">{f.destacados || 'Hoy recomendamos'}</span>
-                <span className={`${display} line-clamp-2 block text-xl font-bold italic leading-tight sm:text-2xl`}>{hoy.nombre}</span>
-              </span>
-              <span className="shrink-0 rounded-xl bg-white/20 px-3 py-1.5 text-lg font-black tabular-nums">{euros(hoy.precio)}</span>
-            </span>
-          </span>
-        </FichaPlato>
-      )}
-
       {tras}
 
-      <div className="sticky top-0 z-30 border-b backdrop-blur-xl" style={{ background: oscuro ? 'rgba(21,26,22,.9)' : 'rgba(250,247,241,.92)', borderColor: t.linea }}>
-        <div className="mx-auto max-w-5xl px-4 py-3">
-          <Buscador valor={c.busca} cambiar={c.setBusca} clase="rounded-xl border px-4 py-2.5" estilo={{ borderColor: t.linea, background: t.ficha }} />
+      <div className="sticky top-0 z-30 border-b backdrop-blur-xl" style={{ background: t.vidrio, borderColor: t.linea }}>
+        <div className="mx-auto flex max-w-5xl flex-col gap-1 px-5 pb-3 sm:flex-row sm:items-center sm:gap-6 sm:pb-0">
           {!c.resultados && grupos.length > 1 && (
-            <nav ref={c.nav} aria-label="Secciones de la carta" className="-mx-4 mt-2.5 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]">
+            <nav ref={c.nav} aria-label="Secciones de la carta" className="flex min-w-0 flex-1 gap-6 overflow-x-auto pt-3.5 [scrollbar-width:none] sm:py-4">
               {grupos.map((g) => {
                 const on = c.activa === g.id;
-                return <a key={g.id} href={`#p-${g.id}`} data-g={g.id} className="shrink-0 rounded-full px-4 py-2 text-[13px] font-bold transition" style={{ background: on ? color : t.chip, color: on ? '#fff' : t.tinta }}>{g.nombre}</a>;
+                return <a key={g.id} href={`#p-${g.id}`} data-g={g.id} className={`${display} shrink-0 border-b-2 pb-1 text-[16px] font-bold italic transition`} style={{ color: on ? t.tinta : t.suave, borderColor: on ? color : 'transparent' }}>{g.nombre}</a>;
               })}
             </nav>
           )}
+          <Buscador valor={c.busca} cambiar={c.setBusca} clase={`w-full border-b py-1.5 ${grupos.length > 1 ? 'sm:w-56' : 'mt-3'}`} estilo={{ borderColor: t.linea }} />
         </div>
       </div>
 
-      <main className="mx-auto max-w-5xl space-y-8 px-4 py-10">
-        {(c.resultados ? [{ id: 'busca', nombre: `${c.resultados.length} resultados`, platos: c.resultados } as SeccionCarta] : grupos).map((g) => (
-          <section key={g.id} id={`p-${g.id}`} className="scroll-mt-32 rounded-[28px] border p-5 sm:p-8" style={{ background: t.ficha, borderColor: t.linea }}>
-            <h2 className={`${display} inline-block border-b-[3px] pb-2 text-[30px] font-bold leading-none sm:text-4xl`} style={{ borderColor: color }}>{g.nombre}</h2>
-            {g.descripcion && <p className="mt-3 text-sm" style={{ color: t.suave }}>{g.descripcion}</p>}
-            <ul className="mt-7 grid gap-4 md:grid-cols-2">
+      {hoy && !c.resultados && (
+        <section className="mx-auto max-w-5xl px-5 pt-14 sm:pt-20">
+          <FichaPlato plato={hoy} nombresAlergenos={nombres} className="block w-full text-left">
+            <span className="grid items-center gap-7 sm:grid-cols-[1.15fr_1fr] sm:gap-12">
+              <span className="relative block aspect-[4/3] overflow-hidden">
+                <img src={hoy.fotoUrl!} alt={hoy.nombre} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-1000 hover:scale-105" />
+                <span className="absolute left-0 top-5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.3em] text-white" style={{ background: color }}>{f.destacados}</span>
+              </span>
+              <span className="block">
+                <span className="block text-[10px] font-semibold uppercase tracking-[0.36em]" style={{ color: t.acento }}>De la pizarra</span>
+                <span className={`${display} mt-3 block text-[clamp(32px,5.5vw,50px)] font-bold italic leading-[1.02]`}>{hoy.nombre}</span>
+                {hoy.descripcion && <span className={`${serif} mt-3 block text-[19px] italic leading-snug`} style={{ color: t.suave }}>{hoy.descripcion}</span>}
+                <span className="mt-6 flex items-center gap-4">
+                  <span className="h-px flex-1" style={{ background: t.linea }} />
+                  <span className={`${display} text-[26px] font-bold tabular-nums`} style={{ color: t.acento }}>{euros(hoy.precio)}</span>
+                </span>
+              </span>
+            </span>
+          </FichaPlato>
+        </section>
+      )}
+
+      <main className="mx-auto max-w-5xl px-5 pb-6">
+        {grupos.length === 0 && <SinPlatos serif={display} suave={t.suave} acento={t.acento} nombre={carta.nombre} />}
+        {lista.map((g, i) => (
+          <section key={g.id} id={`p-${g.id}`} className="scroll-mt-28 pt-16 sm:pt-24">
+            <header className="text-center">
+              {!c.resultados && <span className={`${serif} block text-[15px] italic`} style={{ color: t.acento }}>{ROMANOS[i] ?? i + 1}</span>}
+              <h2 className={`${display} mt-1 text-[clamp(34px,6.5vw,56px)] font-bold italic leading-none [text-wrap:balance]`}>{g.nombre}</h2>
+              <div className="mt-5"><Adorno tipo={f.adorno} color={t.acento} /></div>
+              {g.descripcion && <p className={`${serif} mx-auto mt-4 max-w-md text-[19px] italic leading-snug`} style={{ color: t.suave }}>{g.descripcion}</p>}
+            </header>
+            <ul className="mt-8 grid gap-x-14 md:grid-cols-2">
               {g.platos.map((p) => (
-                <li key={p.id}>
-                  <FichaPlato plato={p} nombresAlergenos={nombres} className="block h-full">
-                    <span className="flex h-full gap-4 rounded-3xl border p-3.5 text-left transition hover:shadow-lg" style={{ background: t.tarjeta, borderColor: t.linea }}>
-                      {p.fotoUrl && <img src={p.fotoUrl} alt={p.nombre} loading="lazy" className="h-24 w-24 shrink-0 rounded-2xl object-cover sm:h-28 sm:w-28" />}
+                <li key={p.id} className="border-b py-6" style={{ borderColor: t.linea }}>
+                  <FichaPlato plato={p} nombresAlergenos={nombres} className="block w-full text-left">
+                    <span className="flex items-start gap-4 sm:gap-5">
+                      {p.fotoUrl && <img src={p.fotoUrl} alt={p.nombre} loading="lazy" className="h-[84px] w-[84px] shrink-0 rounded-full object-cover sm:h-24 sm:w-24" style={{ boxShadow: `0 0 0 4px ${t.fondo}, 0 0 0 5px ${t.linea}` }} />}
                       <span className="min-w-0 flex-1">
-                        <span className="flex items-start justify-between gap-2">
-                          <span className="text-[17px] font-bold leading-tight"><EtiquetaPlato plato={p} />{p.nombre}</span>
-                          <span className="shrink-0 whitespace-nowrap rounded-xl px-2.5 py-1 text-[15px] font-black tabular-nums" style={{ background: `color-mix(in srgb, ${color} 13%, transparent)`, color: oscuro ? `color-mix(in srgb, ${color} 50%, #fff)` : color }}>{euros(p.precio)}</span>
+                        <span className="flex items-baseline gap-2">
+                          <span className={`${display} text-[19px] font-bold leading-snug`}><EtiquetaPlato plato={p} />{p.nombre}</span>
+                          <span aria-hidden="true" className="mb-1.5 min-w-4 flex-1 border-b-2 border-dotted" style={{ borderColor: t.linea }} />
+                          <span className={`${display} shrink-0 whitespace-nowrap text-[19px] font-bold tabular-nums`} style={{ color: t.acento }}><PrecioAnterior plato={p} />{euros(p.precio)}</span>
                         </span>
-                        {p.precioAnterior && <span className="mt-0.5 block text-xs" style={{ color: t.suave }}>Antes <PrecioAnterior plato={p} /></span>}
                         <ComboPlato plato={p} />
-                        {p.descripcion && <span className="mt-1.5 line-clamp-3 block text-[13.5px] leading-relaxed" style={{ color: t.suave }}>{p.descripcion}</span>}
-                        <Alergenos plato={p} nombres={nombres} clase="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase" estilo={{ background: t.chip }} />
+                        {p.descripcion && <span className={`${serif} mt-1 block text-[17px] italic leading-snug`} style={{ color: t.suave }}>{p.descripcion}</span>}
+                        {p.alergenos.length > 0 && <span className="mt-2 block text-[10px] uppercase tracking-[0.2em]" style={{ color: t.suave }}><span className="sr-only">Alérgenos: </span>{listaAlergenos(p, nombres)}</span>}
                       </span>
                     </span>
                   </FichaPlato>
@@ -322,82 +356,101 @@ function Taberna({ carta, grupos, nombres, color, oscuro, display, accion, porta
             </ul>
           </section>
         ))}
-        {!c.resultados && f.nota && (
-          <figure className="rounded-[28px] px-6 py-10 text-center text-[#F4ECD8]" style={{ background: pizarra }}>
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-70">Palabra de la casa</p>
-            <blockquote className={`${display} mx-auto mt-4 max-w-xl text-[clamp(22px,4.5vw,30px)] font-bold italic leading-snug`}>«{f.nota}»</blockquote>
-            {f.autor && <figcaption className="mt-4 text-sm opacity-80">— {f.autor}</figcaption>}
-          </figure>
-        )}
       </main>
+      {!c.resultados && f.nota && (
+        <figure className="mt-20 px-6 py-20 text-center text-[#F4ECD8] sm:py-28" style={{ background: pizarra }}>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.4em] opacity-70">Palabra de la casa</p>
+          <blockquote className={`${display} mx-auto mt-6 max-w-2xl text-[clamp(26px,4.8vw,40px)] font-bold italic leading-snug`}>«{f.nota}»</blockquote>
+          <div className="mt-8"><Adorno tipo={f.adorno} color="#F2D9A6" claro /></div>
+          {f.autor && <figcaption className="mt-5 text-[11px] uppercase tracking-[0.3em] opacity-80">{f.autor}</figcaption>}
+        </figure>
+      )}
+      <style>{'@keyframes dkzoom{from{transform:scale(1.08)}to{transform:scale(1)}}'}</style>
     </div>
   );
 }
 
-/* ───────────────────────────── URBANO · street food ───────────────────────────── */
+/* ───────────────────────────── URBANO · street food ─────────────────────────────
+ * 26/10 (karc0: «subir a autor premium»): póster de street food. Portada a sangre con la foto y el color
+ * de la marca, nombre en letra de cartel gigante con el lema en cinta de precinto, cinta en movimiento con
+ * las secciones, ranking «los que más piden» con números perfilados y platos como carteles: foto 4:3 con
+ * el precio estampado. Los platos sin foto van en lista con filete, nunca en una tarjeta vacía. */
 function Urbano({ carta, grupos, nombres, color, oscuro, cartel, accion, portadaFallback, tras, resenas }: Props) {
   const c = useCarta(grupos);
   const f = carta.firma ?? {};
   const portada = ambiente(carta, grupos, portadaFallback);
   const t = oscuro
-    ? { fondo: '#141009', tarjeta: '#1D1811', tinta: '#FFFFFF', suave: '#A8A29E', linea: 'rgba(255,255,255,.08)', borde: '1px solid rgba(255,255,255,.08)', chip: '#2A241C' }
-    : { fondo: '#FFF7EC', tarjeta: '#FFFFFF', tinta: '#141009', suave: '#5B534A', linea: '#141009', borde: '2px solid #141009', chip: '#F3E6D2' };
+    ? { fondo: '#0E0D0B', tinta: '#FFFFFF', suave: '#A8A29E', linea: 'rgba(255,255,255,.12)', vidrio: 'rgba(14,13,11,.88)' }
+    : { fondo: '#FBF6EE', tinta: '#111111', suave: '#5B534A', linea: 'rgba(17,17,17,.14)', vidrio: 'rgba(251,246,238,.9)' };
   const inicial = carta.nombre.trim().charAt(0).toUpperCase();
+  const cinta = grupos.length ? Array.from({ length: Math.max(8, grupos.length) }, (_, i) => grupos[i % grupos.length].nombre) : [];
+  const lista = c.resultados ? [{ id: 'busca', nombre: `${c.resultados.length} resultados`, platos: c.resultados } as SeccionCarta] : grupos;
   return (
     <div className="min-h-screen antialiased" style={{ background: t.fondo, color: t.tinta, '--marca': color } as CSSProperties}>
-      <header className="sticky top-0 z-30 border-b backdrop-blur-xl" style={{ background: oscuro ? 'rgba(20,16,9,.88)' : 'rgba(255,247,236,.9)', borderColor: t.linea }}>
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
-          {carta.logoUrl
-            ? <img src={carta.logoUrl} alt="" className="h-10 w-10 rounded-xl object-cover" style={{ boxShadow: `0 0 18px color-mix(in srgb, ${color} 55%, transparent)` }} />
-            : <span className={`${cartel} grid h-10 w-10 place-items-center rounded-xl text-2xl text-white`} style={{ background: color, boxShadow: `0 0 18px color-mix(in srgb, ${color} 55%, transparent)` }}>{inicial}</span>}
-          <span className="min-w-0 flex-1">
-            <span className={`${cartel} block truncate text-xl uppercase leading-none`}>{carta.nombre}</span>
-            {carta.horario && <span className="block truncate text-[10px] font-bold uppercase tracking-widest" style={{ color: t.suave }}>{carta.horario}</span>}
+      <section className="relative isolate overflow-hidden bg-[#0B0A08] text-white">
+        {portada && <img src={portada} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-75 motion-safe:animate-[dkzoom_20s_ease-out_both]" />}
+        <span className="absolute inset-0 -z-10" style={{ background: `linear-gradient(180deg, rgba(0,0,0,.45) 0%, transparent 28%, rgba(0,0,0,.88) 78%), linear-gradient(100deg, color-mix(in srgb, ${color} 62%, transparent) 0%, transparent 58%)` }} />
+        <div className="mx-auto flex min-h-[74svh] max-w-6xl flex-col justify-end px-5 pb-12 pt-24 sm:min-h-[68vh] sm:px-8 sm:pb-16">
+          <span className="flex items-center gap-3">
+            {carta.logoUrl
+              ? <img src={carta.logoUrl} alt="" className="h-12 w-12 rounded-[14px] object-cover ring-2 ring-white/30" />
+              : <span className={`${cartel} grid h-12 w-12 place-items-center rounded-[14px] text-3xl`} style={{ background: color }}>{inicial}</span>}
+            {carta.horario && <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/75">{carta.horario}</span>}
           </span>
-        </div>
-        {!c.resultados && grupos.length > 1 && (
-          <nav ref={c.nav} aria-label="Secciones de la carta" className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 pb-3 [scrollbar-width:none]">
-            {grupos.map((g) => {
-              const on = c.activa === g.id;
-              return <a key={g.id} href={`#p-${g.id}`} data-g={g.id} className="shrink-0 rounded-xl px-4 py-2 text-[12px] font-black uppercase tracking-wide transition" style={{ background: on ? color : t.chip, color: on ? '#fff' : t.tinta }}>{g.nombre}</a>;
-            })}
-          </nav>
-        )}
-      </header>
-
-      <section className="mx-auto max-w-6xl px-4 pt-5">
-        <div className="relative overflow-hidden rounded-[28px] p-7 text-white sm:p-12" style={{ background: `linear-gradient(120deg, ${color}, color-mix(in srgb, ${color} 45%, #FF9F1C))`, boxShadow: `0 24px 60px color-mix(in srgb, ${color} 28%, transparent)` }}>
-          <div className="relative z-10 max-w-[62%] sm:max-w-xl">
-            <span className="inline-block rounded-full bg-black px-3 py-1 text-[10px] font-black uppercase tracking-widest">{f.lema || 'Recién hecho'}</span>
-            <h1 className={`${cartel} mt-4 text-[clamp(40px,10vw,84px)] uppercase leading-[0.9] drop-shadow-lg`}>{carta.nombre}</h1>
-            {carta.descripcion && <p className="mt-3 text-[15px] font-bold leading-snug opacity-90 sm:text-lg">{carta.descripcion}</p>}
-            <div className="mt-6 flex flex-wrap gap-2.5">
-              {accion}
-              {resenas && <a href={resenas} target="_blank" rel="noopener" className="rounded-xl bg-black/30 px-4 py-2.5 text-sm font-black uppercase">★ Google</a>}
-            </div>
+          <span className="mt-7 inline-block w-fit -rotate-2 px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-white shadow-lg" style={{ background: color }}>{f.lema}</span>
+          <h1 className={`${cartel} mt-4 text-[clamp(56px,16vw,156px)] uppercase leading-[0.86] [text-wrap:balance]`}>{carta.nombre}</h1>
+          {carta.descripcion && <p className="mt-4 max-w-lg text-[16px] font-semibold leading-snug text-white/85 sm:text-lg">{carta.descripcion}</p>}
+          <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
+            {accion}
+            {resenas && <a href={resenas} target="_blank" rel="noopener" className={`${cartel} text-lg uppercase tracking-wide text-white/90 underline decoration-2 underline-offset-[6px]`} style={{ textDecorationColor: color }}>★ Reseñas</a>}
           </div>
-          {portada && <img src={portada} alt="" className="absolute -bottom-10 -right-14 h-56 w-56 rotate-[-12deg] rounded-full border-[6px] object-cover sm:-bottom-16 sm:-right-10 sm:h-80 sm:w-80" style={{ borderColor: 'rgba(255,255,255,.35)' }} />}
         </div>
       </section>
 
+      {cinta.length > 0 && (
+        <div className="overflow-hidden py-3 text-white" style={{ background: color }} aria-hidden="true">
+          <div className="flex w-max motion-safe:animate-[dkcinta_40s_linear_infinite]">
+            {[0, 1].map((k) => (
+              <span key={k} className={`${cartel} flex shrink-0 items-center gap-6 pr-6 text-[22px] uppercase leading-none`}>
+                {cinta.map((n, i) => <span key={i} className="flex items-center gap-6">{n}<span className="text-sm opacity-70">✦</span></span>)}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {tras}
 
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        <Buscador valor={c.busca} cambiar={c.setBusca} clase="rounded-2xl px-4 py-3" estilo={{ background: t.tarjeta, border: t.borde }} />
+      <div className="sticky top-0 z-30 border-b backdrop-blur-xl" style={{ background: t.vidrio, borderColor: t.linea }}>
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-8">
+          {!c.resultados && grupos.length > 1 && (
+            <nav ref={c.nav} aria-label="Secciones de la carta" className="-mx-4 flex min-w-0 flex-1 gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
+              {grupos.map((g) => {
+                const on = c.activa === g.id;
+                return <a key={g.id} href={`#p-${g.id}`} data-g={g.id} className={`${cartel} shrink-0 rounded-[10px] border px-3.5 py-1.5 text-[15px] uppercase tracking-wide transition`} style={{ background: on ? color : 'transparent', borderColor: on ? color : t.linea, color: on ? '#fff' : t.tinta }}>{g.nombre}</a>;
+              })}
+            </nav>
+          )}
+          <Buscador valor={c.busca} cambiar={c.setBusca} clase={`w-full rounded-[12px] border px-3.5 py-2 ${grupos.length > 1 ? 'sm:w-60' : ''}`} estilo={{ borderColor: t.linea }} />
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-6xl px-4 pb-6 sm:px-8">
+        {grupos.length === 0 && <SinPlatos serif={cartel} suave={t.suave} acento={color} nombre={carta.nombre} />}
         {!c.resultados && c.destacados.length >= 3 && (
-          <section className="pt-10">
-            <h2 className={`${cartel} flex items-center gap-4 text-3xl uppercase`}>{f.destacados || 'Los que más piden'}<span className="h-1 flex-1 rounded-full" style={{ background: `linear-gradient(90deg, ${color}, transparent)` }} /></h2>
-            <ul className="-mx-4 mt-5 flex snap-x gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
+          <section className="pt-12">
+            <h2 className={`${cartel} text-[clamp(34px,6vw,56px)] uppercase leading-none`}>{f.destacados}</h2>
+            <ul className="-mx-4 mt-6 flex snap-x gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-8 sm:px-8">
               {c.destacados.map((p, i) => (
-                <li key={p.id} className="w-[58%] shrink-0 snap-start sm:w-[30%]">
-                  <FichaPlato plato={p} nombresAlergenos={nombres} className="block">
-                    <span className="relative block aspect-square overflow-hidden rounded-3xl">
-                      <img src={p.fotoUrl!} alt={p.nombre} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-                      <span className="absolute inset-0 bg-gradient-to-t from-black/85 to-transparent" />
-                      <span className={`${cartel} absolute left-3 top-2 text-4xl text-white/90`}>#{i + 1}</span>
-                      <span className="absolute inset-x-0 bottom-0 p-3 text-left text-white">
-                        <span className="block text-[15px] font-black uppercase leading-tight">{p.nombre}</span>
-                        <span className="mt-1 inline-block rounded-lg px-2 py-0.5 text-sm font-black" style={{ background: color }}>{euros(p.precio)}</span>
+                <li key={p.id} className="w-[72%] shrink-0 snap-start sm:w-[38%] lg:w-[27%]">
+                  <FichaPlato plato={p} nombresAlergenos={nombres} className="block w-full text-left">
+                    <span className="relative block aspect-[4/5] overflow-hidden rounded-[18px] bg-black">
+                      <img src={p.fotoUrl!} alt={p.nombre} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-700 hover:scale-105" />
+                      <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                      <span className={`${cartel} absolute left-4 top-1 text-[76px] leading-none text-transparent`} style={{ WebkitTextStroke: '2px rgba(255,255,255,.92)' }}>{i + 1}</span>
+                      <span className="absolute inset-x-0 bottom-0 p-4 text-white">
+                        <span className={`${cartel} block text-[24px] uppercase leading-[1.02]`}>{p.nombre}</span>
+                        <span className={`${cartel} mt-2 inline-block rounded-[8px] px-2.5 py-0.5 text-lg`} style={{ background: color }}>{euros(p.precio)}</span>
                       </span>
                     </span>
                   </FichaPlato>
@@ -406,45 +459,67 @@ function Urbano({ carta, grupos, nombres, color, oscuro, cartel, accion, portada
             </ul>
           </section>
         )}
-        {(c.resultados ? [{ id: 'busca', nombre: `${c.resultados.length} resultados`, platos: c.resultados } as SeccionCarta] : grupos).map((g) => (
-          <section key={g.id} id={`p-${g.id}`} className="scroll-mt-32 pt-12">
-            <h2 className={`${cartel} flex items-center gap-4 text-[34px] uppercase leading-none`}>{g.nombre}<span className="h-1 flex-1 rounded-full" style={{ background: oscuro ? 'linear-gradient(90deg,#3f3a33,transparent)' : 'linear-gradient(90deg,#141009,transparent)' }} /></h2>
-            {g.descripcion && <p className="mt-2 text-sm font-semibold" style={{ color: t.suave }}>{g.descripcion}</p>}
-            <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {g.platos.map((p) => (
-                <li key={p.id}>
-                  <FichaPlato plato={p} nombresAlergenos={nombres} className="block h-full">
-                    <span className="flex h-full flex-col overflow-hidden rounded-3xl text-left transition hover:-translate-y-0.5" style={{ background: t.tarjeta, border: t.borde }}>
-                      {p.fotoUrl && (
-                        <span className="relative block aspect-[4/3] overflow-hidden bg-black">
-                          <img src={p.fotoUrl} alt={p.nombre} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-500 hover:scale-110" />
-                          {p.etiqueta && <span className="absolute left-3 top-3 rounded-full px-3 py-1 text-[10px] font-black uppercase text-white" style={{ background: color }}>{p.etiqueta === 'nuevo' ? 'Nuevo' : p.etiqueta === 'especial' ? 'Especial' : 'Top'}</span>}
-                          <span className="absolute bottom-3 right-3 rounded-xl border border-white/10 bg-black/80 px-3 py-1.5 text-lg font-black text-white backdrop-blur"><PrecioAnterior plato={p} />{euros(p.precio)}</span>
+        {lista.map((g, i) => {
+          const conFoto = g.platos.filter((p) => p.fotoUrl);
+          const sinFoto = g.platos.filter((p) => !p.fotoUrl);
+          return (
+            <section key={g.id} id={`p-${g.id}`} className="scroll-mt-32 pt-16">
+              <h2 className="flex items-end gap-4">
+                <span className={`${cartel} text-[clamp(40px,8vw,76px)] uppercase leading-[0.86] [text-wrap:balance]`}>{g.nombre}</span>
+                {!c.resultados && <span className={`${cartel} mb-1 text-2xl text-transparent`} style={{ WebkitTextStroke: `1px ${t.tinta}` }}>{dos(i)}</span>}
+              </h2>
+              <span className="mt-4 block h-[4px] w-16" style={{ background: color }} />
+              {g.descripcion && <p className="mt-4 max-w-xl text-[15px] font-semibold" style={{ color: t.suave }}>{g.descripcion}</p>}
+              {conFoto.length > 0 && (
+                <ul className="mt-8 grid grid-cols-1 gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+                  {conFoto.map((p) => (
+                    <li key={p.id}>
+                      <FichaPlato plato={p} nombresAlergenos={nombres} className="block h-full w-full text-left">
+                        <span className="relative block aspect-[4/3] overflow-hidden rounded-[18px] bg-black">
+                          <img src={p.fotoUrl!} alt={p.nombre} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-700 hover:scale-105" />
+                          {p.etiqueta && <span className="absolute left-3 top-3 rounded-[8px] bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-black">{p.etiqueta === 'nuevo' ? 'Nuevo' : p.etiqueta === 'especial' ? 'Especial' : 'Top'}</span>}
+                          <span className={`${cartel} absolute bottom-3 left-3 rounded-[10px] px-3 py-1 text-[22px] text-white shadow-lg`} style={{ background: color }}><PrecioAnterior plato={p} />{euros(p.precio)}</span>
                         </span>
-                      )}
-                      <span className="flex flex-1 flex-col p-5">
-                        <span className="flex items-start justify-between gap-3">
-                          <span className="text-lg font-black uppercase leading-tight tracking-tight">{!p.fotoUrl && <EtiquetaPlato plato={p} />}{p.nombre}</span>
-                          {!p.fotoUrl && <span className="shrink-0 text-lg font-black tabular-nums" style={{ color }}><PrecioAnterior plato={p} />{euros(p.precio)}</span>}
+                        <span className="block px-1 pt-4">
+                          <span className={`${cartel} block text-[24px] uppercase leading-[1.02]`}>{p.nombre}</span>
+                          <ComboPlato plato={p} />
+                          {p.descripcion && <span className="mt-2 line-clamp-3 block text-[14.5px] leading-relaxed" style={{ color: t.suave }}>{p.descripcion}</span>}
+                          {p.alergenos.length > 0 && <span className="mt-2 block text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: t.suave }}><span className="sr-only">Alérgenos: </span>{listaAlergenos(p, nombres)}</span>}
+                        </span>
+                      </FichaPlato>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {sinFoto.length > 0 && (
+                <ul className="mt-6 grid gap-x-12 md:grid-cols-2">
+                  {sinFoto.map((p) => (
+                    <li key={p.id} className="border-b py-4" style={{ borderColor: t.linea }}>
+                      <FichaPlato plato={p} nombresAlergenos={nombres} className="block w-full text-left">
+                        <span className="flex items-baseline gap-2">
+                          <span className={`${cartel} text-[21px] uppercase leading-tight`}><EtiquetaPlato plato={p} />{p.nombre}</span>
+                          <span aria-hidden="true" className="mb-1 min-w-4 flex-1 border-b-2 border-dotted" style={{ borderColor: t.linea }} />
+                          <span className={`${cartel} shrink-0 whitespace-nowrap text-[21px]`} style={{ color }}><PrecioAnterior plato={p} />{euros(p.precio)}</span>
                         </span>
                         <ComboPlato plato={p} />
-                        {p.descripcion && <span className="mt-1.5 line-clamp-2 block text-sm leading-relaxed" style={{ color: t.suave }}>{p.descripcion}</span>}
-                        <Alergenos plato={p} nombres={nombres} clase="rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase" estilo={{ background: t.chip }} />
-                      </span>
-                    </span>
-                  </FichaPlato>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
-        {!c.resultados && f.nota && (
-          <figure className="mt-14 rounded-[28px] p-8 text-center sm:p-12" style={{ background: t.tarjeta, border: t.borde }}>
-            <blockquote className={`${cartel} mx-auto max-w-2xl text-[clamp(26px,5vw,40px)] uppercase leading-[1.05]`}>«{f.nota}»</blockquote>
-            {f.autor && <figcaption className="mt-4 text-xs font-black uppercase tracking-widest" style={{ color }}>{f.autor}</figcaption>}
-          </figure>
-        )}
+                        {p.descripcion && <span className="mt-1 block text-[14px] leading-relaxed" style={{ color: t.suave }}>{p.descripcion}</span>}
+                        {p.alergenos.length > 0 && <span className="mt-1.5 block text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: t.suave }}><span className="sr-only">Alérgenos: </span>{listaAlergenos(p, nombres)}</span>}
+                      </FichaPlato>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          );
+        })}
       </main>
+      {!c.resultados && f.nota && (
+        <figure className="mt-20 px-6 py-16 text-center text-white sm:py-24" style={{ background: color }}>
+          <blockquote className={`${cartel} mx-auto max-w-3xl text-[clamp(30px,6vw,60px)] uppercase leading-[0.98]`}>«{f.nota}»</blockquote>
+          {f.autor && <figcaption className="mt-5 text-xs font-black uppercase tracking-[0.3em] opacity-85">{f.autor}</figcaption>}
+        </figure>
+      )}
+      <style>{'@keyframes dkzoom{from{transform:scale(1.08)}to{transform:scale(1)}}@keyframes dkcinta{from{transform:translateX(0)}to{transform:translateX(-50%)}}'}</style>
     </div>
   );
 }

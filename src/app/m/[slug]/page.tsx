@@ -17,7 +17,7 @@ import IndiceSecciones, { type VarianteIndice } from '@/components/carta/IndiceS
 import { traducirCarta, IDIOMAS } from '@/lib/idiomas';
 import { metadatosCarta, urlResenas } from '@/lib/carta-compartir';
 import CartaComposicion from '@/components/carta/CartaComposicion';
-import { COMPOSICIONES, type Composicion } from '@/lib/composiciones';
+import { COMPOSICIONES, composicionDe, firmaCompleta, type Composicion } from '@/lib/composiciones';
 import { Cormorant_Garamond, Playfair_Display, Anton } from 'next/font/google';
 
 const serifCarta = Cormorant_Garamond({ weight: ['300', '500', '600', '700'], style: ['normal', 'italic'], subsets: ['latin'], display: 'swap', variable: '--fuente-serif' });
@@ -100,8 +100,8 @@ export default async function CartaPublica({
     ...carta.sueltos.map((p) => ({ id: p.id, nombre: p.nombre, precio: p.precio, seccion: 'Otros platos' })),
   ] : [];
 
-  // Nivel 2 / 3 (asignado por DKitchen): Carta de Autor
-  if (vista !== 'premium' && !(COMPOSICIONES as string[]).includes(vista || carta.plantilla || '') && (carta.nivelDiseno === 'autor' || carta.nivelDiseno === 'signature')) {
+  // Carta de Autor impresa (28/09): ya no sale sola (26/10: todo es composición de autor); se ve con ?vista=impresa.
+  if (vista === 'impresa') {
     return <>{selector}<CartaAutor carta={carta} banners={banners} desdeRespaldo={desdeRespaldo} legal={legal} pedido={pedidoMesa} platos={platosPedido} /></>;
   }
 
@@ -109,6 +109,8 @@ export default async function CartaPublica({
   // composición: 'visual' y 'premium' → foto; el resto → autor. ?vista=antigua enseña el diseño anterior.
   const guardada = ['visual', 'express', 'editorial', 'premium'].includes(carta.plantilla ?? '') ? (carta.plantilla as string) : 'clasica';
   const plantilla = vista === 'antigua' ? (guardada === 'premium' ? 'clasica' : guardada) : 'premium';
+  // 26/10 (karc0): la Premium solo sale si se eligió a mano (plantilla 'premium') o con ?vista=premium|foto|autor|antigua.
+  const premiumElegida = ['premium', 'foto', 'autor', 'antigua'].includes(vista ?? '') || (!vista && carta.plantilla === 'premium');
   const variante = vista === 'foto' ? 'foto' : vista === 'autor' ? 'autor' : guardada === 'visual' || guardada === 'premium' ? 'foto' : 'autor';
   const fondo = FONDO[carta.estiloFondo ?? 'papel'] ?? FONDO.papel;
   const letra = carta.estiloLetra === 'serif' || plantilla === 'editorial' ? `carta-serif ${serifCarta.variable}` : '';
@@ -127,15 +129,17 @@ export default async function CartaPublica({
   const reservar = <Reservar slug={carta.slug} color={color} nombreLocal={carta.nombre} />;
 
   // Cartas de autor (R3, 0096): gastro, taberna y urbano. ?vista=<composición> enseña cualquiera (vista previa de Central y del panel).
-  const composicion = (COMPOSICIONES as string[]).includes(vista ?? '') ? (vista as Composicion)
-    : !vista && (COMPOSICIONES as string[]).includes(carta.plantilla ?? '') ? (carta.plantilla as Composicion) : null;
+  // 26/10: sin composición elegida, la automática según el tipo de local (lib/composiciones.ts), con su firma completada.
+  const composicion: Composicion | null = (COMPOSICIONES as string[]).includes(vista ?? '') ? (vista as Composicion)
+    : premiumElegida ? null : composicionDe(carta);
   if (composicion) {
+    const cartaAutor = { ...carta, firma: firmaCompleta(carta, composicion) };
     const oscuro = tema === 'noir' ? true : tema === 'crema' ? false
       : carta.estiloFondo === 'oscuro' || (composicion !== 'taberna' && carta.estiloFondo !== 'papel' && carta.estiloFondo !== 'blanco');
     return (
-      <main className={`min-h-screen ${serifCarta.variable}`} style={{ background: composicion === 'gastro' ? (oscuro ? '#0A0A0A' : '#F4F0E8') : composicion === 'taberna' ? (oscuro ? '#151A16' : '#FAF7F1') : (oscuro ? '#141009' : '#FFF7EC') }}>
+      <main className={`min-h-screen ${serifCarta.variable}`} style={{ background: composicion === 'gastro' ? (oscuro ? '#0A0A0A' : '#F4F0E8') : composicion === 'taberna' ? (oscuro ? '#131711' : '#F6F1E7') : (oscuro ? '#0E0D0B' : '#FBF6EE') }}>
         <CartaComposicion
-          carta={carta} grupos={grupos} nombres={nombres} color={color} oscuro={oscuro} composicion={composicion} resenas={urlResenas(carta)}
+          carta={cartaAutor} grupos={grupos} nombres={nombres} color={color} oscuro={oscuro} composicion={composicion} resenas={urlResenas(carta)}
           serif={serifCarta.className} display={tabernaCarta.className} cartel={cartelCarta.className} accion={reservar} portadaFallback={fotoPortada}
           tras={<>
             {desdeRespaldo && <p className="bg-amber-50 px-5 py-2 text-center text-xs text-amber-800">Puede que esta carta no refleje los últimos cambios en los próximos minutos.</p>}

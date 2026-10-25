@@ -35,3 +35,53 @@ export function limpiarFirma(f: unknown): Firma {
   if (ADORNOS.some((a) => a.id === o.adorno)) r.adorno = o.adorno as Firma['adorno'];
   return r;
 }
+
+/**
+ * DISEÑO DE AUTOR AUTOMÁTICO (26/10, karc0): «que cada cliente nuevo tenga el diseño del más alto nivel
+ * sin que intercedamos a mano». Toda carta sin composición elegida (plantilla por defecto 'clasica' y las
+ * antiguas visual/express/editorial) sale con la composición que corresponde a su tipo de local, deducida
+ * de su nombre, descripción, secciones y platos. Central y el panel siguen pudiendo fijar cualquiera.
+ */
+const PISTAS: Record<Composicion, string[]> = {
+  urbano: ['burger', 'hamburgues', 'smash', 'pizza', 'fries', 'patatas fritas', 'papas', 'kebab', 'street', 'hot dog', 'perrito', 'taco', 'wings', 'alitas', 'pollo frito', 'crispy', 'sandwich', 'bocata', 'food truck', 'dark kitchen', 'nachos', 'loaded', 'bowl', 'shake', 'batido', 'pulled'],
+  taberna: ['tapa', 'taberna', 'meson', 'bar ', 'bar-', 'bodega', 'vino', 'racion', 'cervecer', 'asador', 'tasca', 'guiso', 'montadito', 'chiringuito', 'marisquer', 'jamon', 'croqueta', 'pescaito', 'puchero', 'olla', 'casa de comidas', 'venta ', 'cortijo', 'brasa', 'cuchara', 'migas'],
+  gastro: ['sushi', 'poke', 'japon', 'nigiri', 'alta cocina', 'degustacion', 'chef', 'gastro', 'bistro', 'autor', 'fusion', 'temporada', 'maridaje', 'omakase', 'brunch', 'vegano', 'healthy', 'tartar', 'ceviche', 'steak', 'trattoria', 'risotto'],
+};
+const sinTildes = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+type CartaMin = { nombre: string; slug?: string; descripcion?: string | null; secciones?: { nombre: string; platos: { nombre: string }[] }[] };
+
+export function composicionAuto(c: CartaMin): Composicion {
+  // El nombre y la descripción pesan el triple que las secciones y los platos.
+  const fuerte = ` ${sinTildes(`${c.nombre} ${c.descripcion ?? ''} ${c.slug ?? ''}`)} `;
+  const resto = ` ${sinTildes((c.secciones ?? []).map((s) => `${s.nombre} ${s.platos.slice(0, 12).map((p) => p.nombre).join(' ')}`).join(' '))} `;
+  const puntos = (k: Composicion) => PISTAS[k].reduce((n, w) => n + (fuerte.includes(w) ? 3 : 0) + (resto.includes(w) ? 1 : 0), 0);
+  const orden: Composicion[] = ['urbano', 'taberna', 'gastro'];
+  const [mejor] = orden.map((k) => [k, puntos(k)] as const).sort((a, b) => b[1] - a[1]);
+  return mejor[1] > 0 ? mejor[0] : 'gastro';
+}
+
+/** La composición que se pinta: la elegida a mano si es de autor; si no, la automática. */
+export function composicionDe(c: CartaMin & { plantilla?: string }): Composicion {
+  return esComposicion(c.plantilla) ? c.plantilla : composicionAuto(c);
+}
+
+const LEMAS: Record<Composicion, string[]> = {
+  gastro: ['Cocina de temporada', 'Menú de autor', 'Producto, técnica y paciencia'],
+  taberna: ['Tapas, raciones y vino', 'Cocina de siempre', 'De la barra a la mesa'],
+  urbano: ['Recién hecho', 'Hecho al momento', 'Sin filtros, con hambre'],
+};
+const DESTACADOS: Record<Composicion, string> = { gastro: 'Selección del chef', taberna: 'Hoy recomendamos', urbano: 'Los que más piden' };
+const ADORNO_AUTO: NonNullable<Firma['adorno']>[] = ['rombo', 'estrella', 'ola', 'sello'];
+
+/** Completa lo que falte de la firma para que dos locales con la misma composición no salgan iguales. */
+export function firmaCompleta(c: CartaMin & { firma?: Firma | null }, comp: Composicion): Firma {
+  const f = c.firma ?? {};
+  const semilla = [...(c.slug || c.nombre)].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7);
+  return {
+    ...f,
+    lema: f.lema || LEMAS[comp][semilla % LEMAS[comp].length],
+    destacados: f.destacados || DESTACADOS[comp],
+    adorno: f.adorno || ADORNO_AUTO[semilla % ADORNO_AUTO.length],
+  };
+}

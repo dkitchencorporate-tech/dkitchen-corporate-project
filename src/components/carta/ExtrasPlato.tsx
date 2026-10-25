@@ -27,7 +27,7 @@ export function ComboPlato({ plato, completo = false }: { plato: PlatoCarta; com
   if (!plato.combo?.length) return null;
   const lista = plato.combo.map((c) => (c.cantidad > 1 ? `${c.cantidad} × ${c.nombre}` : c.nombre));
   return (
-    <span className={`block ${completo ? '' : 'mt-1'} text-sm leading-relaxed text-black/60`}>
+    <span className={`block ${completo ? '' : 'mt-1'} text-sm leading-relaxed opacity-65`}>
       <span className="sr-only">Incluye: </span>{lista.join(' + ')}
       {plato.ahorro && Number(plato.ahorro) > 0 && (
         <span className="ml-1.5 whitespace-nowrap font-semibold" style={{ color: 'var(--marca)' }}>· Ahorras {euros.format(Number(plato.ahorro))}</span>

@@ -18,6 +18,11 @@ const CLAVE = 'dk-mesa';
  * La mesa llega rellenada si el QR es de mesa (`?mesa=N`) y se puede cambiar
  * (mesas juntadas). Antirrepetición y límites: /api/camarero + dk.llamar_camarero.
  */
+const barra = 'flex min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-[16px] px-2 py-3 text-[13px] font-semibold tracking-[0.01em] text-white/90 transition hover:bg-white/[.06] active:scale-[.98]';
+function Icono({ d }: { d: string }) {
+  return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[18px] w-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;
+}
+
 export default function BotonesMesa({ slug, color, siempre = false, reservar = false, pedido = null, platos = [] }: {
   slug: string; color: string; siempre?: boolean; reservar?: boolean;
   /** Pedido desde la mesa (G, 0099): 'real' en Local y Sala (solo si llegó escaneando el QR), 'demo' en las demos internas. */
@@ -89,27 +94,21 @@ export default function BotonesMesa({ slug, color, siempre = false, reservar = f
   return (
     <>
       {siempre ? (
-        // Carta Premium: barra fija con reservar y llamar al camarero, siempre a mano.
-        <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center px-4 pb-[max(16px,env(safe-area-inset-bottom))]">
-          <div className="flex w-full max-w-md gap-2 rounded-full border border-white/15 bg-[#0B0A09]/85 p-1.5 shadow-[0_20px_50px_-15px_rgba(0,0,0,.8)] backdrop-blur-xl">
+        // Barra fija de la carta (26/10: icono + rótulo en una línea, vidrio oscuro y acento de la marca).
+        <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center px-3 pb-[max(14px,env(safe-area-inset-bottom))] sm:px-4">
+          <div className="flex w-full max-w-[440px] items-stretch gap-1 rounded-[22px] border border-white/10 bg-[#0B0A09]/80 p-1.5 shadow-[0_24px_60px_-18px_rgba(0,0,0,.85)] ring-1 ring-black/20 backdrop-blur-2xl backdrop-saturate-150">
             {reservar && (
-              <button onClick={() => window.dispatchEvent(new Event('dk:reservar'))} className="flex-1 rounded-full px-4 py-3 text-sm font-semibold text-white">
-                Reservar mesa
+              <button onClick={() => window.dispatchEvent(new Event('dk:reservar'))} className={barra}>
+                <Icono d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" />Reservar
               </button>
             )}
-            {puedePedir ? (
-              <>
-                <button onClick={() => { setAbierto(true); setEstado('idle'); }} className="flex-1 rounded-full px-3 py-3 text-sm font-semibold text-white">
-                  Camarero{mesa ? ` · ${mesa}` : ''}
-                </button>
-                <button onClick={() => setPidiendo(true)} className="flex-1 rounded-full px-4 py-3 text-sm font-bold text-white" style={{ backgroundColor: color }}>
-                  Pedir desde la mesa
-                </button>
-              </>
-            ) : (
-            <button onClick={() => { setAbierto(true); setEstado('idle'); }} className="flex-1 rounded-full px-4 py-3 text-sm font-bold text-white" style={{ backgroundColor: color }}>
-              Llamar al camarero{mesa ? ` · ${mesa}` : ''}
+            <button onClick={() => { setAbierto(true); setEstado('idle'); }} className={puedePedir ? barra : `${barra} text-white`} style={puedePedir ? undefined : { backgroundColor: color }}>
+              <Icono d="M12 4a7 7 0 0 0-7 7v3h14v-3a7 7 0 0 0-7-7ZM3 17h18M12 2v2" />{puedePedir ? 'Camarero' : 'Llamar al camarero'}{mesa ? ` · ${mesa}` : ''}
             </button>
+            {puedePedir && (
+              <button onClick={() => setPidiendo(true)} className={`${barra} text-white`} style={{ backgroundColor: color }}>
+                <Icono d="M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2" />Pedir
+              </button>
             )}
           </div>
         </div>
