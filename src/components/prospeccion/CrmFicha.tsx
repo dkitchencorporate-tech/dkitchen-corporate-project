@@ -122,6 +122,7 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
               <div className="flex flex-wrap gap-2">
                 <CopiarEnlace texto={propuesta} />
                 <a href={propuesta} target="_blank" rel="noopener noreferrer" className={chip}>Abrir / imprimir</a>
+                {base.startsWith('/admin-dkitchen') && <a href={`/admin-dkitchen/propuesta-correo/${f.id}`} className={chip}>Versión para correo</a>}
               </div>
               <p className="text-xs text-niebla">{f.propuesta_vistas > 0 ? `Abierta ${f.propuesta_vistas} ${f.propuesta_vistas === 1 ? 'vez' : 'veces'}; la última, ${momento(f.propuesta_vista_en!)}.` : 'Aún no la ha abierto nadie.'}</p>
             </div>
