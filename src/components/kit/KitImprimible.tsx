@@ -170,8 +170,8 @@ function Flyer({ d, qr }: { d: DatosKit; qr: string }) {
         {d.portadaUrl ? <img src={d.portadaUrl} alt="" /> : <div className="kit-flyer-sinfoto"><Marca d={d} grande /></div>}
       </div>
       <div className="kit-flyer-texto">
-        <Marca d={d} />
-        <p className="kit-titulo kit-flyer-titular">{d.descripcion?.split(/[.\n]/)[0]?.slice(0, 70) || `Ven a ${d.nombre}`}</p>
+        {d.portadaUrl && <Marca d={d} />}
+        <p className="kit-titulo kit-flyer-titular">{d.descripcion?.split(/[.\n]/)[0]?.slice(0, 70) || 'La carta, a un escaneo'}</p>
         <div className="kit-filete" />
         <dl className="kit-flyer-datos">
           {d.horario && <><dt>Horario</dt><dd>{d.horario}</dd></>}
