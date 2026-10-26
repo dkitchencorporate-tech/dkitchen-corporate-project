@@ -146,6 +146,20 @@ const nextConfig = {
     ];
   },
 
+  // 27/10: portada según la procedencia. Flyer, tarjeta, propuesta y anuncios (Meta, Instagram,
+  // Facebook, Google, TikTok) ven la cabecera de la carta QR; la dirección sigue siendo /?utm_source=…
+  async rewrites() {
+    const q = (valor, origen) => ({ source: '/', has: [{ type: 'query', key: 'utm_source', value: valor }], destination: `/portada-qr/${origen}` });
+    return {
+      beforeFiles: [
+        q('(?:flyer|flyers)', 'flyer'),
+        q('(?:tarjeta|tarjetas)', 'tarjeta'),
+        q('propuesta', 'propuesta'),
+        q('(?:anuncio|ads|meta|facebook|fb|instagram|ig|google|tiktok)', 'anuncio'),
+      ],
+    };
+  },
+
   async headers() {
     return [
       { source: '/:path*', headers: cabecerasDeSeguridad },
