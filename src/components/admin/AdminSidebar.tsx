@@ -22,7 +22,7 @@ export const ZONAS: Zona[] = [
     { nombre: 'Eventos (Experience)', href: '/admin-dkitchen/entradas' }, { nombre: 'Fundador', href: '/admin-dkitchen/fundador' }] },
   { id: 'ventas', nombre: 'Ventas', icono: 'destello', items: [
     { nombre: 'Prospección', href: '/admin-dkitchen/prospeccion' }, { nombre: 'Oportunidades', href: '/admin-dkitchen/oportunidades' },
-    { nombre: 'Embudo', href: '/admin-dkitchen/embudo' }, { nombre: 'Campañas y QR', href: '/admin-dkitchen/campanas' },
+    { nombre: 'Embudo', href: '/admin-dkitchen/embudo' }, { nombre: 'Campañas y QR', href: '/admin-dkitchen/campanas' }, { nombre: 'Ofertas', href: '/admin-dkitchen/ofertas' },
     { nombre: 'Competencia', href: '/admin-dkitchen/competencia' }, { nombre: 'Socios', href: '/admin-dkitchen/socios' }] },
   { id: 'soporte', nombre: 'Soporte', icono: 'ayuda', items: [
     { nombre: 'Tickets y QR físicos', href: '/admin-dkitchen/soporte' }, { nombre: 'Avisos de fallo', href: '/admin-dkitchen/avisos' },

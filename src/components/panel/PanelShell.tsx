@@ -164,7 +164,8 @@ export default function PanelShell({
     if (bloqueo.current && !bloqueo.current.includes(p) && p !== 'camarero' && p !== 'reservas') { setAvisoBloqueo(Date.now()); return; }
     setPestanaBase(p); setMenu(false); window.scrollTo({ top: 0 });
     if (historial === 'no') return;
-    const url = p === 'inicio' ? window.location.pathname : `${window.location.pathname}?pestana=${p}`;
+    // Al entrar por un enlace se conserva el ancla (p. ej. #bono-ia en Mejoras).
+    const url = (p === 'inicio' ? window.location.pathname : `${window.location.pathname}?pestana=${p}`) + (historial === 'replace' ? window.location.hash : '');
     if (historial === 'replace' || window.history.state?.pestana === p) window.history.replaceState({ ...window.history.state, pestana: p }, '', url);
     else window.history.pushState({ ...window.history.state, pestana: p }, '', url);
   };
@@ -316,7 +317,7 @@ export default function PanelShell({
             {pestana === 'qr' && <MiQr codigoQr={codigoQr} restauranteNombre={restaurante.nombre} solicitudes={solicitudesQr} />}
           </EstudioMarco>
         )}
-        {pestana === 'modulos' && <Mejoras key={pestana} restaurante={restaurante} servicios={servicios} vista={pestana} fotos={carta.platos.map((p) => p.fotoUrl).filter((u): u is string => !!u).slice(0, 3)} />}
+        {pestana === 'modulos' && <Mejoras key={pestana} restaurante={restaurante} servicios={servicios} demo={demo} />}
         {pestana === 'sala' && <Sala mesas={sala.mesas} elementos={sala.elementos} camareros={sala.camareros} tpv={sala.tpv} modulos={modulos} />}
         {pestana === 'reservas' && <Reservas reservas={reservasVivas} whatsapp={restaurante.whatsapp} abrirId={reservaAbrir} onAbierta={() => setReservaAbrir(null)} />}
         {pestana === 'pedidos' && <Pedidos demo={demo} elementos={sala.elementos} camareros={sala.camareros} />}

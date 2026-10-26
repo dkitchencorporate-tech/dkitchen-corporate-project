@@ -2,7 +2,7 @@
 
 import { mensajeError } from '@/lib/mensaje-error';
 import { useEffect, useRef, useState, useTransition } from 'react';
-import { generarImagenIaAction, saldoIaAction, comprarServicioAction } from '@/app/panel/actions';
+import { generarImagenIaAction, saldoIaAction } from '@/app/panel/actions';
 import HerramientasTexto from './HerramientasTexto';
 import VisorImagen from './VisorImagen';
 
@@ -12,7 +12,7 @@ import VisorImagen from './VisorImagen';
  * - el cuadro de texto funciona como un chat: tras la primera imagen, lo que escribes son
  *   cambios sobre ESA imagen; el texto se vacía después de cada creación;
  * - «✨ Mejorar instrucción» reescribe la petición para que la IA la entienda mejor.
- * Cada creación descuenta 1 imagen del saldo (3 gratis siempre; bono de 50 por 9 € + IVA).
+ * Cada creación descuenta 1 imagen del saldo (3 gratis siempre; el bono de 50 se pide en Mejoras).
  */
 type Saldo = { restantes: number; gratisRestantes: number; compradas: number; usadas: number; hoy: number };
 
@@ -60,7 +60,6 @@ export default function GeneradorIa({
   const [historial, setHistorial] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [pendiente, iniciar] = useTransition();
-  const [comprando, setComprando] = useState(false);
   const [segundos, setSegundos] = useState(0);
   const arriba = useRef<HTMLDivElement>(null);
 
@@ -96,13 +95,6 @@ export default function GeneradorIa({
         saldoIaAction().then(setSaldo).catch(() => {});
       }
     });
-  }
-
-  async function comprar() {
-    if (demo) { setError('En la demo no se puede comprar.'); return; }
-    setComprando(true);
-    try { const { url } = await comprarServicioAction('bono_ia'); window.location.href = url; }
-    catch (e) { setError(mensajeError(e, 'No se pudo abrir el pago.')); setComprando(false); }
   }
 
   const sinSaldo = saldo !== null && saldo.restantes <= 0;
@@ -235,9 +227,10 @@ export default function GeneradorIa({
             <p><strong>{saldo.restantes}</strong> {saldo.restantes === 1 ? 'imagen disponible' : 'imágenes disponibles'}
               <span className="text-niebla"> · cada creación o cambio usa 1{saldo.gratisRestantes > 0 ? ` · te quedan ${saldo.gratisRestantes} de tus 3 gratis` : ''}</span></p>
           ) : <p className="text-niebla">Consultando tu saldo…</p>}
-          <p className="mt-1 text-[12.5px] text-niebla">3 imágenes gratis siempre. ¿Necesitas más? <strong>Bono de 50 por 9 € + IVA</strong>: pago único, <strong>nunca caducan</strong> y las imágenes son tuyas. Máximo 20 al día.</p>
-          {(sinSaldo || (saldo && saldo.restantes <= 1)) && (
-            <button onClick={comprar} disabled={comprando} className="mt-3 rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{comprando ? 'Abriendo pago seguro…' : 'Comprar bono de 50 · 9 € + IVA'}</button>
+          <p className="mt-1 text-[12.5px] text-niebla">3 imágenes gratis siempre; las del bono nunca caducan y son tuyas. Máximo 20 al día.</p>
+          {/* R5 (28/10): el bono se pide solo en Mejoras; aquí, un enlace cuando se acaba el saldo */}
+          {(sinSaldo || (saldo && saldo.restantes <= 1)) && !demo && (
+            <a href="/panel?pestana=mejoras#bono-ia" className="mt-3 inline-block rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white">¿Necesitas más? Ver el bono de 50 en Mejoras</a>
           )}
         </div>
       </div>

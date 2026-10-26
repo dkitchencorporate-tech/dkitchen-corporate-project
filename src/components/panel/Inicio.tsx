@@ -129,7 +129,7 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
             <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/15 blur-2xl" />
             <p className="relative text-xs font-medium uppercase tracking-[0.18em] text-white/75">Para tu local</p>
             <p className="relative mt-3 text-lg font-semibold leading-snug">{TEXTOS_OFERTA[oferta]}</p>
-            <button onClick={() => { registrarOfertaAction(oferta, 'aceptada').catch(() => {}); ir(['setup_experto', 'setup_esencial'].includes(oferta) ? 'diseno' : 'modulos'); }}
+            <button onClick={() => { registrarOfertaAction(oferta, 'aceptada').catch(() => {}); ir('modulos'); }}
               className="relative mt-5 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-tinta">
               Ver cómo funciona
             </button>

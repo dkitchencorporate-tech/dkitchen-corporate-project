@@ -45,6 +45,20 @@ export interface EstadoServicios {
   puestaBienvenida?: boolean;
   /** Idiomas además del español que puede activar (0068): 1 incluido + extras pagados. */
   idiomasPermitidos?: number;
+  /** Ofertas por fecha que se ven hoy (0105), con lo que ya ha pedido este local. */
+  ofertasFecha?: OfertaFecha[];
+}
+
+export interface OfertaFecha {
+  id: string;
+  tema: 'halloween' | 'navidad' | 'san_valentin' | 'carnaval' | 'otra';
+  titulo: string;
+  descripcion: string;
+  incluye: string[];
+  precio_centimos: number;
+  precio_ancla_centimos: number | null;
+  hasta: string;
+  solicitada: 'recibida' | 'en_curso' | 'entregada' | 'descartada' | null;
 }
 
 export interface SenalSignature {
@@ -57,7 +71,7 @@ export interface SenalSignature {
 
 export async function estadoServicios(jwt: string, restauranteId: string): Promise<EstadoServicios> {
   return comoCliente(jwt, async (c) => {
-    const [cat, con, plazas, oferta, credito, pro, inc, senal, bienvenida, idiomas] = await Promise.all([
+    const [cat, con, plazas, oferta, credito, pro, inc, senal, bienvenida, idiomas, fechas] = await Promise.all([
       c.query('SELECT servicio, nombre, tipo, dk.precio_servicio(servicio) AS precio, precio_ancla_centimos, requiere_ampliado FROM catalogo_servicios WHERE en_venta ORDER BY precio_centimos'),
       c.query(`SELECT servicio, estado, origen, contratado_en, checklist FROM servicios_contratados
                 WHERE restaurante_id = $1 AND estado <> 'cancelado'`, [restauranteId]),
@@ -69,6 +83,7 @@ export async function estadoServicios(jwt: string, restauranteId: string): Promi
       c.query('SELECT dk.senal_signature() AS s'),
       c.query('SELECT dk.puesta_bienvenida_mia() AS si'),
       c.query("SELECT tope FROM dk.mi_uso_plan() WHERE que = 'idiomas'"),
+      c.query('SELECT dk.ofertas_fecha_mias() AS j'),
     ]);
     const contratados: ServicioContratado[] = con.rows.map((r) => ({
       servicio: r.servicio, estado: r.estado, origen: r.origen, contratadoEn: new Date(r.contratado_en).toISOString(), checklist: r.checklist ?? {},
@@ -89,6 +104,7 @@ export async function estadoServicios(jwt: string, restauranteId: string): Promi
       signature: (senal.rows[0]?.s as SenalSignature | undefined) ?? null,
       puestaBienvenida: bienvenida.rows[0]?.si === true,
       idiomasPermitidos: Number(idiomas.rows[0]?.tope ?? 1),
+      ofertasFecha: (fechas.rows[0]?.j as OfertaFecha[] | undefined) ?? [],
     };
   });
 }
@@ -107,6 +123,11 @@ export async function precioServicio(jwt: string, s: Servicio): Promise<number |
 
 export async function registrarOferta(jwt: string, oferta: string, tipo: 'mostrada' | 'cerrada' | 'aceptada') {
   await comoCliente(jwt, (c) => c.query('SELECT dk.registrar_oferta($1, $2)', [oferta, tipo]));
+}
+
+/** El dueño pide una oferta por fecha (0105): la base comprueba fechas y fija el precio. */
+export async function solicitarOfertaFecha(jwt: string, id: string): Promise<{ id: string; titulo: string; precio_centimos: number; restaurante_id: string; restaurante_nombre: string }> {
+  return comoCliente(jwt, async (c) => (await c.query('SELECT dk.oferta_fecha_solicitar($1) AS j', [id])).rows[0].j);
 }
 
 /** Plazas del Setup Experto a precio de lanzamiento (para la web pública). */
