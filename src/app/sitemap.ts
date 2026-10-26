@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { FORMATOS_EXPERIENCE } from '@/lib/experience-formatos';
 import { ARTICULOS } from '@/lib/blog';
+import { CIUDADES } from '@/lib/ciudades';
 
 /**
  * Sitemap de las páginas de marketing.
@@ -25,6 +26,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { ruta: '/dark-kitchen', prioridad: 0.8, frecuencia: 'weekly' },
     { ruta: '/marcas', prioridad: 0.7, frecuencia: 'weekly' },
     { ruta: '/casos-de-exito', prioridad: 0.8, frecuencia: 'weekly' },
+    { ruta: '/carta-digital', prioridad: 0.7, frecuencia: 'monthly' },
+    ...CIUDADES.map((c) => ({ ruta: `/carta-digital/${c.slug}`, prioridad: 0.8, frecuencia: 'monthly' as const })),
     { ruta: '/faq', prioridad: 0.6, frecuencia: 'monthly' },
     { ruta: '/blog', prioridad: 0.7, frecuencia: 'weekly' },
     ...ARTICULOS.map((a) => ({ ruta: `/blog/${a.slug}`, prioridad: 0.7, frecuencia: 'monthly' as const })),
