@@ -1,8 +1,13 @@
 /**
  * Artículos del blog (SEO de contenido, 29/09/2026). Texto propio, sin cifras
  * inventadas: los datos legales citan la norma y los costes se dan como
- * rangos orientativos, indicados como tales.
+ * rangos orientativos, indicados como tales. Precios siempre desde pricing-config.
+ * 27/10/2026: 2 artículos nuevos con las palabras clave #215 y las ventajas de la tarea 8
+ * (reseñas de toda la mesa, pedido desde la mesa); el más reciente va primero.
  */
+import { QR_MENU } from '@/lib/pricing-config';
+
+const { basico: C, ampliado: L, sala: S } = QR_MENU.planes;
 export interface Articulo {
   slug: string;
   titulo: string;
@@ -13,6 +18,72 @@ export interface Articulo {
 }
 
 export const ARTICULOS: Articulo[] = [
+  {
+    slug: 'mas-resenas-google-bar-restaurante',
+    titulo: 'Cómo conseguir más reseñas en Google para tu bar o restaurante',
+    descripcion: 'Por qué las reseñas te suben en Google Maps, cuándo pedirlas, por qué pedírselas a toda la mesa y qué prohíbe Google. Guía práctica para hostelería.',
+    fecha: '2026-10-27',
+    lectura: '6 min',
+    secciones: [
+      { h: 'Por qué las reseñas mueven mesas', p: [
+        'Cuando alguien busca «bares cerca» o «restaurante en el centro», Google Maps ordena los resultados por relevancia, distancia y prominencia. Google explica que el número de reseñas y su valoración cuentan para la prominencia: a igualdad de distancia, el local con más reseñas recientes y buenas sale antes.',
+        'Además, el cliente las lee. Una ficha con cuatro reseñas de hace dos años transmite poca vida; una con reseñas de esta semana dice que el local está abierto, lleno y cuidado.',
+      ] },
+      { h: 'El problema: solo opina quien paga, y casi nunca', p: [
+        'En una mesa de seis, la cuenta la paga una persona y es la única con la que el camarero habla al final. Las otras cinco se van sin que nadie les pida nada, aunque hayan comido igual de bien.',
+        'Y quien paga tampoco suele dejarla: al salir ya está pensando en otra cosa. La reseña se pierde en los cinco minutos que separan la mesa de la calle.',
+      ] },
+      { h: 'Cuándo y cómo pedirla', p: [
+        'En el momento bueno: con el postre o el café, cuando la mesa está contenta y todavía sentada. No por correo días después.',
+        'Con el enlace directo a escribir la reseña, no con «búscanos en Google». Cada paso de más es una reseña menos.',
+        'A todos los comensales, no solo al que paga. Si cada persona de la mesa tiene el enlace en su móvil, una mesa de seis puede dejar seis reseñas en vez de ninguna.',
+      ] },
+      { h: 'Lo que Google no permite', p: [
+        'Comprar reseñas o escribirlas tú (o tu familia). Google las retira y puede penalizar la ficha.',
+        'Dar algo a cambio de la reseña, como un descuento o una bebida gratis. Las políticas de Google prohíben ofrecer incentivos por reseñas.',
+        'Pedirla solo a los clientes contentos y desviar a los descontentos a otro sitio. Hay que pedirla a todos por igual; las críticas se responden con educación y suelen pesar menos de lo que parece.',
+      ] },
+      { h: 'Responde a todas', p: [
+        'Agradece las buenas por el nombre del plato que mencionan y responde a las malas con calma, explicando qué has cambiado. Quien lee las reseñas mira también cómo contestas.',
+      ] },
+      { h: 'Cómo lo resuelve la carta QR', p: [
+        `La carta digital está en el móvil de cada comensal, así que es el sitio natural para pedir la reseña. En los planes ${L.nombre} y ${S.nombre} de DKitchen, la carta lleva un botón dedicado que lleva a cada persona de la mesa directamente a escribir su reseña en Google, sin incentivos y sin filtros.`,
+        `Si tu local está en Granada, Málaga, Sevilla, Córdoba, Murcia, Almería o Baza, tienes las ventajas explicadas para tu ciudad en nuestras páginas de carta digital por ciudad.`,
+      ] },
+    ],
+  },
+  {
+    slug: 'pedido-desde-la-mesa-qr-bar',
+    titulo: 'Pedido desde la mesa con QR: cómo funciona en un bar y cuándo compensa',
+    descripcion: 'El comensal pide desde la carta QR, el camarero confirma y se paga en la barra. Qué cambia en un bar o restaurante, qué pasa con el TPV y cuándo merece la pena.',
+    fecha: '2026-10-27',
+    lectura: '5 min',
+    secciones: [
+      { h: 'Qué es el pedido desde la mesa', p: [
+        'El cliente escanea el QR de su mesa, abre la carta digital en su móvil, elige los platos y envía el pedido. No instala ninguna app: todo pasa en el navegador.',
+        'No es lo mismo que una app de delivery ni que un quiosco de autopedido. Es tu misma carta QR con un botón más: «pedir».',
+      ] },
+      { h: 'Por qué el camarero confirma cada pedido', p: [
+        'Un pedido que entra directo a cocina sin que nadie lo vea es un riesgo: una broma, una mesa equivocada o un plato que se acabó hace diez minutos.',
+        'Por eso el pedido llega primero al camarero, que lo ve con su mesa y lo confirma o rechaza con un toque. Al confirmarlo entra en la cuenta de la mesa como una ronda más.',
+      ] },
+      { h: 'Qué pasa con el cobro y con el TPV', p: [
+        'Nada cambia: se paga en la barra o en la mesa, como siempre, con tu datáfono y tu TPV. El pedido desde la mesa no te obliga a cobrar por el móvil ni a cambiar de caja.',
+        'Lo que sí cambia es que el camarero ya no tiene que ir a tomar nota a cada mesa: va a llevar, no a preguntar.',
+      ] },
+      { h: 'Cuándo compensa', p: [
+        'Terrazas grandes y mesas lejos de la barra, donde cada viaje cuesta.',
+        'Bares de tapas con rondas cortas y seguidas: cada ronda que no espera al camarero es una ronda más.',
+        'Horas punta con poco personal, cuando el cuello de botella es tomar nota y no la cocina.',
+      ] },
+      { h: 'Cuándo no hace falta', p: [
+        'En un local pequeño, con pocas mesas y un camarero que llega a todas, basta con una buena carta digital para mirar. Puedes empezar por ahí y sumar el pedido desde la mesa cuando lo necesites, sin cambiar el QR.',
+      ] },
+      { h: 'Cómo empezar', p: [
+        `En DKitchen el pedido desde la mesa va incluido desde el plan ${L.nombre} (${L.mensual} € al mes, primer mes por ${QR_MENU.primerMes} €) y en ${S.nombre} (${S.mensual} €), junto con la llamada al camarero y la cuenta por mesa. Te montamos la carta desde una foto y el QR de cada mesa puede llevar su número. Precios sin IVA y sin permanencia.`,
+      ] },
+    ],
+  },
   {
     slug: 'carta-digital-qr-restaurante',
     titulo: 'Carta digital QR para restaurantes: qué es, qué debe tener y cuánto cuesta',
@@ -38,7 +109,7 @@ export const ARTICULOS: Articulo[] = [
       ] },
       { h: 'Cuánto cuesta', p: [
         'Los precios del mercado van desde herramientas gratuitas con publicidad hasta suscripciones mensuales. Lo importante no es solo el precio: fíjate en si hay permanencia, si el QR sigue siendo tuyo si te vas y si puedes cancelar sin llamar a nadie.',
-        'En DKitchen la carta QR cuesta 9 € al mes (25 € con reservas, llamada al camarero y banners), el primer mes es de 1 € y no hay permanencia.',
+        `En DKitchen la carta QR va de ${C.mensual} € al mes (${C.nombre}) a ${L.mensual} € (${L.nombre}, con pedido desde la mesa y reseñas de toda la mesa) y ${S.mensual} € (${S.nombre}); el primer mes de ${L.nombre} cuesta ${QR_MENU.primerMes} € y no hay permanencia. Precios sin IVA.`,
       ] },
     ],
   },

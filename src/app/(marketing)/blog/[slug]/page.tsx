@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ARTICULOS, articulo } from '@/lib/blog';
+import { CIUDADES } from '@/lib/ciudades';
 
 export function generateStaticParams() {
   return ARTICULOS.map((a) => ({ slug: a.slug }));
@@ -59,6 +60,10 @@ export default async function PaginaArticulo({ params }: { params: Promise<{ slu
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ceniza">Sigue leyendo</p>
           <ul className="mt-4 space-y-3">
             {otros.map((o) => <li key={o.slug}><Link href={`/blog/${o.slug}`} className="font-semibold hover:text-vino">{o.titulo} →</Link></li>)}
+          </ul>
+          <p className="mt-10 text-xs font-semibold uppercase tracking-[0.2em] text-ceniza">Carta digital en tu ciudad</p>
+          <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+            {CIUDADES.map((c) => <li key={c.slug}><Link href={`/carta-digital/${c.slug}`} className="font-semibold hover:text-vino">{c.nombre}</Link></li>)}
           </ul>
         </nav>
       </div>
