@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import PanelShell from '@/components/panel/PanelShell';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
+import { SERVICIOS_QR } from '@/lib/pricing-config';
 import type { EstadoServicios } from '@/lib/servicios';
 
 /**
@@ -45,7 +46,13 @@ const servicios: EstadoServicios = {
     { servicio: 'app_sala', nombre: 'App de sala', tipo: 'mensual', precioCentimos: 4900, precioAnclaCentimos: null, requiereAmpliado: true },
     { servicio: 'conexion_tpv', nombre: 'Conexión TPV', tipo: 'mensual', precioCentimos: 5900, precioAnclaCentimos: null, requiereAmpliado: true },
     { servicio: 'pack_sala', nombre: 'Pack Sala', tipo: 'mensual', precioCentimos: 11900, precioAnclaCentimos: 13200, requiereAmpliado: true },
+    { servicio: 'bono_ia', nombre: 'Bono de 50 fotos con IA', tipo: 'unico', precioCentimos: SERVICIOS_QR.bonoIa * 100, precioAnclaCentimos: null, requiereAmpliado: false },
+    { servicio: 'idioma_extra', nombre: 'Idioma extra', tipo: 'unico', precioCentimos: SERVICIOS_QR.idiomaExtra * 100, precioAnclaCentimos: null, requiereAmpliado: false },
   ],
+  // Muestra de oferta por fecha (0105) para que la demo enseñe cómo se ve en Mejoras.
+  ofertasFecha: [{ id: '00000000-0000-0000-0000-000000000105', tema: 'navidad', titulo: 'Pack Navidad', descripcion: 'Menús de Navidad, Nochebuena y Nochevieja en tu carta, listos para coger reservas de grupos.',
+    incluye: ['Portada y banner de Navidad en tu carta', 'Tus menús de Navidad y Nochevieja montados', '10 fotos con IA de temporada', 'Cartel con tu QR para reservar'],
+    precio_centimos: 2900, precio_ancla_centimos: null, hasta: `${hoy.getFullYear() + (hoy.getMonth() === 0 ? 0 : 1)}-01-06`, solicitada: null }],
   contratados: [{ servicio: 'idiomas', estado: 'activo', origen: 'pago', contratadoEn: new Date(hoy.getTime() - 20 * 864e5).toISOString(), checklist: {} }],
   plazasExperto: 12, oferta: { oferta: 'setup_experto', motivo: 'demo' }, credito: null,
   signature: { mostrar: true, motivo: 'escaneos', escaneos: 812, reservas: 46, llamadas: 210 },
