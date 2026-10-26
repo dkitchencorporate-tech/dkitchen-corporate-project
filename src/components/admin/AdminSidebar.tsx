@@ -28,7 +28,7 @@ export const ZONAS: Zona[] = [
     { nombre: 'Tickets y QR físicos', href: '/admin-dkitchen/soporte' }, { nombre: 'Avisos de fallo', href: '/admin-dkitchen/avisos' },
     { nombre: 'Buzón', href: '/admin-dkitchen/buzon' }] },
   { id: 'lanzamiento', nombre: 'Lanzamiento', icono: 'flecha', items: [
-    { nombre: 'Ruta', href: '/admin-dkitchen/ruta' }, { nombre: 'Mis tareas', href: '/admin-dkitchen/tareas' },
+    { nombre: 'Ruta', href: '/admin-dkitchen/ruta' }, { nombre: 'Mapa de la web', href: '/admin-dkitchen/mapa' }, { nombre: 'Mis tareas', href: '/admin-dkitchen/tareas' },
     { nombre: 'Decisiones', href: '/admin-dkitchen/decisiones' }, { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' }] },
   { id: 'conocimiento', nombre: 'Conocimiento', icono: 'negocio', items: [
     { nombre: 'Manual de Central', href: '/admin-dkitchen/manual' }, { nombre: 'Documentos', href: '/admin-dkitchen/documentos' },
