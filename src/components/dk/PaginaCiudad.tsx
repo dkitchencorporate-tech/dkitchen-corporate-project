@@ -19,8 +19,8 @@ export function SelloCiudad({ c, className = '' }: { c: Ciudad; className?: stri
     <div className={`relative aspect-square ${className}`} aria-hidden="true">
       <svg viewBox="0 0 200 200" className="absolute inset-0 h-full w-full animate-spin motion-reduce:animate-none" style={{ animationDuration: '48s' }}>
         <defs><path id={`circulo-${c.slug}`} d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0" /></defs>
-        <text fill="#D9B25C" fontSize="13.5" letterSpacing="3.2" style={{ textTransform: 'uppercase', fontWeight: 600 }}>
-          <textPath href={`#circulo-${c.slug}`}>{texto.repeat(2)}</textPath>
+        <text fill="#D9B25C" fontSize="13.5" style={{ textTransform: 'uppercase', fontWeight: 600 }}>
+          <textPath href={`#circulo-${c.slug}`} textLength="486" lengthAdjust="spacing">{texto}</textPath>
         </text>
       </svg>
       <div className="absolute inset-[22%] flex flex-col items-center justify-center rounded-full text-center text-white shadow-[0_30px_80px_rgba(0,0,0,.45)]" style={{ background: `radial-gradient(circle at 30% 25%, ${c.color}, #0A080C 120%)` }}>
