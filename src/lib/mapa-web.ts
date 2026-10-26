@@ -161,3 +161,15 @@ export async function guardarRecorrido(jwt: string, r: Awaited<ReturnType<typeof
 export async function leerMapa(jwt: string, id: string | null): Promise<Mapa> {
   return comoCliente(jwt, async (c) => (await c.query<{ j: Mapa }>('SELECT dk.admin_mapa($1) AS j', [id])).rows[0].j);
 }
+
+/** Calor de la medición propia (E3, 0107): visitas, tiempo y salidas por página, y clics por destino. */
+export interface Calor {
+  desde: string;
+  visitas: number;
+  paginas: { ruta: string; visitas: number; seg_medio: number; salida_pct: number; temp: number }[];
+  clics: { ruta: string; destino: string; zona: string; clics: number }[];
+}
+
+export async function leerCalor(jwt: string, dias: number): Promise<Calor> {
+  return comoCliente(jwt, async (c) => (await c.query<{ j: Calor }>('SELECT dk.admin_mapa_calor($1) AS j', [dias])).rows[0].j);
+}

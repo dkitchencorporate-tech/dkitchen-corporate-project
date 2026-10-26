@@ -17,6 +17,7 @@ import { usePathname } from 'next/navigation';
 const GA_ID = 'G-132VTP0EY7';
 const META_ID = (process.env.NEXT_PUBLIC_META_PIXEL_ID ?? '').trim();
 const SIN_MEDICION = ['/m/', '/admin-dkitchen', '/panel', '/sala', '/socio', '/r/'];
+const ZONA_ETIQUETA: Record<string, string> = { HEADER: 'menu', NAV: 'menu', FOOTER: 'pie' };
 
 declare global {
   interface Window { fbq?: (...a: unknown[]) => void; _fbq?: unknown; dataLayer?: unknown[]; gtag?: (...a: unknown[]) => void; va?: (...a: unknown[]) => void; vaq?: unknown[]; si?: (...a: unknown[]) => void; siq?: unknown[] }
@@ -67,6 +68,51 @@ export default function AnaliticaWeb() {
 
   // Navegación interna: PageView en cada cambio de ruta (la primera la manda cargarMeta).
   useEffect(() => { if (medir && document.getElementById('dk-meta')) window.fbq?.('track', 'PageView'); }, [ruta, medir]);
+
+  // Medición propia (E3, 0107), solo con «Aceptar»: tiempo en la página, clics (destino + zona) y si la
+  // visita terminó aquí. Se envía al cambiar de página o al cerrarla, sin datos personales.
+  useEffect(() => {
+    if (!medir) return;
+    let consiente = false;
+    try { consiente = localStorage.getItem('dkitchen_cookie_consent') === 'all'; } catch { /* sin almacenamiento */ }
+    if (!consiente) return;
+    const t0 = Date.now();
+    let visible = 0, desde = document.visibilityState === 'visible' ? t0 : 0, enviado = false, internoEn = 0;
+    const clics: { destino: string; zona: string }[] = [];
+    const alClic = (e: MouseEvent) => {
+      const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+      if (!a || clics.length >= 40) return;
+      let u: URL;
+      try { u = new URL(a.href, location.href); } catch { return; }
+      if (!/^https?:$/.test(u.protocol)) return;
+      const interno = u.host === location.host;
+      if (interno) internoEn = Date.now();
+      const zonaEl = a.closest('[data-zona], section[id], header, nav, footer');
+      const zona = zonaEl?.getAttribute('data-zona') || (zonaEl?.tagName === 'SECTION' ? zonaEl.id : zonaEl ? ZONA_ETIQUETA[zonaEl.tagName] ?? '' : 'contenido');
+      clics.push({ destino: interno ? (u.pathname.replace(/\/+$/, '') || '/') : `${u.hostname}${u.pathname}`.slice(0, 300), zona: zona.slice(0, 40) });
+    };
+    const alVer = () => {
+      if (document.visibilityState === 'visible') desde = Date.now();
+      else if (desde) { visible += Date.now() - desde; desde = 0; }
+    };
+    const enviar = (salida: boolean) => {
+      if (enviado) return;
+      enviado = true;
+      if (desde) visible += Date.now() - desde;
+      const cuerpo = JSON.stringify({ ruta, segundos: Math.round(visible / 1000), salida, clics });
+      try { navigator.sendBeacon('/api/medir', new Blob([cuerpo], { type: 'application/json' })); } catch { /* sin envío */ }
+    };
+    const alSalir = () => enviar(Date.now() - internoEn > 3000);
+    document.addEventListener('click', alClic, true);
+    document.addEventListener('visibilitychange', alVer);
+    window.addEventListener('pagehide', alSalir);
+    return () => {
+      document.removeEventListener('click', alClic, true);
+      document.removeEventListener('visibilitychange', alVer);
+      window.removeEventListener('pagehide', alSalir);
+      enviar(false); // cambio de página dentro de la web
+    };
+  }, [ruta, medir]);
 
   if (!medir) return null;
   return (

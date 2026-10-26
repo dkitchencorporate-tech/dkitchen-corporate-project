@@ -1,7 +1,8 @@
 import { exigirAdmin } from '@/lib/guard-admin';
-import { leerMapa } from '@/lib/mapa-web';
+import { leerCalor, leerMapa } from '@/lib/mapa-web';
 import GuiaZona from '@/components/admin/GuiaZona';
 import MapaWeb from '@/components/admin/MapaWeb';
+import CalorWeb from '@/components/admin/CalorWeb';
 
 export const dynamic = 'force-dynamic';
 // El recorrido (acción de esta página) puede tardar varios minutos.
@@ -14,9 +15,11 @@ export const maxDuration = 300;
  */
 export default async function Mapa({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAdmin();
-  const r = (await searchParams).r;
+  const sp = await searchParams;
+  const r = sp.r;
+  const dias = [7, 30, 90].includes(Number(sp.d)) ? Number(sp.d) : 30;
   const id = r && /^[0-9a-f-]{36}$/i.test(r) ? r : null;
-  const mapa = await leerMapa(jwt, id);
+  const [mapa, calor] = await Promise.all([leerMapa(jwt, id), leerCalor(jwt, dias)]);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-10">
@@ -28,8 +31,9 @@ export default async function Mapa({ searchParams }: { searchParams: Promise<Rec
       <GuiaZona titulo="Mapa" ancla="mapa"
         que="Una foto de la web tal como la ve un visitante: cada página, sus salidas y entradas, y los avisos."
         pasos={['Pulsa «Recorrer ahora» tras cada cambio grande de la web (tarda 1–4 minutos).', 'Pulsa una página para ver de dónde se llega y adónde se puede ir.', 'Usa «Solo callejones» y «Solo rotos» para la lista de arreglos; el objetivo es dejarlos en 0.']}
-        ojo={['Callejón = página sin ningún botón o enlace propio: solo el menú y el pie.', 'Los botones que navegan solo con JavaScript no salen aquí (los medirá E3).']} />
+        ojo={['Callejón = página sin ningún botón o enlace propio: solo el menú y el pie.', 'Los botones que navegan solo con JavaScript no salen en el plano: el bloque Calor (abajo) sí los cuenta, con los clics reales de quien acepta las cookies.']} />
       <MapaWeb mapa={mapa} />
+      <CalorWeb calor={calor} dias={dias} recorrido={id} />
     </div>
   );
 }
