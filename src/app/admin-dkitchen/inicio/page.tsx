@@ -8,6 +8,8 @@ import { resumenProyectos } from '@/lib/proyectos';
 import GuiaZona from '@/components/admin/GuiaZona';
 import { recordatoriosPendientes } from '@/lib/comunicaciones';
 import { recordatorioHechoAction } from '../qr/comunicacion';
+import { MontajesInicio } from '@/components/admin/MontajeGratis';
+import { montajesGratis } from '@/lib/montajes-gratis';
 
 export const dynamic = 'force-dynamic';
 
@@ -151,7 +153,7 @@ export default async function CentralInicio() {
   ]);
   const avisos = evaluarCapacidad(capacidad);
   // 0089: recordatorios de la ficha 360 («llámale el día X») de hoy, mañana o atrasados
-  const recordatorios = await recordatoriosPendientes(jwt).catch(() => []);
+  const [recordatorios, montajes] = await Promise.all([recordatoriosPendientes(jwt).catch(() => []), montajesGratis(jwt).catch(() => null)]);
   const hace30 = Date.now() - 30 * 864e5;
   // 0061: las cuentas demo internas y las archivadas no cuentan en nada de esta portada.
   const reales = clientes.filter((c) => !c.demoInterna && !c.archivadoEn);
@@ -229,6 +231,8 @@ export default async function CentralInicio() {
         </span>
         <span className={`font-display text-3xl font-semibold tabular-nums ${proyectos?.hoy ? 'text-vino' : ''}`}>{proyectos?.hoy ?? '—'}</span>
       </Link>
+
+      <MontajesInicio m={montajes} />
 
       <div className="grid gap-3 lg:grid-cols-3">
         <div className="lg:col-span-2"><Lista titulo="Atender hoy" vacio="Nada pendiente. Todo al día." filas={atender} accion="Abre la ficha para responder o gestionar el envío." /></div>

@@ -18,7 +18,9 @@ import { anularEnlaceAction, regalarTodoAction, reenviarAccesoAction, cambiarEst
   darDeBajaAction, anularBajaAction, archivarAction, demoInternaAction, entrarSoporteAction } from '../actions';
 import { QR_MENU, PLANES_QR, esPlanQr, nombrePlan } from '@/lib/pricing-config';
 import GuiaZona from '@/components/admin/GuiaZona';
-import { listarProyectos, nombreFase, PRODUCTOS_PROYECTO } from '@/lib/proyectos';
+import { listarProyectos, nombreFase, PRODUCTOS_PROYECTO } from '@/lib/proyectos';
+import MontajeGratisFicha from '@/components/admin/MontajeGratis';
+import { montajesGratis } from '@/lib/montajes-gratis';
 
 export const dynamic = 'force-dynamic';
 
@@ -124,14 +126,15 @@ function Cambios({ e }: { e: EntradaHistorial }) {
   return nombre ? <p className="mt-1 text-xs text-niebla">«{valor(nombre)}»</p> : null;
 }
 
-export default async function FichaClienteQr({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function FichaClienteQr({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ montaje?: string }> }) {
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
   if (!UUID.test(id)) notFound();
   const jwt = await exigirAdmin();
   const [ficha, historial, servicios, enlaces, catalogo, cobro] = await Promise.all([fichaCliente(jwt, id), historialCliente(jwt, id), serviciosCliente(jwt, id), listarEnlaces(jwt, id), catalogoPrecios(jwt), resumenCobro(jwt, id)]);
   // Ficha 360 (0089): uso frente a su plan, comunicaciones y sus tickets
   const [uso, comunicaciones, tickets] = await Promise.all([usoPlanCliente(jwt, id).catch(() => []), verComunicaciones(jwt, id).catch(() => []), bandejaSoporte(jwt).then((l) => l.filter((t) => t.restauranteId === id)).catch(() => [])]);
   const abiertosTk = tickets.filter((t) => t.estado === 'abierto').length;
+  const montajes = await montajesGratis(jwt).catch(() => null);
   if (!ficha?.restaurante) notFound();
 
   const r = ficha.restaurante;
@@ -379,6 +382,8 @@ export default async function FichaClienteQr({ params }: { params: Promise<{ id:
           {ficha.codigos.length > 0 && <a href={`/kit/${r.id}`} className="inline-block font-semibold text-vino hover:underline">Kit para imprimir (cartel, mesas, pegatinas, flyer) →</a>}
         </section>
       </div>
+
+      <MontajeGratisFicha m={montajes} restaurante={id} volver={`/admin-dkitchen/qr/${id}`} aviso={sp.montaje} />
 
       <section id="acciones" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
         <h2 className="font-display text-xl font-semibold tracking-tight">Acciones</h2>
