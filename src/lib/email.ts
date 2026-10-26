@@ -30,7 +30,7 @@ export function escaparTexto(valor: unknown, max = 5000): string {
  * SMTP_HOST / SMTP_PORT sin tocar código.
  */
 export function crearTransporte() {
-  return nodemailer.createTransport({
+  const t = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.serviciodecorreo.es',
     port: Number(process.env.SMTP_PORT || 465),
     secure: Number(process.env.SMTP_PORT || 465) === 465,
@@ -38,7 +38,42 @@ export function crearTransporte() {
       user: process.env.SMTP_EMAIL,
       pass: process.env.SMTP_PASSWORD,
     },
+    // H17 (28/10): sin límites, un Arsys lento dejaba la petición colgada hasta que Vercel la cortaba.
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
   });
+  return { sendMail: (m: nodemailer.SendMailOptions) => conReintento(() => t.sendMail(m), String(m.subject ?? '')) };
+}
+
+/**
+ * H17 (28/10/2026): un fallo pasajero de Arsys (red, tiempo agotado, 4xx como 421 «demasiadas
+ * conexiones») perdía el correo. Ahora se reintenta 2 veces (a ~1 s y ~3 s). Los rechazos definitivos
+ * (5xx: dirección mala, contenido rechazado) y la autenticación no se reintentan. Si un intento se
+ * corta tras entregar, puede llegar duplicado: mejor eso que perderlo.
+ */
+const ESPERAS_REINTENTO = [1000, 3000];
+const ERRORES_PASAJEROS = new Set(['ECONNECTION', 'ETIMEDOUT', 'ESOCKET', 'ECONNRESET', 'ECONNREFUSED', 'EDNS', 'EPIPE']);
+function esPasajero(e: unknown): boolean {
+  const x = e as { code?: string; responseCode?: number };
+  if (x?.code === 'EAUTH' || x?.code === 'EENVELOPE' || x?.code === 'EMESSAGE') return false;
+  if (typeof x?.responseCode === 'number') return x.responseCode >= 400 && x.responseCode < 500;
+  return !x?.code || ERRORES_PASAJEROS.has(x.code);
+}
+async function conReintento<T>(enviar: () => Promise<T>, asunto: string): Promise<T> {
+  for (let intento = 0; ; intento++) {
+    try {
+      return await enviar();
+    } catch (e) {
+      const x = e as { code?: string; responseCode?: number };
+      if (intento >= ESPERAS_REINTENTO.length || !esPasajero(e)) {
+        console.error(`CORREO NO ENVIADO tras ${intento + 1} intento(s) · ${asunto.slice(0, 80)} · ${x?.code ?? ''} ${x?.responseCode ?? ''}`);
+        throw e;
+      }
+      console.warn(`Correo: reintento ${intento + 1} · ${asunto.slice(0, 80)} · ${x?.code ?? ''} ${x?.responseCode ?? ''}`);
+      await new Promise((r) => setTimeout(r, ESPERAS_REINTENTO[intento] + Math.floor(Math.random() * 400)));
+    }
+  }
 }
 
 export const REMITENTE = () => `DKitchen <${process.env.SMTP_EMAIL}>`;
