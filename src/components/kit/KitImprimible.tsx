@@ -274,18 +274,18 @@ const CSS = `
   font-variant-numeric: lining-nums tabular-nums; line-height: .95; text-wrap: balance; }
 #kit .kit-versalitas { font-family: system-ui, sans-serif; font-size: 7.5pt; letter-spacing: .32em; text-transform: uppercase; font-weight: 600; color: var(--k-acento); }
 #kit .kit-lema { font-family: system-ui, sans-serif; font-size: 7.5pt; letter-spacing: .38em; text-transform: uppercase; font-weight: 600; opacity: .88; }
-#kit .kit-urbano .kit-lema { display: inline-block; width: fit-content; transform: rotate(-2deg); background: var(--k-marca); color: #fff; padding: 1mm 2.5mm; letter-spacing: .2em; font-weight: 800; opacity: 1; }
+#kit.kit-urbano .kit-lema { display: inline-block; width: fit-content; transform: rotate(-2deg); background: var(--k-marca); color: #fff; padding: 1mm 2.5mm; letter-spacing: .2em; font-weight: 800; opacity: 1; }
 #kit .kit-ayuda { font-size: 9.5pt; color: var(--k-suave); font-family: system-ui, sans-serif; }
 #kit .kit-adorno { display: flex; align-items: center; justify-content: center; gap: 3mm; color: var(--k-acento); font-size: 9pt; }
 #kit .kit-adorno span { width: 12mm; height: .6pt; background: currentColor; opacity: .55; }
 #kit .kit-qr svg { display: block; width: 100%; height: 100%; }
 #kit .kit-qr { background: #fff; }
 #kit .kit-logo { height: 13mm; width: 13mm; object-fit: cover; border-radius: 50%; box-shadow: 0 0 0 .8pt rgba(255,255,255,.45); margin-bottom: 3mm; }
-#kit .kit-urbano .kit-logo { border-radius: 3mm; }
+#kit.kit-urbano .kit-logo { border-radius: 3mm; }
 #kit .kit-foto { position: absolute; inset: 0; overflow: hidden; background: var(--k-fondo); }
 #kit .kit-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 #kit .kit-foto-velo { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.28) 0%, transparent 32%, color-mix(in srgb, var(--k-fondo) 75%, transparent) 72%, var(--k-fondo) 100%); }
-#kit .kit-urbano .kit-foto-velo { background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, transparent 30%, rgba(14,13,11,.9) 82%, var(--k-fondo) 100%), linear-gradient(100deg, color-mix(in srgb, var(--k-marca) 55%, transparent), transparent 60%); }
+#kit.kit-urbano .kit-foto-velo { background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, transparent 30%, rgba(14,13,11,.9) 82%, var(--k-fondo) 100%), linear-gradient(100deg, color-mix(in srgb, var(--k-marca) 55%, transparent), transparent 60%); }
 #kit .kit-destacados { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.6mm; font-size: 10.5pt; }
 #kit .kit-destacados li:not(.kit-versalitas) { display: flex; align-items: baseline; gap: 2mm; }
 #kit .kit-destacados li span { font-family: var(--k-titulo); font-style: var(--k-estilo); text-transform: var(--k-caja); font-size: 12pt; }
@@ -296,30 +296,30 @@ const CSS = `
 #kit .kit-cartel { position: relative; display: flex; flex-direction: column; background: var(--k-fondo); }
 #kit .kit-cartel-foto { height: 150mm; bottom: auto; }
 #kit .kit-cartel-cabeza { position: relative; height: 150mm; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; text-align: center; padding: 0 16mm 8mm; gap: 3mm; }
-#kit .kit-urbano .kit-cartel-cabeza { align-items: flex-start; text-align: left; }
-#kit .kit-urbano .kit-cartel-cabeza .kit-adorno { display: none; }
+#kit.kit-urbano .kit-cartel-cabeza { align-items: flex-start; text-align: left; }
+#kit.kit-urbano .kit-cartel-cabeza .kit-adorno { display: none; }
 #kit .kit-cartel-nombre { font-size: 58pt; }
-#kit .kit-urbano .kit-cartel-nombre { font-size: 76pt; line-height: .86; }
+#kit.kit-urbano .kit-cartel-nombre { font-size: 76pt; line-height: .86; }
 #kit .kit-cartel-cuerpo { position: relative; flex: 1; display: grid; grid-template-columns: 82mm 1fr; gap: 10mm; align-items: center; padding: 6mm 16mm 0; }
 #kit .kit-cartel-marco { padding: 3mm; background: var(--k-marca); border-radius: 5mm; box-shadow: 0 10mm 20mm -10mm rgba(0,0,0,.6); }
-#kit .kit-gastro .kit-cartel-marco { background: none; border: .8pt solid var(--k-acento); border-radius: 0; padding: 4mm; box-shadow: none; }
+#kit.kit-gastro .kit-cartel-marco { background: none; border: .8pt solid var(--k-acento); border-radius: 0; padding: 4mm; box-shadow: none; }
 #kit .kit-qr-cartel { width: 76mm; height: 76mm; padding: 5mm; border-radius: 3mm; }
-#kit .kit-gastro .kit-qr-cartel { border-radius: 0; }
+#kit.kit-gastro .kit-qr-cartel { border-radius: 0; }
 #kit .kit-cartel-texto { display: flex; flex-direction: column; gap: 3.5mm; }
 #kit .kit-cartel-titular { font-size: 30pt; }
-#kit .kit-urbano .kit-cartel-titular { font-size: 36pt; }
+#kit.kit-urbano .kit-cartel-titular { font-size: 36pt; }
 #kit .kit-pie { position: relative; padding: 0 16mm 11mm; text-align: center; font-size: 8.5pt; letter-spacing: .08em; color: var(--k-suave); font-family: system-ui, sans-serif; }
 
 #kit .kit-tarjeta { position: relative; display: flex; flex-direction: column; background: var(--k-fondo); outline: .4pt dashed rgba(0,0,0,.3); outline-offset: -.2pt; overflow: hidden; }
 #kit .kit-tarjeta-foto { height: 52mm; bottom: auto; }
 #kit .kit-tarjeta-cabeza { position: relative; height: 52mm; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; text-align: center; padding: 0 8mm 3mm; gap: 1.5mm; }
-#kit .kit-urbano .kit-tarjeta-cabeza { align-items: flex-start; text-align: left; }
+#kit.kit-urbano .kit-tarjeta-cabeza { align-items: flex-start; text-align: left; }
 #kit .kit-tarjeta-nombre { font-size: 22pt; }
-#kit .kit-urbano .kit-tarjeta-nombre { font-size: 26pt; }
+#kit.kit-urbano .kit-tarjeta-nombre { font-size: 26pt; }
 #kit .kit-tarjeta-cuerpo { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.5mm; text-align: center; padding: 2mm 8mm 7mm; }
 #kit .kit-mesa { display: flex; align-items: baseline; gap: 2.5mm; font-size: 26pt; }
 #kit .kit-tarjeta-qr { padding: 2mm; background: var(--k-marca); border-radius: 3mm; }
-#kit .kit-gastro .kit-tarjeta-qr { background: none; border: .6pt solid var(--k-acento); border-radius: 0; }
+#kit.kit-gastro .kit-tarjeta-qr { background: none; border: .6pt solid var(--k-acento); border-radius: 0; }
 #kit .kit-qr-tarjeta { width: 40mm; height: 40mm; padding: 2.5mm; border-radius: 2mm; }
 #kit .kit-tarjeta-titular { font-size: 16pt; }
 
@@ -335,7 +335,7 @@ const CSS = `
 #kit .kit-flyer-izq .kit-foto-velo { background: linear-gradient(180deg, rgba(0,0,0,.2) 0%, transparent 35%, color-mix(in srgb, var(--k-fondo) 80%, transparent) 78%, var(--k-fondo) 100%); }
 #kit .kit-flyer-nombre { position: absolute; inset: auto 0 0 0; padding: 0 9mm 9mm; display: flex; flex-direction: column; gap: 2mm; }
 #kit .kit-flyer-titulo { font-size: 30pt; }
-#kit .kit-urbano .kit-flyer-titulo { font-size: 38pt; line-height: .86; }
+#kit.kit-urbano .kit-flyer-titulo { font-size: 38pt; line-height: .86; }
 #kit .kit-flyer-der { display: flex; flex-direction: column; gap: 4.5mm; padding: 11mm 11mm 10mm; }
 #kit .kit-flyer-frase { font-family: var(--k-titulo); font-style: var(--k-estilo); font-weight: var(--k-peso); text-transform: var(--k-caja); font-size: 16pt; line-height: 1.08; }
 #kit .kit-flyer-datos { display: grid; grid-template-columns: auto 1fr; gap: 1.4mm 4mm; font-size: 8.5pt; font-family: system-ui, sans-serif; }
@@ -344,7 +344,7 @@ const CSS = `
 #kit .kit-flyer-qr { margin-top: auto; display: flex; align-items: center; gap: 4mm; font-size: 9pt; color: var(--k-suave); font-family: system-ui, sans-serif; }
 #kit .kit-flyer-qr .kit-titulo { font-size: 15pt; color: var(--k-tinta); }
 #kit .kit-qr-flyer { width: 28mm; height: 28mm; padding: 2mm; flex-shrink: 0; border-radius: 2mm; box-shadow: 0 0 0 1.5mm var(--k-marca); }
-#kit .kit-gastro .kit-qr-flyer { border-radius: 0; box-shadow: 0 0 0 .6pt var(--k-acento); }
+#kit.kit-gastro .kit-qr-flyer { border-radius: 0; box-shadow: 0 0 0 .6pt var(--k-acento); }
 
 @media screen and (max-width: 860px) { #kit .kit-hoja { zoom: .42; } }
 @media print {
