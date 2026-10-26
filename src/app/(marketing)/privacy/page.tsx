@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import BarraSalida from '@/components/dk/BarraSalida';
 
 export const metadata: Metadata = {
   title: 'Política de privacidad · DKitchen Corporate',
@@ -48,6 +49,7 @@ export default function Privacidad() {
           ))}
         </ol>
       </article>
+      <BarraSalida />
     </div>
   );
 }

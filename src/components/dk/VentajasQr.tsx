@@ -38,7 +38,7 @@ export default function VentajasQr({ oscuro = false }: { oscuro?: boolean }) {
           <p className={`mt-2 ${sub}`}>Si te quedas corto con {QR_MENU.planes.sala.nombre} o necesitas funciones a medida, te hacemos un plan QR personalizado, sin tener que pasar a una app propia. Se paga por capacidad de uso.</p>
         </div>
         <div className="flex flex-col gap-2 md:items-end">
-          <Link href="/contacto?interes=enterprise" className="rounded-full bg-tinta px-6 py-3 text-center text-sm font-semibold text-white">Pedir mi plan a medida</Link>
+          <Link href="/contacto?i=no_se&o=enterprise" className="rounded-full bg-tinta px-6 py-3 text-center text-sm font-semibold text-white">Pedir mi plan a medida</Link>
           <p className={`text-xs ${sub}`}>¿Quieres tu propia app? <Link href="/signature" className="underline">Signature</Link> · ¿Días flojos? <Link href="/experience" className="underline">Experience</Link></p>
         </div>
       </Aparecer>

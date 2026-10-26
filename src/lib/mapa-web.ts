@@ -6,7 +6,9 @@ import { comoCliente } from '@/lib/db';
  * sin sesión: parte del sitemap y de unas entradas fijas (portada, demo del panel, pago), sigue los enlaces
  * y formularios internos y guarda el grafo. Avisos:
  *  · roto: la URL interna responde ≥ 400 o no responde;
- *  · callejón: página interna sin ninguna salida propia (solo el menú y el pie, que salen en casi todas);
+ *  · callejón: página interna sin ninguna salida propia. Si la página tiene <main> (layout de marketing), cuenta todo
+ *    enlace dentro de él, aunque vaya a un destino del menú (26/10: /terms con «Volver · Precios · 1 €» salía como
+ *    callejón); sin <main>, salida propia = destino que no está en el menú ni en el pie;
  *  · externo: destino fuera del dominio (no se recorre).
  * El HTML se lee tal cual llega (las páginas se pintan en el servidor); los botones que solo navegan con
  * JavaScript no aparecen: para eso está la medición de E3.
@@ -97,6 +99,7 @@ export async function recorrerWeb(): Promise<{ duracion_ms: number; nodos: NodoM
   const familias = new Map<string, number>();
   const nodos = new Map<string, NodoMapa>();
   const salidas = new Map<string, ReturnType<typeof salidasDe>>();
+  const enMain = new Map<string, Set<string>>();
 
   const admitir = (ruta: string) => {
     if (vistos.has(ruta) || SIN_RECORRER.test(ruta.split('?')[0]) || vistos.size >= MAX_PAGINAS) return false;
@@ -113,6 +116,8 @@ export async function recorrerWeb(): Promise<{ duracion_ms: number; nodos: NodoM
       const r = await leer(ruta);
       const sal = r.html ? salidasDe(r.html, ORIGEN_MAPA + ruta) : [];
       salidas.set(ruta, sal);
+      const main = r.html ? /<main\b[\s\S]*<\/main>/i.exec(r.html)?.[0] : undefined;
+      if (main) enMain.set(ruta, new Set(salidasDe(main, ORIGEN_MAPA + ruta).map((s) => s.url)));
       nodos.set(ruta, {
         url: ruta, zona: zonaDe(ruta.split('?')[0]), titulo: r.html ? limpiarTexto(/<title[^>]*>([\s\S]*?)<\/title>/i.exec(r.html)?.[1] ?? '') : null,
         estado_http: r.estado, ms: r.ms, callejon: false, roto: r.estado === null || r.estado >= 400, externo: false,
@@ -133,7 +138,8 @@ export async function recorrerWeb(): Promise<{ duracion_ms: number; nodos: NodoM
     let propias = 0;
     for (const s of sal) {
       const global = esGlobal(s.url);
-      if (s.url !== origen && !global) propias++;
+      const enSuMain = enMain.get(origen);
+      if (s.url !== origen && (enSuMain ? enSuMain.has(s.url) : !global)) propias++;
       const k = `${origen}|${s.url}|${s.tipo}`;
       if (claves.has(k)) continue;
       claves.add(k);

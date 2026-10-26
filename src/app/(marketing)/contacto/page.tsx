@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import FormularioContacto from '@/components/contacto/FormularioContacto';
 import { FondoVivo } from '@/components/dk/Movimiento';
 
@@ -22,6 +23,9 @@ export default async function Contacto({ searchParams }: { searchParams: Promise
         <h1 className="font-display mt-4 text-4xl font-semibold leading-[1.04] md:text-5xl">Cuéntanos tu caso en 30 segundos.</h1>
         <p className="mt-4 text-lg text-white/70">Así, la persona que te escriba por WhatsApp llega sabiendo quién eres y qué necesitas. Sin repetir nada.</p>
         <FormularioContacto origen={origen} interesInicial={interes} />
+        <p className="mt-10 text-sm text-white/55">
+          ¿Prefieres mirar antes? <Link href="/demos/carta" className="text-oro underline-offset-4 hover:underline">Ver cartas de muestra</Link> · <Link href="/precios" className="text-oro underline-offset-4 hover:underline">Precios</Link>
+        </p>
       </div>
     </div>
   );
