@@ -22,7 +22,7 @@ export const GUIAS: Record<string, { titulo: string; pasos: string[] }> = {
   escaneos: { titulo: 'Visitas de tu carta', pasos: ['Cada escaneo es una vez que alguien abre tu carta desde el QR.', 'El contador grande es del mes en curso: el día 1 vuelve a empezar. Abajo ves los últimos 30 días.'] },
   local: { titulo: 'Datos de tu local', pasos: ['Nombre, logo, horario, teléfono y dirección aparecen en tu carta.', 'El logo se guarda solo al pulsar «Usar esta imagen» o al subirlo. El resto de datos, con «Guardar cambios» al final de la página.', 'Pon tu WhatsApp para recibir reservas.', 'Sigue la guía para poner tu carta en Google Maps.'] },
   plan: { titulo: 'Tu plan y tus cobros', pasos: ['Ves lo que pagas, el próximo cobro (día 12) y el desglose.', 'Desde aquí subes de plan o te das de baja.'] },
-  modulos: { titulo: 'Mejoras para tu local', pasos: ['Cada mejora muestra su precio antes de pagar.', 'Imágenes con IA: 3 gratis y bono de 50 cuando lo necesites.', 'Signature: tu propia app con pedidos y clientes.'] },
+  modulos: { titulo: 'Mejoras para tu local', pasos: ['Todo lo que se puede añadir está aquí, con su precio antes de pedirlo.', 'En fechas señaladas (Halloween, Navidad…) verás arriba un pack de temporada que montamos nosotros.', 'Imágenes con IA: 3 gratis y el bono de 50 cuando lo necesites; idiomas y puesta a punto, pago único.'] },
   soporte: { titulo: 'Ayuda', pasos: ['Pulsa «Abrir el chat de ayuda» para respuestas al momento.', 'Si no se resuelve, se lo pasa a una persona con todo el contexto.', 'Aquí ves tus mensajes y nuestras respuestas.'] },
 };
 

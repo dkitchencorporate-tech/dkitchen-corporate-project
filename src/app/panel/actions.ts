@@ -42,7 +42,7 @@ import { crearCheckoutServicio, crearCheckoutCambioPlan, crearCheckoutEnlaceAdmi
 import { PLANES_QR, esPlanQr } from '@/lib/pricing-config';
 import { cancelarTodoAlFinalDelPeriodo, suscripcionesVivas, urlPortalCliente } from '@/lib/payments/stripe';
 import { quedarmeConTodo, fijarUrlPrueba } from '@/lib/prueba';
-import { estadoServicios, tiene, registrarOferta as dbRegistrarOferta, type Servicio } from '@/lib/servicios';
+import { estadoServicios, tiene, registrarOferta as dbRegistrarOferta, solicitarOfertaFecha as dbSolicitarOfertaFecha, type Servicio } from '@/lib/servicios';
 import { guardarMesa, eliminarMesa, guardarPlano, cargarPlano, type MesaPlano, type ElementoPlano } from '@/lib/sala';
 import { equipoDueno, crearMiembro, editarMiembro, regenerarEnlace, asignarZona } from '@/lib/equipo';
 import type { RolSala } from '@/lib/equipo-tipos';
@@ -528,6 +528,40 @@ export async function comprarServicioAction(servicio: Servicio): Promise<{ url: 
     servicio, nombre: item.nombre, tipo: item.tipo, precioCentimos: item.precioCentimos,
     restauranteId: restaurante.id, restauranteNombre: restaurante.nombre, email: identidad.email, origen,
   });
+}
+
+/**
+ * Oferta por fecha (0105, R5): la base comprueba que sigue en fechas, guarda la solicitud y fija el precio.
+ * Sin pasarela (cobros congelados): aviso a Central y «Solicitud recibida» en el panel. Con pasarela,
+ * se cobra el precio que devolvió la base (al conectarla, el webhook debe marcar la solicitud como en curso).
+ */
+export async function solicitarOfertaFechaAction(id: string): Promise<{ ok: true; url?: string } | { ok: false; error: string }> {
+  if (!UUID.test(id)) return { ok: false, error: 'Oferta no válida.' };
+  try {
+    const { jwt, identidad, restaurante } = await requerirDueno();
+    const s = await dbSolicitarOfertaFecha(jwt, id);
+    const { pagosPausados } = await import('@/lib/payments/stripe');
+    if (!pagosPausados()) {
+      const { url } = await crearCheckoutServicio({
+        servicio: 'oferta_fecha', nombre: s.titulo, tipo: 'unico', precioCentimos: s.precio_centimos,
+        restauranteId: restaurante.id, restauranteNombre: restaurante.nombre, email: identidad.email,
+        origen: process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es',
+      });
+      return { ok: true, url };
+    }
+    const { enviarCorreoInterno, filasCorreo, escaparHtml } = await import('@/lib/email');
+    await enviarCorreoInterno(`OFERTA PEDIDA: ${s.titulo} · ${restaurante.nombre}`,
+      `<p><strong>${escaparHtml(restaurante.nombre)}</strong> ha pedido «${escaparHtml(s.titulo)}» desde Mejoras. No hay pasarela: contactar para prepararla y cobrarla.</p>${filasCorreo([
+        ['Correo', identidad.email], ['Teléfono', restaurante.telefono ?? null], ['Precio (sin IVA, fijado por la base)', `${(s.precio_centimos / 100).toFixed(2).replace('.', ',')} €`]])}`,
+      { boton: { texto: 'Abrir Ofertas en Central', url: 'https://dkitchencorporate.es/admin-dkitchen/ofertas' } }).catch((e) => console.error('Oferta por fecha: correo no enviado', e));
+    revalidatePath('/panel');
+    return { ok: true };
+  } catch (e) {
+    const m = e instanceof Error ? e.message : '';
+    if (/dueño|ya no está disponible|Ya has pedido/.test(m)) return { ok: false, error: m };
+    console.error('Oferta por fecha:', e);
+    return { ok: false, error: 'No se pudo enviar. Inténtalo en unos segundos.' };
+  }
 }
 
 export async function registrarOfertaAction(oferta: string, tipo: 'mostrada' | 'cerrada' | 'aceptada') {
