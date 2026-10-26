@@ -3,15 +3,19 @@ import type { Metadata } from 'next';
 import type { CSSProperties, ReactNode } from 'react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { Cormorant_Garamond } from 'next/font/google';
+import { Anton, Cormorant_Garamond, Playfair_Display } from 'next/font/google';
 
 import { obtenerCartaConRespaldo } from '@/lib/cache-resiliencia';
 import { imagenCarta, metadatosCarta, urlResenas } from '@/lib/carta-compartir';
 import { landingPublica } from '@/lib/landing';
 import type { BloqueLanding, EstiloLanding, Landing } from '@/lib/landing-tipos';
 import Reservar from '@/components/carta/Reservar';
+import { composicionDe } from '@/lib/composiciones';
 
 const serif = Cormorant_Garamond({ weight: ['500', '600'], style: ['normal', 'italic'], subsets: ['latin'], display: 'swap' });
+// 26/10: los títulos hablan la letra de la composición de la carta (la misma que en /m y en el kit).
+const playfair = Playfair_Display({ weight: ['700', '800'], style: ['normal', 'italic'], subsets: ['latin'], display: 'swap', preload: false });
+const anton = Anton({ weight: '400', subsets: ['latin'], display: 'swap', preload: false });
 const versalitas = 'text-[11px] font-medium uppercase tracking-[0.28em]';
 const euros = (p: string) => `${Number(p).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
@@ -50,8 +54,15 @@ export default async function LandingLocal({ params }: { params: Promise<{ slug:
   if (carta.plan === 'basico') redirect(`/m/${carta.slug}`);
   const l: Landing | null = await landingPublica(slug);
 
-  const P = PALETAS[l?.estilo ?? 'noir'];
   const marca = carta.colorMarca || '#6E0C2B';
+  // Sin estilo guardado en el Estudio, la landing toma la piel de la composición de su carta (26/10, diseño de autor automático).
+  const comp = composicionDe(carta);
+  const claro = carta.estiloFondo === 'papel' || carta.estiloFondo === 'blanco';
+  const P = l?.estilo ? PALETAS[l.estilo]
+    : comp === 'urbano' ? { ...PALETAS.noir, fondo: '#0E0D0B', superficie: '#181612', velo: '#0E0D0B', acento: marca }
+    : comp === 'taberna' ? (claro ? { ...PALETAS.crema, acento: marca } : { ...PALETAS.noir, fondo: '#131711', superficie: '#1B2019', velo: '#131711', acento: '#F2D9A6' })
+    : PALETAS[claro ? 'crema' : 'noir'];
+  const tit = comp === 'taberna' ? `${playfair.className} font-bold italic` : comp === 'urbano' ? `${anton.className} uppercase tracking-[0.005em]` : serif.className;
   const portada = imagenCarta(carta);
   const platos = [...carta.secciones.flatMap((s) => s.platos), ...carta.sueltos];
   const elegidos = (l?.destacados ?? []).map((id) => platos.find((p) => p.id === id)).filter((p): p is (typeof platos)[number] => !!p);
@@ -83,7 +94,7 @@ export default async function LandingLocal({ params }: { params: Promise<{ slug:
         ) : <div className="hidden md:block" aria-hidden="true"><p className={`${serif.className} text-[180px] italic leading-none`} style={{ color: P.linea }}>“</p></div>}
         <div className={l?.fotoHistoriaUrl ? '' : 'md:col-span-1'}>
           <p className={versalitas} style={{ color: P.acento }}>La casa</p>
-          <h2 className={`${serif.className} mt-3 text-5xl font-medium leading-[1.02] md:text-6xl`}>Ven a {carta.nombre}</h2>
+          <h2 className={`${tit} mt-3 text-5xl font-medium leading-[1.02] md:text-6xl`}>Ven a {carta.nombre}</h2>
           <div className="mt-6 h-px w-14" style={{ background: P.acento }} />
           <p className={`${serif.className} mt-6 whitespace-pre-line text-xl italic leading-relaxed md:text-2xl`} style={{ color: P.suave }}>
             {l?.historia || carta.descripcion || 'Cocina de verdad, servida con calma. Reserva tu mesa en un minuto y mira la carta antes de venir.'}
@@ -94,7 +105,7 @@ export default async function LandingLocal({ params }: { params: Promise<{ slug:
     destacados: casa.length >= 2 ? (
       <section key="destacados" className="mx-auto max-w-6xl px-6 pb-24">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div><p className={versalitas} style={{ color: P.acento }}>De nuestra cocina</p><h2 className={`${serif.className} mt-3 text-5xl font-medium`}>Platos de la casa</h2></div>
+          <div><p className={versalitas} style={{ color: P.acento }}>De nuestra cocina</p><h2 className={`${tit} mt-3 text-5xl font-medium`}>Platos de la casa</h2></div>
           <Link href={verCarta} className={`${versalitas} border-b pb-1`} style={{ borderColor: P.acento }}>Toda la carta →</Link>
         </div>
         <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -103,7 +114,7 @@ export default async function LandingLocal({ params }: { params: Promise<{ slug:
               {p.fotoUrl && <img src={p.fotoUrl} alt={p.nombre} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />}
               <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
               <span className="absolute inset-x-0 bottom-0 p-4 text-[#F4EEE4]">
-                <span className={`${serif.className} block leading-tight ${i === 0 && casa.length >= 3 ? 'text-3xl' : 'text-[22px]'}`}>{p.nombre}</span>
+                <span className={`${tit} block leading-tight ${i === 0 && casa.length >= 3 ? 'text-3xl' : 'text-[22px]'}`}>{p.nombre}</span>
                 <span className={`${serif.className} text-lg`} style={{ color: P.claro ? '#F2C14E' : P.acento }}>{euros(p.precio)}</span>
               </span>
             </li>
@@ -130,7 +141,7 @@ export default async function LandingLocal({ params }: { params: Promise<{ slug:
     ),
     resenas: (
       <section key="resenas" className="px-6 pb-24 text-center">
-        <p className={`${serif.className} text-[44px] italic leading-tight`}>¿Ya nos conoces?</p>
+        <p className={`${tit} text-[44px] leading-tight`}>¿Ya nos conoces?</p>
         <p className="mx-auto mt-3 max-w-md" style={{ color: P.suave }}>Tu opinión ayuda a otros a encontrarnos.</p>
         <a href={resenas} target="_blank" rel="noopener" className={`${boton} mt-6 border`} style={secundario}><span className="mr-2" style={{ color: '#F2C14E' }}>★★★★★</span> Opiniones en Google</a>
       </section>
@@ -138,7 +149,7 @@ export default async function LandingLocal({ params }: { params: Promise<{ slug:
     faq: (l?.faq?.length ?? 0) > 0 ? (
       <section key="faq" className="mx-auto max-w-3xl px-6 pb-24">
         <p className={`${versalitas} text-center`} style={{ color: P.acento }}>Antes de venir</p>
-        <h2 className={`${serif.className} mt-3 text-center text-5xl font-medium`}>Preguntas frecuentes</h2>
+        <h2 className={`${tit} mt-3 text-center text-5xl font-medium`}>Preguntas frecuentes</h2>
         <div className="mt-10 divide-y" style={{ borderColor: P.linea }}>
           {l!.faq.map((q) => (
             <details key={q.p} className="group py-5" style={{ borderColor: P.linea }}>
@@ -153,7 +164,7 @@ export default async function LandingLocal({ params }: { params: Promise<{ slug:
       <section key="reserva" className="px-6 pb-24">
         <div className="mx-auto max-w-xl rounded-[30px] p-10 text-center" style={{ background: P.superficie, boxShadow: `0 0 0 1px ${P.linea}` }}>
           <p className={versalitas} style={{ color: P.acento }}>Reservas</p>
-          <h2 className={`${serif.className} mt-3 text-5xl font-medium`}>Te guardamos mesa</h2>
+          <h2 className={`${tit} mt-3 text-5xl font-medium`}>Te guardamos mesa</h2>
           <p className="mt-3" style={{ color: P.suave }}>Elige día, hora y personas. Te confirmamos enseguida.</p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <Reservar slug={carta.slug} color={marca} nombreLocal={carta.nombre} />
@@ -168,9 +179,9 @@ export default async function LandingLocal({ params }: { params: Promise<{ slug:
     <main className="min-h-screen antialiased" style={{ background: P.fondo, color: P.tinta, '--marca': marca } as CSSProperties}>
       <style>{`@keyframes dk-zoom{from{transform:scale(1.12)}to{transform:scale(1)}}@media (prefers-reduced-motion:no-preference){.dk-portada{animation:dk-zoom 9s ease-out both}}`}</style>
       {/* Portada */}
-      <header className={`relative overflow-hidden ${carta.portadaConNombre ? 'flex min-h-[86vh] flex-col justify-end pt-[min(62vw,520px)]' : 'h-[92vh] min-h-[560px]'}`}>
+      <header className={`relative overflow-hidden ${carta.portadaConNombre ? 'flex flex-col pt-16 sm:pt-20' : 'h-[92vh] min-h-[560px]'}`}>
         {portada && carta.portadaConNombre && <img src={portada} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-125 object-cover opacity-30 blur-3xl" />}
-        {portada && <img src={portada} alt="" className={carta.portadaConNombre ? 'absolute inset-x-0 top-0 mx-auto w-full max-w-4xl' : 'dk-portada absolute inset-0 h-full w-full object-cover'} />}
+        {portada && <img src={portada} alt="" className={carta.portadaConNombre ? 'relative mx-auto w-full max-w-4xl sm:rounded-[28px]' : 'dk-portada absolute inset-0 h-full w-full object-cover'} />}
         <div className="absolute inset-0" style={{ background: `linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.08) 35%,rgba(0,0,0,.5) 62%,${P.velo} 100%)` }} />
         <nav className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 py-4 sm:px-10">
           {carta.logoUrl ? <img src={carta.logoUrl} alt={carta.nombre} className="h-12 w-12 rounded-full object-cover ring-1 ring-white/40" /> : <span />}
@@ -178,7 +189,7 @@ export default async function LandingLocal({ params }: { params: Promise<{ slug:
         </nav>
         <div className={`z-10 mx-auto max-w-3xl px-6 pb-14 text-center ${carta.portadaConNombre ? 'relative w-full pt-6' : 'absolute inset-x-0 bottom-0'}`} style={{ color: P.claro && carta.portadaConNombre ? P.tinta : '#FFFFFF' }}>
           <p className={`${versalitas} opacity-80`}>{l?.titular ? carta.nombre : 'Bienvenidos'}</p>
-          {!carta.portadaConNombre && <h1 className={`${serif.className} mt-3 text-[clamp(48px,12vw,104px)] font-medium leading-[0.95]`}>{l?.titular || carta.nombre}</h1>}
+          {!carta.portadaConNombre && <h1 className={`${tit} mt-3 text-[clamp(48px,12vw,104px)] font-medium leading-[0.95]`}>{l?.titular || carta.nombre}</h1>}
           {carta.portadaConNombre && <h1 className="sr-only">{l?.titular || carta.nombre}</h1>}
           {(l?.subtitulo || carta.descripcion) && <p className={`${serif.className} mx-auto mt-4 max-w-lg text-2xl italic leading-snug opacity-90`}>{l?.subtitulo || carta.descripcion}</p>}
           <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -194,7 +205,7 @@ export default async function LandingLocal({ params }: { params: Promise<{ slug:
       {bloques.map((b) => secciones[b])}
 
       <footer className="pb-12 pt-6 text-center" style={{ borderTop: `1px solid ${P.linea}` }}>
-        <p className={`${serif.className} mt-10 text-3xl`}>{carta.nombre}</p>
+        <p className={`${tit} mt-10 text-3xl`}>{carta.nombre}</p>
         <p className="mt-3 text-[10px] uppercase tracking-[0.2em]" style={{ color: P.suave }}>Web y carta digital · <a href="https://dkitchencorporate.es/qr">DKitchen</a></p>
       </footer>
     </main>
