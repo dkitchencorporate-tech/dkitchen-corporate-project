@@ -25,7 +25,7 @@ const BASE = 'https://api.stripe.com/v1';
  * termina en una solicitud de alta (/pago/reserva) y Central recibe los
  * datos del cliente por correo para contactarle. No se cobra nada.
  */
-export const pagosPausados = () => true;
+export const pagosPausados = () => false;
 const RESERVA = 'reserva';
 const escapar = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string);
 async function avisarReserva(cliente: string, concepto: string, metadata: Record<string, string | undefined>): Promise<string> {

@@ -70,13 +70,6 @@ export const PRODUCTOS_PAGO: Record<string, ProductoPago> = {
     despues: [['Al momento', 'Te creamos tu zona de Experience (te llega el correo para fijar tu contraseña): allí nos cuentas tu evento en 5 minutos.'], ['Cuando tú elijas', 'Agendas la llamada de arranque desde tu zona; en el día 3, el concepto para que lo apruebes.'], ['En unas 3 semanas', 'Tu evento queda listo: web, entradas y anuncios en marcha.']],
     garantias: ['Pago seguro gestionado por Stripe', 'Factura a nombre de tu negocio', 'Sin comisión sobre tus entradas'],
     volver: { href: '/experience', t: 'Volver a Experience' },
-    registro: {
-      despues: [
-        ['Ahora', 'Nos dejas tu idea y tus datos. No pagas nada.'],
-        ['En menos de 48 horas laborables', 'Te llamamos para cerrar contigo formato, fecha y aforo.'],
-        ['Cuando esté todo confirmado', 'Te enviamos el enlace de pago y arrancamos: concepto en 3 días y evento listo en unas 3 semanas.'],
-      ],
-    },
   },
 };
 
