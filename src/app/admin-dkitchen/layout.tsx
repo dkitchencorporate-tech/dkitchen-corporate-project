@@ -36,7 +36,7 @@ export default async function AdminLayout({
   const cuenta = { nombre: yo?.nombre || 'Administrador', email: yo?.email ?? '' };
   return (
     <>
-      <div className="flex min-h-screen flex-col bg-crema text-carbon selection:bg-orange-500/30 md:flex-row">
+      <div className="flex h-[100dvh] overflow-hidden flex-col bg-crema text-carbon selection:bg-orange-500/30 md:flex-row">
         {/* Navigation Sidebar */}
         <AdminSidebar cuenta={cuenta} avisos={avisos} />
 

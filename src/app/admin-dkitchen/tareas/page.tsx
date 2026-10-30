@@ -2,6 +2,7 @@ import { exigirAdmin } from '@/lib/guard-admin';
 import { verTareas, BLOQUES, RESPONSABLES, URGENCIAS, ESTADOS_COMUNICACION, RESULTADOS_CLAUDE, type Tarea } from '@/lib/tareas';
 import { verRevisiones, ESTADOS_REVISION, ESTADOS_CLAUDE, type Revision } from '@/lib/revisiones';
 import { verDecisiones } from '@/lib/decisiones';
+import { esDePlanificacion } from '@/lib/planificacion';
 import { enlaceDocumento } from '@/lib/documentos';
 import GuiaZona from '@/components/admin/GuiaZona';
 import RevisionForm from '@/components/admin/RevisionForm';
@@ -34,7 +35,9 @@ const urgente = (t: Tarea, hoy: string) => t.estado !== 'hecha' && esMia(t) && (
 export default async function MisTareas({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAdmin();
   const sp = await searchParams;
-  const [tareas, revisiones, decisiones] = await Promise.all([verTareas(jwt).catch(() => null), verRevisiones(jwt).catch(() => null), verDecisiones(jwt).catch(() => null)]);
+  const [tareas, revisionesTodas, decisiones] = await Promise.all([verTareas(jwt).catch(() => null), verRevisiones(jwt).catch(() => null), verDecisiones(jwt).catch(() => null)]);
+  // 30/10 (karc0): lo de Venezuela y pasarelas descartadas sale de aquí y vive en Lanzamiento → Planificación.
+  const revisiones = revisionesTodas?.filter((r) => !esDePlanificacion(r.titulo, r.queCambio)) ?? null;
   const porDecidir = decisiones?.filter((d) => d.estado === 'pendiente').length ?? 0;
   // 30/10 (karc0): Venezuela, dk-vzl y pasarelas descartadas viven en su propia pestaña «Planificación»; no entran en Hoy ni en Lo mío.
   const planificacion = (tareas ?? []).filter((t) => t.bloque === 'planificacion' && t.estado !== 'hecha');
@@ -76,7 +79,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const revsVisibles = revisiones?.filter(GRUPOS_REV[filtroRev]) ?? [];
   const ZONAS = [
     ['hoy', 'Hoy', H.mias.length], ['mias', 'Lo mío', zonas.mias.length], ['claude', 'De Claude', zonas.claude.length],
-    ['comunicacion', 'Comunicación', comunicaciones.filter(GRUPOS_COM.respondidas).length], ['revisiones', 'Revisiones', revPend], ['planificacion', 'Planificación', planificacion.length], ['resueltas', 'Resueltas', zonas.resueltas.length],
+    ['comunicacion', 'Comunicación', comunicaciones.filter(GRUPOS_COM.respondidas).length], ['revisiones', 'Revisiones', revPend], ['resueltas', 'Resueltas', zonas.resueltas.length],
   ] as const;
   const pedida = sp.zona === 'enviadas' ? 'comunicacion' : sp.zona;
   const zona = (ZONAS.some(([k]) => k === pedida) ? pedida : H.mias.length || H.adelantoMias ? 'hoy' : 'mias') as (typeof ZONAS)[number][0];

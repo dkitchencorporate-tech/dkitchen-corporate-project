@@ -24,7 +24,7 @@ La documentación completa de la migración de Architect.Sys a DKitchen vive en 
 
 ## Pagos
 
-**No hay ninguna pasarela de pago conectada** (25/10/2026, karc0: la elección de pasarela queda congelada hasta nueva directriz). El checkout y su configuración interna se conservan, pero todo cobro termina en una solicitud de alta (`/pago/reserva`) y el aviso llega a Central por correo. No conectar ninguna pasarela sin orden expresa de karc0. Todo precio se lee de `src/lib/pricing-config.ts`: ningún componente, copy o metadata escribe un precio a mano.
+**Stripe es la pasarela única y está conectada** (30/10/2026, karc0): DKitchen opera al 100 % en España; titular inicial Elisabet (autónoma). Claves solo en variables de Vercel. Kunfupay, PayPal, LLC y DKitchen Venezuela quedan en Central → Lanzamiento → Planificación. El precio se valida siempre en el servidor. Todo precio se lee de `src/lib/pricing-config.ts`: ningún componente, copy o metadata escribe un precio a mano.
 
 ## Ramas y despliegue
 
