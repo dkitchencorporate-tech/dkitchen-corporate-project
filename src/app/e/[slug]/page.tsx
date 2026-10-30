@@ -59,7 +59,7 @@ export default async function Evento({ params }: Props) {
       {e.muestra && (
         <div className="bg-oro px-4 py-2.5 text-center text-[13px] font-semibold text-noche">
           Así verán tus clientes tu evento · evento de muestra con un local inventado, no se venden entradas.
-          {formato && <> <Link href={`/experience/${formato.slug}#configurar`} className="underline underline-offset-2">Quiero este evento en mi local →</Link> · <Link href="/experience#formatos" className="underline underline-offset-2">Ver otros eventos</Link></>}
+          {formato && <> <Link href={`/experience/${formato.slug}#configurar`} className="ml-2 inline-block rounded-full bg-noche px-4 py-1.5 text-white">Quiero este evento en mi local →</Link> · <Link href="/experience#formatos" className="underline underline-offset-2">Ver otros eventos</Link></>}
         </div>
       )}
 

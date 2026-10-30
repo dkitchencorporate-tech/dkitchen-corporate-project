@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
+import BarraDemo from '@/components/BarraDemo';
+
 export default function DemoCartaLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return <><BarraDemo />{children}</>;
 }

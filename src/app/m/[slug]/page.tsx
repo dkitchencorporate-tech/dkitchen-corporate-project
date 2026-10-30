@@ -1,3 +1,4 @@
+import BarraDemo from '@/components/BarraDemo';
 import type { Metadata } from 'next';
 import type { CSSProperties, ReactNode } from 'react';
 import { notFound } from 'next/navigation';
@@ -175,6 +176,7 @@ export default async function CartaPublica({
 
   return (
     <main className={`min-h-screen ${fondo} ${letra}`} style={{ '--marca': color } as CSSProperties}>
+      {slug === 'demo' && <BarraDemo />}
       {plantilla === 'editorial' ? (
         <CabeceraEditorial carta={carta} accion={reservar} />
       ) : plantilla === 'visual' ? (

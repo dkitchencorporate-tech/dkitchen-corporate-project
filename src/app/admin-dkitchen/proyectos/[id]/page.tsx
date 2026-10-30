@@ -4,6 +4,7 @@ import { exigirAdmin } from '@/lib/guard-admin';
 import { fichaProyecto, nombreFase, textoFaseCliente, PRODUCTOS_PROYECTO } from '@/lib/proyectos';
 import { avanzarFaseAction, anotarAction, guardarDatosAction } from '../actions';
 import { listarClientesQr } from '@/lib/admin-clientes';
+import EnlacePagoProyecto from '@/components/admin/EnlacePagoProyecto';
 import GuiaZona from '@/components/admin/GuiaZona';
 
 export const dynamic = 'force-dynamic';
@@ -160,6 +161,7 @@ export default async function FichaProyecto({ params, searchParams }: { params: 
         </section>
 
         <div className="space-y-5">
+          {(p.producto === 'experience' || p.producto === 'signature' || p.producto === 'auditoria') && <EnlacePagoProyecto producto={p.producto} telefono={p.telefono} email={p.email} />}
           <section className={tarjeta}>
             <p className="text-sm font-semibold">Pago y documentos</p>
             <dl className="mt-3 space-y-2 text-sm">

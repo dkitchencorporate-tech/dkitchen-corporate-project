@@ -1,3 +1,4 @@
+import BarraDemo from '@/components/BarraDemo';
 import type { Metadata } from 'next';
 import PanelShell from '@/components/panel/PanelShell';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
@@ -68,7 +69,7 @@ const reservas = [
 export default function DemoPanel() {
   return (
     <>
-      <div className="relative z-[60] bg-vino px-4 py-2 text-center text-xs font-semibold text-white">Demostración del panel con datos de ejemplo · los cambios no se guardan</div>
+      <BarraDemo texto="Demostración con datos de ejemplo · ¿Quieres este panel para tu local?" />
       <div>
         <PanelShell
           identidad={{ id: 'demo', nombre: 'Alex', email: 'alex@casabrasa.es' }}
