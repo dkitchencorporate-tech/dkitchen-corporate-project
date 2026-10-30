@@ -12,6 +12,8 @@ export const BLOQUES: Record<string, string> = {
   desarrollo: 'Desarrollo y automatización', auditoria: 'Auditorías y reportes', otro: 'Otras',
   /** 22/10 (karc0): área propia en Central → Fiscal; no sale en Mis tareas. */
   fiscal: 'Fiscal',
+  /** 30/10 (karc0): pestaña propia en Mis tareas → Planificación (Venezuela, dk-vzl, pasarelas descartadas). */
+  planificacion: 'Planificación',
 };
 /** Quién la hace (0082). Mis tareas es también la hoja de ruta: nada vive solo en el chat. */
 export const RESPONSABLES: Record<string, string> = { 'dk-vzl': 'dk-vzl', karc0: 'karc0 (flyers)', claude: 'Claude', antigravity: 'Antigravity', ambos: 'dk-vzl + Claude' };

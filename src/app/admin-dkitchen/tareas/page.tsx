@@ -36,7 +36,9 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   const [tareas, revisiones, decisiones] = await Promise.all([verTareas(jwt).catch(() => null), verRevisiones(jwt).catch(() => null), verDecisiones(jwt).catch(() => null)]);
   const porDecidir = decisiones?.filter((d) => d.estado === 'pendiente').length ?? 0;
-  const todas = tareas ?? [];
+  // 30/10 (karc0): Venezuela, dk-vzl y pasarelas descartadas viven en su propia pestaña «Planificación»; no entran en Hoy ni en Lo mío.
+  const planificacion = (tareas ?? []).filter((t) => t.bloque === 'planificacion' && t.estado !== 'hecha');
+  const todas = (tareas ?? []).filter((t) => t.bloque !== 'planificacion' || t.estado === 'hecha');
   const H = tareasDeHoy(todas);
   const hoy = H.hoy;
   const abiertas = todas.filter((t) => t.estado !== 'hecha');
@@ -54,6 +56,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
     mias: abiertas.filter(esMia),
     claude: abiertas.filter((t) => t.responsable === 'claude' || t.responsable === 'antigravity'),
     comunicacion: comunicaciones.filter(GRUPOS_COM[filtroCom]),
+    planificacion,
     resueltas: todas.filter((t) => t.estado === 'hecha').sort((a, b) => (b.hechaEn ?? '').localeCompare(a.hechaEn ?? '')),
   };
   const revPend = (revisiones?.filter((r) => r.estado === 'por_revisar').length ?? 0)
@@ -73,7 +76,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const revsVisibles = revisiones?.filter(GRUPOS_REV[filtroRev]) ?? [];
   const ZONAS = [
     ['hoy', 'Hoy', H.mias.length], ['mias', 'Lo mío', zonas.mias.length], ['claude', 'De Claude', zonas.claude.length],
-    ['comunicacion', 'Comunicación', comunicaciones.filter(GRUPOS_COM.respondidas).length], ['revisiones', 'Revisiones', revPend], ['resueltas', 'Resueltas', zonas.resueltas.length],
+    ['comunicacion', 'Comunicación', comunicaciones.filter(GRUPOS_COM.respondidas).length], ['revisiones', 'Revisiones', revPend], ['planificacion', 'Planificación', planificacion.length], ['resueltas', 'Resueltas', zonas.resueltas.length],
   ] as const;
   const pedida = sp.zona === 'enviadas' ? 'comunicacion' : sp.zona;
   const zona = (ZONAS.some(([k]) => k === pedida) ? pedida : H.mias.length || H.adelantoMias ? 'hoy' : 'mias') as (typeof ZONAS)[number][0];
@@ -89,6 +92,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
     claude: ['De Claude', 'Lo que construye Claude (y Antigravity), con su tiempo. Lo tacha él al terminar; tú puedes dejarle una nota.'],
     comunicacion: ['Comunicación', 'Cada nota que le envías a Claude y su respuesta. Si está lista, apruébala y pasa a Resueltas; solo tú puedes reabrirla.'],
     revisiones: ['Revisiones de Alex', 'Por revisar → Enviadas a Claude (sin respuesta) → En curso (respondida, falta hacerlo) → Resueltas por Claude (apruébala o reábrela) → Aprobadas.'],
+    planificacion: ['Planificación', 'Lo que queda aparcado para más adelante: DKitchen Venezuela (dk-vzl), su sistema de cobro y las pasarelas o figuras descartadas para España. Aquí decides cuándo retomarlo.'],
     resueltas: ['Resueltas', 'Tareas cerradas, de la más reciente a la más antigua.'],
   };
 
