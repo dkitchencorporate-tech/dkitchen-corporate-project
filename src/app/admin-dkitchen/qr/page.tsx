@@ -30,6 +30,8 @@ export default async function ClientesQr({
   const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
   const de = (id: string) => todos.filter((c) => pestanaDe(c, hoy) === id);
 
+  const reales = todos.filter((c) => !['demo', 'bajas', 'archivados'].includes(pestanaDe(c, hoy)));
+  const aparte = `${de('demo').length} demos y ${de('bajas').length} bajas aparte`;
   const ingreso = todos.reduce((s, c) => s + c.cuota, 0);
   const pagan = todos.filter((c) => c.cuota > 0).length;
   const pendientes = todos.reduce((s, c) => s + c.ticketsAbiertos + c.solicitudesQrPendientes, 0);
@@ -37,14 +39,14 @@ export default async function ClientesQr({
   // Si es comercial, no ve ingresos totales (karc0: decisión 31/10)
   const kpis: [string, string, string][] = esComercial
     ? [
-        ['Mis clientes', String(todos.length), 'en seguimiento'],
+        ['Mis clientes reales', String(reales.length), aparte],
         ['Activos', String(de('activos').length), `${de('prueba').length} en prueba`],
         ['En riesgo', String(de('riesgo').length), 'atención prioritaria'],
         ['Tickets / QR físicos', String(pendientes), 'pendientes de atender'],
       ]
     : [
         ['Ingreso mensual real', euros(ingreso), `${pagan} cliente${pagan === 1 ? '' : 's'} que paga${pagan === 1 ? '' : 'n'} · sin IVA`],
-        ['Activos', String(de('activos').length), `${de('prueba').length} en prueba`],
+        ['Clientes reales', String(reales.length), `${de('activos').length} activos · ${de('prueba').length} en prueba · ${aparte}`],
         ['En riesgo', String(de('riesgo').length), 'impago, solo lectura o baja programada'],
         ['Tickets / QR físicos', String(pendientes), 'pendientes de atender'],
       ];

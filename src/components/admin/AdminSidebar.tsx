@@ -16,26 +16,27 @@ import MenuCuenta, { OpcionesCuenta, type Cuenta } from '@/components/admin/Menu
 type Item = { nombre: string; href: string };
 type Zona = { id: string; nombre: string; icono: string; items: Item[] };
 export const ZONAS: Zona[] = [
-  { id: 'inicio', nombre: 'Inicio', icono: 'inicio', items: [{ nombre: 'Inicio', href: '/admin-dkitchen/inicio' }] },
+  { id: 'inicio', nombre: 'Hoy', icono: 'inicio', items: [
+    { nombre: 'Resumen', href: '/admin-dkitchen/inicio' }, { nombre: 'Mis tareas', href: '/admin-dkitchen/tareas' },
+    { nombre: 'Decisiones', href: '/admin-dkitchen/decisiones' }, { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' }] },
   { id: 'clientes', nombre: 'Clientes', icono: 'carta', items: [
     { nombre: 'Clientes', href: '/admin-dkitchen/qr' }, { nombre: 'Proyectos', href: '/admin-dkitchen/proyectos' },
     { nombre: 'Fundador', href: '/admin-dkitchen/fundador' }] },
   { id: 'servicios', nombre: 'Servicios', icono: 'servicio', items: [
     { nombre: 'Carta QR', href: '/admin-dkitchen/servicios/qr' },
     { nombre: 'Signature', href: '/admin-dkitchen/servicios/signature' },
-    { nombre: 'Experience', href: '/admin-dkitchen/servicios/experience' }] },
+    { nombre: 'Experience', href: '/admin-dkitchen/servicios/experience' }, { nombre: 'Eventos y entradas', href: '/admin-dkitchen/entradas' }] },
   { id: 'ventas', nombre: 'Ventas', icono: 'destello', items: [
     { nombre: 'Prospección', href: '/admin-dkitchen/prospeccion' }, { nombre: 'Oportunidades', href: '/admin-dkitchen/oportunidades' },
-    { nombre: 'Embudo', href: '/admin-dkitchen/embudo' }, { nombre: 'Campañas y QR', href: '/admin-dkitchen/campanas' }, { nombre: 'Ofertas', href: '/admin-dkitchen/ofertas' }, { nombre: 'Precios y funciones', href: '/admin-dkitchen/precios' },
-    { nombre: 'Competencia', href: '/admin-dkitchen/competencia' }, { nombre: 'Socios', href: '/admin-dkitchen/socios' }] },
+    { nombre: 'Ofertas', href: '/admin-dkitchen/ofertas' }, { nombre: 'Campañas y QR', href: '/admin-dkitchen/campanas' }, { nombre: 'Socios', href: '/admin-dkitchen/socios' },
+    { nombre: 'Embudo', href: '/admin-dkitchen/embudo' }, { nombre: 'Competencia', href: '/admin-dkitchen/competencia' }] },
   { id: 'soporte', nombre: 'Soporte', icono: 'ayuda', items: [
     { nombre: 'Tickets y QR físicos', href: '/admin-dkitchen/soporte' }, { nombre: 'Avisos de fallo', href: '/admin-dkitchen/avisos' },
     { nombre: 'Buzón', href: '/admin-dkitchen/buzon' }] },
   { id: 'lanzamiento', nombre: 'Lanzamiento', icono: 'flecha', items: [
-    { nombre: 'Ruta', href: '/admin-dkitchen/ruta' }, { nombre: 'Mapa de la web', href: '/admin-dkitchen/mapa' }, { nombre: 'Mis tareas', href: '/admin-dkitchen/tareas' },
-    { nombre: 'Decisiones', href: '/admin-dkitchen/decisiones' }, { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' }, { nombre: 'Planificación', href: '/admin-dkitchen/planificacion' }] },
+    { nombre: 'Ruta', href: '/admin-dkitchen/ruta' }, { nombre: 'Planificación', href: '/admin-dkitchen/planificacion' }, { nombre: 'Mapa de la web', href: '/admin-dkitchen/mapa' }] },
   { id: 'conocimiento', nombre: 'Conocimiento', icono: 'negocio', items: [
-    { nombre: 'Manual de Central', href: '/admin-dkitchen/manual' }, { nombre: 'Documentos', href: '/admin-dkitchen/documentos' },
+    { nombre: 'Manual de Central', href: '/admin-dkitchen/manual' }, { nombre: 'Precios y funciones', href: '/admin-dkitchen/precios' }, { nombre: 'Documentos', href: '/admin-dkitchen/documentos' },
     { nombre: 'Reportes', href: '/admin-dkitchen/reportes' }, { nombre: 'Equipo', href: '/admin-dkitchen/administradores' }] },
 ];
 

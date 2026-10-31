@@ -1,6 +1,21 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
+import { subirPortadaEventoAction } from '@/app/admin-dkitchen/entradas/actions';
+
+/** Reduce la foto en el navegador (lado largo 1.600 px, JPEG) para subirla rápido desde el móvil. */
+async function reducirFoto(archivo: File): Promise<File> {
+  const bmp = await createImageBitmap(archivo);
+  const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+  const lienzo = document.createElement('canvas');
+  lienzo.width = Math.round(bmp.width * k); lienzo.height = Math.round(bmp.height * k);
+  lienzo.getContext('2d')!.drawImage(bmp, 0, 0, lienzo.width, lienzo.height);
+  for (const q of [0.82, 0.7, 0.55]) {
+    const b: Blob | null = await new Promise((r) => lienzo.toBlob(r, 'image/jpeg', q));
+    if (b && b.size < 900_000) return new File([b], 'portada.jpg', { type: 'image/jpeg' });
+  }
+  throw new Error('grande');
+}
 
 /**
  * Central → Entradas: asistente para crear o editar un evento de Experience (21/10, karc0: «el formulario
@@ -39,6 +54,8 @@ export default function AsistenteEvento({ accion, formatos, clientes, e }: {
   const [precio, setPrecio] = useState(e?.precio ?? '');
   const [aforo, setAforo] = useState(String(e?.aforo ?? ''));
   const [imagen, setImagen] = useState(e?.imagen_url ?? '');
+  const [subiendo, setSubiendo] = useState(false);
+  const [errorFoto, setErrorFoto] = useState('');
   const [subtitulo, setSubtitulo] = useState(e?.l.subtitulo ?? '');
   const [faq, setFaq] = useState(e?.l.faq ?? '');
   const [historia, setHistoria] = useState(e?.l.historia ?? '');
@@ -186,9 +203,26 @@ export default function AsistenteEvento({ accion, formatos, clientes, e }: {
           <h3 className="font-display text-2xl font-semibold">La página que verá el comensal</h3>
           <p className="mt-1 text-sm text-niebla">Lo justo para que quiera ir. Lo que dejes vacío no sale en la página.</p>
         </div>
-        <label className={`${etiqueta} sm:col-span-2`}>Imagen de portada <span className={ayuda}>(URL de Vercel Blob o la del formato)</span>
-          <input name="imagen_url" maxLength={500} value={imagen} onChange={(x) => setImagen(x.target.value)} className={campo} />
-        </label>
+        <div className={`${etiqueta} sm:col-span-2`}>Foto de portada <span className={ayuda}>(sube una del local o deja la del formato)</span>
+          <input type="hidden" name="imagen_url" value={imagen} />
+          <div className="flex flex-wrap items-center gap-3">
+            {imagen && <img src={imagen} alt="" className="h-16 w-28 rounded-xl object-cover ring-1 ring-linea" />}
+            <label className="inline-flex min-h-[44px] cursor-pointer items-center rounded-full border border-linea bg-white px-4 text-sm font-semibold text-carbon hover:bg-papel">
+              {subiendo ? 'Subiendo…' : imagen ? 'Cambiar foto' : 'Subir foto'}
+              <input type="file" accept="image/*" className="sr-only" disabled={subiendo} onChange={async (x) => {
+                const a = x.target.files?.[0]; if (!a) return;
+                setSubiendo(true); setErrorFoto('');
+                try {
+                  const fd = new FormData(); fd.set('archivo', await reducirFoto(a));
+                  const r = await subirPortadaEventoAction(fd);
+                  if (r.url) setImagen(r.url); else setErrorFoto(r.error ?? 'No se pudo subir.');
+                } catch { setErrorFoto('No se pudo leer la foto. Prueba con otra.'); }
+                setSubiendo(false); x.target.value = '';
+              }} />
+            </label>
+          </div>
+          {errorFoto && <span className="text-xs text-vino">{errorFoto}</span>}
+        </div>
         <label className={`${etiqueta} sm:col-span-2`}>Subtítulo <span className={ayuda}>(fecha, hora, plazas…)</span><input name="l_subtitulo" maxLength={160} value={subtitulo} onChange={(x) => setSubtitulo(x.target.value)} className={campo} placeholder="Jueves 13 de noviembre · 21:00 · 40 plazas" /></label>
         <label className={`${etiqueta} sm:col-span-2`}>La historia del evento <span className={ayuda}>(deja una línea en blanco entre párrafos)</span>
           <textarea name="l_historia" rows={5} maxLength={3000} value={historia} onChange={(x) => setHistoria(x.target.value)} className={campo} placeholder="Cinco pases dentro de la cueva, cada uno con su vino de la tierra…" />
@@ -208,7 +242,7 @@ export default function AsistenteEvento({ accion, formatos, clientes, e }: {
           <input name="l_anf_rol" maxLength={80} defaultValue={e?.l.anf_rol} placeholder="Su papel (chef, sumiller…)" className={campo} />
           <input name="l_anf_texto" maxLength={400} defaultValue={e?.l.anf_texto} placeholder="Una frase sobre él o ella" className={campo} />
         </div>
-        <label className={`${etiqueta} sm:col-span-2`}>Preguntas frecuentes <span className={ayuda}>Pregunta | Respuesta {f ? '(traídas del formato)' : ''}</span>
+        <label className={`${etiqueta} sm:col-span-2`}>Preguntas frecuentes <span className={ayuda}>una por línea: pregunta | respuesta {f ? '(ya vienen del formato)' : ''}</span>
           <textarea name="l_faq" rows={3} value={faq} onChange={(x) => setFaq(x.target.value)} className={campo} />
         </label>
         <label className={etiqueta}>Avisos <span className={ayuda}>(edad, alérgenos, aforo…)</span><input name="l_avisos" maxLength={400} defaultValue={e?.l.avisos} className={campo} /></label>

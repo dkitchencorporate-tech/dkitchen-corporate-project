@@ -92,8 +92,8 @@ export default async function Entradas({ searchParams }: { searchParams: Promise
             {!sel.stripe_cuenta && (
               <form action={conectarCobroAction} className="flex flex-wrap gap-2">
                 <input type="hidden" name="id" value={sel.id} /><input type="hidden" name="local_nombre" value={sel.local_nombre} />
-                <input name="email" type="email" placeholder="Correo del local (opcional)" className={input + ' w-64'} />
-                <button className={boton}>Crear cuenta de cobro</button>
+                <input name="email" type="email" placeholder="Correo del local (opcional)" className={input + ' w-full sm:w-64'} />
+                <button className={boton}>Conectar el cobro del local</button>
               </form>
             )}
             {!sel.tiene_clave && <form action={nuevaClavePuertaAction}><input type="hidden" name="id" value={sel.id} /><button className={boton}>Activar puerta</button></form>}
@@ -127,7 +127,7 @@ export default async function Entradas({ searchParams }: { searchParams: Promise
             </section>
           ) : (
             <Link href="/admin-dkitchen/entradas?nuevo=1" className="flex items-center justify-between gap-3 rounded-[26px] bg-noche p-5 text-white transition hover:shadow-lg sm:p-6">
-              <span><span className="block font-display text-2xl font-semibold">Crear un evento</span><span className="text-sm text-white/65">Elige el formato y el asistente te guía en 5 pasos.</span></span>
+              <span><span className="block font-display text-2xl font-semibold">Crear un evento</span><span className="text-sm text-white/65">Elige un formato y lo demás viene relleno: solo revisas y guardas.</span></span>
               <span className="rounded-full bg-oro px-5 py-2.5 text-sm font-bold text-noche">+ Nuevo</span>
             </Link>
           )}

@@ -83,7 +83,10 @@ export default function ClientesCentralView({
 
   // Contadores para las píldoras de acceso rápido
   const conteo = useMemo(() => {
-    const todos = clientesIniciales.length;
+    const sit = (c: ClienteQr) => pestanaDe(c, hoy);
+    const todos = clientesIniciales.filter((c) => !['demo', 'bajas', 'archivados'].includes(sit(c))).length;
+    const demo = clientesIniciales.filter((c) => sit(c) === 'demo').length;
+    const bajas = clientesIniciales.filter((c) => sit(c) === 'bajas').length;
     const qr = clientesIniciales.filter((c) => !c.soloProyecto).length;
     const sig = clientesIniciales.filter((c) => c.tieneSignature).length;
     const exp = clientesIniciales.filter((c) => c.tieneExperience).length;
@@ -91,7 +94,7 @@ export default function ClientesCentralView({
     const riesgo = clientesIniciales.filter((c) => pestanaDe(c, hoy) === 'riesgo').length;
     // Comparación estricta por UUID de identidad asignada
     const mis = miId ? clientesIniciales.filter((c) => c.comercialId === miId).length : 0;
-    return { todos, qr, sig, exp, prueba, riesgo, mis };
+    return { todos, qr, sig, exp, prueba, riesgo, mis, demo, bajas };
   }, [clientesIniciales, hoy, miId]);
 
   // Filtrado reactivo en tiempo real
@@ -119,10 +122,11 @@ export default function ClientesCentralView({
       if (servicioFiltro === 'experience' && !c.tieneExperience) return false;
 
       // 5. Filtro por estado / situación
-      if (estadoFiltro !== 'todos') {
-        const situacion = pestanaDe(c, hoy);
-        if (situacion !== estadoFiltro) return false;
-      }
+      // «todos» = clientes reales: las demos, bajas y archivados tienen su propio filtro.
+      const situacion = pestanaDe(c, hoy);
+      if (estadoFiltro === 'todos') {
+        if (situacion === 'demo' || situacion === 'bajas' || situacion === 'archivados') return false;
+      } else if (estadoFiltro !== 'completo' && situacion !== estadoFiltro) return false;
 
       // 6. Buscador de texto libre
       if (busqueda.trim()) {
@@ -172,7 +176,7 @@ export default function ClientesCentralView({
               : 'border border-linea bg-white text-carbon hover:bg-papel'
           }`}
         >
-          Todos <span className="ml-1 opacity-75 tabular-nums">{conteo.todos}</span>
+          Clientes reales <span className="ml-1 opacity-75 tabular-nums">{conteo.todos}</span>
         </button>
 
         <button
@@ -249,6 +253,19 @@ export default function ClientesCentralView({
         >
           En riesgo <span className="ml-1 opacity-75 tabular-nums">{conteo.riesgo}</span>
         </button>
+
+        {(['demo', 'bajas'] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => { setEstadoFiltro(estadoFiltro === k ? 'todos' : k); setSoloMisClientes(false); }}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+              estadoFiltro === k ? 'bg-tinta text-white ring-2 ring-tinta/20' : 'border border-dashed border-linea bg-transparent text-niebla hover:bg-white'
+            }`}
+          >
+            {k === 'demo' ? 'Demos' : 'Bajas'} <span className="ml-1 opacity-75 tabular-nums">{k === 'demo' ? conteo.demo : conteo.bajas}</span>
+          </button>
+        ))}
 
         {!esComercial && miId && (
           <button
@@ -345,7 +362,8 @@ export default function ClientesCentralView({
             onChange={(e) => setEstadoFiltro(e.target.value)}
             className="rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-medium text-carbon outline-none focus:border-vino"
           >
-            <option value="todos">Todos los estados</option>
+            <option value="todos">Clientes reales</option>
+            <option value="completo">Todo (con demos y bajas)</option>
             <option value="activos">Activos</option>
             <option value="prueba">En prueba</option>
             <option value="riesgo">En riesgo</option>
@@ -359,8 +377,8 @@ export default function ClientesCentralView({
       {/* Resultados de la búsqueda */}
       {clientesFiltrados.length === 0 ? (
         <div className="rounded-2xl border border-linea bg-white p-12 text-center">
-          <p className="font-display text-lg font-semibold text-carbon">Ningún cliente coincide con los filtros</p>
-          <p className="mt-1 text-sm text-niebla">Prueba a cambiar los términos de búsqueda o a limpiar los filtros.</p>
+          <p className="font-display text-lg font-semibold text-carbon">{!hayFiltrosActivos && conteo.todos === 0 ? 'Todavía no hay clientes reales' : 'Ningún cliente coincide con los filtros'}</p>
+          <p className="mt-1 text-sm text-niebla">{!hayFiltrosActivos && conteo.todos === 0 ? `Crea el primero con «+ Nuevo cliente». Las ${conteo.demo} demos y ${conteo.bajas} bajas están en sus propios filtros.` : 'Prueba a cambiar los términos de búsqueda o a limpiar los filtros.'}</p>
           <button
             type="button"
             onClick={limpiarFiltros}

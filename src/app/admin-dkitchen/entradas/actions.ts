@@ -6,6 +6,24 @@ import { revalidatePath } from 'next/cache';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
 import { clavePuerta, crearCuentaLocal, cuentaLista } from '@/lib/entradas';
+import { put } from '@vercel/blob';
+import { randomUUID } from 'node:crypto';
+
+/** Portada del evento (31/10): foto ya reducida en el navegador → Vercel Blob en eventos/. */
+export async function subirPortadaEventoAction(f: FormData): Promise<{ url?: string; error?: string }> {
+  await exigirAdmin();
+  const archivo = f.get('archivo');
+  if (!(archivo instanceof File)) return { error: 'No se recibió ninguna foto.' };
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(archivo.type)) return { error: 'Usa una foto JPG, PNG o WebP.' };
+  if (archivo.size > 950_000) return { error: 'La foto es demasiado grande.' };
+  const ext = archivo.type === 'image/png' ? 'png' : archivo.type === 'image/webp' ? 'webp' : 'jpg';
+  try {
+    const { url } = await put(`eventos/${randomUUID()}.${ext}`, archivo, { access: 'public', contentType: archivo.type });
+    return { url };
+  } catch {
+    return { error: 'No se pudo guardar la foto. Inténtalo de nuevo.' };
+  }
+}
 
 /**
  * Central → Entradas (0067). Permisos y validación en la base (dk.admin_evento_*); aquí solo se recogen
