@@ -115,6 +115,7 @@ export default function PanelShell({
   estudio = { extras: [], legal: { titular: null, nif: null, email: null, domicilio: null, activo: false } },
   tutorial = null,
   socio = null,
+  misServicios = [],
 }: {
   identidad: { id: string; nombre: string; email: string };
   restaurante: MiRestaurante;
@@ -134,6 +135,8 @@ export default function PanelShell({
   tutorial?: TutorialEstado | null;
   /** Asesor del local (0052): el dueño lo ve en Soporte y puede retirarle el permiso. */
   socio?: { nombre: string; puede_editar: boolean } | null;
+  /** 0111: Signature, Experience y Auditoría del dueño (panel único, tarea cb29c504). */
+  misServicios?: { id: string; producto: 'signature' | 'experience' | 'auditoria'; fase: string; negocio: string | null; datosEnviados: boolean }[];
 }) {
   const tieneServ = (id: string) => servicios.contratados.some((c) => c.servicio === id || (c.servicio === 'pack_sala' && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(id)));
   const modulos = { plano: tieneServ('plano_mesas'), app: tieneServ('app_sala'), tpv: tieneServ('conexion_tpv') };
@@ -291,7 +294,7 @@ export default function PanelShell({
         {!demo && <FormacionSeccion seccion={pestana} />}
         <AnimatePresence mode="wait">
         <motion.div key={pestana} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
-        {pestana === 'inicio' && <Inicio restaurante={restaurante} qrPedido={solicitudesQr.length > 0} escaneosMes={escaneosMes} escaneos30d={escaneos30d} reservas={reservasVivas} platos={carta.platos} servicios={servicios} ir={(p) => setPestana(p)} />}
+        {pestana === 'inicio' && <Inicio restaurante={restaurante} qrPedido={solicitudesQr.length > 0} escaneosMes={escaneosMes} escaneos30d={escaneos30d} reservas={reservasVivas} platos={carta.platos} servicios={servicios} misServicios={misServicios} ir={(p) => setPestana(p)} />}
         {ESTUDIO_IDS.includes(pestana) && (
           <EstudioMarco slug={restaurante.slug} conLanding={restaurante.plan !== 'basico'} verInicial={pestana === 'landing' ? 'landing' : 'carta'}>
             {ES_SUB_CARTA(pestana) && (

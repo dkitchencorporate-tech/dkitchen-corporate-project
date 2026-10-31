@@ -12,7 +12,6 @@ import { listarMisReservas } from '@/lib/reservas';
 import { estadoServicios, tiene } from '@/lib/servicios';
 import { misExperiences } from '@/lib/mi-experience';
 import { misServicios } from '@/lib/mis-servicios';
-import Link from 'next/link';
 import { cargarPlano, listarCamareros, estadoConexionTpv, informeCamareros } from '@/lib/sala';
 import { listarTraducciones } from '@/lib/idiomas';
 import { llamadasPendientes } from '@/lib/llamadas-camarero';
@@ -100,12 +99,6 @@ export default async function Panel() {
 
     return (
       <>
-      {servProyectos.length > 0 && (
-        <Link href="/mis-servicios" className="relative z-[60] flex items-center justify-between gap-3 bg-noche px-4 py-2.5 text-sm text-white">
-          <span><b className="text-oro">{servProyectos.length === 1 ? 'Tienes 1 servicio en marcha' : `Tienes ${servProyectos.length} servicios en marcha`}</b> · Signature, eventos o auditoría</span>
-          <span className="shrink-0 font-semibold text-oro">Mis servicios →</span>
-        </Link>
-      )}
       <PanelShell
         identidad={identidad}
         restaurante={restaurante}
@@ -124,6 +117,7 @@ export default async function Panel() {
         estudio={{ extras, legal, landing }}
         tutorial={tutorial}
         socio={socio}
+        misServicios={servProyectos.map((s) => ({ id: s.id, producto: s.producto, fase: s.fase, negocio: s.negocio, datosEnviados: typeof s.datos.enviado_en === 'string' }))}
       />
       </>
     );
