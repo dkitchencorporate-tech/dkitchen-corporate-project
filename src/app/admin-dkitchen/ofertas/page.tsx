@@ -1,136 +1,96 @@
 import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
-import GuiaZona from '@/components/admin/GuiaZona';
+import { SERVICIOS_QR, EXPERIENCE, AUDITORIA_CANALES } from '@/lib/pricing-config';
+import OfertaAsistente, { type ProductoOferta } from '@/components/admin/OfertaAsistente';
 import { guardarOfertaFechaAction, estadoSolicitudOfertaAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Ofertas por fecha (0105, R5, 28/10/2026): packs de temporada que los locales clientes ven en su
- * panel (Negocio → Mejoras) solo entre «desde» y «hasta». Aquí se editan y se atienden las solicitudes.
- * El precio que se cobra es el que guarda la base al pedirla (cambiarlo aquí no toca lo ya pedido).
+ * Ofertas (decisión 6 de karc0, 01/11): asistente de 3 pasos con vista previa; precios del catálogo.
+ * Las ofertas salen en el panel de los clientes (Negocio → Mejoras) solo entre sus fechas (0105).
+ * Una acción principal: «+ Nueva oferta». Las solicitudes avanzan con un botón.
  */
 type Solicitud = { id: string; restaurante_id: string; local: string; precio_centimos: number; estado: string; creado_en: string };
 type Oferta = { id: string; tema: string; titulo: string; descripcion: string; incluye: string[]; precio_centimos: number; precio_ancla_centimos: number | null;
   desde: string; hasta: string; activa: boolean; solicitudes: Solicitud[] };
 
-const tarjeta = 'rounded-[22px] border border-linea bg-white p-5';
-const campo = 'mt-1 w-full rounded-xl border border-linea bg-white px-3 py-2 text-sm';
 const TEMAS: Record<string, string> = { halloween: '🎃 Halloween', navidad: '🎄 Navidad', san_valentin: '💘 San Valentín', carnaval: '🎭 Carnaval', otra: '⭐ Otra fecha' };
-const ESTADOS: Record<string, string> = { recibida: 'Recibida', en_curso: 'En curso', entregada: 'Entregada', descartada: 'Descartada' };
+const SIGUIENTE: Record<string, [string, string]> = { recibida: ['en_curso', 'Empezar'], en_curso: ['entregada', 'Marcar entregada'] };
 const euros = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: c % 100 ? 2 : 0 }).format(c / 100);
-const dia = (d: string) => new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(d));
-const fecha = (s: string) => new Date(s).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
+const dia = (d: string) => new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(d));
 
-function estadoVisible(o: Oferta, hoy: string) {
-  if (!o.activa) return { texto: 'Apagada', clase: 'bg-crema text-niebla' };
-  if (hoy < o.desde) return { texto: `Sale el ${dia(o.desde)}`, clase: 'bg-oro/20 text-tinta' };
-  if (hoy > o.hasta) return { texto: 'Terminada', clase: 'bg-crema text-niebla' };
-  return { texto: 'Se ve hoy en los paneles', clase: 'bg-green-500/15 text-green-700' };
-}
+/** Catálogo que se puede poner en oferta: precios de pricing-config, nunca escritos a mano. */
+const PRODUCTOS: ProductoOferta[] = [
+  { clave: 'puesta', nombre: 'Puesta a punto', frase: 'Te dejamos la carta cargada, el TPV conectado y el equipo formado.', precio: SERVICIOS_QR.puestaAPunto, incluye: ['Carta cargada por nosotros', 'Fotos de platos con IA', 'TPV conectado', 'Formación del equipo'] },
+  { clave: 'autor', nombre: 'Carta de autor', frase: 'Tu carta con diseño propio: composición, colores y firma de tu local.', precio: SERVICIOS_QR.cartaDeAutor, incluye: ['Diseño propio de la carta', 'Colores y tipografía de tu marca', 'Firma y portada'] },
+  { clave: 'bono', nombre: `Bono de ${SERVICIOS_QR.imagenesBonoIa} fotos con IA`, frase: 'Que todos tus platos tengan foto apetecible.', precio: SERVICIOS_QR.bonoIa, incluye: [`${SERVICIOS_QR.imagenesBonoIa} fotos de platos`, 'Sin caducidad'] },
+  { clave: 'idioma', nombre: 'Idioma extra', frase: 'Tu carta en un idioma más para tus clientes de fuera.', precio: SERVICIOS_QR.idiomaExtra, incluye: ['Traducción de toda la carta', 'Se cambia sola al idioma del móvil'] },
+  { clave: 'experience', nombre: 'Experience · evento llave en mano', frase: 'Un evento con entradas anticipadas para llenar tu día flojo.', precio: EXPERIENCE.tarifas.primeraParaClienteQr.precio, incluye: ['Concepto y menú del evento', 'Web de entradas', 'Cartelería y redes', 'Control de puerta'] },
+  { clave: 'auditoria', nombre: 'Auditoría de canales', frase: 'Revisamos dónde vendes y te decimos qué mejorar primero.', precio: AUDITORIA_CANALES.precioOferta, incluye: ['Informe de canales', 'Reunión 1 a 1', 'Mejoras ordenadas por impacto'] },
+];
 
-function Formulario({ o }: { o?: Oferta }) {
-  return (
-    <form action={guardarOfertaFechaAction} className="grid gap-3 sm:grid-cols-2">
-      {o && <input type="hidden" name="id" value={o.id} />}
-      <label className="text-xs text-niebla">Tema
-        <select name="tema" defaultValue={o?.tema ?? 'otra'} className={campo}>{Object.entries(TEMAS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-      </label>
-      <label className="text-xs text-niebla">Título (lo que ve el dueño)
-        <input name="titulo" required minLength={3} maxLength={80} defaultValue={o?.titulo} className={campo} />
-      </label>
-      <label className="text-xs text-niebla sm:col-span-2">Descripción (una o dos frases)
-        <textarea name="descripcion" required minLength={3} maxLength={400} rows={2} defaultValue={o?.descripcion} className={campo} />
-      </label>
-      <label className="text-xs text-niebla sm:col-span-2">Qué incluye (una línea por punto, máximo 6)
-        <textarea name="incluye" rows={4} defaultValue={o?.incluye.join('\n')} className={campo} />
-      </label>
-      <label className="text-xs text-niebla">Precio sin IVA (€)
-        <input name="precio" required inputMode="decimal" defaultValue={o ? String(o.precio_centimos / 100).replace('.', ',') : ''} className={campo} />
-      </label>
-      <label className="text-xs text-niebla">Precio tachado (opcional, mayor que el precio)
-        <input name="ancla" inputMode="decimal" defaultValue={o?.precio_ancla_centimos ? String(o.precio_ancla_centimos / 100).replace('.', ',') : ''} className={campo} />
-      </label>
-      <label className="text-xs text-niebla">Se ve desde
-        <input type="date" name="desde" required defaultValue={o?.desde} className={campo} />
-      </label>
-      <label className="text-xs text-niebla">Se ve hasta (incluido)
-        <input type="date" name="hasta" required defaultValue={o?.hasta} className={campo} />
-      </label>
-      <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="activa" value="si" defaultChecked={o?.activa ?? true} /> Encendida</label>
-      <div className="sm:text-right"><button className="rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white hover:bg-vino-hondo">{o ? 'Guardar cambios' : 'Crear oferta'}</button></div>
-    </form>
-  );
-}
-
-export default async function Ofertas() {
+export default async function Ofertas({ searchParams }: { searchParams: Promise<{ nueva?: string; editar?: string; ok?: string }> }) {
   const jwt = await exigirAdmin();
+  const q = await searchParams;
   const { hoy, ofertas } = await comoCliente(jwt, async (c) => (await c.query<{ j: { hoy: string; ofertas: Oferta[] } }>('SELECT dk.admin_ofertas_fecha() AS j')).rows[0].j);
   const solicitudes = ofertas.flatMap((o) => o.solicitudes.map((s) => ({ ...s, oferta: o.titulo })));
-  const pendientes = solicitudes.filter((s) => s.estado === 'recibida' || s.estado === 'en_curso').length;
+  const pendientes = solicitudes.filter((s) => s.estado === 'recibida' || s.estado === 'en_curso');
+  const editar = ofertas.find((o) => o.id === q.editar);
+  const abierto = q.nueva === '1' || !!editar;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-10">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Central · Ofertas</p>
-        <h1 className="font-display mt-2 text-3xl font-semibold md:text-4xl">Ofertas por fecha</h1>
-        <p className="mt-1 text-sm text-niebla">Packs de temporada para los locales que ya son clientes. Cada uno sale en su panel (Negocio → Mejoras) solo entre sus fechas.</p>
+    <div className="mx-auto max-w-6xl space-y-5 px-4 py-6 text-tinta sm:p-6 lg:p-10">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Ventas</p>
+          <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Ofertas</h1>
+        </div>
+        {!abierto && <Link href="/admin-dkitchen/ofertas?nueva=1" className="dk-btn inline-flex min-h-[44px] items-center rounded-full bg-vino px-5 text-sm font-bold text-white" data-testid="nueva-oferta">+ Nueva oferta</Link>}
       </div>
+      {q.ok && <p role="status" className="rounded-2xl bg-exito/10 px-4 py-3 text-sm text-exito">Oferta guardada. Saldrá en los paneles entre sus fechas.</p>}
 
-      <GuiaZona titulo="Ofertas" ancla="ofertas"
-        que="Lo que el dueño de un local ve en Mejoras en fechas señaladas (Halloween, Navidad, San Valentín, Carnaval…) y quién lo ha pedido."
-        pasos={['Cambia el texto, el precio o las fechas de una oferta y guarda.', 'Apágala si no quieres que salga aunque esté en fechas.', 'Cuando un local la pida te llega un correo; prepárasela y marca su estado aquí.']}
-        ojo={['Sin pasarela de pago, el dueño ve «Solicitud recibida»: el cobro se acuerda con él.', 'El precio que cuenta es el del momento en que la pidió.']} />
+      {abierto && (
+        <section className="rounded-[26px] border border-oro/40 bg-[linear-gradient(160deg,#FFFDF8,#F6EEDD)] p-5 sm:p-7">
+          <OfertaAsistente productos={PRODUCTOS} accion={guardarOfertaFechaAction} cerrar="/admin-dkitchen/ofertas"
+            inicial={editar ? { id: editar.id, tema: editar.tema, titulo: editar.titulo, descripcion: editar.descripcion, incluye: editar.incluye, precio: editar.precio_centimos, ancla: editar.precio_ancla_centimos, desde: editar.desde, hasta: editar.hasta, activa: editar.activa } : undefined} />
+        </section>
+      )}
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        {([['Se ven hoy', ofertas.filter((o) => o.activa && hoy >= o.desde && hoy <= o.hasta).length], ['Solicitudes por atender', pendientes], ['Entregadas', solicitudes.filter((s) => s.estado === 'entregada').length]] as [string, number][]).map(([t, n]) => (
-          <div key={t} className={tarjeta}><p className="text-xs text-niebla">{t}</p><p className="font-display mt-1 text-3xl font-semibold">{n}</p></div>
-        ))}
-      </div>
-
-      {solicitudes.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Solicitudes</h2>
-          <div className={`${tarjeta} divide-y divide-linea p-0`}>
-            {solicitudes.map((s) => (
-              <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                <div>
-                  <p className="font-semibold"><Link href={`/admin-dkitchen/qr/${s.restaurante_id}`} className="hover:text-vino">{s.local}</Link></p>
-                  <p className="text-xs text-niebla">{s.oferta} · {euros(s.precio_centimos)} + IVA · {fecha(s.creado_en)}</p>
-                </div>
-                <form action={estadoSolicitudOfertaAction} className="flex items-center gap-2">
-                  <input type="hidden" name="id" value={s.id} />
-                  <select name="estado" defaultValue={s.estado} className="rounded-xl border border-linea bg-white px-3 py-2 text-sm">{Object.entries(ESTADOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-                  <button className="rounded-full border border-linea-fuerte px-4 py-2 text-sm font-semibold">Guardar</button>
-                </form>
+      {pendientes.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="font-display text-xl font-bold">Las han pedido <span className="ml-1 rounded-full bg-vino px-2 py-0.5 text-sm text-white">{pendientes.length}</span></h2>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {pendientes.map((s) => (
+              <div key={s.id} className="dk-carta flex items-center justify-between gap-3 rounded-[20px] border border-linea bg-white p-4">
+                <div className="min-w-0"><Link href={`/admin-dkitchen/qr/${s.restaurante_id}`} className="block truncate font-semibold hover:text-vino">{s.local}</Link><p className="truncate text-xs text-niebla">{s.oferta} · {euros(s.precio_centimos)} + IVA</p></div>
+                {SIGUIENTE[s.estado] && (
+                  <form action={estadoSolicitudOfertaAction}><input type="hidden" name="id" value={s.id} /><input type="hidden" name="estado" value={SIGUIENTE[s.estado][0]} />
+                    <button className="dk-btn min-h-[40px] shrink-0 rounded-full bg-tinta px-4 text-xs font-bold text-white hover:bg-vino">{SIGUIENTE[s.estado][1]} →</button></form>
+                )}
               </div>
             ))}
           </div>
         </section>
       )}
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Ofertas</h2>
-        {ofertas.map((o) => {
-          const e = estadoVisible(o, hoy);
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {ofertas.map((o, i) => {
+          const visible = o.activa && hoy >= o.desde && hoy <= o.hasta;
+          const estado = !o.activa ? 'Apagada' : hoy < o.desde ? `Sale el ${dia(o.desde)}` : hoy > o.hasta ? 'Terminada' : 'Se ve hoy';
           return (
-            <details key={o.id} className={tarjeta}>
-              <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2">
-                <span className="font-semibold">{TEMAS[o.tema] ?? o.tema} · {o.titulo} <span className="ml-1 text-sm font-normal text-niebla">{euros(o.precio_centimos)} + IVA · {dia(o.desde)} → {dia(o.hasta)}</span></span>
-                <span className="flex items-center gap-2">
-                  {o.solicitudes.length > 0 && <span className="text-xs text-niebla">{o.solicitudes.length} {o.solicitudes.length === 1 ? 'solicitud' : 'solicitudes'}</span>}
-                  <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${e.clase}`}>{e.texto}</span>
-                </span>
-              </summary>
-              <div className="mt-4 border-t border-linea pt-4"><Formulario o={o} /></div>
-            </details>
+            <Link key={o.id} href={`/admin-dkitchen/ofertas?editar=${o.id}`} style={{ ['--i' as string]: i }} className={`dk-carta group overflow-hidden rounded-[24px] border bg-white transition hover:shadow-[0_24px_60px_-36px_rgba(62,5,21,.5)] ${visible ? 'border-exito/50' : 'border-linea'}`}>
+              <div className="flex items-center justify-between bg-noche px-4 py-3 text-white"><span className="text-sm">{TEMAS[o.tema] ?? o.tema}</span><span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${visible ? 'bg-exito text-white' : 'bg-white/15'}`}>{estado}</span></div>
+              <div className="p-4">
+                <p className="font-display text-lg font-bold group-hover:text-vino">{o.titulo}</p>
+                <p className="mt-1 font-display text-2xl font-bold">{euros(o.precio_centimos)} {o.precio_ancla_centimos ? <s className="text-sm font-normal text-ceniza">{euros(o.precio_ancla_centimos)}</s> : null}</p>
+                <p className="mt-1 text-xs text-niebla">{dia(o.desde)} → {dia(o.hasta)} · {o.solicitudes.length} pedida{o.solicitudes.length === 1 ? '' : 's'}</p>
+              </div>
+            </Link>
           );
         })}
-        <details className={`${tarjeta} border-dashed`}>
-          <summary className="cursor-pointer list-none font-semibold text-vino">+ Nueva oferta</summary>
-          <div className="mt-4 border-t border-linea pt-4"><Formulario /></div>
-        </details>
+        {!ofertas.length && <p className="text-sm text-niebla">Aún no hay ofertas. Crea la primera con «+ Nueva oferta».</p>}
       </section>
     </div>
   );

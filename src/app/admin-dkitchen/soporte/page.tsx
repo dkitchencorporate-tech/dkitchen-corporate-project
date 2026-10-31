@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { bandejaSoporte, solicitudesQrAdmin } from '@/lib/admin-clientes';
-import { responderTicketAction, estadoSolicitudAction } from '../qr/actions';
+import { responderTicketAction } from '../qr/actions';
 import { guardarModoIaAction, n2IaAction } from './actions';
 import PanelN2 from '@/components/admin/PanelN2';
-import GuiaZona from '@/components/admin/GuiaZona';
+import CajaRespuesta from '@/components/admin/CajaRespuesta';
 import { diagnosticar, sugerir, borrador, datosTickets, metricasSoporte, modoSoporte, CATEGORIAS, type Categoria, type IaN2, type ModoSoporte } from '@/lib/soporte-n2';
 
 export const dynamic = 'force-dynamic';
@@ -15,7 +15,6 @@ const COLOR: Record<string, string> = {
   respondido: 'bg-green-500/15 text-green-700',
   cerrado: 'bg-papel text-niebla',
 };
-const ESTADOS_SOLICITUD = ['solicitado', 'presupuestado', 'pagado', 'en_produccion', 'enviado'];
 
 const AVISOS: Record<string, string> = {
   acceso: 'Enlace de contraseña enviado.', bienvenida: 'Bienvenida y enlace de contraseña enviados.', enlace: 'Enlace nuevo enviado al correo del dueño.',
@@ -50,141 +49,94 @@ export default async function SoporteQr({ searchParams }: { searchParams: Promis
   const error = q.e ? ERRORES[q.e] ?? 'No se pudo hacer.' : null;
   const pendientes = solicitudes.filter((s) => s.estado !== 'enviado').length;
 
+  const carpeta = q.c === 'esperando' ? 'respondido' : q.c === 'cerrados' ? 'cerrado' : 'abierto';
+  const CARPETAS: [string, string, string][] = [['sin', 'abierto', 'Sin responder'], ['esperando', 'respondido', 'Esperando al cliente'], ['cerrados', 'cerrado', 'Cerrados']];
+  const lista = tickets.filter((x) => x.estado === carpeta);
+  const t = tickets.find((x) => x.id === q.t) ?? null;
+  const qs = (extra: Record<string, string>) => '?' + new URLSearchParams({ ...(q.c ? { c: q.c } : {}), ...extra }).toString();
+
   return (
-    <div className="p-6 lg:p-10 text-carbon space-y-10">
-      <div>
-        <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Soporte QR Menú</h1>
-        <p className="text-sm text-niebla">
-          {abiertos} ticket{abiertos === 1 ? '' : 's'} sin responder · {pendientes} pedido{pendientes === 1 ? '' : 's'} de QR físico en curso
-        </p>
-      </div>
-
-      <GuiaZona titulo="Soporte" ancla="soporte"
-        que="Las consultas de los clientes (tickets) y los pedidos de QR impresos."
-        pasos={['Lee el diagnóstico y la respuesta propuesta de cada ticket.', 'Cambia los huecos entre corchetes ([Respuesta], [pasos]) por la respuesta real: si quedan, no se envía.', 'Usa los botones de arreglo si hace falta, marca «Cerrar el ticket» si está resuelto y pulsa «Responder».', 'Pedidos de QR físico: cambia el estado según avanza.']} ojo={['Al cliente le llega la respuesta por correo y en su panel.']} />
-
-      {metricas && (
-        <div className="rounded-2xl border border-linea bg-white p-4 text-sm">
-          <p className="font-semibold">Soporte N2 manual · {metricas.resueltos}/50 tickets resueltos con registro completo</p>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-papel"><div className="h-full rounded-full bg-vino" style={{ width: `${Math.min(100, (metricas.resueltos / 50) * 100)}%` }} /></div>
-          <p className="mt-2 text-xs text-niebla">
-            Recibidos {metricas.recibidos} · acierto del diagnóstico {metricas.acierto ?? '—'} % ({metricas.con_diagnostico_valorado} valorados) · resolución media {metricas.horas_medias_resolucion ?? '—'} h.
-            Al llegar a 50 con acierto ≥ 85 % se valora pasarlo a un agente Claude (ver PROTOCOLO_SOPORTE_N2).
-          </p>
+    <div className="space-y-4 px-4 py-6 text-tinta sm:p-6 lg:p-10" data-testid="soporte">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Soporte</p>
+          <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Bandeja</h1>
         </div>
-      )}
-      {modo && <InterruptorIa modo={modo} />}
+        <Link href="/admin-dkitchen/servicios/qr" className="text-sm font-semibold text-vino">{pendientes} pedido{pendientes === 1 ? '' : 's'} de QR físico → Servicios</Link>
+      </div>
       {aviso && <p className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{aviso}</p>}
       {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-bold">Tickets</h2>
-        {tickets.length === 0 && <p className="rounded-2xl border border-linea bg-white p-8 text-center text-niebla">No hay tickets.</p>}
-        {tickets.map((t) => (
-          <article key={t.id} id={`t-${t.id}`} className="scroll-mt-6 rounded-2xl border border-linea bg-white p-5 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="font-semibold">{t.asunto}{t.origen === 'chat' && <span className="ml-2 rounded-full bg-vino/10 px-2 py-0.5 align-middle text-[11px] font-semibold text-vino">Desde el chat</span>}</p>
-                <p className="text-xs text-niebla">
-                  <Link href={`/admin-dkitchen/qr/${t.restauranteId}`} className="hover:text-carbon">{t.restaurante}</Link> · {fechaHora.format(new Date(t.creadoEn))}
-                </p>
-              </div>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${COLOR[t.estado]}`}>{t.estado}{extra.get(t.id)?.categoria ? ` · ${CATEGORIAS[extra.get(t.id)!.categoria as Categoria] ?? extra.get(t.id)!.categoria}` : ''}</span>
-            </div>
-            <p className="whitespace-pre-wrap text-sm text-grafito">{t.mensaje}</p>
-            {t.origen === 'chat' && t.contexto && (
-              <div className="rounded-lg bg-crema p-3 text-xs text-grafito">
-                <p className="text-niebla">
-                  Sección: <strong className="text-carbon">{t.contexto.seccion ?? '—'}</strong>
-                  {t.contexto.plan && <> · plan <strong className="text-carbon">{t.contexto.plan}</strong></>}
-                  {t.contexto.nivel && <> · diseño <strong className="text-carbon">{t.contexto.nivel}</strong></>}
-                </p>
-                {!!t.contexto.camino?.length && (
-                  <ol className="mt-2 list-decimal space-y-0.5 pl-4">{t.contexto.camino.map((c, i) => <li key={i}>{c}</li>)}</ol>
-                )}
-                {!!t.contexto.busquedas?.length && <p className="mt-2 text-niebla">Escribió: {t.contexto.busquedas.map((b) => `«${b}»`).join(' · ')}</p>}
-              </div>
-            )}
-            {t.respuesta && (
-              <div className="rounded-lg border-l-2 border-vino bg-papel p-3 text-sm">
-                <p className="text-xs text-niebla">Respuesta {t.respondidoEn ? `· ${fechaHora.format(new Date(t.respondidoEn))}` : ''}</p>
-                <p className="whitespace-pre-wrap">{t.respuesta}</p>
-              </div>
-            )}
-            {extra.get(t.id)?.ia && <BloqueIa ia={extra.get(t.id)!.ia!} />}
-            {t.estado !== 'cerrado' && modo?.n2 === 'gateway' && (
-              <form action={n2IaAction}>
-                <input type="hidden" name="ticketId" value={t.id} />
-                <input type="hidden" name="restauranteId" value={t.restauranteId} />
-                <button className="rounded-full border border-vino px-4 py-2 text-sm font-semibold text-vino hover:bg-vino/5">{extra.get(t.id)?.ia ? 'Rehacer diagnóstico y borrador con IA' : 'Diagnóstico y borrador con IA'}</button>
-              </form>
-            )}
-            {n2.has(t.id) && <PanelN2 ticketId={t.id} restauranteId={t.restauranteId} d={n2.get(t.id)!.d} s={n2.get(t.id)!.s} acciones={n2.get(t.id)!.acciones} />}
-            {t.estado === 'cerrado' && extra.get(t.id)?.resolucion && <p className="text-xs text-niebla">Resolución: {extra.get(t.id)!.resolucion}</p>}
-            {t.estado !== 'cerrado' && (
-              <form action={responderTicketAction} className="space-y-2">
-                <input type="hidden" name="ticketId" value={t.id} />
-                <textarea
-                  name="respuesta"
-                  required
-                  maxLength={4000}
-                  rows={n2.has(t.id) ? 7 : 3}
-                  defaultValue={t.respuesta ? undefined : extra.get(t.id)?.ia?.borrador ?? n2.get(t.id)?.texto}
-                  placeholder={t.respuesta ? 'Añadir otra respuesta (sustituye a la anterior)…' : 'Escribe la respuesta. El cliente la recibirá por correo y en su panel.'}
-                  className="w-full rounded-lg border border-acero bg-white px-3 py-2 text-sm focus:border-vino focus:outline-none"
-                />
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 text-xs text-niebla">
-                    <input type="checkbox" name="cerrar" className="accent-vino" /> Cerrar el ticket
-                  </label>
-                  <button className="rounded-full bg-vino px-4 py-2 text-sm font-bold hover:bg-vino-hondo">Responder</button>
-                </div>
-              </form>
-            )}
-          </article>
-        ))}
-      </section>
+      <div className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
+        <aside className={`space-y-3 ${t ? 'hidden lg:block' : ''}`}>
+          <nav className="flex gap-1.5 overflow-x-auto [scrollbar-width:none]" aria-label="Carpetas">
+            {CARPETAS.map(([k, e, n]) => {
+              const cuantos = tickets.filter((x) => x.estado === e).length;
+              return <Link key={k} href={k === 'sin' ? '/admin-dkitchen/soporte' : `/admin-dkitchen/soporte?c=${k}`} className={`shrink-0 rounded-full px-3.5 py-2 text-sm font-semibold ${carpeta === e ? 'bg-tinta text-white' : 'border border-linea bg-white'}`}>{n} <span className="opacity-60">{cuantos}</span></Link>;
+            })}
+          </nav>
+          <ul className="overflow-hidden rounded-[22px] border border-linea bg-white">
+            {lista.map((x) => (
+              <li key={x.id} className="border-b border-linea last:border-0">
+                <Link href={qs({ t: x.id })} scroll={false} className={`block px-4 py-3 transition ${t?.id === x.id ? 'bg-vino/[0.06]' : 'hover:bg-papel'}`}>
+                  <span className="flex items-baseline justify-between gap-2"><b className="truncate text-sm">{x.restaurante}</b><span className="shrink-0 text-[11px] text-niebla">{fechaHora.format(new Date(x.creadoEn))}</span></span>
+                  <span className="block truncate text-sm">{x.asunto}</span>
+                  <span className="block truncate text-xs text-niebla">{x.mensaje}</span>
+                </Link>
+              </li>
+            ))}
+            {!lista.length && <li className="px-4 py-10 text-center text-sm text-niebla">{carpeta === 'abierto' ? '¡Bandeja limpia! No hay nada sin responder.' : 'Nada por aquí.'}</li>}
+          </ul>
+        </aside>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-bold">Pedidos de QR físico</h2>
-        {solicitudes.length === 0 ? (
-          <p className="rounded-2xl border border-linea bg-white p-8 text-center text-niebla">No hay pedidos.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-2xl border border-linea">
-            <table className="w-full text-sm">
-              <thead className="bg-papel text-left text-xs uppercase tracking-wider text-niebla">
-                <tr>
-                  <th className="px-4 py-3">Local</th>
-                  <th className="px-4 py-3">Pedido</th>
-                  <th className="px-4 py-3">Envío</th>
-                  <th className="px-4 py-3">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-linea">
-                {solicitudes.map((s) => (
-                  <tr key={s.id}>
-                    <td className="px-4 py-3">
-                      <Link href={`/admin-dkitchen/qr/${s.restauranteId}`} className="font-semibold hover:text-vino">{s.restaurante}</Link>
-                      <p className="text-xs text-ceniza">{fechaHora.format(new Date(s.creadoEn))}</p>
-                    </td>
-                    <td className="px-4 py-3">{s.cantidad} × {s.tipo}{s.notas ? <p className="text-xs text-niebla">{s.notas}</p> : null}</td>
-                    <td className="px-4 py-3 text-niebla">{s.direccionEnvio ?? '—'}</td>
-                    <td className="px-4 py-3">
-                      <form action={estadoSolicitudAction} className="flex items-center gap-2">
-                        <input type="hidden" name="solicitudId" value={s.id} />
-                        <select name="estado" defaultValue={s.estado} className="rounded-md border border-acero bg-white px-2 py-1 text-xs">
-                          {ESTADOS_SOLICITUD.map((e) => <option key={e} value={e}>{e.replace('_', ' ')}</option>)}
-                        </select>
-                        <button className="rounded-md bg-papel px-2 py-1 text-xs font-semibold hover:bg-linea">Guardar</button>
-                      </form>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+        <section className={`min-w-0 ${t ? '' : 'hidden lg:block'}`}>
+          {!t ? (
+            <div className="grid h-full min-h-[320px] place-items-center rounded-[22px] border border-dashed border-linea-fuerte bg-white/50 p-8 text-center text-sm text-niebla">Elige una conversación de la izquierda.</div>
+          ) : (
+            <article id={`t-${t.id}`} className="dk-paso space-y-4 rounded-[22px] border border-linea bg-white p-5 sm:p-6" data-testid="conversacion">
+              <Link href={qs({})} className="text-xs font-semibold text-vino lg:hidden">← Bandeja</Link>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <h2 className="font-display text-xl font-bold">{t.asunto}</h2>
+                  <p className="text-xs text-niebla"><Link href={`/admin-dkitchen/qr/${t.restauranteId}?tab=soporte`} className="font-semibold text-tinta hover:text-vino">{t.restaurante}</Link> · {fechaHora.format(new Date(t.creadoEn))}{t.origen === 'chat' ? ' · desde el chat' : ''}</p>
+                </div>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${COLOR[t.estado]}`}>{t.estado}{extra.get(t.id)?.categoria ? ` · ${CATEGORIAS[extra.get(t.id)!.categoria as Categoria] ?? extra.get(t.id)!.categoria}` : ''}</span>
+              </div>
+              <div className="max-w-[90%] rounded-[18px] rounded-tl-md bg-papel px-4 py-3 text-sm"><p className="whitespace-pre-wrap">{t.mensaje}</p></div>
+              {t.origen === 'chat' && t.contexto && (
+                <p className="text-xs text-niebla">Estaba en <b className="text-tinta">{t.contexto.seccion ?? '—'}</b>{t.contexto.plan ? ` · plan ${t.contexto.plan}` : ''}{t.contexto.busquedas?.length ? ` · escribió: ${t.contexto.busquedas.map((b) => `«${b}»`).join(' · ')}` : ''}</p>
+              )}
+              {t.respuesta && (
+                <div className="ml-auto max-w-[90%] rounded-[18px] rounded-tr-md bg-vino px-4 py-3 text-sm text-white">
+                  <p className="whitespace-pre-wrap">{t.respuesta}</p>
+                  <p className="mt-1 text-right text-[11px] text-white/60">{t.respondidoEn ? fechaHora.format(new Date(t.respondidoEn)) : ''}</p>
+                </div>
+              )}
+              {extra.get(t.id)?.ia && <BloqueIa ia={extra.get(t.id)!.ia!} />}
+              {t.estado !== 'cerrado' && modo?.n2 === 'gateway' && (
+                <form action={n2IaAction}><input type="hidden" name="ticketId" value={t.id} /><input type="hidden" name="restauranteId" value={t.restauranteId} />
+                  <button className="rounded-full border border-vino px-4 py-2 text-sm font-semibold text-vino hover:bg-vino/5">{extra.get(t.id)?.ia ? 'Rehacer borrador con IA' : 'Borrador con IA'}</button></form>
+              )}
+              {n2.has(t.id) && <details className="rounded-2xl border border-linea p-3 text-sm"><summary className="cursor-pointer font-semibold">Diagnóstico y arreglos rápidos</summary><div className="mt-3"><PanelN2 ticketId={t.id} restauranteId={t.restauranteId} d={n2.get(t.id)!.d} s={n2.get(t.id)!.s} acciones={n2.get(t.id)!.acciones} /></div></details>}
+              {t.estado === 'cerrado' && extra.get(t.id)?.resolucion && <p className="text-xs text-niebla">Resolución: {extra.get(t.id)!.resolucion}</p>}
+              {t.estado !== 'cerrado' && (
+                <form action={responderTicketAction} className="border-t border-linea pt-4">
+                  <input type="hidden" name="ticketId" value={t.id} />
+                  <CajaRespuesta hayRespuesta={!!t.respuesta} inicial={t.respuesta ? undefined : extra.get(t.id)?.ia?.borrador ?? n2.get(t.id)?.texto} />
+                </form>
+              )}
+            </article>
+          )}
+        </section>
+      </div>
+
+      <details className="rounded-[22px] border border-linea bg-white p-4 text-sm">
+        <summary className="cursor-pointer font-semibold">IA de soporte y métricas</summary>
+        <div className="mt-4 space-y-4">
+          {metricas && <p className="text-xs text-niebla">N2 manual: {metricas.resueltos}/50 resueltos · acierto {metricas.acierto ?? '—'} % · resolución media {metricas.horas_medias_resolucion ?? '—'} h.</p>}
+          {modo && <InterruptorIa modo={modo} />}
+        </div>
+      </details>
     </div>
   );
 }

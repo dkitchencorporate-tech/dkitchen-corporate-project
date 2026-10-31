@@ -149,7 +149,8 @@ export default async function ServiciosExperiencePage({ searchParams }: { search
   const q = await searchParams;
   const [proyectos, eventos, esComercial] = await Promise.all([
     listarProyectos(jwt, { producto: 'experience' }).catch(() => [] as ProyectoFila[]),
-    comoCliente(jwt, async (c) => (await c.query<Evento>('SELECT * FROM dk.admin_eventos()')).rows).catch(() => [] as Evento[]),
+    // pg devuelve timestamptz como Date: se normaliza a texto ISO (fallo 01/11: la página entera caía).
+    comoCliente(jwt, async (c) => (await c.query<Evento>('SELECT * FROM dk.admin_eventos()')).rows.map((e) => ({ ...e, fecha: new Date(e.fecha as unknown as string).toISOString() }))).catch(() => [] as Evento[]),
     esComercialActual(jwt),
   ]);
   const sel = eventos.find((x) => x.id === q.ev);

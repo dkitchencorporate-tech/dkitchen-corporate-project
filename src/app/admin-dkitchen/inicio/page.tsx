@@ -75,7 +75,7 @@ export default async function CentralHoy() {
     recordatoriosPendientes(jwt).catch(() => []),
     dineroReal(),
     objetivoMensual(),
-    comoCliente(jwt, async (c) => (await c.query<{ id: string; titulo: string; fecha: string; vendidas: number; aforo: number; estado: string }>('SELECT id, titulo, fecha, vendidas, aforo, estado FROM dk.admin_eventos() WHERE NOT muestra')).rows).catch(() => []),
+    comoCliente(jwt, async (c) => (await c.query<{ id: string; titulo: string; fecha: string; vendidas: number; aforo: number; estado: string }>('SELECT id, titulo, fecha, vendidas, aforo, estado FROM dk.admin_eventos() WHERE NOT muestra')).rows.map((e) => ({ ...e, fecha: new Date(e.fecha as unknown as string).toISOString() }))).catch(() => []),
     esComercialActual(jwt),
   ]);
   const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });

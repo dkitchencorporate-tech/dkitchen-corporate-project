@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
 
@@ -30,6 +31,7 @@ export async function guardarOfertaFechaAction(f: FormData) {
     precio, (centimos(f.get('ancla')) ?? 0) > precio ? centimos(f.get('ancla')) : null, desde, hasta, f.get('activa') === 'si',
   ]));
   revalidatePath('/admin-dkitchen/ofertas');
+  redirect('/admin-dkitchen/ofertas?ok=1');
 }
 
 export async function estadoSolicitudOfertaAction(f: FormData) {
