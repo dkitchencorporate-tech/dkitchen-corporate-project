@@ -31,6 +31,8 @@ export default function AltaUnicaModal({
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [resultado, setResultado] = useState<ResultadoAlta4Pasos | null>(null);
+  const [previa, setPrevia] = useState<ResultadoAlta4Pasos | null>(null);
+  const eur = (n?: number) => (n ?? 0).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
   const [enviarCorreo, setEnviarCorreo] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
@@ -75,7 +77,7 @@ export default function AltaUnicaModal({
   };
 
   // Tramitar el alta en el servidor
-  const tramitarAlta = () => {
+  const tramitarAlta = (modo: 'previa' | 'crear' = 'crear') => {
     setError(null);
     iniciar(async () => {
       const payload: DatosAlta4Pasos = {
@@ -100,11 +102,11 @@ export default function AltaUnicaModal({
         enviarCorreo: modoInicio === 'pago' && enviarCorreo,
       };
 
-      const res = await altaUnica4PasosAction(payload);
+      const res = await altaUnica4PasosAction(payload, modo);
       if (!res.ok) {
         setError(res.error || 'No se pudo tramitar el alta.');
       } else {
-        setResultado(res);
+        if (modo === 'previa') setPrevia(res); else setResultado(res);
         setPaso(4);
       }
     });
@@ -598,16 +600,6 @@ export default function AltaUnicaModal({
               </label>
             )}
 
-            {modoInicio === 'pago' && (
-              <label className="flex items-start gap-2.5 rounded-2xl border border-linea bg-white p-4 text-xs font-semibold text-carbon">
-                <input type="checkbox" checked={enviarCorreo} onChange={(e) => setEnviarCorreo(e.target.checked)} className="mt-0.5 h-4 w-4 accent-vino" />
-                <span>Enviar también la propuesta por correo al cliente ({email.trim() || 'su correo'}).</span>
-              </label>
-            )}
-            <p className="text-[11px] leading-relaxed text-niebla">
-              Al pulsar se crea la cuenta del cliente{modoInicio === 'pago' ? ' y su enlace de pago (no se cobra nada hasta que pague)' : ''}. No se puede deshacer desde aquí.
-            </p>
-
             <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-between w-full pt-4">
               <button
                 type="button"
@@ -623,10 +615,53 @@ export default function AltaUnicaModal({
                   (descuentoComercialPct > 0 && motivoDescuento.trim().length < 4) ||
                   (esComercial && (descuentoComercialPct > 5 || montajeGratis))
                 }
-                onClick={tramitarAlta}
+                onClick={() => { setPrevia(null); tramitarAlta('previa'); }}
                 className="w-full sm:w-auto min-h-[44px] rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo disabled:opacity-40"
               >
-                {pendiente ? 'Creando en el servidor…' : 'Crear cliente y generar propuesta →'}
+                {pendiente ? 'Calculando en el servidor…' : 'Revisar el resumen →'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── PASO 4 (antes de crear): Revisa y envía ─────────────── */}
+        {paso === 4 && !resultado && previa && (
+          <div className="mt-6 space-y-4">
+            <div className="rounded-2xl border border-linea bg-white p-5">
+              <div className="flex flex-wrap items-start justify-between gap-2 border-b border-linea pb-3">
+                <div>
+                  <h4 className="font-display text-base font-bold text-carbon">{local}</h4>
+                  <p className="text-xs text-niebla">{contacto} · {email}{telefono ? ` · ${telefono}` : ''}</p>
+                </div>
+                <span className="rounded-full bg-oro/20 px-3 py-0.5 text-xs font-bold text-carbon">Sin crear todavía</span>
+              </div>
+              <ul className="mt-3 space-y-1.5 text-xs">
+                {(previa.desglose ?? []).map((x, i) => (
+                  <li key={i} className="flex justify-between gap-3"><span className="text-carbon">{x.concepto}</span><span className="shrink-0 tabular-nums font-semibold">{eur(x.importeEuros)}</span></li>
+                ))}
+              </ul>
+              <div className="mt-3 space-y-1 border-t border-linea pt-3 text-xs">
+                <p className="flex justify-between"><span className="text-niebla">Base hoy</span><span className="tabular-nums">{eur(previa.baseEuros)}</span></p>
+                <p className="flex justify-between"><span className="text-niebla">IVA 21 %</span><span className="tabular-nums">{eur(previa.ivaEuros)}</span></p>
+                <p className="flex justify-between text-sm font-bold"><span>Paga hoy</span><span className="tabular-nums">{eur(previa.totalHoyEuros)}</span></p>
+                {!!previa.recurrenteEuros && (
+                  <p className="flex justify-between text-niebla"><span>Después</span><span className="tabular-nums">{eur(previa.recurrenteEuros)} + IVA {previa.intervaloMeses === 3 ? 'cada trimestre' : previa.intervaloMeses === 12 ? 'al año' : 'al mes'}</span></p>
+                )}
+              </div>
+            </div>
+            {modoInicio === 'pago' && (
+              <label className="flex items-start gap-2.5 rounded-2xl border border-linea bg-white p-4 text-xs font-semibold text-carbon">
+                <input type="checkbox" checked={enviarCorreo} onChange={(e) => setEnviarCorreo(e.target.checked)} className="mt-0.5 h-4 w-4 accent-vino" />
+                <span>Enviar también la propuesta por correo a {email.trim()}.</span>
+              </label>
+            )}
+            <p className="text-[11px] leading-relaxed text-niebla">
+              Importes calculados por el servidor con el catálogo. Al crear se abre la cuenta del cliente{modoInicio === 'pago' ? ' y su enlace de pago; no se cobra nada hasta que pague' : ''}.
+            </p>
+            <div className="flex flex-col-reverse gap-2.5 pt-2 sm:flex-row sm:justify-between">
+              <button type="button" onClick={() => setPaso(3)} className="w-full sm:w-auto min-h-[44px] rounded-full border border-linea bg-white px-5 py-2.5 text-xs font-bold text-carbon hover:bg-papel">← Cambiar condiciones</button>
+              <button type="button" disabled={pendiente} onClick={() => tramitarAlta('crear')} className="w-full sm:w-auto min-h-[44px] rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo disabled:opacity-40">
+                {pendiente ? 'Creando…' : modoInicio === 'pago' ? 'Crear cliente y enlace de pago' : 'Crear cliente'}
               </button>
             </div>
           </div>
@@ -713,13 +748,7 @@ export default function AltaUnicaModal({
             )}
 
             <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-between w-full pt-4 border-t border-linea">
-              <button
-                type="button"
-                onClick={() => setPaso(3)}
-                className="w-full sm:w-auto min-h-[44px] rounded-full border border-linea bg-white px-5 py-2.5 text-xs font-bold text-carbon hover:bg-papel"
-              >
-                ← Volver a condiciones
-              </button>
+              <span />
               <button
                 type="button"
                 onClick={() => {

@@ -443,10 +443,13 @@ export type ResultadoAlta4Pasos = {
   baseEuros?: number;
   ivaEuros?: number;
   totalHoyEuros?: number;
+  recurrenteEuros?: number;
+  intervaloMeses?: number;
   error?: string;
 };
 
-export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<ResultadoAlta4Pasos> {
+/** modo «previa»: valida y calcula en el servidor SIN crear nada (paso 4 «Revisa y envía» del boceto). */
+export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' | 'crear' = 'crear'): Promise<ResultadoAlta4Pasos> {
   const jwt = await exigirAdmin();
   const email = String(d.email ?? '').trim().toLowerCase();
   const contacto = String(d.contacto ?? '').trim().slice(0, 80);
@@ -488,6 +491,11 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
 
   if (!calc.ok) {
     return { ok: false, error: calc.error };
+  }
+  if (modo === 'previa') {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return { ok: false, error: 'Revisa el correo del cliente.' };
+    if (!local || !contacto) return { ok: false, error: 'Faltan el nombre del local o la persona de contacto.' };
+    return { ok: true, desglose: calc.desglose, baseEuros: calc.baseEuros, ivaEuros: calc.ivaEuros, totalHoyEuros: calc.totalHoyEuros, recurrenteEuros: calc.recurrenteEuros, intervaloMeses: calc.intervaloMeses };
   }
 
   const baseHoyEuros = calc.baseEuros!;
