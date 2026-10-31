@@ -95,6 +95,7 @@ export async function estadoSolicitudAction(formulario: FormData) {
   if (!ESTADOS_SOLICITUD.includes(estado)) throw new Error('Estado no válido.');
   await cambiarEstadoSolicitudQr(jwt, id, estado);
   revalidatePath('/admin-dkitchen/soporte');
+  revalidatePath('/admin-dkitchen/servicios/qr');
 }
 
 export async function asignarDisenoAction(formulario: FormData) {
@@ -611,6 +612,7 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
       fase: faseSignature,
       origen: 'https://dkitchencorporate.es',
       prueba: esPrueba,
+      metadata: { servicios: d.servicios.filter((s) => ['qr', 'signature', 'experience', 'auditoria'].includes(s)).join(','), nombreContacto: contacto, ...(telefono ? { telefono } : {}) },
     });
 
     urlPago = chk.url;

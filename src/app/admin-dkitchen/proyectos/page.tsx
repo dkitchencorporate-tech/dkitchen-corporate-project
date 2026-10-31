@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
@@ -78,6 +79,8 @@ function Tarjeta({ p, eventos }: { p: ProyectoFila; eventos: EventoResumen[] }) 
 export default async function Proyectos({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAdmin();
   const q = await searchParams;
+  // Zona Proyectos retirada (decisión 2 de karc0, 01/11): cada servicio tiene su tablero en Servicios.
+  if (q.producto !== 'dark_kitchen' && q.producto !== 'qr_fisico') redirect(q.producto === 'experience' ? '/admin-dkitchen/servicios/experience' : q.producto === 'auditoria' ? '/admin-dkitchen/servicios/auditoria' : q.producto === 'signature' ? '/admin-dkitchen/servicios/signature' : '/admin-dkitchen/servicios/signature');
   const producto = q.producto && q.producto in PRODUCTOS_PROYECTO ? (q.producto as ProductoProyecto) : undefined;
   const hoy = q.hoy === '1';
   const fase = q.fase ?? 'abiertos';

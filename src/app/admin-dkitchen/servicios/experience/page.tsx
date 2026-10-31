@@ -1,314 +1,222 @@
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
-import { listarProyectos, FASES, nombreFase } from '@/lib/proyectos';
-import { euros, leerLanding } from '@/lib/entradas';
-import GuiaZona from '@/components/admin/GuiaZona';
+import { listarProyectos, type ProyectoFila } from '@/lib/proyectos';
+import { clavePuerta, euros, leerLanding, urlAltaCobro } from '@/lib/entradas';
+import { FORMATOS_EXPERIENCE, rutaImagen } from '@/lib/experience-formatos';
+import { esComercialActual } from '@/lib/rol-central';
+import Tablero, { type Columna, type Tarjeta } from '@/components/admin/tablero/Tablero';
+import NuevoCliente from '@/components/admin/NuevoCliente';
+import EventoTresToques, { type FormatoTresToques } from '@/components/admin/EventoTresToques';
+import AsistenteEvento, { type EventoAsistente, type FormatoAsistente } from '@/components/admin/AsistenteEvento';
+import { cambiarEstadoAction, conectarCobroAction, guardarEventoAction, nuevaClavePuertaAction } from '../../entradas/actions';
 
 export const dynamic = 'force-dynamic';
 
-type EventoFila = {
-  id: string;
-  slug: string;
-  local_nombre: string;
-  titulo: string;
-  fecha: string;
-  precio_centimos: number;
-  aforo: number;
-  vendidas: number;
-  usadas: number;
-  ingresos_centimos: string;
-  estado: string;
-  stripe_cuenta: string | null;
-  clave_puerta: string | null;
-  formato: string | null;
+/**
+ * Servicios → Experience (decisión 1 de karc0, 01/11): UN tablero.
+ * Briefing → Propuesta pagada → Evento creado → En venta → Celebrado.
+ * La venta de entradas, la puerta y el cobro del local (Stripe Connect) viven dentro de cada evento (?ev=).
+ */
+type Evento = {
+  id: string; slug: string; local_nombre: string; titulo: string; fecha: string; precio_centimos: number; aforo: number;
+  vendidas: number; usadas: number; ingresos_centimos: string; estado: string; stripe_cuenta: string | null; tiene_clave: boolean;
+  descripcion: string; lugar: string; max_por_compra: number; imagen_url: string | null; landing: unknown; muestra: boolean; formato: string | null;
 };
+type Entrada = { codigo: string; numero: number; nombre: string; email: string; estado: string; usada_en: string | null };
 
-const fechaFmt = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Madrid' });
-const dia = (s: string) => fechaFmt.format(new Date(s));
-
-const ESTADO_EVENTO: Record<string, [string, string]> = {
-  borrador: ['Borrador', 'bg-papel text-carbon border border-linea'],
-  venta: ['En venta', 'bg-emerald-500/15 text-emerald-800 font-semibold'],
-  cerrado: ['Cerrado', 'bg-papel text-niebla'],
+const COLUMNAS: Columna[] = [
+  { clave: 'briefing', nombre: 'Briefing', fases: ['solicitud', 'llamada'] },
+  { clave: 'pagada', nombre: 'Propuesta pagada', fases: ['contrato_pago', 'concepto'], destino: 'contrato_pago' },
+  { clave: 'creado', nombre: 'Evento creado', fases: ['evento_montado'] },
+  { clave: 'venta', nombre: 'En venta', fases: ['venta_abierta'] },
+  { clave: 'celebrado', nombre: 'Celebrado', fases: ['celebrado', 'cerrado'] },
+];
+const FASE_EVENTO: Record<string, string> = { borrador: 'evento_montado', venta: 'venta_abierta', cerrado: 'celebrado' };
+const SITIO = () => process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es';
+const MENSAJES: Record<string, string> = {
+  guardado: 'Evento creado. Siguiente: conecta el cobro del local y abre la venta.', cuenta: 'Cuenta de cobro creada: manda al local su enlace de alta.',
+  estado: 'Hecho.', clave: 'Puerta activada.', fase: 'Fase cambiada.',
+  datos: 'Faltan datos.', guardar: 'No se pudo guardar el evento: revisa la fecha, el precio y las plazas.',
+  connect: 'No se pudo crear la cuenta en Stripe (¿Stripe Connect activado?).', cobro: 'El local aún no ha terminado su alta en Stripe: todavía no se puede abrir la venta.',
+  estado_error: 'No se pudo cambiar el estado.',
 };
+const aLocal = (s: string) => new Date(s).toLocaleString('sv-SE', { timeZone: 'Europe/Madrid' }).slice(0, 16).replace(' ', 'T');
+const diaHora = (s: string) => new Date(s).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
-export default async function ServiciosExperiencePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ tab?: string }>;
-}) {
+function paraAsistente(e: Evento): EventoAsistente {
+  const l = leerLanding(e.landing);
+  const area = (filas: string[]) => filas.join('\n');
+  return {
+    id: e.id, slug: e.slug, local_nombre: e.local_nombre, titulo: e.titulo, fecha: aLocal(e.fecha), precio: String(e.precio_centimos / 100),
+    aforo: e.aforo, max_por_compra: e.max_por_compra, lugar: e.lugar ?? '', imagen_url: e.imagen_url ?? '', formato: e.formato ?? '',
+    muestra: !!e.muestra, descripcion: e.descripcion ?? '',
+    l: {
+      subtitulo: l.subtitulo, historia: l.historia.join('\n\n'), menu: area(l.menu.map((m) => `${m.pase} | ${m.plato} | ${m.bebida}`)),
+      programa: area(l.programa.map((p) => `${p.hora} | ${p.que}`)), incluye: area(l.incluye), anf_nombre: l.anfitrion?.nombre ?? '',
+      anf_rol: l.anfitrion?.rol ?? '', anf_texto: l.anfitrion?.texto ?? '', direccion: l.direccion, mapa: l.mapa ?? '',
+      faq: area(l.faq.map((x) => `${x.p} | ${x.r}`)), avisos: l.avisos,
+    },
+  };
+}
+
+const FORMATOS_3: FormatoTresToques[] = FORMATOS_EXPERIENCE.map((f) => ({
+  slug: f.slug, codigo: f.codigo, nombre: f.nombre, etiqueta: f.etiqueta, frase: f.frase, titular: f.titular, resumen: f.resumen,
+  dias: f.dias, aforo: f.aforo, entrada: f.entrada, faq: f.faq, foto: f.imagen ? rutaImagen(f.slug, '16x9') : null,
+}));
+const FORMATOS_ASIST: FormatoAsistente[] = FORMATOS_EXPERIENCE.map((f) => ({
+  slug: f.slug, nombre: f.nombre, etiqueta: f.etiqueta, frase: f.frase, dias: f.dias, aforo: f.aforo, entrada: f.entrada, faq: f.faq, claves: f.claves,
+}));
+
+/** Panel del evento: lo que toca hacer AHORA con él, en orden (cobro → puerta → venta). */
+function PanelEvento({ e, entradas }: { e: Evento; entradas: Entrada[] }) {
+  const pct = e.aforo ? Math.min(100, Math.round((Number(e.vendidas) / e.aforo) * 100)) : 0;
+  const pasos: { hecho: boolean; titulo: string; accion: ReactNode }[] = [
+    {
+      hecho: !!e.stripe_cuenta, titulo: 'Cobro del local (Stripe)',
+      accion: !e.stripe_cuenta ? (
+        <form action={conectarCobroAction} className="flex flex-col gap-2 sm:flex-row">
+          <input type="hidden" name="id" value={e.id} /><input type="hidden" name="local_nombre" value={e.local_nombre} />
+          <input name="email" type="email" placeholder="Correo del local (opcional)" className="min-h-[44px] flex-1 rounded-full border border-linea bg-white px-4 text-sm" />
+          <button className="dk-btn min-h-[44px] rounded-full bg-vino px-5 text-sm font-bold text-white">Conectar cobro</button>
+        </form>
+      ) : <span className="break-all text-xs text-niebla">Enlace de alta para el local: <span className="font-mono">{urlAltaCobro(SITIO(), e.stripe_cuenta, e.slug)}</span></span>,
+    },
+    {
+      hecho: e.tiene_clave, titulo: 'Puerta (escáner de entradas)',
+      accion: !e.tiene_clave ? (
+        <form action={nuevaClavePuertaAction}><input type="hidden" name="id" value={e.id} /><button className="dk-btn min-h-[44px] rounded-full bg-vino px-5 text-sm font-bold text-white">Activar puerta</button></form>
+      ) : <span className="break-all text-xs text-niebla">No lo publiques: <span className="font-mono">{SITIO()}/e/{e.slug}/puerta#k={clavePuerta(e.id)}</span></span>,
+    },
+    {
+      hecho: e.estado === 'venta' || e.estado === 'cerrado', titulo: e.estado === 'cerrado' ? 'Venta cerrada' : 'Venta de entradas',
+      accion: e.estado === 'venta' ? (
+        <form action={cambiarEstadoAction}><input type="hidden" name="id" value={e.id} /><input type="hidden" name="estado" value="cerrado" /><button className="min-h-[44px] rounded-full border border-linea bg-white px-5 text-sm font-bold">Cerrar la venta</button></form>
+      ) : e.estado !== 'cerrado' ? (
+        <form action={cambiarEstadoAction}><input type="hidden" name="id" value={e.id} /><input type="hidden" name="estado" value="venta" /><input type="hidden" name="cuenta" value={e.stripe_cuenta ?? ''} /><button className="dk-btn min-h-[44px] rounded-full bg-exito px-5 text-sm font-bold text-white" data-testid="abrir-venta">Abrir la venta</button></form>
+      ) : null,
+    },
+  ];
+  return (
+    <section className="dk-paso overflow-hidden rounded-[26px] border border-linea bg-white" data-testid="panel-evento">
+      <div className="relative bg-noche text-white">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {e.imagen_url && <img src={e.imagen_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45" />}
+        <div className="relative space-y-3 p-5 sm:p-6">
+          <Link href="/admin-dkitchen/servicios/experience" className="text-xs font-semibold text-oro">← Tablero</Link>
+          <h2 className="font-display text-2xl font-bold sm:text-3xl">{e.titulo}</h2>
+          <p className="text-sm text-white/70">{e.local_nombre} · {diaHora(e.fecha)} · {euros(e.precio_centimos)}</p>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {[[`${e.vendidas}/${e.aforo}`, 'vendidas'], [String(e.usadas), 'dentro'], [euros(Number(e.ingresos_centimos)), 'para el local']].map(([v, t]) => (
+              <span key={t} className="rounded-2xl bg-white/10 px-2 py-2.5"><b className="cv-cifra block font-display text-lg">{v}</b><span className="text-[11px] text-white/60">{t}</span></span>
+            ))}
+          </div>
+          <div className="dk-barra-prog h-2 overflow-hidden rounded-full bg-white/15"><span style={{ width: `${pct}%` }} /></div>
+          <a href={`/e/${e.slug}`} target="_blank" className="inline-block text-xs text-oro underline">Ver la página del comensal ↗</a>
+        </div>
+      </div>
+      <ol className="divide-y divide-linea">
+        {pasos.map((p, i) => (
+          <li key={p.titulo} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <span className="flex items-center gap-3 font-semibold">
+              <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm ${p.hecho ? 'dk-check bg-exito text-white' : 'bg-papel text-tinta'}`}>{p.hecho ? '✓' : i + 1}</span>{p.titulo}
+            </span>
+            <span className="min-w-0 sm:max-w-[60%]">{p.accion}</span>
+          </li>
+        ))}
+      </ol>
+      {!!entradas.length && (
+        <details className="border-t border-linea p-4 sm:p-5">
+          <summary className="cursor-pointer text-sm font-semibold">Entradas vendidas ({entradas.length})</summary>
+          <ul className="mt-2 divide-y divide-linea text-sm">
+            {entradas.map((x) => (
+              <li key={x.codigo} className="flex flex-wrap justify-between gap-2 py-2"><span>{x.nombre} · n.º {x.numero}</span><span className={x.estado === 'usada' ? 'text-exito' : 'text-niebla'}>{x.estado}</span></li>
+            ))}
+          </ul>
+        </details>
+      )}
+      <details className="border-t border-linea p-4 sm:p-5">
+        <summary className="cursor-pointer text-sm font-semibold">✎ Editar todo el evento (menú, programa, anfitrión…)</summary>
+        <div className="mt-4"><AsistenteEvento accion={guardarEventoAction} formatos={FORMATOS_ASIST} clientes={[e.local_nombre]} e={paraAsistente(e)} /></div>
+      </details>
+    </section>
+  );
+}
+
+export default async function ServiciosExperiencePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAdmin();
-  const [proyectos, eventos, sp] = await Promise.all([
-    listarProyectos(jwt, { producto: 'experience' }),
-    comoCliente(jwt, async (c) => (await c.query<EventoFila>(
-      'SELECT id, slug, local_nombre, titulo, fecha, precio_centimos, aforo, vendidas, usadas, ingresos_centimos, estado, stripe_cuenta, clave_puerta, formato FROM eventos ORDER BY fecha DESC'
-    )).rows).catch(() => [] as EventoFila[]),
-    searchParams,
+  const q = await searchParams;
+  const [proyectos, eventos, esComercial] = await Promise.all([
+    listarProyectos(jwt, { producto: 'experience' }).catch(() => [] as ProyectoFila[]),
+    comoCliente(jwt, async (c) => (await c.query<Evento>('SELECT * FROM dk.admin_eventos()')).rows).catch(() => [] as Evento[]),
+    esComercialActual(jwt),
   ]);
+  const sel = eventos.find((x) => x.id === q.ev);
+  const entradas = sel ? await comoCliente(jwt, async (c) => (await c.query<Entrada>('SELECT * FROM dk.admin_entradas($1)', [sel.id])).rows).catch(() => []) : [];
+  const aviso = q.ok ? MENSAJES[q.ok] : q.e ? MENSAJES[q.e] ?? MENSAJES.datos : null;
+  const vivos = proyectos.filter((p) => p.fase !== 'descartado');
+  const locales = [...new Set(vivos.map((p) => p.negocio).filter(Boolean) as string[])];
+  const pNuevo = q.evento === 'nuevo' ? vivos.find((p) => p.id === q.p) : undefined;
 
-  const fasesExperience = FASES.experience.filter(([k]) => k !== 'descartado');
-
-  const eventosEnVenta = eventos.filter((e) => e.estado === 'venta').length;
-  const vendidasTotal = eventos.reduce((s, e) => s + Number(e.vendidas), 0);
-  const aforoTotal = eventos.reduce((s, e) => s + Number(e.aforo), 0);
-  const recaudacionTotalCentimos = eventos.reduce((s, e) => s + Number(e.ingresos_centimos || 0), 0);
-  const proyectosEnMarcha = proyectos.filter((p) => p.fase !== 'cerrado' && p.fase !== 'descartado').length;
-
-  const tabActiva = sp.tab || 'eventos';
+  // Tarjetas: cada proyecto, con su evento dentro si ya lo tiene; los eventos sin proyecto, sueltos en su columna.
+  const usados = new Set<string>();
+  const tarjetas: Tarjeta[] = vivos.map((p) => {
+    const ev = eventos.find((e) => !usados.has(e.id) && p.negocio && e.local_nombre.toLowerCase() === p.negocio.toLowerCase());
+    if (ev) usados.add(ev.id);
+    const fase = p.fase;
+    return {
+      id: p.id, titulo: p.negocio || p.nombre || p.email, sub: ev ? `${ev.titulo} · ${ev.vendidas}/${ev.aforo}` : p.siguiente_paso || p.email,
+      fase, fecha: ev?.fecha?.slice(0, 10) ?? p.siguiente_fecha, vencido: p.vencido, foto: ev?.imagen_url ?? null,
+      href: ev ? `/admin-dkitchen/servicios/experience?ev=${ev.id}` : `/admin-dkitchen/proyectos/${p.id}`,
+      etiqueta: (p.negocio ?? '').startsWith('PRUEBA') ? 'prueba' : null,
+      extra: ['contrato_pago', 'concepto'].includes(p.fase) && !ev ? (
+        <Link href={`/admin-dkitchen/servicios/experience?evento=nuevo&p=${p.id}`} className="dk-btn mt-2.5 flex min-h-[40px] items-center justify-center rounded-full bg-vino text-xs font-bold text-white">+ Crear su evento</Link>
+      ) : ev && ev.estado === 'borrador' ? (
+        <Link href={`/admin-dkitchen/servicios/experience?ev=${ev.id}`} className="dk-btn mt-2.5 flex min-h-[40px] items-center justify-center rounded-full bg-exito text-xs font-bold text-white">Preparar la venta →</Link>
+      ) : undefined,
+      moverCon: ['contrato_pago', 'concepto'].includes(p.fase) && !ev ? 'ninguno' : ev && ev.estado === 'borrador' ? 'ninguno' : 'proyecto',
+    };
+  });
+  for (const e of eventos) {
+    if (usados.has(e.id)) continue;
+    tarjetas.push({
+      id: e.id, titulo: e.titulo, sub: `${e.local_nombre} · ${e.vendidas}/${e.aforo}`, fase: FASE_EVENTO[e.estado] ?? 'evento_montado',
+      fecha: e.fecha.slice(0, 10), foto: e.imagen_url, href: `/admin-dkitchen/servicios/experience?ev=${e.id}`, moverCon: 'ninguno',
+      etiqueta: e.muestra ? 'muestra' : null,
+    });
+  }
+  const vendidas = eventos.reduce((s, e) => s + Number(e.vendidas), 0);
+  const enVenta = eventos.filter((e) => e.estado === 'venta').length;
+  const proximo = eventos.filter((e) => new Date(e.fecha).getTime() > Date.now()).sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
 
   return (
-    <div className="space-y-6 px-4 py-6 text-carbon sm:p-6 lg:p-10">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-5 px-4 py-6 text-tinta sm:p-6 lg:p-10">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Servicios · Producción</p>
-          <h1 className="font-display mt-1 text-3xl font-semibold tracking-tight md:text-4xl">Experience</h1>
-          <p className="mt-1 text-sm text-niebla">
-            Eventos gastronómicos llave en mano: montaje de conceptos, venta de entradas y control de puerta.
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Servicios</p>
+          <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Experience</h1>
         </div>
-        <div className="flex gap-2">
-          <Link
-            href="/admin-dkitchen/entradas"
-            className="rounded-full bg-noche px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-tinta"
-          >
-            + Asistente de eventos
-          </Link>
-          <Link
-            href="/admin-dkitchen/qr"
-            className="rounded-full bg-vino px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-hondo"
-          >
-            Ver en clientes →
-          </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin-dkitchen/servicios/experience?evento=nuevo" data-testid="nuevo-evento" className="dk-btn inline-flex min-h-[44px] items-center rounded-full border border-linea bg-white px-5 text-sm font-bold hover:bg-papel">+ Evento</Link>
+          <NuevoCliente servicio="experience" etiqueta="+ Nuevo Experience" esComercial={esComercial} />
         </div>
       </div>
 
-      <GuiaZona
-        titulo="Servicio Experience"
-        ancla="servicios-experience"
-        que="Área de producción para el producto Experience (cenas clandestinas, mesa del chef, maridajes y talleres con venta de entradas). Supervisas el pipeline comercial y el estado de la taquilla de cada evento."
-        pasos={[
-          'En «Eventos y Taquilla» consultas las entradas vendidas en tiempo real y el enlace de escaneo de puerta.',
-          'En «Pipeline de Eventos» monitorizas las fases de montaje con el restaurante (Concepto → Montado → Venta abierta → Celebrado).',
-          'Cada restaurante cobra directamente con su propia cuenta de Stripe Connect (el dinero nunca pasa por DKitchen).',
-        ]}
-      />
+      {aviso && <p role="status" className={`rounded-2xl px-4 py-3 text-sm ${q.ok ? 'bg-exito/10 text-exito' : 'bg-vino/10 text-vino'}`}>{aviso}</p>}
 
-      {/* KPIs de Experience */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-2xl border border-linea bg-noche p-5 text-white">
-          <p className="text-xs text-white/55">Eventos en venta</p>
-          <p className="mt-1 font-display text-2xl font-black tabular-nums text-oro">{eventosEnVenta}</p>
-          <p className="mt-0.5 text-[11px] text-white/45">{eventos.length} eventos registrados</p>
-        </div>
-        <div className="rounded-2xl border border-linea bg-white p-5">
-          <p className="text-xs text-niebla">Entradas vendidas</p>
-          <p className="mt-1 font-display text-2xl font-black tabular-nums text-carbon">
-            {vendidasTotal} <span className="text-niebla text-base">/ {aforoTotal}</span>
-          </p>
-          <p className="mt-0.5 text-[11px] text-ceniza">aforo global completado</p>
-        </div>
-        <div className="rounded-2xl border border-linea bg-white p-5">
-          <p className="text-xs text-niebla">Recaudación taquilla</p>
-          <p className="mt-1 font-display text-2xl font-black tabular-nums text-carbon">{euros(recaudacionTotalCentimos)}</p>
-          <p className="mt-0.5 text-[11px] text-ceniza">cobrado por los restaurantes</p>
-        </div>
-        <div className="rounded-2xl border border-linea bg-white p-5">
-          <p className="text-xs text-niebla">Proyectos en montaje</p>
-          <p className="mt-1 font-display text-2xl font-black tabular-nums text-carbon">{proyectosEnMarcha}</p>
-          <p className="mt-0.5 text-[11px] text-ceniza">en fase de producción</p>
-        </div>
+      <div className="grid grid-cols-3 gap-2.5">
+        {[[String(enVenta), 'en venta'], [String(vendidas), 'entradas vendidas'], [proximo ? diaHora(proximo.fecha).split(',')[0] + ' ' + new Date(proximo.fecha).toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'short' }) : '—', 'próximo evento']].map(([v, t]) => (
+          <div key={t} className="rounded-[20px] bg-white p-3.5 shadow-[0_10px_30px_-24px_rgba(62,5,21,.5)]"><b className="cv-cifra block font-display text-2xl">{v}</b><span className="text-xs text-niebla">{t}</span></div>
+        ))}
       </div>
 
-      {/* Selector de Pestañas: Eventos / Pipeline */}
-      <div className="flex gap-2 border-b border-linea pb-2">
-        <Link
-          href="/admin-dkitchen/servicios/experience?tab=eventos"
-          className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-            tabActiva === 'eventos'
-              ? 'bg-tinta text-white'
-              : 'border border-linea bg-white text-carbon hover:bg-papel'
-          }`}
-        >
-          Eventos y Taquilla ({eventos.length})
-        </Link>
-        <Link
-          href="/admin-dkitchen/servicios/experience?tab=pipeline"
-          className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-            tabActiva === 'pipeline'
-              ? 'bg-tinta text-white'
-              : 'border border-linea bg-white text-carbon hover:bg-papel'
-          }`}
-        >
-          Pipeline de Proyectos ({proyectos.length})
-        </Link>
-      </div>
-
-      {/* Pestaña 1: Eventos y Taquilla */}
-      {tabActiva === 'eventos' && (
-        <section className="space-y-3">
-          {eventos.length === 0 ? (
-            <p className="rounded-2xl border border-linea bg-white p-12 text-center text-sm text-niebla">
-              No hay eventos Experience creados todavía. Usa el asistente para montar el primero.
-            </p>
-          ) : (
-            <div className="overflow-x-auto rounded-2xl border border-linea bg-white shadow-sm">
-              <table className="w-full text-sm">
-                <thead className="border-b border-linea bg-papel text-left text-xs uppercase tracking-wider text-niebla">
-                  <tr>
-                    <th className="px-4 py-3">Evento</th>
-                    <th className="px-4 py-3">Local</th>
-                    <th className="px-4 py-3">Fecha</th>
-                    <th className="px-4 py-3 text-right">Precio Entrada</th>
-                    <th className="px-4 py-3 text-right">Vendidas / Aforo</th>
-                    <th className="px-4 py-3 text-right">Recaudación</th>
-                    <th className="px-4 py-3">Estado</th>
-                    <th className="px-4 py-3 text-right">Enlaces</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-linea">
-                  {eventos.map((e) => {
-                    const [etiqueta, estilo] = ESTADO_EVENTO[e.estado] ?? [e.estado, 'bg-papel text-carbon'];
-                    return (
-                      <tr key={e.id} className="hover:bg-papel/60 transition-colors">
-                        <td className="px-4 py-3">
-                          <span className="font-semibold text-carbon block">{e.titulo}</span>
-                          {e.formato && (
-                            <span className="text-[11px] text-niebla capitalize">Formato: {e.formato}</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-carbon font-medium">
-                          {e.local_nombre}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-niebla whitespace-nowrap">
-                          {dia(e.fecha)}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums font-semibold">
-                          {euros(e.precio_centimos)}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums">
-                          <span className="font-semibold text-carbon">{e.vendidas}</span>
-                          <span className="text-ceniza text-xs"> / {e.aforo}</span>
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums font-bold text-carbon">
-                          {euros(Number(e.ingresos_centimos || 0))}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs ${estilo}`}>
-                            {etiqueta}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right whitespace-nowrap text-xs space-x-2">
-                          <a
-                            href={`/e/${e.slug}`}
-                            target="_blank"
-                            rel="noopener"
-                            className="text-vino hover:underline font-semibold"
-                          >
-                            Entradas ↗
-                          </a>
-                          <a
-                            href={`/e/${e.slug}/puerta`}
-                            target="_blank"
-                            rel="noopener"
-                            className="text-carbon hover:underline"
-                          >
-                            Puerta ↗
-                          </a>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+      {q.evento === 'nuevo' && (
+        <EventoTresToques formatos={FORMATOS_3} locales={locales} accion={guardarEventoAction} proyecto={pNuevo?.id} localInicial={pNuevo?.negocio ?? undefined} cancelar="/admin-dkitchen/servicios/experience" />
       )}
+      {sel && <PanelEvento e={sel} entradas={entradas} />}
 
-      {/* Pestaña 2: Pipeline de Proyectos Experience */}
-      {tabActiva === 'pipeline' && (
-        <section className="space-y-4">
-          {proyectos.length === 0 ? (
-            <p className="rounded-2xl border border-linea bg-white p-12 text-center text-sm text-niebla">
-              No hay proyectos de Experience registrados en el embudo.
-            </p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {proyectos.map((p) => {
-                const paso = Math.max(0, fasesExperience.findIndex(([k]) => k === p.fase));
-                const pct = p.fase === 'descartado' ? 0 : Math.round(((paso + 1) / fasesExperience.length) * 100);
-
-                return (
-                  <div
-                    key={p.id}
-                    className="flex flex-col rounded-2xl border border-linea bg-white p-5 shadow-sm hover:border-vino/50 transition"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <Link
-                          href={`/admin-dkitchen/proyectos/${p.id}`}
-                          className="font-display text-base font-bold text-carbon hover:text-vino truncate block"
-                        >
-                          {p.negocio || p.nombre || p.email}
-                        </Link>
-                        <p className="text-xs text-niebla truncate">
-                          {p.nombre ? `${p.nombre} · ` : ''}{p.email}
-                        </p>
-                      </div>
-                      <span className="shrink-0 rounded-full bg-[#E3E7F1] px-2.5 py-0.5 text-xs font-semibold text-[#1F2A44]">
-                        Experience
-                      </span>
-                    </div>
-
-                    {/* Barra de progreso de fases Experience */}
-                    <div className="mt-4">
-                      <div className="flex items-baseline justify-between text-xs">
-                        <span className="font-semibold text-[#B08D57]">{nombreFase('experience', p.fase)}</span>
-                        <span className="text-ceniza text-[11px]">{pct}%</span>
-                      </div>
-                      <div className="mt-1.5 flex gap-1" aria-hidden>
-                        {fasesExperience.map(([k], i) => (
-                          <span
-                            key={k}
-                            className="h-1.5 flex-1 rounded-full"
-                            style={{
-                              background: i <= paso && p.fase !== 'descartado' ? '#B08D57' : '#E7E1D6',
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Siguiente paso */}
-                    {p.siguiente_paso && (
-                      <div className="mt-4 rounded-xl bg-papel p-3 text-xs">
-                        <p className="font-semibold text-carbon">Siguiente paso:</p>
-                        <p className="mt-0.5 text-grafito">{p.siguiente_paso}</p>
-                        {p.siguiente_fecha && (
-                          <p className="mt-1 text-[11px] text-niebla">Fecha: {dia(p.siguiente_fecha)}</p>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="mt-auto pt-4 flex items-center justify-between border-t border-linea text-xs">
-                      <span className="text-niebla">
-                        {p.comercial ? `Comercial: ${p.comercial}` : 'DKitchen'}
-                      </span>
-                      <Link
-                        href={`/admin-dkitchen/proyectos/${p.id}`}
-                        className="font-semibold text-vino hover:underline"
-                      >
-                        Abrir ficha →
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      )}
+      <Tablero columnas={COLUMNAS} tarjetas={tarjetas} volver="/admin-dkitchen/servicios/experience" resaltar={q.id} />
     </div>
   );
 }

@@ -31,7 +31,19 @@ export async function subirPortadaEventoAction(f: FormData): Promise<{ url?: str
  */
 const UUID = /^[0-9a-f-]{36}$/i;
 const campo = (f: FormData, k: string, max = 200) => String(f.get(k) ?? '').trim().slice(0, max);
-const volver = (q: string): never => redirect(`/admin-dkitchen/entradas?${q}`);
+// Experience unificado (decisión 1 de karc0, 01/11): los eventos viven dentro de Servicios → Experience.
+const volver = (q: string): never => redirect(`/admin-dkitchen/servicios/experience?${q}`);
+const refrescar = () => { revalidatePath('/admin-dkitchen/servicios/experience'); revalidatePath('/admin-dkitchen/entradas'); };
+/** Mueve el proyecto Experience del local a la fase del evento (sin fallar si no hay proyecto). */
+async function faseProyecto(jwt: string, proyecto: string | null, local: string | null, desde: string[], fase: string) {
+  try {
+    await comoCliente(jwt, async (c) => {
+      const id = proyecto && UUID.test(proyecto) ? proyecto
+        : local ? (await c.query<{ id: string }>("SELECT p->>'id' AS id FROM jsonb_array_elements(to_jsonb(dk.admin_proyectos('experience', NULL, false))) p WHERE lower(p->>'negocio') = lower($1) AND p->>'fase' = ANY($2) LIMIT 1", [local, desde])).rows[0]?.id : null;
+      if (id) await c.query('SELECT dk.admin_proyecto_fase($1, $2, NULL)', [id, fase]);
+    });
+  } catch (e) { console.error('Experience: fase del proyecto no movida', e); }
+}
 /** Líneas «a | b | c» de un textarea (landing del evento, 0084). */
 const lineas = (f: FormData, k: string, max: number) => campo(f, k, 6000).split(/\r?\n/).map((l) => l.split('|').map((x) => x.trim())).filter((l) => l.some(Boolean)).slice(0, max);
 
@@ -75,7 +87,8 @@ export async function guardarEventoAction(f: FormData) {
     console.error('Guardar evento:', e);
     volver('e=guardar');
   }
-  revalidatePath('/admin-dkitchen/entradas');
+  if (!UUID.test(id)) await faseProyecto(jwt, campo(f, 'proyecto', 36) || null, datos.local_nombre, ['solicitud', 'llamada', 'contrato_pago', 'concepto'], 'evento_montado');
+  refrescar();
   volver(`ok=guardado&ev=${nuevo}`);
 }
 
@@ -91,7 +104,7 @@ export async function conectarCobroAction(f: FormData) {
     console.error('Crear cuenta de cobro:', e);
     volver('e=connect');
   }
-  revalidatePath('/admin-dkitchen/entradas');
+  refrescar();
   volver(`ok=cuenta&ev=${id}`);
 }
 
@@ -111,7 +124,11 @@ export async function cambiarEstadoAction(f: FormData) {
     console.error('Estado del evento:', e);
     volver('e=estado');
   }
-  revalidatePath('/admin-dkitchen/entradas');
+  if (estado === 'venta' || estado === 'cerrado') {
+    const local = await comoCliente(jwt, async (c) => (await c.query<{ l: string }>('SELECT local_nombre AS l FROM dk.admin_eventos() WHERE id = $1', [id])).rows[0]?.l ?? null).catch(() => null);
+    await faseProyecto(jwt, null, local, estado === 'venta' ? ['evento_montado', 'concepto', 'contrato_pago'] : ['venta_abierta'], estado === 'venta' ? 'venta_abierta' : 'celebrado');
+  }
+  refrescar();
   volver(`ok=estado&ev=${id}`);
 }
 
@@ -127,6 +144,6 @@ export async function nuevaClavePuertaAction(f: FormData) {
     console.error('Clave de puerta:', e);
     volver('e=estado');
   }
-  revalidatePath('/admin-dkitchen/entradas');
+  refrescar();
   volver(`ok=clave&ev=${id}`);
 }

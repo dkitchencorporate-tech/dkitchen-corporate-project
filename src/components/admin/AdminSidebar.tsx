@@ -20,12 +20,12 @@ export const ZONAS: Zona[] = [
     { nombre: 'Resumen', href: '/admin-dkitchen/inicio' }, { nombre: 'Mis tareas', href: '/admin-dkitchen/tareas' },
     { nombre: 'Decisiones', href: '/admin-dkitchen/decisiones' }, { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' }] },
   { id: 'clientes', nombre: 'Clientes', icono: 'carta', items: [
-    { nombre: 'Clientes', href: '/admin-dkitchen/qr' }, { nombre: 'Proyectos', href: '/admin-dkitchen/proyectos' },
+    { nombre: 'Clientes', href: '/admin-dkitchen/qr' },
     { nombre: 'Fundador', href: '/admin-dkitchen/fundador' }] },
   { id: 'servicios', nombre: 'Servicios', icono: 'servicio', items: [
     { nombre: 'Carta QR', href: '/admin-dkitchen/servicios/qr' },
     { nombre: 'Signature', href: '/admin-dkitchen/servicios/signature' },
-    { nombre: 'Experience', href: '/admin-dkitchen/servicios/experience' }, { nombre: 'Eventos y entradas', href: '/admin-dkitchen/entradas' }] },
+    { nombre: 'Experience', href: '/admin-dkitchen/servicios/experience' }, { nombre: 'Auditoría', href: '/admin-dkitchen/servicios/auditoria' }] },
   { id: 'ventas', nombre: 'Ventas', icono: 'destello', items: [
     { nombre: 'Prospección', href: '/admin-dkitchen/prospeccion' }, { nombre: 'Oportunidades', href: '/admin-dkitchen/oportunidades' },
     { nombre: 'Ofertas', href: '/admin-dkitchen/ofertas' }, { nombre: 'Campañas y QR', href: '/admin-dkitchen/campanas' }, { nombre: 'Socios', href: '/admin-dkitchen/socios' },

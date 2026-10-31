@@ -366,6 +366,12 @@ async function alta(ctx: Contexto) {
       try {
         const r = await comoAprovisionamiento(async (c) => (await c.query<{ r: string }>('SELECT dk.aplicar_enlace_pago($1, $2, $3) AS r', [meta.enlaceId, ctx.idPago, ctx.cliente])).rows[0]?.r);
         if (r === 'ok') {
+          // Alta de Central (01/11): cada servicio con seguimiento entra en su tablero (Servicios → …) ya pagado.
+          for (const s of String(meta.servicios ?? '').split(',')) {
+            if (s === 'signature' || s === 'experience' || s === 'auditoria') {
+              await crearProyecto(s, 'pago', altaProyecto(ctx, { referencia: `${ctx.idPago}:${s}`, datos: { restaurante_id: meta.restauranteId, ...(meta.dk_prueba === '1' ? { prueba: true } : {}) } }));
+            }
+          }
           await enviarCorreoInterno(`PAGO DE ENLACE: ${meta.restauranteNombre}`,
             `<p><strong>${escaparHtml(meta.restauranteNombre)}</strong> (${escaparHtml(meta.email)}) ha pagado el enlace preparado en Central. Ya está aplicado.</p>${filasCorreo([['Importe hoy', euros(ctx.importe)], ['Factura (Stripe)', ctx.idPago]])}`).catch(() => {});
         }

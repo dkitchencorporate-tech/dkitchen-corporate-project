@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
 import { clavePuerta, euros, leerLanding, urlAltaCobro } from '@/lib/entradas';
@@ -62,6 +63,8 @@ const chip = (e: string) => ESTADO[e] ?? [e, 'bg-papel text-grafito'];
 export default async function Entradas({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAdmin();
   const q = await searchParams;
+  // Experience unificado (decisión 1 de karc0, 01/11): los eventos viven en Servicios → Experience.
+  redirect(q.ev ? `/admin-dkitchen/servicios/experience?ev=${encodeURIComponent(q.ev)}` : q.nuevo ? '/admin-dkitchen/servicios/experience?evento=nuevo' : '/admin-dkitchen/servicios/experience');
   const eventos = await comoCliente(jwt, async (c) => (await c.query<Evento>('SELECT * FROM dk.admin_eventos()')).rows).catch(() => null);
   const sel = eventos?.find((x) => x.id === q.ev);
   const entradas = sel ? await comoCliente(jwt, async (c) => (await c.query<Entrada>('SELECT * FROM dk.admin_entradas($1)', [sel.id])).rows).catch(() => []) : [];
