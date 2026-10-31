@@ -21,6 +21,7 @@ import { cifrar } from '@/lib/cifrado';
 import { guardarTraducciones, type Traduccion } from '@/lib/idiomas';
 import { esPlanQr, nombrePlan, QR_MENU, FUNDADOR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES } from '@/lib/pricing-config';
 import { identidadActual } from '@/lib/sesion';
+import { estadoFundador } from '@/lib/fundador';
 
 /**
  * Acciones del super admin. Doble cerrojo: exigirAdmin() aquí y dk.es_admin()
@@ -442,9 +443,8 @@ export type DatosAlta4Pasos = {
   servicios: string[]; // 'qr' | 'signature' | 'experience' | 'auditoria'
   planQr?: string; // 'basico' | 'ampliado' | 'sala'
   modoInicio: 'pago' | 'gratis' | 'demo';
-  modalidadTarifa: '1euro' | 'mensual' | 'fundador' | 'unico';
+  modalidadTarifa: '1euro' | 'mensual' | 'fundador' | 'unico' | 'cuotas';
   diasPrueba?: number;
-  ofertaId?: string;
   codigo?: string;
   descuentoComercialPct?: number; // 0 | 5 | 10
   motivoDescuento?: string;
@@ -479,10 +479,26 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
   if (contacto.length < 2 || local.length < 2) return { ok: false, error: 'Pon el nombre del contacto y del local.' };
   if (!d.servicios || d.servicios.length === 0) return { ok: false, error: 'Debes seleccionar al menos un servicio.' };
 
-  // Doble cerrojo: descuento comercial máximo 10% validado estrictamente en servidor
-  const descCom = Math.min(10, Math.max(0, Number(d.descuentoComercialPct) || 0));
-  if (Number(d.descuentoComercialPct) > 10) {
+  // Comprobar rol de quien ejecuta en identidades
+  const yo = await identidadActual().catch(() => null);
+  const miId = yo?.id ?? null;
+  const { rows: admRows } = await comoAprovisionamiento((c) =>
+    c.query<{ rol_admin: string }>('SELECT rol_admin FROM public.identidades WHERE id = $1 LIMIT 1', [miId])
+  );
+  const rolAdmin = admRows[0]?.rol_admin ?? 'comercial';
+
+  // Regla B2.7: Modos demo y cortesía/gratis SOLO para dirección (comprobado en servidor)
+  if ((d.modoInicio === 'demo' || d.modoInicio === 'gratis') && rolAdmin !== 'direccion') {
+    return { ok: false, error: 'Los modos demo y cortesía/gratis están reservados exclusivamente a Dirección.' };
+  }
+
+  // Regla B2.1 & B2: Descuento comercial máximo 10% estrictamente validado en servidor con motivo obligatorio
+  const descCom = Number(d.descuentoComercialPct) || 0;
+  if (descCom > 10) {
     return { ok: false, error: 'El descuento manual del comercial no puede superar el 10 %.' };
+  }
+  if (descCom < 0) {
+    return { ok: false, error: 'El descuento no puede ser negativo.' };
   }
   if (descCom > 0 && (!d.motivoDescuento || d.motivoDescuento.trim().length < 4)) {
     return { ok: false, error: 'Indica el motivo del descuento del comercial (mínimo 4 caracteres).' };
@@ -490,26 +506,47 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
 
   // 1. Recálculo estricto de precios en servidor (nada proviene del cliente)
   let baseHoyEuros = 0;
-  let mensualEuros = 0;
+  let recurrenteEuros = 0;
+  let intervaloMeses = 1;
   const desglose: LineaDesglose[] = [];
+
+  // B2.2: Validación estricta del programa Fundador (plazas, fecha y plan Sala)
+  const esFundadorSolicitado = d.modalidadTarifa === 'fundador' || d.codigo?.trim().toUpperCase() === 'FUNDADOR';
+  let esFundadorQrValido = false;
+
+  if (esFundadorSolicitado && d.servicios.includes('qr')) {
+    const planElegido = esPlanQr(d.planQr) ? d.planQr : 'ampliado';
+    if (planElegido !== 'sala') {
+      return { ok: false, error: 'El programa Fundador solo es aplicable al Plan Sala.' };
+    }
+    const ef = await estadoFundador();
+    if (!ef || !ef.abierto || ef.quedan <= 0) {
+      return { ok: false, error: 'El programa Fundador está cerrado o no quedan plazas disponibles.' };
+    }
+    esFundadorQrValido = true;
+  }
 
   // A. Carta QR
   if (d.servicios.includes('qr')) {
     const plan = esPlanQr(d.planQr) ? d.planQr : 'ampliado';
     const precioPlan = QR_MENU.planes[plan].mensual;
 
-    if (d.modalidadTarifa === '1euro' && plan === 'ampliado') {
-      desglose.push({ concepto: `Carta QR · ${nombrePlan(plan)} (primer mes promocional)`, importeEuros: 1 });
-      baseHoyEuros += 1;
-      mensualEuros += precioPlan;
-    } else if (d.modalidadTarifa === 'fundador' || d.codigo?.toUpperCase() === 'FUNDADOR') {
-      desglose.push({ concepto: 'Carta QR · Plan Sala Fundador (trimestre)', importeEuros: FUNDADOR.trimestre });
+    if (esFundadorQrValido) {
+      // B2.3: Fundador cobrado 147 € por trimestre, con recurrencia trimestral
+      desglose.push({ concepto: 'Carta QR · Plan Sala Fundador (cuota trimestral)', importeEuros: FUNDADOR.trimestre });
       baseHoyEuros += FUNDADOR.trimestre;
-      mensualEuros += FUNDADOR.mensual;
+      recurrenteEuros = FUNDADOR.trimestre;
+      intervaloMeses = 3;
+    } else if (d.modalidadTarifa === '1euro' && plan === 'ampliado') {
+      desglose.push({ concepto: `Carta QR · ${nombrePlan(plan)} (primer mes promocional)`, importeEuros: QR_MENU.primerMes });
+      baseHoyEuros += QR_MENU.primerMes;
+      recurrenteEuros = precioPlan;
+      intervaloMeses = 1;
     } else {
       desglose.push({ concepto: `Carta QR · Plan ${nombrePlan(plan)} (mensual)`, importeEuros: precioPlan });
       baseHoyEuros += precioPlan;
-      mensualEuros += precioPlan;
+      recurrenteEuros = precioPlan;
+      intervaloMeses = 1;
     }
 
     if (!d.montajeGratis) {
@@ -519,12 +556,36 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
   }
 
   // B. Signature
+  // B2.4: Signature entrada de 700 € o 2 cuotas de 375 €. Fundador Signature: 500 € pago único (sin cuotas) + 69 €/mes
   if (d.servicios.includes('signature')) {
-    const esFundadorSig = d.modalidadTarifa === 'fundador' || d.codigo?.toUpperCase() === 'FUNDADOR';
-    const precioSig = esFundadorSig ? FUNDADOR.signature.entrada : 1650;
-    desglose.push({ concepto: 'Signature · App propia (pago inicial)', importeEuros: precioSig });
-    baseHoyEuros += precioSig;
-    mensualEuros += esFundadorSig ? FUNDADOR.signature.mensual : BASE_OPERATIVA.mantenimiento.mensual;
+    if (esFundadorSolicitado) {
+      const ef = await estadoFundador();
+      if (!ef || !ef.abierto || ef.quedan <= 0) {
+        return { ok: false, error: 'El programa Fundador está cerrado o no quedan plazas disponibles para Signature.' };
+      }
+      desglose.push({ concepto: 'Signature · Entrada Fundador (pago único)', importeEuros: FUNDADOR.signature.entrada });
+      baseHoyEuros += FUNDADOR.signature.entrada;
+      if (!d.servicios.includes('qr')) {
+        recurrenteEuros = FUNDADOR.signature.mensual;
+        intervaloMeses = 1;
+      }
+    } else if (d.modalidadTarifa === 'cuotas') {
+      const cuotaEntrada = BASE_OPERATIVA.fraccionado.importeCuota;
+      desglose.push({ concepto: `Signature · 1.ª cuota de entrada (${BASE_OPERATIVA.fraccionado.cuotas} × ${cuotaEntrada} €)`, importeEuros: cuotaEntrada });
+      baseHoyEuros += cuotaEntrada;
+      if (!d.servicios.includes('qr')) {
+        recurrenteEuros = BASE_OPERATIVA.mantenimiento.mensual;
+        intervaloMeses = 1;
+      }
+    } else {
+      const entradaNormal = BASE_OPERATIVA.pagoUnico;
+      desglose.push({ concepto: 'Signature · Entrada (pago único)', importeEuros: entradaNormal });
+      baseHoyEuros += entradaNormal;
+      if (!d.servicios.includes('qr')) {
+        recurrenteEuros = BASE_OPERATIVA.mantenimiento.mensual;
+        intervaloMeses = 1;
+      }
+    }
   }
 
   // C. Experience
@@ -540,34 +601,28 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
     baseHoyEuros += AUDITORIA_CANALES.precioOferta;
   }
 
-  // Descuentos porcentuales
-  let totalDescPct = 0;
-  if (d.ofertaId === 'halloween') totalDescPct += 20;
-  totalDescPct += descCom;
-
-  if (totalDescPct > 0) {
-    const ahorro = Math.round((baseHoyEuros * totalDescPct) / 100);
-    desglose.push({ concepto: `Descuento aplicado (-${totalDescPct} %)`, importeEuros: -ahorro });
+  // Aplicación exclusiva del descuento comercial (B2.1: ninguna oferta halloween inventada)
+  if (descCom > 0) {
+    const ahorro = Math.round((baseHoyEuros * descCom) / 100);
+    desglose.push({ concepto: `Descuento comercial (-${descCom} %)`, importeEuros: -ahorro });
     baseHoyEuros = Math.max(0, baseHoyEuros - ahorro);
   }
 
   const ivaEuros = Math.round(baseHoyEuros * 0.21 * 100) / 100;
   const totalHoyEuros = Math.round((baseHoyEuros + ivaEuros) * 100) / 100;
 
-  // 2. Identidad del comercial que tramita el alta
-  const yo = await identidadActual().catch(() => null);
-  const miId = yo?.id ?? null;
-
-  // 3. Crear cuenta de Neon Auth si no existe
+  // B2.6: Resolver cuenta de Neon Auth; si ya existe y no se encuentra identidad en base de datos, ERROR (nada de randomUUID)
   let identidadId: string;
   try {
     identidadId = (await crearCuentaCliente({ email, nombre: contacto })).id;
   } catch {
-    // Si ya existe la cuenta, intentamos resolver el propietario
     const { rows: idRows } = await comoAprovisionamiento((c) =>
       c.query<{ id: string }>('SELECT id FROM public.identidades WHERE lower(email) = $1 LIMIT 1', [email])
     );
-    identidadId = idRows[0]?.id ?? randomUUID();
+    if (!idRows[0]?.id) {
+      return { ok: false, error: 'No se pudo crear ni encontrar la identidad de usuario para este correo electrónico.' };
+    }
+    identidadId = idRows[0].id;
   }
 
   // 4. Aprovisionamiento del cliente / restaurante
@@ -613,19 +668,21 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
     const enlaceId = await crearEnlace(jwt, restauranteId, {
       plan: planElegido,
       servicios: d.servicios,
-      primer: Math.round(totalHoyEuros * 100),
-      mensual: Math.round(mensualEuros * 100),
+      primer: Math.round(baseHoyEuros * 100),
+      mensual: Math.round(recurrenteEuros * 100),
       nota: notaCobro,
     });
 
+    // B2.5: Misma convención de IVA: tanto primerCentimos como mensualCentimos van sin IVA (centimos base)
     const chk = await crearCheckoutEnlaceAdmin({
       enlaceId,
       restauranteId,
       restauranteNombre: local,
       email,
       concepto: `${local} · ${d.servicios.map((s) => s.toUpperCase()).join(' + ')}`,
-      primerCentimos: Math.round(totalHoyEuros * 100),
-      mensualCentimos: Math.round(mensualEuros * 100),
+      primerCentimos: Math.round(baseHoyEuros * 100),
+      mensualCentimos: Math.round(recurrenteEuros * 100),
+      intervaloMeses,
       origen: 'https://dkitchencorporate.es',
     });
 

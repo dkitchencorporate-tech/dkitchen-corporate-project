@@ -7,14 +7,15 @@ import {
   type DatosAlta4Pasos,
   type ResultadoAlta4Pasos,
 } from '@/app/admin-dkitchen/qr/actions';
-import { QR_MENU, nombrePlan } from '@/lib/pricing-config';
-
-const SUGERENCIAS = [
-  { nombre: 'Taberna La Parra', ciudad: 'Baza (Granada)', dir: 'Calle Mayor 12', tel: '644123456' },
-  { nombre: 'Asador El Roble', ciudad: 'Madrid', dir: 'Av. de la Albufera 45', tel: '611234567' },
-  { nombre: 'Bistró Gourmet Baza', ciudad: 'Baza (Granada)', dir: 'Plaza Mayor 3', tel: '622345678' },
-  { nombre: 'Restaurante Al-Andalus', ciudad: 'Sevilla', dir: 'Av. Constitución 8', tel: '633456789' },
-];
+import {
+  QR_MENU,
+  FUNDADOR,
+  BASE_OPERATIVA,
+  EXPERIENCE,
+  AUDITORIA_CANALES,
+  formatPrecio,
+  nombrePlan,
+} from '@/lib/pricing-config';
 
 export default function AltaUnicaModal({
   abierto,
@@ -40,15 +41,14 @@ export default function AltaUnicaModal({
   const [telefono, setTelefono] = useState('');
   const [email, setEmail] = useState('');
 
-  // Step 2 Services
+  // Servicios
   const [servicios, setServicios] = useState<string[]>(['qr']);
   const [planQr, setPlanQr] = useState<string>('ampliado');
 
-  // Step 3 Pricing & Mode
+  // Condiciones
   const [modoInicio, setModoInicio] = useState<'pago' | 'gratis' | 'demo'>('pago');
-  const [modalidadTarifa, setModalidadTarifa] = useState<'1euro' | 'mensual' | 'fundador' | 'unico'>('1euro');
+  const [modalidadTarifa, setModalidadTarifa] = useState<'1euro' | 'mensual' | 'fundador' | 'unico' | 'cuotas'>('1euro');
   const [diasPrueba, setDiasPrueba] = useState<number>(15);
-  const [ofertaActiva, setOfertaActiva] = useState<boolean>(false);
   const [codigo, setCodigo] = useState('');
   const [descuentoComercialPct, setDescuentoComercialPct] = useState<number>(0);
   const [motivoDescuento, setMotivoDescuento] = useState('');
@@ -56,19 +56,14 @@ export default function AltaUnicaModal({
 
   if (!abierto) return null;
 
-  const toggleServicio = (id: string) => {
-    setServicios((prev) =>
-      prev.includes(id) ? (prev.length > 1 ? prev.filter((s) => s !== id) : prev) : [...prev, id]
-    );
-  };
-
-  const seleccionarSugerencia = (s: typeof SUGERENCIAS[0]) => {
-    setLocal(s.nombre);
-    setCiudad(s.ciudad);
-    setDireccion(s.dir);
-    setTelefono(s.tel);
-    if (!contacto) setContacto('Marta Ruiz');
-    if (!email) setEmail(`info@${s.nombre.toLowerCase().replace(/[^a-z0-9]/g, '')}.es`);
+  const toggleServicio = (s: string) => {
+    if (servicios.includes(s)) {
+      if (servicios.length > 1) {
+        setServicios(servicios.filter((x) => x !== s));
+      }
+    } else {
+      setServicios([...servicios, s]);
+    }
   };
 
   const validarPaso1 = () => {
@@ -80,19 +75,18 @@ export default function AltaUnicaModal({
     setError(null);
     iniciar(async () => {
       const payload: DatosAlta4Pasos = {
-        local,
-        ciudad,
-        direccion,
-        cif,
-        contacto,
-        telefono,
-        email,
+        local: local.trim(),
+        ciudad: ciudad.trim() || undefined,
+        direccion: direccion.trim() || undefined,
+        cif: cif.trim() || undefined,
+        contacto: contacto.trim(),
+        telefono: telefono.trim() || undefined,
+        email: email.trim(),
         servicios,
         planQr,
         modoInicio,
         modalidadTarifa,
         diasPrueba,
-        ofertaId: ofertaActiva ? 'halloween' : undefined,
         codigo: codigo.trim() || undefined,
         descuentoComercialPct,
         motivoDescuento: motivoDescuento.trim() || undefined,
@@ -114,16 +108,16 @@ export default function AltaUnicaModal({
     if (!resultado?.urlPago) return;
     iniciar(async () => {
       await altaUnica4PasosAction({
-        local,
-        contacto,
-        email,
+        local: local.trim(),
+        contacto: contacto.trim(),
+        email: email.trim(),
         servicios,
         planQr,
         modoInicio: 'pago',
         modalidadTarifa,
         montajeGratis,
         descuentoComercialPct,
-        motivoDescuento,
+        motivoDescuento: motivoDescuento.trim() || undefined,
         enviarCorreo: true,
       });
       setCorreoEnviado(true);
@@ -186,22 +180,8 @@ export default function AltaUnicaModal({
             <div>
               <h3 className="font-display text-lg font-bold text-carbon">1. ¿Qué local es?</h3>
               <p className="text-xs text-niebla">
-                Escribe el nombre: selecciona una sugerencia para autocompletar o escribe sus datos reales.
+                Introduce los datos identificativos y de contacto reales del establecimiento.
               </p>
-            </div>
-
-            {/* Sugerencias de autocompletado */}
-            <div className="flex flex-wrap gap-1.5">
-              {SUGERENCIAS.map((s) => (
-                <button
-                  key={s.nombre}
-                  type="button"
-                  onClick={() => seleccionarSugerencia(s)}
-                  className="rounded-full border border-linea bg-white px-3 py-1 text-xs text-carbon hover:border-vino hover:bg-papel transition"
-                >
-                  🔎 {s.nombre} · {s.ciudad}
-                </button>
-              ))}
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -210,7 +190,7 @@ export default function AltaUnicaModal({
                 <input
                   type="text"
                   required
-                  placeholder="Ej.: Taberna La Parra"
+                  placeholder="Nombre oficial del restaurante o bar"
                   value={local}
                   onChange={(e) => setLocal(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-linea bg-white px-3.5 py-2.5 text-sm outline-none focus:border-vino"
@@ -221,7 +201,7 @@ export default function AltaUnicaModal({
                 Ciudad / Población *
                 <input
                   type="text"
-                  placeholder="Ej.: Baza (Granada)"
+                  placeholder="Ciudad o municipio"
                   value={ciudad}
                   onChange={(e) => setCiudad(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-linea bg-white px-3.5 py-2.5 text-sm outline-none focus:border-vino"
@@ -232,7 +212,7 @@ export default function AltaUnicaModal({
                 Dirección física
                 <input
                   type="text"
-                  placeholder="Ej.: Calle Mayor 12"
+                  placeholder="Calle, número, código postal"
                   value={direccion}
                   onChange={(e) => setDireccion(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-linea bg-white px-3.5 py-2.5 text-sm outline-none focus:border-vino"
@@ -244,7 +224,7 @@ export default function AltaUnicaModal({
                 <input
                   type="text"
                   required
-                  placeholder="Ej.: Marta Ruiz"
+                  placeholder="Nombre y apellidos del responsable"
                   value={contacto}
                   onChange={(e) => setContacto(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-linea bg-white px-3.5 py-2.5 text-sm outline-none focus:border-vino"
@@ -255,7 +235,7 @@ export default function AltaUnicaModal({
                 Teléfono móvil (WhatsApp)
                 <input
                   type="tel"
-                  placeholder="Ej.: 600 000 000"
+                  placeholder="Número de contacto para envío del enlace"
                   value={telefono}
                   onChange={(e) => setTelefono(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-linea bg-white px-3.5 py-2.5 text-sm outline-none focus:border-vino"
@@ -267,7 +247,7 @@ export default function AltaUnicaModal({
                 <input
                   type="email"
                   required
-                  placeholder="marta@tabernalaparra.es"
+                  placeholder="correo@restaurante.es"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-linea bg-white px-3.5 py-2.5 text-sm outline-none focus:border-vino"
@@ -297,7 +277,7 @@ export default function AltaUnicaModal({
             <div>
               <h3 className="font-display text-lg font-bold text-carbon">2. ¿Qué contrata?</h3>
               <p className="text-xs text-niebla">
-                Marca uno o varios servicios según las necesidades del local. Los importes se calculan en el servidor.
+                Marca uno o varios servicios según las necesidades del local. Todos los importes se validan y calculan en el servidor desde pricing-config.
               </p>
             </div>
 
@@ -332,9 +312,15 @@ export default function AltaUnicaModal({
                       onChange={(e) => setPlanQr(e.target.value)}
                       className="mt-1 w-full rounded-lg border border-linea bg-papel px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-vino"
                     >
-                      <option value="ampliado">Plan Local · 29 €/mes (entra por 1 €)</option>
-                      <option value="basico">Plan Carta · 9 €/mes</option>
-                      <option value="sala">Plan Sala · 79 €/mes</option>
+                      <option value="ampliado">
+                        Plan {nombrePlan('ampliado')} · {formatPrecio(QR_MENU.planes.ampliado.mensual)}/mes (entra por {formatPrecio(QR_MENU.primerMes)})
+                      </option>
+                      <option value="basico">
+                        Plan {nombrePlan('basico')} · {formatPrecio(QR_MENU.planes.basico.mensual)}/mes
+                      </option>
+                      <option value="sala">
+                        Plan {nombrePlan('sala')} · {formatPrecio(QR_MENU.planes.sala.mensual)}/mes
+                      </option>
                     </select>
                   </div>
                 )}
@@ -359,9 +345,11 @@ export default function AltaUnicaModal({
                   />
                 </div>
                 <p className="mt-1 text-xs text-niebla">
-                  App propia instalable (PWA / iOS / Android) a medida.
+                  App propia instalable para siempre (carrito propio y asistente IA).
                 </p>
-                <p className="mt-2 text-xs font-bold text-carbon">Desde 500 € Fundador o 1.650 €</p>
+                <p className="mt-2 text-xs font-bold text-carbon">
+                  Entrada {formatPrecio(BASE_OPERATIVA.pagoUnico)} (o {BASE_OPERATIVA.fraccionado.cuotas} cuotas de {formatPrecio(BASE_OPERATIVA.fraccionado.importeCuota)}) · Fundador: {formatPrecio(FUNDADOR.signature.entrada)}
+                </p>
               </div>
 
               {/* Experience */}
@@ -383,10 +371,10 @@ export default function AltaUnicaModal({
                   />
                 </div>
                 <p className="mt-1 text-xs text-niebla">
-                  1.er evento gastronómico llave en mano con venta de entradas.
+                  1.er evento gastronómico llave en mano con venta de entradas. Cero comisión.
                 </p>
                 <p className="mt-2 text-xs font-bold text-carbon">
-                  {servicios.includes('qr') ? '199 € (cliente QR)' : '299 €'}
+                  {servicios.includes('qr') ? `${formatPrecio(EXPERIENCE.tarifas.primeraParaClienteQr.precio)} (cliente QR)` : `${formatPrecio(EXPERIENCE.tarifas.primeraVez.precio)} (nuevo)`}
                 </p>
               </div>
 
@@ -409,9 +397,11 @@ export default function AltaUnicaModal({
                   />
                 </div>
                 <p className="mt-1 text-xs text-niebla">
-                  Informe de canales externos + reunión 1 a 1 de diagnóstico.
+                  Informe de canales externos + reunión de diagnóstico 1 a 1.
                 </p>
-                <p className="mt-2 text-xs font-bold text-carbon">47 € oferta (ancla 297 €)</p>
+                <p className="mt-2 text-xs font-bold text-carbon">
+                  {formatPrecio(AUDITORIA_CANALES.precioOferta)} oferta (ancla {formatPrecio(AUDITORIA_CANALES.precioAncla)})
+                </p>
               </div>
             </div>
 
@@ -452,8 +442,8 @@ export default function AltaUnicaModal({
               <div className="grid gap-2 sm:grid-cols-3">
                 {[
                   ['pago', 'Enlace de pago', 'Paga en Stripe y se activa todo solo'],
-                  ['gratis', 'Prueba con fecha', 'Acceso completo durante los días elegidos'],
-                  ['demo', 'Demo interna', 'Para vídeos o enseñar, sin cliente'],
+                  ['gratis', 'Prueba con fecha', 'Acceso completo durante los días elegidos (Solo Dirección)'],
+                  ['demo', 'Demo interna', 'Para vídeos o enseñar, sin cliente (Solo Dirección)'],
                 ].map(([k, tit, sub]) => (
                   <label
                     key={k}
@@ -487,31 +477,17 @@ export default function AltaUnicaModal({
                     onChange={(e) => setModalidadTarifa(e.target.value as any)}
                     className="mt-1 w-full rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-semibold outline-none focus:border-vino"
                   >
-                    <option value="1euro">1 € primer mes (palanca de entrada promocional)</option>
-                    <option value="mensual">Mensual según catálogo</option>
-                    <option value="fundador">Trimestral Fundador (147 €/trimestre sobre Sala)</option>
+                    <option value="1euro">1 € primer mes (palanca de entrada promocional en Plan Local)</option>
+                    <option value="mensual">Mensual regular según catálogo</option>
+                    <option value="fundador">
+                      Trimestral Fundador ({formatPrecio(FUNDADOR.trimestre)}/trimestre sobre Sala · 100 plazas)
+                    </option>
+                    <option value="cuotas">
+                      Signature financiado ({BASE_OPERATIVA.fraccionado.cuotas} cuotas de {formatPrecio(BASE_OPERATIVA.fraccionado.importeCuota)})
+                    </option>
                     <option value="unico">Pago único / presupuesto cerrado</option>
                   </select>
                 </label>
-
-                {/* Oferta activa */}
-                <div className="flex items-center justify-between rounded-xl bg-papel p-3">
-                  <div>
-                    <span className="text-xs font-bold text-carbon">Oferta activa Central</span>
-                    <p className="text-[11px] text-niebla">Campaña de temporada: -20 % sobre base</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setOfertaActiva(!ofertaActiva)}
-                    className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-                      ofertaActiva
-                        ? 'bg-vino text-white'
-                        : 'border border-linea bg-white text-carbon hover:bg-papel'
-                    }`}
-                  >
-                    {ofertaActiva ? 'Aplicada (-20%)' : '+ Aplicar oferta'}
-                  </button>
-                </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="block text-xs font-semibold text-carbon">
@@ -545,7 +521,7 @@ export default function AltaUnicaModal({
                     <input
                       type="text"
                       required
-                      placeholder="Ej.: Acuerdo local estratégico, compromiso 6 meses"
+                      placeholder="Ej.: Local emblemático en zona comercial prioritaria"
                       value={motivoDescuento}
                       onChange={(e) => setMotivoDescuento(e.target.value)}
                       className="mt-1 w-full rounded-xl border border-linea bg-papel px-3 py-2 text-xs outline-none focus:border-vino"
@@ -560,7 +536,7 @@ export default function AltaUnicaModal({
                     onChange={(e) => setMontajeGratis(e.target.checked)}
                     className="accent-vino"
                   />
-                  Montaje gratis (regalo de puesta a punto y digitalización inicial)
+                  Montaje gratis incluido (puesta a punto y digitalización inicial)
                 </label>
               </div>
             )}
@@ -601,102 +577,98 @@ export default function AltaUnicaModal({
           </div>
         )}
 
-        {/* ── PASO 4: Revisa y envía ───────────────────────────────── */}
+        {/* ── PASO 4: Resumen y Enlaces ───────────────────────────── */}
         {paso === 4 && resultado && (
-          <div className="mt-6 space-y-4">
-            <div>
-              <h3 className="font-display text-lg font-bold text-carbon">4. Revisa y envía</h3>
-              <p className="text-xs text-niebla">
-                Propuesta validada por el servidor. Comparte el enlace de pago con el cliente.
-              </p>
-            </div>
+          <div className="mt-6 space-y-5">
+            <div className="rounded-2xl border border-linea bg-white p-5 space-y-3">
+              <div className="flex items-start justify-between border-b border-linea pb-3">
+                <div>
+                  <h4 className="font-display text-base font-bold text-carbon">{local}</h4>
+                  <p className="text-xs text-niebla">{contacto} · {email}</p>
+                </div>
+                <span className="rounded-full bg-emerald-100 px-3 py-0.5 text-xs font-bold text-emerald-800">
+                  {modoInicio === 'pago' ? 'Listo para pago' : 'Activado'}
+                </span>
+              </div>
 
-            {/* Desglose de importes */}
-            <div className="rounded-2xl border border-linea bg-white p-5 space-y-2.5">
-              <p className="text-xs font-bold uppercase tracking-wider text-vino">
-                Desglose para {local}
-              </p>
-              <div className="divide-y divide-linea text-xs">
-                {resultado.desglose?.map((item, idx) => (
-                  <div key={idx} className="flex justify-between py-2">
-                    <span className={item.importeEuros < 0 ? 'text-exito font-semibold' : 'text-carbon'}>
-                      {item.concepto}
-                    </span>
-                    <span className="font-semibold tabular-nums">
-                      {item.importeEuros >= 0 ? `${item.importeEuros} €` : `${item.importeEuros} €`}
+              {/* Desglose de partidas */}
+              <div className="space-y-1.5 text-xs">
+                {resultado.desglose?.map((x, i) => (
+                  <div key={i} className="flex justify-between text-carbon">
+                    <span>{x.concepto}</span>
+                    <span className={`font-mono font-semibold ${x.importeEuros < 0 ? 'text-emerald-700' : ''}`}>
+                      {x.importeEuros} €
                     </span>
                   </div>
                 ))}
-                <div className="flex justify-between py-2 text-niebla">
-                  <span>Base imponible</span>
-                  <span className="font-semibold tabular-nums">{resultado.baseEuros} €</span>
-                </div>
-                <div className="flex justify-between py-2 text-niebla">
-                  <span>IVA (21%)</span>
-                  <span className="font-semibold tabular-nums">{resultado.ivaEuros} €</span>
-                </div>
-                <div className="flex justify-between pt-2.5 font-display text-base font-bold text-carbon">
-                  <span>Total hoy</span>
-                  <span className="text-vino">{resultado.totalHoyEuros} €</span>
+
+                <div className="border-t border-linea pt-2 space-y-1 text-niebla">
+                  <div className="flex justify-between">
+                    <span>Base imponible:</span>
+                    <span className="font-mono">{resultado.baseEuros} €</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>IVA (21 %):</span>
+                    <span className="font-mono">{resultado.ivaEuros} €</span>
+                  </div>
+                  <div className="flex justify-between border-t border-linea pt-1.5 text-base font-bold text-vino">
+                    <span>Total a pagar hoy:</span>
+                    <span className="font-mono text-xl">{resultado.totalHoyEuros} €</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Enlace y acciones de envío */}
+            {/* Enlace y WhatsApp */}
             {resultado.urlPago ? (
-              <div className="rounded-2xl border border-linea bg-white p-4 space-y-3">
-                <span className="text-xs font-bold text-carbon">Enlace de pago seguro (Stripe):</span>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={resultado.urlPago}
-                    className="w-full rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-mono text-carbon select-all"
-                  />
+              <div className="space-y-3">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <a
+                    href={`https://wa.me/${telefono ? telefono.replace(/\D/g, '') : ''}?text=${encodeURIComponent(
+                      resultado.resumenWhatsapp || ''
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-xs font-bold text-white shadow hover:bg-emerald-700"
+                  >
+                    <span>💬</span> Enviar resumen por WhatsApp
+                  </a>
+
                   <button
                     type="button"
                     onClick={copiarEnlace}
-                    className="shrink-0 rounded-xl bg-tinta px-4 py-2 text-xs font-bold text-white hover:bg-black"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-linea bg-white px-4 py-3 text-xs font-bold text-carbon hover:bg-papel shadow-sm"
                   >
-                    {copiado ? '✓ Copiado' : 'Copiar'}
+                    <span>{copiado ? '✓' : '📋'}</span> {copiado ? '¡Enlace copiado!' : 'Copiar enlace de pago'}
                   </button>
                 </div>
 
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {telefono && (
-                    <a
-                      href={`https://wa.me/${telefono.replace(/\D/g, '').replace(/^(?!34)(\d{9})$/, '34$1')}?text=${encodeURIComponent(
-                        resultado.resumenWhatsapp || ''
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:opacity-90"
-                    >
-                      Enviar por WhatsApp
-                    </a>
-                  )}
-
+                <div className="flex items-center justify-between rounded-xl bg-papel p-3 text-xs">
+                  <span className="text-niebla">Enviar propuesta formal por correo electrónico:</span>
                   <button
                     type="button"
-                    onClick={enviarCorreoPropuesta}
                     disabled={correoEnviado || pendiente}
-                    className="rounded-full bg-vino px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo disabled:opacity-50"
+                    onClick={enviarCorreoPropuesta}
+                    className="rounded-lg bg-vino px-3 py-1.5 font-bold text-white hover:bg-hondo disabled:opacity-50"
                   >
-                    {correoEnviado ? '✓ Correo enviado al cliente' : 'Enviar por correo'}
+                    {correoEnviado ? '✓ Correo enviado' : 'Enviar por correo'}
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="rounded-2xl bg-exito/10 p-4 text-xs font-semibold text-exito">
-                ✓ Cliente creado con éxito en modo {modoInicio === 'demo' ? 'demo interna' : 'prueba gratuita'}.
+              <div className="rounded-xl border border-linea bg-papel p-4 text-xs text-carbon">
+                El cliente ha sido dado de alta correctamente en modo {modoInicio === 'demo' ? 'demo interna' : 'prueba gratuita'}.
               </div>
             )}
 
-            <div className="rounded-xl bg-papel p-3 text-[11px] text-niebla">
-              <b>Al pagar:</b> Se crea su cuenta de acceso, le llega el segundo correo para crear su contraseña y la ficha del local pasa automáticamente a «Activo». El comercial lo verá en su lista de «Mis clientes».
-            </div>
-
-            <div className="flex justify-end pt-3">
+            <div className="flex justify-between pt-4 border-t border-linea">
+              <button
+                type="button"
+                onClick={() => setPaso(3)}
+                className="rounded-full border border-linea bg-white px-5 py-2 text-xs font-bold text-carbon hover:bg-papel"
+              >
+                ← Volver a condiciones
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -705,9 +677,9 @@ export default function AltaUnicaModal({
                     router.push(`/admin-dkitchen/qr/${resultado.restauranteId}`);
                   }
                 }}
-                className="rounded-full bg-tinta px-6 py-2.5 text-xs font-bold text-white hover:bg-black"
+                className="rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo"
               >
-                Abrir ficha del cliente →
+                Finalizar y ver ficha →
               </button>
             </div>
           </div>

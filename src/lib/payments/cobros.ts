@@ -267,7 +267,7 @@ export async function crearCheckoutServicio(datos: {
 // ─────────────────────────────────────────────────────────────
 
 /**
- * Suscripción nueva a 25 €/mes que empieza el mismo día que se renovaba la
+ * Suscripción nueva a 29 €/mes (Plan Local) que empieza el mismo día que se renovaba la
  * Básica. Hoy se paga solo la diferencia proporcional de los días que quedan
  * (nada si la Básica está aún en prueba). El webhook cancela la Básica al
  * momento, así que nunca se cobran las dos.
@@ -380,6 +380,7 @@ export async function crearCheckoutEnlaceAdmin(datos: {
   concepto: string;
   primerCentimos: number;
   mensualCentimos: number;
+  intervaloMeses?: number;
   diasGratis?: number;
   origen: string;
 }): Promise<{ url: string }> {
@@ -397,12 +398,18 @@ export async function crearCheckoutEnlaceAdmin(datos: {
   const primer = Math.round(datos.primerCentimos);
   const mensual = Math.round(datos.mensualCentimos);
   const dias = Math.max(0, Math.round(datos.diasGratis ?? 0));
+  const intervalo = datos.intervaloMeses ?? 1;
   if (mensual > 0) {
     const id = await crearSuscripcion({
       cliente,
-      cuota: { producto: 'dk_enlace_cuota', nombre: 'DKitchen · Cuota mensual acordada', centimos: mensual },
+      cuota: {
+        producto: 'dk_enlace_cuota',
+        nombre: intervalo === 3 ? 'DKitchen · Cuota trimestral acordada' : 'DKitchen · Cuota mensual acordada',
+        centimos: mensual,
+      },
+      intervaloMeses: intervalo,
       hoy: primer > 0 ? [{ producto: 'dk_enlace_primer', nombre: 'DKitchen · Primer cobro acordado', centimos: primer }] : undefined,
-      finPrueba: dias > 0 ? dentroDeDias(dias) : dentroDeMeses(1),
+      finPrueba: dias > 0 ? dentroDeDias(dias) : dentroDeMeses(intervalo),
       metadata: meta,
     });
     return { url: urlPago(datos.origen, id) };
