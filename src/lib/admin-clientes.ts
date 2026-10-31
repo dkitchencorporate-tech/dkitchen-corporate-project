@@ -1,5 +1,6 @@
 import 'server-only';
 import { comoCliente } from '@/lib/db';
+import { listarProyectos } from '@/lib/proyectos';
 
 export interface ClienteQr {
   restauranteId: string;
@@ -29,10 +30,18 @@ export interface ClienteQr {
   cuota: number;
   tutorialPaso: number;
   tutorialCompletado: boolean;
+  // 0110: comercial, ciudad, servicios y siguiente paso
+  comercial?: string | null;
+  ciudad?: string | null;
+  direccion?: string | null;
+  tieneSignature?: boolean;
+  tieneExperience?: boolean;
+  siguientePaso?: string | null;
+  soloProyecto?: boolean;
 }
 
-/** Pestaña de Clientes en la que cae cada cuenta (0061). */
-export type Pestana = 'activos' | 'prueba' | 'riesgo' | 'bajas' | 'archivados' | 'demo';
+/** Pestaña de Clientes en la que cae cada cuenta (0061 + 0110). */
+export type Pestana = 'todos' | 'activos' | 'prueba' | 'riesgo' | 'bajas' | 'archivados' | 'demo' | 'mis_clientes';
 const dia = (v: unknown) => (v ? new Date(v as string).toISOString().slice(0, 10) : null);
 export function pestanaDe(c: ClienteQr, hoy = new Date().toISOString().slice(0, 10)): Pestana {
   if (c.archivadoEn) return 'archivados';
@@ -43,20 +52,54 @@ export function pestanaDe(c: ClienteQr, hoy = new Date().toISOString().slice(0, 
   return 'activos';
 }
 
-export async function listarClientesQr(jwt: string): Promise<ClienteQr[]> {
-  return comoCliente(jwt, async (c) => {
-    const { rows } = await c.query('SELECT * FROM dk.admin_resumen_clientes()');
-    return rows.map((r) => ({
-      restauranteId: r.restaurante_id,
-      nombre: r.nombre,
-      slug: r.slug,
-      plan: r.plan,
-      estadoAcceso: r.estado_acceso,
-      activo: r.activo,
-      creadoEn: new Date(r.creado_en).toISOString(),
-      email: r.email,
-      contacto: r.contacto,
-      codigoQr: r.codigo_qr,
+export async function listarClientesQr(jwt: string, comercial?: string): Promise<ClienteQr[]> {
+  const [clientesBase, proyectos] = await Promise.all([
+    comoCliente(jwt, async (c) => {
+      let rows: Record<string, unknown>[] = [];
+      try {
+        if (comercial) {
+          const res = await c.query('SELECT * FROM dk.admin_resumen_clientes($1)', [comercial]);
+          rows = res.rows;
+        } else {
+          const res = await c.query('SELECT * FROM dk.admin_resumen_clientes()');
+          rows = res.rows;
+        }
+      } catch {
+        const res = await c.query('SELECT * FROM dk.admin_resumen_clientes()');
+        rows = res.rows;
+      }
+      return rows;
+    }),
+    listarProyectos(jwt, {}).catch(() => []),
+  ]);
+
+  const listaQr: ClienteQr[] = clientesBase.map((r) => {
+    const emailNorm = (r.email ? String(r.email) : '').toLowerCase().trim();
+    const nombreNorm = (r.nombre ? String(r.nombre) : '').toLowerCase().trim();
+    const proyAsoc = proyectos.filter((p) => {
+      const pEmail = (p.email ?? '').toLowerCase().trim();
+      const pNegocio = (p.negocio ?? '').toLowerCase().trim();
+      return (emailNorm && pEmail === emailNorm) || (nombreNorm && pNegocio === nombreNorm);
+    });
+
+    const tieneSig = (r.tiene_signature === true) || proyAsoc.some((p) => p.producto === 'signature');
+    const tieneExp = (r.tiene_experience === true) || proyAsoc.some((p) => p.producto === 'experience');
+    const com = (r.comercial as string | undefined) ?? proyAsoc.find((p) => p.comercial)?.comercial ?? null;
+    const sigPaso = (r.siguiente_paso as string | undefined) ?? proyAsoc.find((p) => p.siguiente_paso)?.siguiente_paso ?? null;
+    const dir = (r.direccion as string | undefined) ?? null;
+    const cd = (r.ciudad as string | undefined) ?? (dir && dir.includes(',') ? dir.split(',').pop()?.trim() : null);
+
+    return {
+      restauranteId: r.restaurante_id as string,
+      nombre: r.nombre as string,
+      slug: r.slug as string,
+      plan: r.plan as string,
+      estadoAcceso: r.estado_acceso as string,
+      activo: Boolean(r.activo),
+      creadoEn: new Date(r.creado_en as string).toISOString(),
+      email: (r.email as string | null) ?? null,
+      contacto: (r.contacto as string | null) ?? null,
+      codigoQr: (r.codigo_qr as string | null) ?? null,
       platos: Number(r.platos),
       escaneosMes: Number(r.escaneos_mes),
       escaneosTotal: Number(r.escaneos_total),
@@ -65,14 +108,96 @@ export async function listarClientesQr(jwt: string): Promise<ClienteQr[]> {
       escaneos14d: Number(r.escaneos_14d),
       pruebaHasta: dia(r.prueba_hasta),
       demoInterna: r.demo_interna === true,
-      archivadoEn: r.archivado_en ? new Date(r.archivado_en).toISOString() : null,
+      archivadoEn: r.archivado_en ? new Date(r.archivado_en as string).toISOString() : null,
       bajaProgramadaEn: dia(r.baja_programada_en),
       bajaDesde: dia(r.baja_desde),
-      pagoFallidoDesde: r.pago_fallido_desde ? new Date(r.pago_fallido_desde).toISOString() : null,
+      pagoFallidoDesde: r.pago_fallido_desde ? new Date(r.pago_fallido_desde as string).toISOString() : null,
       cuota: Number(r.cuota_centimos ?? 0) / 100,
       tutorialPaso: Number(r.tutorial_paso ?? 0),
       tutorialCompletado: r.tutorial_completado === true,
+      comercial: com,
+      ciudad: cd,
+      direccion: dir,
+      tieneSignature: tieneSig,
+      tieneExperience: tieneExp,
+      siguientePaso: sigPaso,
+    };
+  });
+
+  // Clientes que están en proyectos pero no tienen local de Carta QR todavía
+  const nombresYEmailsQr = new Set([
+    ...listaQr.map((c) => c.nombre.toLowerCase().trim()),
+    ...listaQr.map((c) => (c.email ?? '').toLowerCase().trim()).filter(Boolean),
+  ]);
+
+  const soloProyectos: ClienteQr[] = proyectos
+    .filter((p) => {
+      const pEmail = (p.email ?? '').toLowerCase().trim();
+      const pNeg = (p.negocio ?? '').toLowerCase().trim();
+      return (pNeg && !nombresYEmailsQr.has(pNeg)) && (!pEmail || !nombresYEmailsQr.has(pEmail));
+    })
+    .map((p) => ({
+      restauranteId: p.id,
+      nombre: p.negocio || p.nombre || p.email,
+      slug: (p.negocio || 'cliente').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+      plan: p.producto === 'signature' ? 'signature' : p.producto === 'experience' ? 'experience' : 'auditoria',
+      estadoAcceso: p.fase === 'descartado' ? 'suspendido' : 'activo',
+      activo: p.fase !== 'descartado',
+      creadoEn: p.creado_en ? new Date(p.creado_en).toISOString() : new Date().toISOString(),
+      email: p.email ?? null,
+      contacto: p.nombre ?? null,
+      codigoQr: null,
+      platos: 0,
+      escaneosMes: 0,
+      escaneosTotal: 0,
+      ticketsAbiertos: 0,
+      solicitudesQrPendientes: 0,
+      escaneos14d: 0,
+      pruebaHasta: null,
+      demoInterna: false,
+      archivadoEn: null,
+      bajaProgramadaEn: null,
+      bajaDesde: null,
+      pagoFallidoDesde: null,
+      cuota: Number(p.importe_centimos ?? 0) / 100,
+      tutorialPaso: 0,
+      tutorialCompletado: false,
+      comercial: p.comercial ?? null,
+      ciudad: null,
+      direccion: null,
+      tieneSignature: p.producto === 'signature',
+      tieneExperience: p.producto === 'experience',
+      siguientePaso: p.siguiente_paso ?? null,
+      soloProyecto: true,
     }));
+
+  const unificados = [...listaQr, ...soloProyectos];
+
+  if (comercial) {
+    const cNorm = comercial.toLowerCase().trim();
+    return unificados.filter((c) => (c.comercial ?? '').toLowerCase().trim() === cNorm);
+  }
+
+  return unificados;
+}
+
+export async function asignarComercialCliente(jwt: string, restauranteId: string, comercial: string): Promise<void> {
+  return comoCliente(jwt, async (c) => {
+    try {
+      await c.query('SELECT dk.admin_asignar_comercial($1, $2)', [restauranteId, comercial]);
+    } catch {
+      await c.query('UPDATE public.restaurantes SET comercial = $2 WHERE id = $1', [restauranteId, comercial || null]).catch(() => null);
+    }
+  });
+}
+
+export async function asignarSiguientePasoCliente(jwt: string, restauranteId: string, siguientePaso: string): Promise<void> {
+  return comoCliente(jwt, async (c) => {
+    try {
+      await c.query('SELECT dk.admin_asignar_siguiente_paso($1, $2)', [restauranteId, siguientePaso]);
+    } catch {
+      await c.query('UPDATE public.restaurantes SET siguiente_paso = $2 WHERE id = $1', [restauranteId, siguientePaso || null]).catch(() => null);
+    }
   });
 }
 

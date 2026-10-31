@@ -404,4 +404,24 @@ export async function entrarSoporteAction(formulario: FormData) {
   redirect(PESTANAS_SOPORTE.includes(pestana) ? `/panel?pestana=${pestana}` : '/panel');
 }
 
+export async function asignarComercialAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  const comercial = String(formulario.get('comercial') ?? '').trim();
+  const { asignarComercialCliente } = await import('@/lib/admin-clientes');
+  await asignarComercialCliente(jwt, id, comercial);
+  revalidatePath('/admin-dkitchen/qr');
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
+export async function asignarSiguientePasoAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  const paso = String(formulario.get('siguientePaso') ?? '').trim();
+  const { asignarSiguientePasoCliente } = await import('@/lib/admin-clientes');
+  await asignarSiguientePasoCliente(jwt, id, paso);
+  revalidatePath('/admin-dkitchen/qr');
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
 const PESTANAS_SOPORTE = ['local', 'carta', 'estudio', 'diseno', 'landing', 'idiomas', 'promociones', 'sala', 'qr', 'legal'];
