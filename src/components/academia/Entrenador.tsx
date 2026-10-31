@@ -73,7 +73,7 @@ export default function Entrenador({ lanzar, cerrar }: { lanzar: Lanzar; cerrar:
   const [preguntas, setPreguntas] = useState<Vista[]>([]);
   const [i, setI] = useState(0);
   const [resp, setResp] = useState<Record<string, number>>({});
-  const [nodo, setNodo] = useState<Vista | null>(null);
+  const [nodo, setNodo] = useState<{ id: string; situacion: string; opciones: string[] } | null>(null);
   const [esc, setEsc] = useState<{ ficha: string; objetivo: string; total: number } | null>(null);
   const [chat, setChat] = useState<{ yo?: string; ellos?: string; fb?: string; puntos?: number; mejor?: string | null }[]>([]);
   const [res, setRes] = useState<Res | null>(null);
