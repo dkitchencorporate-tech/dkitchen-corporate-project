@@ -20,9 +20,11 @@ import {
 export default function AltaUnicaModal({
   abierto,
   alCerrar,
+  esComercial = false,
 }: {
   abierto: boolean;
   alCerrar: () => void;
+  esComercial?: boolean;
 }) {
   const router = useRouter();
   const [paso, setPaso] = useState<1 | 2 | 3 | 4>(1);
@@ -54,8 +56,6 @@ export default function AltaUnicaModal({
   const [motivoDescuento, setMotivoDescuento] = useState('');
   const [puestaAPunto, setPuestaAPunto] = useState(false);
   const [montajeGratis, setMontajeGratis] = useState(false);
-  const [aprobacionDireccionDescuento, setAprobacionDireccionDescuento] = useState(false);
-  const [aprobacionDireccionMontaje, setAprobacionDireccionMontaje] = useState(false);
   const [origenMontaje, setOrigenMontaje] = useState<'flyer' | 'visita'>('flyer');
 
   if (!abierto) return null;
@@ -511,22 +511,27 @@ export default function AltaUnicaModal({
                   </label>
 
                   <label className="block text-xs font-semibold text-carbon">
-                    Descuento manual del comercial (Tope 10%)
+                    Descuento comercial (Tope {`${esComercial ? '5 %' : '10 %'}`})
                     <select
                       value={descuentoComercialPct}
                       onChange={(e) => setDescuentoComercialPct(Number(e.target.value))}
                       className="mt-1 w-full rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-semibold outline-none focus:border-vino"
                     >
-                      <option value={0}>Sin descuento manual (0%)</option>
+                      <option value={0}>Sin descuento (0 %)</option>
                       <option value={5}>5 % de cortesía comercial</option>
-                      <option value={10}>10 % (Tope máximo autorizado)</option>
+                      {!esComercial && <option value={10}>10 % (Tope Dirección)</option>}
                     </select>
+                    {esComercial && (
+                      <span className="mt-1 block text-[11px] text-niebla">
+                        Descuentos superiores al 5 %: <strong className="text-vino font-semibold">Pídeselo a dirección</strong>.
+                      </span>
+                    )}
                   </label>
                 </div>
 
                 {descuentoComercialPct > 0 && (
                   <label className="block text-xs font-semibold text-carbon">
-                    Motivo obligatorio del descuento comercial *
+                    Motivo obligatorio del descuento *
                     <input
                       type="text"
                       required
@@ -535,18 +540,6 @@ export default function AltaUnicaModal({
                       onChange={(e) => setMotivoDescuento(e.target.value)}
                       className="mt-1 w-full rounded-xl border border-linea bg-papel px-3 py-2 text-xs outline-none focus:border-vino"
                     />
-                  </label>
-                )}
-
-                {descuentoComercialPct > 5 && (
-                  <label className="flex items-center gap-2 pt-1 text-xs font-semibold text-carbon cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={aprobacionDireccionDescuento}
-                      onChange={(e) => setAprobacionDireccionDescuento(e.target.checked)}
-                      className="accent-vino"
-                    />
-                    Aprobación de Dirección para descuento del {descuentoComercialPct} % confirmada
                   </label>
                 )}
 
@@ -564,7 +557,7 @@ export default function AltaUnicaModal({
                           setPuestaAPunto(e.target.checked);
                           if (!e.target.checked) {
                             setMontajeGratis(false);
-                            setAprobacionDireccionMontaje(false);
+                            
                           }
                         }}
                         className="accent-vino"
@@ -573,38 +566,37 @@ export default function AltaUnicaModal({
                     </label>
                     {puestaAPunto && (
                       <div className="space-y-2 pt-1 border-t border-linea">
-                        <label className="flex items-center gap-2 text-xs font-semibold text-carbon cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={montajeGratis}
-                            onChange={(e) => setMontajeGratis(e.target.checked)}
-                            className="accent-vino"
-                          />
-                          Montaje gratis flyer/visita (0 € · bonificación contra cupo de 20)
-                        </label>
-                        {montajeGratis && (
-                          <div className="ml-5 space-y-2 bg-white/80 p-2.5 rounded-lg border border-linea text-xs">
-                            <label className="block text-[11px] font-semibold text-carbon">
-                              Origen del cliente (solo flyer o visita):
-                              <select
-                                value={origenMontaje}
-                                onChange={(e) => setOrigenMontaje(e.target.value as 'flyer' | 'visita')}
-                                className="mt-1 w-full rounded border border-linea bg-papel px-2 py-1 text-xs outline-none focus:border-vino"
-                              >
-                                <option value="flyer">Flyer de calle (v6)</option>
-                                <option value="visita">Visita comercial presencial</option>
-                              </select>
-                            </label>
-                            <label className="flex items-center gap-2 font-semibold text-carbon cursor-pointer">
+                        {!esComercial ? (
+                          <>
+                            <label className="flex items-center gap-2 text-xs font-semibold text-carbon cursor-pointer">
                               <input
                                 type="checkbox"
-                                checked={aprobacionDireccionMontaje}
-                                onChange={(e) => setAprobacionDireccionMontaje(e.target.checked)}
+                                checked={montajeGratis}
+                                onChange={(e) => setMontajeGratis(e.target.checked)}
                                 className="accent-vino"
                               />
-                              Aprobación de Dirección para montaje gratis confirmada
+                              Montaje gratis flyer/visita (0 € · bonificación contra cupo de 20)
                             </label>
-                          </div>
+                            {montajeGratis && (
+                              <div className="ml-5 space-y-2 bg-white/80 p-2.5 rounded-lg border border-linea text-xs">
+                                <label className="block text-[11px] font-semibold text-carbon">
+                                  Origen del cliente (solo flyer o visita):
+                                  <select
+                                    value={origenMontaje}
+                                    onChange={(e) => setOrigenMontaje(e.target.value as 'flyer' | 'visita')}
+                                    className="mt-1 w-full rounded border border-linea bg-papel px-2 py-1 text-xs outline-none focus:border-vino"
+                                  >
+                                    <option value="flyer">Flyer de calle (v6)</option>
+                                    <option value="visita">Visita comercial presencial</option>
+                                  </select>
+                                </label>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-[11px] text-niebla pt-1">
+                            ¿Montaje gratis bonificado contra cupo de 20? <strong className="text-vino font-semibold">Pídeselo a dirección</strong>.
+                          </p>
                         )}
                       </div>
                     )}
@@ -642,8 +634,7 @@ export default function AltaUnicaModal({
                 disabled={
                   pendiente ||
                   (descuentoComercialPct > 0 && motivoDescuento.trim().length < 4) ||
-                  (descuentoComercialPct > 5 && !aprobacionDireccionDescuento) ||
-                  (montajeGratis && !aprobacionDireccionMontaje)
+                  (esComercial && (descuentoComercialPct > 5 || montajeGratis))
                 }
                 onClick={tramitarAlta}
                 className="w-full sm:w-auto min-h-[44px] rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo disabled:opacity-40"

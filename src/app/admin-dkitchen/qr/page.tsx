@@ -67,7 +67,7 @@ export default async function ClientesQr({
               : 'Lista única con Carta QR, Signature y Experience · datos reales al momento.'}
           </p>
         </div>
-        <NuevoCliente />
+        <NuevoCliente esComercial={esComercial} />
       </div>
 
       <GuiaZona
