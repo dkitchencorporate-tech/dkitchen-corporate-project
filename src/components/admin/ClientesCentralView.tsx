@@ -4,7 +4,14 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { nombrePlan } from '@/lib/pricing-config';
 import type { ClienteQr, Pestana } from '@/lib/admin-clientes';
-import { pestanaDe } from '@/lib/admin-clientes';
+export function pestanaDe(c: ClienteQr, hoy = new Date().toISOString().slice(0, 10)): Pestana {
+  if (c.archivadoEn) return 'archivados';
+  if (c.demoInterna) return 'demo';
+  if (c.estadoAcceso === 'suspendido') return 'bajas';
+  if (c.bajaProgramadaEn || c.estadoAcceso === 'gracia' || c.estadoAcceso === 'solo_lectura') return 'riesgo';
+  if (c.pruebaHasta && c.pruebaHasta >= hoy) return 'prueba';
+  return 'activos';
+}
 
 interface Props {
   clientesIniciales: ClienteQr[];
