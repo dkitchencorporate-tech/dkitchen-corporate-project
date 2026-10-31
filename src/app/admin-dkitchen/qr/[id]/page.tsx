@@ -137,14 +137,6 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
   const [uso, comunicaciones, tickets] = await Promise.all([usoPlanCliente(jwt, id).catch(() => []), verComunicaciones(jwt, id).catch(() => []), bandejaSoporte(jwt).then((l) => l.filter((t) => t.restauranteId === id)).catch(() => [])]);
   const abiertosTk = tickets.filter((t) => t.estado === 'abierto').length;
   const montajes = await montajesGratis(jwt).catch(() => null);
-  const equipo = await administradores(jwt).catch(() => []);
-  const eventos = await comoCliente(jwt, async (c) => (await c.query(
-    'SELECT id, slug, local_nombre, titulo, fecha, precio_centimos, aforo, vendidas, usadas, ingresos_centimos, estado, formato FROM eventos WHERE local_nombre ILIKE $1 OR slug ILIKE $2 ORDER BY fecha DESC',
-    ['%' + r.nombre + '%', '%' + r.slug + '%']
-  )).rows).catch(() => []);
-  const proyectosSig = proyectos.filter((p) => p.producto === 'signature');
-  const proyectosExp = proyectos.filter((p) => p.producto === 'experience');
-  const tabActiva = sp.tab || 'resumen';
   if (!ficha?.restaurante) notFound();
 
   const r = ficha.restaurante;
@@ -155,7 +147,12 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
   const proyectos = ficha.email ? (await listarProyectos(jwt, {}).catch(() => [])).filter((p) => p.email.toLowerCase() === ficha.email!.toLowerCase()) : [];
   const proyectosSig = proyectos.filter((p) => p.producto === 'signature');
   const proyectosExp = proyectos.filter((p) => p.producto === 'experience');
-  // Pack de idiomas: DKitchen traduce aquí la carta del cliente (0028).
+  const equipo = await administradores(jwt).catch(() => []);
+  const eventos = await comoCliente(jwt, async (c) => (await c.query(
+    'SELECT id, slug, local_nombre, titulo, fecha, precio_centimos, aforo, vendidas, usadas, ingresos_centimos, estado, formato FROM eventos WHERE local_nombre ILIKE $1 OR slug ILIKE $2 ORDER BY fecha DESC',
+    ['%' + r.nombre + '%', '%' + r.slug + '%']
+  )).rows).catch(() => []);
+  const tabActiva = sp.tab || 'resumen';
   const conIdiomas = servicios.some((x) => x.servicio === 'idiomas');
   const [cartaCliente, traducciones] = conIdiomas
     ? await Promise.all([obtenerCarta(r.slug), listarTraducciones(jwt, id)])
