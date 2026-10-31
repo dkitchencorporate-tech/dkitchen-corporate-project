@@ -54,6 +54,9 @@ export default function AltaUnicaModal({
   const [motivoDescuento, setMotivoDescuento] = useState('');
   const [puestaAPunto, setPuestaAPunto] = useState(false);
   const [montajeGratis, setMontajeGratis] = useState(false);
+  const [aprobacionDireccionDescuento, setAprobacionDireccionDescuento] = useState(false);
+  const [aprobacionDireccionMontaje, setAprobacionDireccionMontaje] = useState(false);
+  const [origenMontaje, setOrigenMontaje] = useState<'flyer' | 'visita'>('flyer');
 
   if (!abierto) return null;
 
@@ -91,6 +94,9 @@ export default function AltaUnicaModal({
         codigo: codigo.trim() || undefined,
         descuentoComercialPct,
         motivoDescuento: motivoDescuento.trim() || undefined,
+        aprobacionDireccionDescuento,
+        aprobacionDireccionMontaje,
+        origenMontaje,
         puestaAPunto,
         montajeGratis,
         enviarCorreo: false,
@@ -532,6 +538,18 @@ export default function AltaUnicaModal({
                   </label>
                 )}
 
+                {descuentoComercialPct > 5 && (
+                  <label className="flex items-center gap-2 pt-1 text-xs font-semibold text-carbon cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={aprobacionDireccionDescuento}
+                      onChange={(e) => setAprobacionDireccionDescuento(e.target.checked)}
+                      className="accent-vino"
+                    />
+                    Aprobación de Dirección para descuento del {descuentoComercialPct} % confirmada
+                  </label>
+                )}
+
                 {servicios.includes('qr') && (
                   <div className="rounded-xl border border-linea bg-papel p-3 space-y-2">
                     <div className="flex items-center justify-between text-xs">
@@ -544,22 +562,51 @@ export default function AltaUnicaModal({
                         checked={puestaAPunto}
                         onChange={(e) => {
                           setPuestaAPunto(e.target.checked);
-                          if (!e.target.checked) setMontajeGratis(false);
+                          if (!e.target.checked) {
+                            setMontajeGratis(false);
+                            setAprobacionDireccionMontaje(false);
+                          }
                         }}
                         className="accent-vino"
                       />
                       Añadir Puesta a punto (+{formatPrecio(QR_MENU.setup.precio)} · te cargamos y digitalizamos la carta)
                     </label>
                     {puestaAPunto && (
-                      <label className="flex items-center gap-2 pt-1 text-xs font-semibold text-carbon cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={montajeGratis}
-                          onChange={(e) => setMontajeGratis(e.target.checked)}
-                          className="accent-vino"
-                        />
-                        Montaje gratis flyer/visita (0 € · bonificación con OK de dirección)
-                      </label>
+                      <div className="space-y-2 pt-1 border-t border-linea">
+                        <label className="flex items-center gap-2 text-xs font-semibold text-carbon cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={montajeGratis}
+                            onChange={(e) => setMontajeGratis(e.target.checked)}
+                            className="accent-vino"
+                          />
+                          Montaje gratis flyer/visita (0 € · bonificación contra cupo de 20)
+                        </label>
+                        {montajeGratis && (
+                          <div className="ml-5 space-y-2 bg-white/80 p-2.5 rounded-lg border border-linea text-xs">
+                            <label className="block text-[11px] font-semibold text-carbon">
+                              Origen del cliente (solo flyer o visita):
+                              <select
+                                value={origenMontaje}
+                                onChange={(e) => setOrigenMontaje(e.target.value as 'flyer' | 'visita')}
+                                className="mt-1 w-full rounded border border-linea bg-papel px-2 py-1 text-xs outline-none focus:border-vino"
+                              >
+                                <option value="flyer">Flyer de calle (v6)</option>
+                                <option value="visita">Visita comercial presencial</option>
+                              </select>
+                            </label>
+                            <label className="flex items-center gap-2 font-semibold text-carbon cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={aprobacionDireccionMontaje}
+                                onChange={(e) => setAprobacionDireccionMontaje(e.target.checked)}
+                                className="accent-vino"
+                              />
+                              Aprobación de Dirección para montaje gratis confirmada
+                            </label>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
@@ -592,7 +639,12 @@ export default function AltaUnicaModal({
               </button>
               <button
                 type="button"
-                disabled={pendiente || (descuentoComercialPct > 0 && motivoDescuento.trim().length < 4)}
+                disabled={
+                  pendiente ||
+                  (descuentoComercialPct > 0 && motivoDescuento.trim().length < 4) ||
+                  (descuentoComercialPct > 5 && !aprobacionDireccionDescuento) ||
+                  (montajeGratis && !aprobacionDireccionMontaje)
+                }
                 onClick={tramitarAlta}
                 className="rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo disabled:opacity-40"
               >

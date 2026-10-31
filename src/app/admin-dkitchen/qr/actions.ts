@@ -508,6 +508,35 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
     return { ok: false, error: 'Indica el motivo del descuento del comercial (mínimo 4 caracteres).' };
   }
 
+  // Regla C4: Descuentos del 6 al 10 % requieren aprobación expresa de dirección si lo pide un comercial
+  if (descCom > 5 && rolAdmin === 'comercial' && !d.aprobacionDireccionDescuento) {
+    return { ok: false, error: 'Los descuentos superiores al 5 % (del 6 al 10 %) requieren la aprobación expresa de Dirección.' };
+  }
+
+  // Regla C4: Montaje gratis solo con aprobación de dirección, solo flyer o visita, y contando contra cupo de 20 (0104)
+  if (d.montajeGratis) {
+    if (!d.servicios.includes('qr')) {
+      return { ok: false, error: 'El montaje gratis solo es aplicable a Carta QR.' };
+    }
+    const origen = d.origenMontaje ?? 'flyer';
+    if (!['flyer', 'visita'].includes(origen)) {
+      return { ok: false, error: 'El montaje gratis solo es aplicable a clientes procedentes de flyer o visita.' };
+    }
+    if (rolAdmin === 'comercial' && !d.aprobacionDireccionMontaje) {
+      return { ok: false, error: 'El montaje gratis requiere la aprobación expresa de Dirección.' };
+    }
+    const { rows: cupoRows } = await comoAprovisionamiento(async (c) =>
+      c.query<{ usados: string; cupo: number }>(
+        'SELECT (SELECT count(*) FROM public.montajes_gratis) AS usados, dk.montajes_gratis_cupo() AS cupo'
+      )
+    );
+    const usados = Number(cupoRows[0]?.usados ?? 0);
+    const cupo = Number(cupoRows[0]?.cupo ?? 20);
+    if (usados >= cupo) {
+      return { ok: false, error: `El cupo de ${cupo} montajes gratis ya está completo (${usados} de ${cupo} usados).` };
+    }
+  }
+
   // 1. Recálculo estricto de precios en servidor (nada proviene del cliente)
   let baseHoyEuros = 0;
   let recurrenteEuros = 0;
@@ -672,6 +701,16 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
       );
     }
   });
+
+  // C4: Registrar montaje gratis contra el cupo de 20 si se aplicó
+  if (d.montajeGratis && restauranteId) {
+    await comoAprovisionamiento(async (c) => {
+      await c.query(
+        'INSERT INTO public.montajes_gratis (restaurante_id, nombre, origen, nota, creado_por) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (restaurante_id) DO NOTHING',
+        [restauranteId, local, d.origenMontaje ?? 'flyer', 'Montaje gratis alta única Central', miId]
+      );
+    }).catch((e) => console.error('Error registrando montaje gratis:', e));
+  }
 
   // 5. Manejo según Modo: Demo, Gratis o Enlace de Pago
   let urlPago = '';
