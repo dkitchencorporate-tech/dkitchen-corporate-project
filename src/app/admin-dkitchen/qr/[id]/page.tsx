@@ -19,7 +19,6 @@ import TraductorCarta from '@/components/admin/TraductorCarta';
 import { asignarComercialAction, asignarSiguientePasoAction, anularEnlaceAction, regalarTodoAction, reenviarAccesoAction, cambiarEstadoAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction,
   darDeBajaAction, anularBajaAction, archivarAction, demoInternaAction, entrarSoporteAction } from '../actions';
 import { QR_MENU, PLANES_QR, esPlanQr, nombrePlan } from '@/lib/pricing-config';
-import GuiaZona from '@/components/admin/GuiaZona';
 import { listarProyectos, nombreFase, PRODUCTOS_PROYECTO } from '@/lib/proyectos';
 import MontajeGratisFicha from '@/components/admin/MontajeGratis';
 import { montajesGratis } from '@/lib/montajes-gratis';
@@ -173,30 +172,62 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
     : r.pago_fallido_desde ? `Pago fallido desde ${fecha.format(new Date(r.pago_fallido_desde))}`
     : r.estado_acceso;
 
-  return (
-    <div className="px-4 py-6 sm:p-6 lg:p-10 text-carbon space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <Link href="/admin-dkitchen/qr" className="text-xs text-niebla hover:text-carbon">← Clientes QR</Link>
-          <h1 className="font-display mt-1 text-3xl font-semibold tracking-tight md:text-4xl">{r.nombre}</h1>
-          <p className="text-sm text-niebla">
-            /{r.slug} · alta {fecha.format(new Date(r.creado_en))} · último acceso{' '}
-            {ficha.ultimo_acceso ? fechaHora.format(new Date(ficha.ultimo_acceso)) : 'nunca'}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {r.estado_acceso !== 'suspendido' && (
-            <form action={entrarSoporteAction}>
-              <input type="hidden" name="restauranteId" value={r.id} />
-              <button className="rounded-full bg-vino px-4 py-2 text-sm font-semibold text-white hover:bg-vino-hondo" title="Abre su panel tal y como lo ve el cliente (modo soporte)">Entrar en su panel</button>
-            </form>
-          )}
-          <a href={`/m/${r.slug}`} target="_blank" rel="noopener" className="rounded-full border border-linea-fuerte px-4 py-2 text-sm font-semibold hover:border-vino">
-            Ver su carta ↗
-          </a>
-        </div>
-      </div>
+  const pendiente = enlaces.find((e) => e.estado === 'pendiente');
+  const primario: { t: string; href?: string; soporte?: string } =
+    r.demo_interna ? { t: 'Convertir en cliente', href: '?tab=cobros#enlace' }
+    : r.estado_acceso === 'suspendido' ? { t: 'Reactivar o cobrar', href: '?tab=ajustes' }
+    : pendiente ? { t: 'Ver su enlace de pago', href: '?tab=cobros' }
+    : r.pago_fallido_desde || r.estado_acceso === 'solo_lectura' ? { t: 'Cobrar', href: '?tab=cobros#enlace' }
+    : ficha.platos === 0 ? { t: 'Montar su carta', soporte: 'carta' }
+    : { t: 'Entrar en su panel', soporte: '' };
+  const pasoSiguiente = (r as { siguiente_paso?: string | null }).siguiente_paso ?? (pendiente ? 'Esperando el pago de su enlace' : ficha.platos === 0 ? 'Subir su carta' : null);
+  const estadoChip = r.demo_interna ? ['Demo', 'bg-papel text-tinta'] : r.estado_acceso === 'suspendido' ? ['De baja', 'bg-red-100 text-red-700']
+    : r.pago_fallido_desde ? ['Pago fallido', 'bg-red-100 text-red-700'] : cobro?.prueba_hasta ? ['En prueba', 'bg-oro/25 text-tinta']
+    : pendiente ? ['Enlace enviado', 'bg-oro/25 text-tinta'] : r.estado_acceso === 'activo' ? ['Activo', 'bg-exito/15 text-exito'] : [r.estado_acceso, 'bg-papel text-tinta'];
+  const PESTANAS: [string, string][] = [
+    ['resumen', 'Resumen'], ['carta', 'Carta QR'],
+    ...(proyectosSig.length ? [['signature', 'Signature'] as [string, string]] : []),
+    ...(proyectosExp.length || eventos.length ? [['experience', 'Experience'] as [string, string]] : []),
+    ['cobros', 'Cobros'], ['comunicacion', 'Comunicación'], ['soporte', abiertosTk ? `Soporte (${abiertosTk})` : 'Soporte'], ['ajustes', 'Ajustes'],
+  ];
 
+  return (
+    <div className="text-carbon">
+      {/* Cabecera fija (decisión 4): estado, plan, próximo paso y UN botón principal */}
+      <header className="sticky top-0 z-20 border-b border-linea bg-crema/95 px-4 pb-0 pt-4 backdrop-blur sm:px-6 lg:px-10" data-testid="ficha-cabecera">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <Link href="/admin-dkitchen/qr" className="text-xs text-niebla hover:text-carbon">← Clientes</Link>
+            <h1 className="truncate font-display text-2xl font-bold tracking-tight md:text-3xl">{r.nombre}</h1>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
+              <span className={`rounded-full px-2.5 py-0.5 font-bold ${estadoChip[1]}`} data-testid="ficha-estado">{estadoChip[0]}</span>
+              <span className="rounded-full bg-white px-2.5 py-0.5 font-semibold">{esPlanQr(r.plan) ? `${nombrePlan(r.plan)} · ${QR_MENU.planes[r.plan].mensual} €/mes` : r.plan}</span>
+              {proyectos.map((p) => <span key={p.id} className="rounded-full bg-white px-2.5 py-0.5 font-semibold">{PRODUCTOS_PROYECTO[p.producto]} · {nombreFase(p.producto, p.fase)}</span>)}
+            </div>
+            {pasoSiguiente && <p className="mt-1.5 text-sm"><span className="text-niebla">Próximo paso:</span> <b>{pasoSiguiente}</b></p>}
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <a href={`/m/${r.slug}`} target="_blank" rel="noopener" className="hidden rounded-full border border-linea bg-white px-4 py-2.5 text-sm font-semibold hover:border-vino sm:inline-block">Ver su carta ↗</a>
+            {primario.href ? (
+              <a href={primario.href} className="dk-btn inline-flex min-h-[44px] items-center rounded-full bg-vino px-5 text-sm font-bold text-white hover:bg-vino-hondo" data-testid="ficha-principal">{primario.t}</a>
+            ) : (
+              <form action={entrarSoporteAction}>
+                <input type="hidden" name="restauranteId" value={r.id} />
+                {primario.soporte ? <input type="hidden" name="pestana" value={primario.soporte} /> : null}
+                <button className="dk-btn min-h-[44px] rounded-full bg-vino px-5 text-sm font-bold text-white hover:bg-vino-hondo" data-testid="ficha-principal">{primario.t}</button>
+              </form>
+            )}
+          </div>
+        </div>
+        <nav aria-label="Pestañas de la ficha" className="-mx-1 mt-3 flex gap-1 overflow-x-auto px-1 [scrollbar-width:none]">
+          {PESTANAS.map(([k, t]) => (
+            <Link key={k} href={`/admin-dkitchen/qr/${r.id}?tab=${k}`} scroll={false} aria-current={tabActiva === k ? 'page' : undefined}
+              className={`shrink-0 border-b-2 px-3.5 py-2.5 text-sm font-semibold transition ${tabActiva === k ? 'border-vino text-vino' : 'border-transparent text-niebla hover:text-tinta'}`}>{t}</Link>
+          ))}
+        </nav>
+      </header>
+
+      <div key={tabActiva} className="dk-paso space-y-6 px-4 py-6 sm:p-6 lg:px-10">
       {(r.demo_interna || r.archivado_en || bajaPendiente) && (
         <div className="flex flex-wrap gap-2 text-xs font-semibold">
           {r.demo_interna && <span className="rounded-full bg-papel px-3 py-1 text-niebla">Cuenta demo interna · fuera de ingresos y del parte</span>}
@@ -204,9 +235,8 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
           {bajaPendiente && <span className="rounded-full bg-vino/10 px-3 py-1 text-vino">Baja programada: deja de estar activo el {fecha.format(new Date(bajaPendiente + 'T12:00:00Z'))}{r.baja_por === 'cliente' ? ' (la pidió el cliente)' : ''}</span>}
         </div>
       )}
-
+      {tabActiva === 'resumen' && (<>
       {seguimiento && <SeguimientoEnVivo restauranteId={id} inicial={eventosSeg} hasta={seguimiento.hasta} />}
-
       {r.demo_interna && (
         <section className="rounded-[22px] border border-vino/25 bg-vino/[0.04] p-5 sm:p-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">Demo para captar</p>
@@ -217,34 +247,70 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
             <li><strong>3.</strong> Si el local está en Prospección, su propuesta ya enseña esta carta y el botón de pago. Al pagar, deja de ser demo y cuenta como cliente.</li>
           </ol>
           <div className="mt-4 flex flex-wrap gap-2">
-            <a href="#enlace" className="rounded-full bg-vino px-4 py-2 text-sm font-semibold text-white">Convertir en cliente</a>
+            <a href="?tab=cobros#enlace" className="rounded-full bg-vino px-4 py-2 text-sm font-semibold text-white">Convertir en cliente</a>
             <a href={`/m/${r.slug}`} target="_blank" rel="noopener" className="rounded-full border border-linea bg-white px-4 py-2 text-sm font-semibold">Ver su carta</a>
             <a href="/admin-dkitchen/prospeccion" className="rounded-full border border-linea bg-white px-4 py-2 text-sm font-semibold">Ir a Prospección</a>
           </div>
         </section>
       )}
-
-      {proyectos.length > 0 && (
-        <p className="rounded-2xl bg-papel px-4 py-3 text-sm">Proyectos de este cliente: {proyectos.map((p, i) => <span key={p.id}>{i ? ' · ' : ''}<Link href={`/admin-dkitchen/proyectos/${p.id}`} className="font-semibold text-vino underline">{PRODUCTOS_PROYECTO[p.producto]} ({nombreFase(p.producto, p.fase)})</Link></span>)}</p>
-      )}
-
-      <GuiaZona titulo="Ficha del cliente" ancla="ficha"
-        que="Todo lo de este local en una pantalla. Lo que se hace aquí queda en su historial con «por DKitchen»."
-        pasos={[
-          '«Entrar en su panel» abre su panel tal y como lo ve el cliente (modo soporte): carta, secciones, datos del local, plano, QR, traducciones, promociones y combos. Para salir, «Salir y volver a su ficha» en la franja de arriba.',
-          'Cobrar: prepara un enlace de pago (1 €, Fundador o a medida) y, si quieres, se lo enviamos por correo.',
-          'Prueba con todo incluido: siempre con fecha de fin. Al acabar sin pago, su panel pasa a solo lectura.',
-          'Gestión de la cuenta: dar de baja (al final del periodo pagado), archivar o marcar como demo interna.',
-          'Historial (al final): cada cambio, quién lo hizo y cuándo.',
-        ]}
-        ojo={['Dar de baja cancela su cuota en Stripe sin reembolso. Ese día su carta deja de verse y a los 60 días se borra todo.', 'Mientras la baja no haya llegado se puede anular; después, solo «Reactivar cuenta».']} />
-
-      <nav aria-label="Secciones de la ficha" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
-        {[['#resumen', 'Resumen'], ['#comunicacion', 'Comunicación'], ['#tickets', abiertosTk ? `Tickets (${abiertosTk})` : 'Tickets'], ['#acciones', 'Acciones'], ['#enlace', 'Cobrar'], ['#cuenta', 'Baja y archivo'], ['#servicios', 'Servicios'], ['#diseno', 'Diseño'], ['#historial', 'Historial']].map(([h, t]) => (
-          <a key={h} href={h} className="shrink-0 rounded-full border border-linea bg-white px-4 py-2 text-sm font-medium hover:border-tinta">{t}</a>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { t: 'Plan', v: esPlanQr(r.plan) ? `${nombrePlan(r.plan)} · ${QR_MENU.planes[r.plan].mensual} € + IVA` : r.plan },
+          { t: 'Pago', v: pago },
+          { t: 'Escaneos 30 días', v: total30 },
+          { t: 'Llamadas de mesa 30 días', v: ficha.llamadas_30d },
+        ].map((k) => (
+          <div key={k.t} className="rounded-2xl border border-linea bg-white p-5">
+            <p className="text-xs text-niebla">{k.t}</p>
+            <p className="mt-1 text-lg font-black">{k.v}</p>
+          </div>
         ))}
-      </nav>
+      </div>
+      <section id="resumen" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-xl font-semibold tracking-tight">Uso frente a su plan {esPlanQr(r.plan) ? QR_MENU.planes[r.plan].nombre : r.plan}</h2>
+          <p className="text-xs text-niebla">Lo mismo que ve el cliente en «Mi plan». Desde el 80 %, buen momento para proponerle subir de plan.</p>
+        </div>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {uso.map((u) => {
+            const pct = u.tope ? Math.min(100, Math.round((u.usados / u.tope) * 100)) : 0;
+            return (
+              <li key={u.que} className="rounded-2xl bg-papel p-4">
+                <p className="flex justify-between text-sm"><span>{NOMBRES_USO[u.que] ?? u.que}</span><span className="font-semibold tabular-nums">{u.usados} / {u.tope}</span></p>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-linea"><div className={`h-full rounded-full ${pct >= 100 ? 'bg-red-600' : pct >= 80 ? 'bg-oro' : 'bg-exito'}`} style={{ width: `${pct}%` }} /></div>
+              </li>
+            );
+          })}
+          {!uso.length && <li className="text-sm text-niebla">Sin datos de uso todavía.</li>}
+        </ul>
+      </section>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="rounded-[22px] border border-linea bg-white p-5 sm:p-6 lg:col-span-2">
+          <h2 className="font-display text-xl font-semibold tracking-tight">Escaneos de los últimos 30 días</h2>
+          <div className="mt-4 flex h-32 items-end gap-1" role="img" aria-label={`${total30} escaneos en 30 días`}>
+            {ficha.escaneos_30d.map((d) => (
+              <div
+                key={d.dia}
+                title={`${d.dia}: ${d.n}`}
+                className="flex-1 rounded-t bg-vino"
+                style={{ height: `${Math.max(3, (d.n / maxDia) * 100)}%`, opacity: d.n ? 1 : 0.25 }}
+              />
+            ))}
+          </div>
+        </section>
 
+        <section className="rounded-[22px] border border-linea bg-white p-5 sm:p-6 space-y-3 text-sm">
+          <h2 className="font-display text-xl font-semibold tracking-tight">Contacto y carta</h2>
+          <p>{ficha.contacto ?? '—'}</p>
+          {ficha.email && <a href={`mailto:${ficha.email}`} className="block text-vino hover:underline">{ficha.email}</a>}
+          <p className="text-niebla">{r.telefono ?? 'Sin teléfono'} · {r.direccion ?? 'Sin dirección'}</p>
+          <p className="text-niebla">{ficha.secciones} secciones · {ficha.platos} platos</p>
+          <p className="text-niebla">QR: {ficha.codigos.join(', ') || '—'}</p>
+          {ficha.codigos.length > 0 && <a href={`/kit/${r.id}`} className="inline-block font-semibold text-vino hover:underline">Kit para imprimir (cartel, mesas, pegatinas, flyer) →</a>}
+        </section>
+      </div>
+      <MontajeGratisFicha m={montajes} restaurante={id} volver={`/admin-dkitchen/qr/${id}`} aviso={sp.montaje} />
+      </>)}
       {/* ── VISTA DEDICADA: SIGNATURE (P1.4) ── */}
       {tabActiva === 'signature' && (
         <section className="rounded-2xl border border-linea bg-white p-5 sm:p-6 space-y-4">
@@ -287,7 +353,6 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
           )}
         </section>
       )}
-
       {/* ── VISTA DEDICADA: EXPERIENCE (P1.4) ── */}
       {tabActiva === 'experience' && (
         <section className="rounded-2xl border border-linea bg-white p-5 sm:p-6 space-y-4">
@@ -295,7 +360,7 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
             <h2 className="font-display text-xl font-semibold tracking-tight text-carbon">
               Experience · Eventos con venta de entradas
             </h2>
-            <Link href="/admin-dkitchen/entradas" className="text-xs font-bold text-vino hover:underline">
+            <Link href="/admin-dkitchen/servicios/experience?evento=nuevo" className="text-xs font-bold text-vino hover:underline">
               + Nuevo evento Experience
             </Link>
           </div>
@@ -303,7 +368,7 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
             <div className="rounded-xl border border-dashed border-linea p-8 text-center space-y-2">
               <p className="text-sm font-semibold text-carbon">No hay eventos Experience creados</p>
               <p className="text-xs text-niebla">Monta el primer evento llave en mano para este restaurante con venta de entradas directa.</p>
-              <Link href="/admin-dkitchen/entradas" className="inline-block mt-2 rounded-full bg-tinta px-4 py-2 text-xs font-bold text-white">
+              <Link href="/admin-dkitchen/servicios/experience?evento=nuevo" className="inline-block mt-2 rounded-full bg-tinta px-4 py-2 text-xs font-bold text-white">
                 Abrir asistente de eventos →
               </Link>
             </div>
@@ -340,87 +405,169 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
           )}
         </section>
       )}
-
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { t: 'Plan', v: esPlanQr(r.plan) ? `${nombrePlan(r.plan)} · ${QR_MENU.planes[r.plan].mensual} € + IVA` : r.plan },
-          { t: 'Pago', v: pago },
-          { t: 'Escaneos 30 días', v: total30 },
-          { t: 'Llamadas de mesa 30 días', v: ficha.llamadas_30d },
-        ].map((k) => (
-          <div key={k.t} className="rounded-2xl border border-linea bg-white p-5">
-            <p className="text-xs text-niebla">{k.t}</p>
-            <p className="mt-1 text-lg font-black">{k.v}</p>
+      {tabActiva === 'carta' && (<>
+      <section id="acciones" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
+        <h2 className="font-display text-xl font-semibold tracking-tight">Acciones</h2>
+        <p className="text-xs text-niebla">Cada acción queda registrada en el historial.</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          {!r.demo_interna && r.estado_acceso !== 'suspendido' && (
+            <form action={regalarTodoAction} className="flex w-full flex-wrap items-center gap-2 rounded-2xl bg-papel p-3">
+              <input type="hidden" name="restauranteId" value={r.id} />
+              <label className="text-sm font-semibold" htmlFor="dias-prueba">Prueba con todo incluido</label>
+              <select id="dias-prueba" name="dias" defaultValue="15" className="rounded-lg border border-acero bg-white px-3 py-2 text-sm">
+                <option value="7">7 días</option>
+                <option value="15">15 días</option>
+                <option value="30">30 días</option>
+                <option value="fecha">Hasta una fecha…</option>
+              </select>
+              <input type="date" name="hasta" aria-label="Fecha de fin de la prueba" className="rounded-lg border border-acero bg-white px-3 py-2 text-sm" />
+              <button className="rounded-full bg-vino px-4 py-2 text-sm font-bold text-white hover:bg-vino-hondo">Activar prueba</button>
+              <p className="w-full text-xs text-niebla">Siempre con fecha de fin (no hay regalos sin fecha). La fecha solo cuenta con «Hasta una fecha…». Si termina sin pago, el panel pasa a solo lectura y la carta sigue visible.</p>
+            </form>
+          )}
+          {/* 18/10 (karc0): cada acción dice qué hace y cuándo usarla */}
+          <div className="grid w-full gap-3 sm:grid-cols-2">
+            {/* 18/10 (revisión de karc0): acciones con sentido para un cliente que ya paga: vender mejor, no regalar */}
+            <div className="rounded-2xl border border-linea p-4">
+              <p className="font-semibold">Montar su carta desde una foto</p>
+              <p className="mt-1 text-xs text-niebla">{ficha.platos === 0 ? 'Su carta está vacía.' : `Tiene ${ficha.platos} platos.`} Pídele una foto o el PDF de su carta (plantilla «Mensaje libre» por WhatsApp) y la cargamos nosotros entrando en su panel. Si no tiene la Puesta a punto, ofrécesela con descuento.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a href="?tab=comunicacion" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Pedirle la foto</a>
+                <a href="?tab=cobros#enlace" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Puesta a punto con descuento</a>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-linea p-4">
+              <p className="font-semibold">Proponerle una mejora</p>
+              <p className="mt-1 text-xs text-niebla">Mira «Resumen»: si va por encima del 80 % de su plan, prepárale el cambio en «Cobrar → Cambiar de plan» (en el paso 2 puedes poner un precio con descuento) y mándaselo con la plantilla «Propuesta de mejora de plan». Si tiene volumen, la de «Invitación a Signature».</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a href="?tab=cobros#enlace" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Preparar la mejora</a>
+                <Link href="/admin-dkitchen/oportunidades" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Ver oportunidades →</Link>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-linea p-4">
+              <p className="font-semibold">Soporte y QR físico</p>
+              <p className="mt-1 text-xs text-niebla">Sus tickets están arriba, en «Tickets». Los pedidos de QR impresos (pegatinas o metacrilato) se gestionan en Soporte → Pedidos de QR físico.</p>
+              <Link href="/admin-dkitchen/soporte" className="mt-3 inline-block rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Abrir Soporte →</Link>
+            </div>
           </div>
-        ))}
-      </div>
-
-      <section id="resumen" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-xl font-semibold tracking-tight">Uso frente a su plan {esPlanQr(r.plan) ? QR_MENU.planes[r.plan].nombre : r.plan}</h2>
-          <p className="text-xs text-niebla">Lo mismo que ve el cliente en «Mi plan». Desde el 80 %, buen momento para proponerle subir de plan.</p>
         </div>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {uso.map((u) => {
-            const pct = u.tope ? Math.min(100, Math.round((u.usados / u.tope) * 100)) : 0;
+      </section>
+      <section id="servicios" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6 space-y-4">
+        <div>
+          <h2 className="font-display text-xl font-semibold tracking-tight">Extras contratados y lo que puedes ofrecerle</h2>
+          <p className="text-xs text-niebla">Mesas, camareros, reservas, TPV y app de sala van incluidos según su plan ({nombrePlan(r.plan)}); para cambiarlos, cambia de plan. Aquí solo están los extras de pago único: se cobran en «Cobrar» y aquí se marcan como entregados o se cancelan. Todo queda en el historial.</p>
+        </div>
+        <ul className="divide-y divide-linea text-sm">
+          {CATALOGO_SERVICIOS.filter(([clave]) => servicios.some((x) => x.servicio === clave && x.estado !== 'cancelado')).map(([clave, nombre]) => {
+            const s = servicios.find((x) => x.servicio === clave);
+            const enPack = !s && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(clave) && servicios.some((x) => x.servicio === 'pack_sala' && x.estado !== 'cancelado');
+            if (enPack) return (
+              <li key={clave} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                <span><strong>{nombre}</strong><span className="ml-2 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] text-green-700">activo · incluido en Pack Sala</span></span>
+              </li>
+            );
             return (
-              <li key={u.que} className="rounded-2xl bg-papel p-4">
-                <p className="flex justify-between text-sm"><span>{NOMBRES_USO[u.que] ?? u.que}</span><span className="font-semibold tabular-nums">{u.usados} / {u.tope}</span></p>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-linea"><div className={`h-full rounded-full ${pct >= 100 ? 'bg-red-600' : pct >= 80 ? 'bg-oro' : 'bg-exito'}`} style={{ width: `${pct}%` }} /></div>
+              <li key={clave} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                <span>
+                  <strong>{nombre}</strong>
+                  {s ? <span className="ml-2 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] text-green-700">{s.estado} · {s.origen}</span>
+                     : <span className="ml-2 text-xs text-ceniza">no contratado</span>}
+                </span>
+                <span className="flex gap-2">
+                  {(s ? ['entregado', 'cancelar'] : []).map((accion) => (
+                    <form key={accion} action={servicioAdminAction}>
+                      <input type="hidden" name="restauranteId" value={r.id} />
+                      <input type="hidden" name="servicio" value={clave} />
+                      <input type="hidden" name="accion" value={accion} />
+                      <button className={`rounded-md px-2.5 py-1 text-xs font-semibold ${accion === 'cancelar' ? 'bg-red-500/15 text-red-600' : 'bg-papel hover:bg-linea'}`}>
+                        {accion === 'entregado' ? 'Marcar entregado' : accion === 'cancelar' ? 'Cancelar' : accion === 'demo' ? 'Activar demo' : 'Regalar'}
+                      </button>
+                    </form>
+                  ))}
+                </span>
               </li>
             );
           })}
-          {!uso.length && <li className="text-sm text-niebla">Sin datos de uso todavía.</li>}
         </ul>
-      </section>
-
-      <section id="comunicacion" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-xl font-semibold tracking-tight">Comunicación</h2>
-          <p className="text-xs text-niebla">{ficha.email ?? 'Sin correo'} · {r.telefono ?? 'sin teléfono'}</p>
+        {!servicios.some((x) => x.estado !== 'cancelado' && CATALOGO_SERVICIOS.some(([k]) => k === x.servicio)) && <p className="text-sm text-niebla">No tiene extras contratados.</p>}
+        {/* 18/10 (karc0): aquí se vende, no se listan cosas que ya no existen */}
+        <div className="grid gap-2 sm:grid-cols-2">
+          {!servicios.some((x) => x.servicio === 'setup_esencial' && x.estado !== 'cancelado') && (
+            <a href="?tab=cobros#enlace" className="rounded-2xl border border-oro/50 bg-oro/10 p-4 text-sm"><span className="block font-semibold">Puesta a punto · 29 € en vez de 49 €</span><span className="mt-1 block text-xs text-niebla">Carta cargada, TPV conectado, formación y fotos con IA. Prepara el cobro con descuento en «Cobrar».</span></a>
+          )}
+          <a href="?tab=cobros#enlace" className="rounded-2xl border border-linea p-4 text-sm"><span className="block font-semibold">Bono de 50 fotos con IA · 9 €</span><span className="mt-1 block text-xs text-niebla">Para que todos sus platos tengan foto (3 gratis siempre).</span></a>
+          <a href="?tab=cobros#enlace" className="rounded-2xl border border-linea p-4 text-sm"><span className="block font-semibold">Idioma extra · 15 €</span><span className="mt-1 block text-xs text-niebla">Si recibe turistas y su plan ya tiene los idiomas ocupados.</span></a>
+          <Link href="/admin-dkitchen/soporte" className="rounded-2xl border border-linea p-4 text-sm"><span className="block font-semibold">QR físicos para las mesas</span><span className="mt-1 block text-xs text-niebla">Pegatinas o metacrilato con su QR (pedidos en Soporte).</span></Link>
         </div>
-        <div className="mt-4 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-          <ComunicacionCliente restauranteId={r.id} email={ficha.email} telefono={r.telefono} accion={comunicarAction}
-            plantillas={plantillas({ contacto: ficha.contacto, local: r.nombre, plan: r.plan, slug: r.slug, proximoCobro: null })} />
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-vino">Lo último con este cliente</p>
-            <ol className="mt-3 max-h-[520px] space-y-2 overflow-y-auto pr-1">
-              {comunicaciones.map((c) => (
-                <li key={c.id} className={`rounded-2xl border p-3 text-sm ${c.canal === 'recordatorio' && !c.hecho ? 'border-oro bg-oro/10' : 'border-linea'}`}>
-                  <p className="flex flex-wrap items-center justify-between gap-2 text-xs text-niebla">
-                    <span className="font-semibold uppercase tracking-wide text-carbon">{({ email: '✉ Correo', whatsapp: 'WhatsApp', nota: 'Nota interna', llamada: 'Llamada', recordatorio: `Recordatorio · ${c.recordarEn ?? ''}` } as Record<string, string>)[c.canal]}</span>
-                    <span>{fechaHora.format(new Date(c.creadoEn))}</span>
-                  </p>
-                  {c.asunto && c.canal === 'email' && <p className="mt-1 font-semibold">{c.asunto}</p>}
-                  {c.cuerpo && <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-niebla">{c.cuerpo}</p>}
-                  {c.canal === 'recordatorio' && !c.hecho && (
-                    <form action={recordatorioHechoAction} className="mt-2"><input type="hidden" name="id" value={c.id} /><input type="hidden" name="volver" value={`/admin-dkitchen/qr/${r.id}`} /><button className="rounded-full bg-tinta px-3 py-1.5 text-xs font-semibold text-white">Hecho</button></form>
-                  )}
-                </li>
+
+        {servicios.filter((x) => x.servicio === 'setup_esencial' || x.servicio === 'setup_experto').map((s) => (
+          <form key={s.servicio} action={checklistSetupAction} className="rounded-xl bg-white p-4 text-sm">
+            <input type="hidden" name="restauranteId" value={r.id} />
+            <input type="hidden" name="servicio" value={s.servicio} />
+            <p className="mb-2 font-bold">Entrega del {s.servicio === 'setup_experto' ? 'Setup Experto' : 'Setup Esencial'}</p>
+            <div className="grid gap-1.5 sm:grid-cols-2">
+              {PUNTOS_SETUP.filter(([k]) => s.servicio === 'setup_experto' || !['redes', 'soporte'].includes(k)).map(([k, t]) => (
+                <label key={k} className="flex items-center gap-2"><input type="checkbox" name={k} defaultChecked={s.checklist[k] === true} className="accent-vino" /> {t}</label>
               ))}
-              {!comunicaciones.length && <li className="text-sm text-niebla">Todavía no hay nada. Lo que envíes o anotes desde aquí aparecerá en esta lista.</li>}
-            </ol>
+            </div>
+            <button className="mt-3 rounded-md bg-papel px-3 py-1.5 text-xs font-bold">Guardar progreso</button>
+          </form>
+        ))}
+
+        {/* 0050: la conexión con el TPV va incluida en todos los planes */}
+        {true && (
+          <form action={conexionTpvAction} autoComplete="off" className="space-y-2 rounded-xl bg-white p-4 text-sm">
+            <input type="hidden" name="restauranteId" value={r.id} />
+            <p className="font-bold">Conexión con el TPV</p>
+            {/* Sin type="password": así Chrome no rellena el correo y la contraseña de DKitchen (fallo 3 del recorrido 114) */}
+            <div className="grid gap-2 sm:grid-cols-2">
+              <input name="proveedor" required autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="TPV (Revo, Ágora, Last.app…)" className="rounded-lg border border-acero bg-white px-3 py-2" />
+              <input name="endpoint" required type="url" inputMode="url" autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="https://… (endpoint del fabricante)" className="rounded-lg border border-acero bg-white px-3 py-2" />
+            </div>
+            <input name="credencial" type="text" autoComplete="off" spellCheck={false} data-1p-ignore data-lpignore="true" placeholder="Cabecera Authorization (p. ej. Bearer xxx). Vacío = mantener" className="w-full rounded-lg border border-acero bg-white px-3 py-2 font-mono [-webkit-text-security:disc]" />
+            <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="activa" defaultChecked className="accent-vino" /> Activa</label>
+            <p className="text-[11px] text-ceniza">La credencial se cifra (AES-256-GCM) antes de guardarse; nadie puede volver a leerla desde el panel.</p>
+            <button className="rounded-md bg-vino px-3 py-1.5 text-xs font-bold">Guardar conexión</button>
+          </form>
+        )}
+      </section>
+      <section id="diseno" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
+        <h2 className="font-display text-xl font-semibold tracking-tight">Ficha 360 · Diseño y editores</h2>
+        <p className="text-xs text-niebla">
+          La carta de autor se monta aquí: composición, fondo, color libre y firma, con vista previa. Con nivel Esencial el cliente puede seguir cambiándolo en su panel; con Autor o Signature queda bloqueado para él.
+        </p>
+        <DisenoCentral accion={asignarDisenoAction} restauranteId={r.id} slug={r.slug} nombre={r.nombre} logo={r.logo_url} portada={r.portada_url ?? null}
+          fotos={fotosCarta}
+          inicial={{ plantilla: r.plantilla ?? 'clasica', nivel: r.nivel_diseno ?? 'esencial', fondo: r.estilo_fondo ?? 'papel', letra: r.estilo_letra ?? 'sans', color: (r.color_marca ?? '#6E0C2B').toUpperCase(), firma: limpiarFirma(r.firma) }} />
+        {r.estado_acceso !== 'suspendido' && (
+          <div className="mt-8 border-t border-linea pt-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ceniza">Editar el resto de su carta</p>
+            <p className="mt-1 text-xs text-niebla">Cada botón abre esa pantalla de su panel en modo soporte (franja vino arriba; «Salir y volver a su ficha» para regresar). Cada cambio queda en su historial como DKitchen.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {EDITORES_360.map(([pestana, texto]) => (
+                <form key={pestana} action={entrarSoporteAction}>
+                  <input type="hidden" name="restauranteId" value={r.id} />
+                  <input type="hidden" name="pestana" value={pestana} />
+                  <button className="rounded-full border border-linea-fuerte px-4 py-2 text-sm font-semibold hover:border-vino hover:text-vino">{texto}</button>
+                </form>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </section>
-
-      <section id="tickets" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-xl font-semibold tracking-tight">Tickets de este cliente</h2>
-          <Link href="/admin-dkitchen/soporte" className="text-sm font-semibold text-vino underline">Responder en Soporte (con ayuda de la IA N2) →</Link>
-        </div>
-        <ul className="mt-3 space-y-2 text-sm">
-          {tickets.map((t) => (
-            <li key={t.id} className="rounded-2xl border border-linea p-3">
-              <p className="flex flex-wrap justify-between gap-2"><span className="font-semibold">{t.asunto}</span><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${t.estado === 'abierto' ? 'bg-vino text-white' : 'bg-papel'}`}>{t.estado}</span></p>
-              <p className="mt-1 line-clamp-2 text-niebla">{t.mensaje}</p>
-            </li>
-          ))}
-          {!tickets.length && <li className="text-niebla">Sin tickets.</li>}
-        </ul>
-      </section>
-
+      {cartaCliente && (
+        <section className="rounded-[22px] border border-linea bg-white p-5 sm:p-6">
+          <TraductorCarta
+            restauranteId={id}
+            activos={cartaCliente.idiomas ?? []}
+            secciones={cartaCliente.secciones.map((x) => ({ id: x.id, nombre: x.nombre }))}
+            platos={[...cartaCliente.secciones.flatMap((x) => x.platos), ...cartaCliente.sueltos].map((p) => ({ id: p.id, nombre: p.nombre, descripcion: p.descripcion, seccionId: p.seccionId }))}
+            traducciones={traducciones}
+          />
+        </section>
+      )}
+      </>)}
+      {tabActiva === 'cobros' && (<>
       {cobro && (
         <section id="cobro" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -462,82 +609,6 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
           </ul>
         </section>
       )}
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="rounded-[22px] border border-linea bg-white p-5 sm:p-6 lg:col-span-2">
-          <h2 className="font-display text-xl font-semibold tracking-tight">Escaneos de los últimos 30 días</h2>
-          <div className="mt-4 flex h-32 items-end gap-1" role="img" aria-label={`${total30} escaneos en 30 días`}>
-            {ficha.escaneos_30d.map((d) => (
-              <div
-                key={d.dia}
-                title={`${d.dia}: ${d.n}`}
-                className="flex-1 rounded-t bg-vino"
-                style={{ height: `${Math.max(3, (d.n / maxDia) * 100)}%`, opacity: d.n ? 1 : 0.25 }}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-[22px] border border-linea bg-white p-5 sm:p-6 space-y-3 text-sm">
-          <h2 className="font-display text-xl font-semibold tracking-tight">Contacto y carta</h2>
-          <p>{ficha.contacto ?? '—'}</p>
-          {ficha.email && <a href={`mailto:${ficha.email}`} className="block text-vino hover:underline">{ficha.email}</a>}
-          <p className="text-niebla">{r.telefono ?? 'Sin teléfono'} · {r.direccion ?? 'Sin dirección'}</p>
-          <p className="text-niebla">{ficha.secciones} secciones · {ficha.platos} platos</p>
-          <p className="text-niebla">QR: {ficha.codigos.join(', ') || '—'}</p>
-          {ficha.codigos.length > 0 && <a href={`/kit/${r.id}`} className="inline-block font-semibold text-vino hover:underline">Kit para imprimir (cartel, mesas, pegatinas, flyer) →</a>}
-        </section>
-      </div>
-
-      <MontajeGratisFicha m={montajes} restaurante={id} volver={`/admin-dkitchen/qr/${id}`} aviso={sp.montaje} />
-
-      <section id="acciones" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <h2 className="font-display text-xl font-semibold tracking-tight">Acciones</h2>
-        <p className="text-xs text-niebla">Cada acción queda registrada en el historial.</p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          {!r.demo_interna && r.estado_acceso !== 'suspendido' && (
-            <form action={regalarTodoAction} className="flex w-full flex-wrap items-center gap-2 rounded-2xl bg-papel p-3">
-              <input type="hidden" name="restauranteId" value={r.id} />
-              <label className="text-sm font-semibold" htmlFor="dias-prueba">Prueba con todo incluido</label>
-              <select id="dias-prueba" name="dias" defaultValue="15" className="rounded-lg border border-acero bg-white px-3 py-2 text-sm">
-                <option value="7">7 días</option>
-                <option value="15">15 días</option>
-                <option value="30">30 días</option>
-                <option value="fecha">Hasta una fecha…</option>
-              </select>
-              <input type="date" name="hasta" aria-label="Fecha de fin de la prueba" className="rounded-lg border border-acero bg-white px-3 py-2 text-sm" />
-              <button className="rounded-full bg-vino px-4 py-2 text-sm font-bold text-white hover:bg-vino-hondo">Activar prueba</button>
-              <p className="w-full text-xs text-niebla">Siempre con fecha de fin (no hay regalos sin fecha). La fecha solo cuenta con «Hasta una fecha…». Si termina sin pago, el panel pasa a solo lectura y la carta sigue visible.</p>
-            </form>
-          )}
-          {/* 18/10 (karc0): cada acción dice qué hace y cuándo usarla */}
-          <div className="grid w-full gap-3 sm:grid-cols-2">
-            {/* 18/10 (revisión de karc0): acciones con sentido para un cliente que ya paga: vender mejor, no regalar */}
-            <div className="rounded-2xl border border-linea p-4">
-              <p className="font-semibold">Montar su carta desde una foto</p>
-              <p className="mt-1 text-xs text-niebla">{ficha.platos === 0 ? 'Su carta está vacía.' : `Tiene ${ficha.platos} platos.`} Pídele una foto o el PDF de su carta (plantilla «Mensaje libre» por WhatsApp) y la cargamos nosotros entrando en su panel. Si no tiene la Puesta a punto, ofrécesela con descuento.</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <a href="#comunicacion" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Pedirle la foto</a>
-                <a href="#enlace" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Puesta a punto con descuento</a>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-linea p-4">
-              <p className="font-semibold">Proponerle una mejora</p>
-              <p className="mt-1 text-xs text-niebla">Mira «Resumen»: si va por encima del 80 % de su plan, prepárale el cambio en «Cobrar → Cambiar de plan» (en el paso 2 puedes poner un precio con descuento) y mándaselo con la plantilla «Propuesta de mejora de plan». Si tiene volumen, la de «Invitación a Signature».</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <a href="#enlace" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Preparar la mejora</a>
-                <Link href="/admin-dkitchen/oportunidades" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Ver oportunidades →</Link>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-linea p-4">
-              <p className="font-semibold">Soporte y QR físico</p>
-              <p className="mt-1 text-xs text-niebla">Sus tickets están arriba, en «Tickets». Los pedidos de QR impresos (pegatinas o metacrilato) se gestionan en Soporte → Pedidos de QR físico.</p>
-              <Link href="/admin-dkitchen/soporte" className="mt-3 inline-block rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Abrir Soporte →</Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section id="enlace" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6 space-y-5">
         <div>
           <h2 className="font-display text-xl font-semibold tracking-tight">Enlace de pago a medida</h2>
@@ -571,7 +642,56 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
           </ul>
         )}
       </section>
-
+      </>)}
+      {tabActiva === 'comunicacion' && (<>
+      <section id="comunicacion" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-xl font-semibold tracking-tight">Comunicación</h2>
+          <p className="text-xs text-niebla">{ficha.email ?? 'Sin correo'} · {r.telefono ?? 'sin teléfono'}</p>
+        </div>
+        <div className="mt-4 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+          <ComunicacionCliente restauranteId={r.id} email={ficha.email} telefono={r.telefono} accion={comunicarAction}
+            plantillas={plantillas({ contacto: ficha.contacto, local: r.nombre, plan: r.plan, slug: r.slug, proximoCobro: null })} />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-vino">Lo último con este cliente</p>
+            <ol className="mt-3 max-h-[520px] space-y-2 overflow-y-auto pr-1">
+              {comunicaciones.map((c) => (
+                <li key={c.id} className={`rounded-2xl border p-3 text-sm ${c.canal === 'recordatorio' && !c.hecho ? 'border-oro bg-oro/10' : 'border-linea'}`}>
+                  <p className="flex flex-wrap items-center justify-between gap-2 text-xs text-niebla">
+                    <span className="font-semibold uppercase tracking-wide text-carbon">{({ email: '✉ Correo', whatsapp: 'WhatsApp', nota: 'Nota interna', llamada: 'Llamada', recordatorio: `Recordatorio · ${c.recordarEn ?? ''}` } as Record<string, string>)[c.canal]}</span>
+                    <span>{fechaHora.format(new Date(c.creadoEn))}</span>
+                  </p>
+                  {c.asunto && c.canal === 'email' && <p className="mt-1 font-semibold">{c.asunto}</p>}
+                  {c.cuerpo && <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-niebla">{c.cuerpo}</p>}
+                  {c.canal === 'recordatorio' && !c.hecho && (
+                    <form action={recordatorioHechoAction} className="mt-2"><input type="hidden" name="id" value={c.id} /><input type="hidden" name="volver" value={`/admin-dkitchen/qr/${r.id}`} /><button className="rounded-full bg-tinta px-3 py-1.5 text-xs font-semibold text-white">Hecho</button></form>
+                  )}
+                </li>
+              ))}
+              {!comunicaciones.length && <li className="text-sm text-niebla">Todavía no hay nada. Lo que envíes o anotes desde aquí aparecerá en esta lista.</li>}
+            </ol>
+          </div>
+        </div>
+      </section>
+      </>)}
+      {tabActiva === 'soporte' && (<>
+      <section id="tickets" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-xl font-semibold tracking-tight">Tickets de este cliente</h2>
+          <Link href="/admin-dkitchen/soporte" className="text-sm font-semibold text-vino underline">Responder en Soporte (con ayuda de la IA N2) →</Link>
+        </div>
+        <ul className="mt-3 space-y-2 text-sm">
+          {tickets.map((t) => (
+            <li key={t.id} className="rounded-2xl border border-linea p-3">
+              <p className="flex flex-wrap justify-between gap-2"><span className="font-semibold">{t.asunto}</span><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${t.estado === 'abierto' ? 'bg-vino text-white' : 'bg-papel'}`}>{t.estado}</span></p>
+              <p className="mt-1 line-clamp-2 text-niebla">{t.mensaje}</p>
+            </li>
+          ))}
+          {!tickets.length && <li className="text-niebla">Sin tickets.</li>}
+        </ul>
+      </section>
+      </>)}
+      {tabActiva === 'ajustes' && (<>
       <section id="cuenta" className="scroll-mt-20 space-y-4 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
         <div>
           <h2 className="font-display text-xl font-semibold tracking-tight">Baja, archivo y demo</h2>
@@ -635,125 +755,7 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
         </div>
         <p className="text-xs text-ceniza">Archivar = sacarlo de la lista principal sin tocar nada (duplicados, pruebas que no siguieron, bajas antiguas). Demo interna = tus cuentas para enseñar o grabar: todo incluido sin fecha y fuera de ingresos, del parte y de las alertas.</p>
       </section>
-
-      <section id="servicios" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6 space-y-4">
-        <div>
-          <h2 className="font-display text-xl font-semibold tracking-tight">Extras contratados y lo que puedes ofrecerle</h2>
-          <p className="text-xs text-niebla">Mesas, camareros, reservas, TPV y app de sala van incluidos según su plan ({nombrePlan(r.plan)}); para cambiarlos, cambia de plan. Aquí solo están los extras de pago único: se cobran en «Cobrar» y aquí se marcan como entregados o se cancelan. Todo queda en el historial.</p>
-        </div>
-        <ul className="divide-y divide-linea text-sm">
-          {CATALOGO_SERVICIOS.filter(([clave]) => servicios.some((x) => x.servicio === clave && x.estado !== 'cancelado')).map(([clave, nombre]) => {
-            const s = servicios.find((x) => x.servicio === clave);
-            const enPack = !s && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(clave) && servicios.some((x) => x.servicio === 'pack_sala' && x.estado !== 'cancelado');
-            if (enPack) return (
-              <li key={clave} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
-                <span><strong>{nombre}</strong><span className="ml-2 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] text-green-700">activo · incluido en Pack Sala</span></span>
-              </li>
-            );
-            return (
-              <li key={clave} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
-                <span>
-                  <strong>{nombre}</strong>
-                  {s ? <span className="ml-2 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] text-green-700">{s.estado} · {s.origen}</span>
-                     : <span className="ml-2 text-xs text-ceniza">no contratado</span>}
-                </span>
-                <span className="flex gap-2">
-                  {(s ? ['entregado', 'cancelar'] : []).map((accion) => (
-                    <form key={accion} action={servicioAdminAction}>
-                      <input type="hidden" name="restauranteId" value={r.id} />
-                      <input type="hidden" name="servicio" value={clave} />
-                      <input type="hidden" name="accion" value={accion} />
-                      <button className={`rounded-md px-2.5 py-1 text-xs font-semibold ${accion === 'cancelar' ? 'bg-red-500/15 text-red-600' : 'bg-papel hover:bg-linea'}`}>
-                        {accion === 'entregado' ? 'Marcar entregado' : accion === 'cancelar' ? 'Cancelar' : accion === 'demo' ? 'Activar demo' : 'Regalar'}
-                      </button>
-                    </form>
-                  ))}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-        {!servicios.some((x) => x.estado !== 'cancelado' && CATALOGO_SERVICIOS.some(([k]) => k === x.servicio)) && <p className="text-sm text-niebla">No tiene extras contratados.</p>}
-        {/* 18/10 (karc0): aquí se vende, no se listan cosas que ya no existen */}
-        <div className="grid gap-2 sm:grid-cols-2">
-          {!servicios.some((x) => x.servicio === 'setup_esencial' && x.estado !== 'cancelado') && (
-            <a href="#enlace" className="rounded-2xl border border-oro/50 bg-oro/10 p-4 text-sm"><span className="block font-semibold">Puesta a punto · 29 € en vez de 49 €</span><span className="mt-1 block text-xs text-niebla">Carta cargada, TPV conectado, formación y fotos con IA. Prepara el cobro con descuento en «Cobrar».</span></a>
-          )}
-          <a href="#enlace" className="rounded-2xl border border-linea p-4 text-sm"><span className="block font-semibold">Bono de 50 fotos con IA · 9 €</span><span className="mt-1 block text-xs text-niebla">Para que todos sus platos tengan foto (3 gratis siempre).</span></a>
-          <a href="#enlace" className="rounded-2xl border border-linea p-4 text-sm"><span className="block font-semibold">Idioma extra · 15 €</span><span className="mt-1 block text-xs text-niebla">Si recibe turistas y su plan ya tiene los idiomas ocupados.</span></a>
-          <Link href="/admin-dkitchen/soporte" className="rounded-2xl border border-linea p-4 text-sm"><span className="block font-semibold">QR físicos para las mesas</span><span className="mt-1 block text-xs text-niebla">Pegatinas o metacrilato con su QR (pedidos en Soporte).</span></Link>
-        </div>
-
-        {servicios.filter((x) => x.servicio === 'setup_esencial' || x.servicio === 'setup_experto').map((s) => (
-          <form key={s.servicio} action={checklistSetupAction} className="rounded-xl bg-white p-4 text-sm">
-            <input type="hidden" name="restauranteId" value={r.id} />
-            <input type="hidden" name="servicio" value={s.servicio} />
-            <p className="mb-2 font-bold">Entrega del {s.servicio === 'setup_experto' ? 'Setup Experto' : 'Setup Esencial'}</p>
-            <div className="grid gap-1.5 sm:grid-cols-2">
-              {PUNTOS_SETUP.filter(([k]) => s.servicio === 'setup_experto' || !['redes', 'soporte'].includes(k)).map(([k, t]) => (
-                <label key={k} className="flex items-center gap-2"><input type="checkbox" name={k} defaultChecked={s.checklist[k] === true} className="accent-vino" /> {t}</label>
-              ))}
-            </div>
-            <button className="mt-3 rounded-md bg-papel px-3 py-1.5 text-xs font-bold">Guardar progreso</button>
-          </form>
-        ))}
-
-        {/* 0050: la conexión con el TPV va incluida en todos los planes */}
-        {true && (
-          <form action={conexionTpvAction} autoComplete="off" className="space-y-2 rounded-xl bg-white p-4 text-sm">
-            <input type="hidden" name="restauranteId" value={r.id} />
-            <p className="font-bold">Conexión con el TPV</p>
-            {/* Sin type="password": así Chrome no rellena el correo y la contraseña de DKitchen (fallo 3 del recorrido 114) */}
-            <div className="grid gap-2 sm:grid-cols-2">
-              <input name="proveedor" required autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="TPV (Revo, Ágora, Last.app…)" className="rounded-lg border border-acero bg-white px-3 py-2" />
-              <input name="endpoint" required type="url" inputMode="url" autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="https://… (endpoint del fabricante)" className="rounded-lg border border-acero bg-white px-3 py-2" />
-            </div>
-            <input name="credencial" type="text" autoComplete="off" spellCheck={false} data-1p-ignore data-lpignore="true" placeholder="Cabecera Authorization (p. ej. Bearer xxx). Vacío = mantener" className="w-full rounded-lg border border-acero bg-white px-3 py-2 font-mono [-webkit-text-security:disc]" />
-            <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="activa" defaultChecked className="accent-vino" /> Activa</label>
-            <p className="text-[11px] text-ceniza">La credencial se cifra (AES-256-GCM) antes de guardarse; nadie puede volver a leerla desde el panel.</p>
-            <button className="rounded-md bg-vino px-3 py-1.5 text-xs font-bold">Guardar conexión</button>
-          </form>
-        )}
-      </section>
-
-      <section id="diseno" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <h2 className="font-display text-xl font-semibold tracking-tight">Ficha 360 · Diseño y editores</h2>
-        <p className="text-xs text-niebla">
-          La carta de autor se monta aquí: composición, fondo, color libre y firma, con vista previa. Con nivel Esencial el cliente puede seguir cambiándolo en su panel; con Autor o Signature queda bloqueado para él.
-        </p>
-        <DisenoCentral accion={asignarDisenoAction} restauranteId={r.id} slug={r.slug} nombre={r.nombre} logo={r.logo_url} portada={r.portada_url ?? null}
-          fotos={fotosCarta}
-          inicial={{ plantilla: r.plantilla ?? 'clasica', nivel: r.nivel_diseno ?? 'esencial', fondo: r.estilo_fondo ?? 'papel', letra: r.estilo_letra ?? 'sans', color: (r.color_marca ?? '#6E0C2B').toUpperCase(), firma: limpiarFirma(r.firma) }} />
-        {r.estado_acceso !== 'suspendido' && (
-          <div className="mt-8 border-t border-linea pt-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ceniza">Editar el resto de su carta</p>
-            <p className="mt-1 text-xs text-niebla">Cada botón abre esa pantalla de su panel en modo soporte (franja vino arriba; «Salir y volver a su ficha» para regresar). Cada cambio queda en su historial como DKitchen.</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {EDITORES_360.map(([pestana, texto]) => (
-                <form key={pestana} action={entrarSoporteAction}>
-                  <input type="hidden" name="restauranteId" value={r.id} />
-                  <input type="hidden" name="pestana" value={pestana} />
-                  <button className="rounded-full border border-linea-fuerte px-4 py-2 text-sm font-semibold hover:border-vino hover:text-vino">{texto}</button>
-                </form>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {cartaCliente && (
-        <section className="rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-          <TraductorCarta
-            restauranteId={id}
-            activos={cartaCliente.idiomas ?? []}
-            secciones={cartaCliente.secciones.map((x) => ({ id: x.id, nombre: x.nombre }))}
-            platos={[...cartaCliente.secciones.flatMap((x) => x.platos), ...cartaCliente.sueltos].map((p) => ({ id: p.id, nombre: p.nombre, descripcion: p.descripcion, seccionId: p.seccionId }))}
-            traducciones={traducciones}
-          />
-        </section>
-      )}
-
-      <details id="historial" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
+      <details open id="historial" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
         <summary className="cursor-pointer list-none font-bold">Historial de cambios <span className="ml-2 text-sm font-normal text-ceniza">{historial.length} registros · pulsa para ver</span></summary>
         {historial.length === 0 ? (
           <p className="mt-3 text-sm text-niebla">Sin cambios registrados todavía.</p>
@@ -774,6 +776,8 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
           </ol>
         )}
       </details>
+      </>)}
+      </div>
     </div>
   );
 }
