@@ -1,4 +1,4 @@
--- 0110 · Comercial en clientes y central segregada por rol (P1 Central)
+﻿-- 0110 · Comercial en clientes y central segregada por rol (P1 Central)
 --
 -- Añade rol_admin a identidades ('direccion' | 'comercial'), comercial_id a restaurantes
 -- y proyectos, y bloquea/filtra en el servidor las funciones dk.admin_* según el rol.
@@ -48,28 +48,45 @@ $$;
 REVOKE ALL ON FUNCTION dk.rol_admin_actual(), dk.es_direccion(), dk.exigir_direccion() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION dk.rol_admin_actual(), dk.es_direccion(), dk.exigir_direccion() TO dk_auth;
 
--- 4. Alta y cambio de roles de administradores (solo direccion puede asignar/cambiar a direccion)
+-- 4. Alta y cambio de roles de administradores (solo direccion puede dar de alta o cambiar roles)
+DROP FUNCTION IF EXISTS dk.admin_admin_alta(text, text);
+
 CREATE OR REPLACE FUNCTION dk.admin_admin_alta(p_email text, p_nombre text, p_rol_admin text DEFAULT 'comercial')
 RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path TO pg_catalog AS $$
 DECLARE
   v_id uuid;
-  v_rol_limpio text := lower(trim(coalesce(p_rol_admin, 'comercial')));
+  v_email text := lower(btrim(p_email));
+  v_nombre text := btrim(p_nombre);
+  v_rol text := lower(btrim(coalesce(p_rol_admin, 'comercial')));
 BEGIN
-  PERFORM dk.exigir_admin();
-  IF v_rol_limpio NOT IN ('direccion', 'comercial') THEN
-    v_rol_limpio := 'comercial';
+  PERFORM dk.exigir_direccion();
+  IF v_rol NOT IN ('direccion', 'comercial') THEN
+    v_rol := 'comercial';
   END IF;
-  IF v_rol_limpio = 'direccion' AND NOT dk.es_direccion() THEN
-    RAISE EXCEPTION 'solo direccion puede nombrar administradores de direccion' USING ERRCODE = '42501';
+  IF char_length(coalesce(v_nombre, '')) NOT BETWEEN 2 AND 80 THEN
+    RAISE EXCEPTION 'nombre no válido' USING ERRCODE = '22023';
   END IF;
-  SELECT id INTO v_id FROM public.identidades WHERE lower(email) = lower(trim(p_email));
-  IF v_id IS NOT NULL THEN
-    UPDATE public.identidades SET rol = 'admin', rol_admin = v_rol_limpio, nombre = coalesce(nullif(trim(p_nombre), ''), nombre), activo = true WHERE id = v_id;
-  ELSE
-    INSERT INTO public.identidades (email, nombre, rol, rol_admin, activo)
-    VALUES (lower(trim(p_email)), nullif(trim(p_nombre), ''), 'admin', v_rol_limpio, true)
-    RETURNING id INTO v_id;
+  SELECT u.id INTO v_id FROM neon_auth."user" u WHERE lower(u.email) = v_email;
+  IF v_id IS NULL THEN
+    RAISE EXCEPTION 'la cuenta % no existe: créala primero en Neon Auth', v_email USING ERRCODE = 'P0002';
   END IF;
+  IF EXISTS (SELECT 1 FROM public.identidades WHERE id = v_id AND rol = 'admin' AND activo) THEN
+    RAISE EXCEPTION 'esa cuenta ya es administradora' USING ERRCODE = '23505';
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.identidades WHERE id = v_id AND rol = 'socio') THEN
+    RAISE EXCEPTION 'esa cuenta es de un socio: el administrador necesita una cuenta propia' USING ERRCODE = '42501';
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.restaurantes WHERE propietario = v_id) THEN
+    RAISE EXCEPTION 'esa cuenta es dueña de un local: el administrador necesita una cuenta propia' USING ERRCODE = '42501';
+  END IF;
+  -- Un 2FA anterior (de cuando fue admin y se le retiró) no vale: se configura de nuevo.
+  DELETE FROM public.admin_totp WHERE identidad = v_id;
+  DELETE FROM public.admin_2fa_sesiones WHERE identidad = v_id;
+  INSERT INTO public.identidades (id, email, nombre, rol, rol_admin, activo)
+  VALUES (v_id, v_email, v_nombre, 'admin', v_rol, true)
+  ON CONFLICT (id) DO UPDATE SET rol = 'admin', rol_admin = excluded.rol_admin, activo = true, nombre = excluded.nombre;
+  INSERT INTO public.auditoria (identidad, accion, detalle)
+  VALUES (dk.identidad_actual(), 'admin.admin_alta', jsonb_build_object('admin', v_id, 'email', v_email, 'rol_admin', v_rol));
   RETURN v_id;
 END;
 $$;

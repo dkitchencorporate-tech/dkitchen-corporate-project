@@ -1,9 +1,10 @@
-'use server';
+﻿'use server';
 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { identidadActual } from '@/lib/sesion';
+import { comoCliente } from '@/lib/db';
 import { crearCuentaCliente, enviarEnlaceDeContrasena, ErrorNeonAuth } from '@/lib/neon-auth';
 import { altaAdministrador, cambiarRolAdministrador, retirarAdministrador } from '@/lib/buzon';
 import { enviarCorreoInterno, escaparHtml } from '@/lib/email';
@@ -13,12 +14,24 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const volver: (q: string) => never = (q) => redirect(`/admin-dkitchen/administradores?${q}`);
 const mensajeBase = (e: unknown) => String((e as Error)?.message ?? '').replace(/^.*?ERROR:\s*/, '').slice(0, 160);
 
+async function exigirRolDireccion(jwt: string) {
+  const esDir = await comoCliente(jwt, async (c) => {
+    const r = await c.query<{ dir: boolean }>('SELECT dk.es_direccion() AS dir');
+    return r.rows[0]?.dir === true;
+  }).catch(() => false);
+  if (!esDir) {
+    volver(`e=base&m=${encodeURIComponent('no autorizado: requiere direccion')}`);
+  }
+}
+
 /**
  * Añadir administrador (0065, P1 31/10): rol configurable ('comercial' por defecto o 'direccion').
- * Solo dirección puede asignar el rol de dirección.
+ * Solo dirección puede dar de alta administradores.
  */
 export async function altaAdminAction(formulario: FormData) {
   const jwt = await exigirAdmin();
+  await exigirRolDireccion(jwt);
+
   const email = String(formulario.get('email') ?? '').trim().toLowerCase();
   const nombre = String(formulario.get('nombre') ?? '').trim();
   const rolAdmin = String(formulario.get('rol_admin') ?? 'comercial').trim();
@@ -52,6 +65,8 @@ export async function altaAdminAction(formulario: FormData) {
 
 export async function cambiarRolAdminAction(formulario: FormData) {
   const jwt = await exigirAdmin();
+  await exigirRolDireccion(jwt);
+
   const id = String(formulario.get('id') ?? '');
   const nuevoRol = String(formulario.get('nuevo_rol') ?? 'comercial');
   if (!UUID.test(id)) volver('e=base');
@@ -67,6 +82,8 @@ export async function cambiarRolAdminAction(formulario: FormData) {
 
 export async function retirarAdminAction(formulario: FormData) {
   const jwt = await exigirAdmin();
+  await exigirRolDireccion(jwt);
+
   const id = String(formulario.get('id') ?? '');
   const email = String(formulario.get('email') ?? '').slice(0, 200);
   if (!UUID.test(id)) volver('e=base');
