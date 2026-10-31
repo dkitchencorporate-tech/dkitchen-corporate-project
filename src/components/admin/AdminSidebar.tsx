@@ -69,12 +69,20 @@ export function SubmenuZona({ avisos = {} }: { avisos?: Avisos }) {
   );
 }
 
-export default function AdminSidebar({ cuenta, avisos = {} }: { cuenta: Cuenta; avisos?: Avisos }) {
+export default function AdminSidebar({
+  cuenta,
+  avisos = {},
+  esComercial = false,
+}: {
+  cuenta: Cuenta;
+  avisos?: Avisos;
+  esComercial?: boolean;
+}) {
   const [mas, setMas] = useState(false);
   const ruta = usePathname();
   const actual = zonaDe(ruta)?.id;
-  const esComercial = cuenta?.rol === 'comercial';
-  const zonasDisponibles = ZONAS.filter((z) => !(esComercial && (z.id === 'lanzamiento' || z.id === 'conocimiento')));
+  const esCom = esComercial || (cuenta as any)?.rol === 'comercial';
+  const zonasDisponibles = ZONAS.filter((z) => !(esCom && (z.id === 'lanzamiento' || z.id === 'conocimiento')));
   const enMovil = zonasDisponibles.filter((z) => !['lanzamiento', 'conocimiento'].includes(z.id));
 
   return (
