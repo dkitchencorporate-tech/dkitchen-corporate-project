@@ -95,9 +95,9 @@ export default async function PreciosYFunciones() {
               <p className="text-xs text-white/70">primer mes del plan {local.nombre}, después {eur(local.mensual)}/mes</p>
             </div>
             <div className="rounded-2xl bg-white/[0.07] p-4 ring-1 ring-white/10">
-              <p className="text-xs uppercase tracking-wider text-white/60">Puesta a punto</p>
+              <p className="text-xs uppercase tracking-wider text-white/60">Alta</p>
               <p className="font-display mt-1 text-3xl font-semibold"><s className="text-white/40">{eur(QR_MENU.setup.precio)}</s> <span className="text-oro">0 €</span></p>
-              <p className="text-xs text-white/70">regalada siempre en promoción · sin permanencia</p>
+              <p className="text-xs text-white/70">«Alta de {eur(QR_MENU.setup.precio)} incluida» · sin permanencia</p>
             </div>
             <div className="rounded-2xl bg-white/[0.07] p-4 ring-1 ring-white/10">
               <p className="text-xs uppercase tracking-wider text-white/60">Comisión por venta</p>
@@ -121,7 +121,7 @@ export default async function PreciosYFunciones() {
               <article key={p} className={`flex flex-col rounded-[24px] p-5 ${d ? 'bg-noche text-white ring-2 ring-oro' : 'bg-papel ring-1 ring-linea'}`}>
                 <div className="flex items-baseline justify-between">
                   <h3 className="font-display text-2xl font-semibold">{pl.nombre}</h3>
-                  {d && <span className="rounded-full bg-oro px-2.5 py-0.5 text-xs font-bold text-noche">El de entrada</span>}
+                  {d && <span className="rounded-full bg-oro px-2.5 py-0.5 text-xs font-bold text-noche">Recomendado</span>}
                 </div>
                 <p className="mt-2"><span className="font-display text-4xl font-semibold">{eur(pl.mensual)}</span><span className={d ? 'text-white/60' : 'text-niebla'}> /mes</span></p>
                 <p className={`mt-1 text-sm ${d ? 'text-oro' : 'text-carbon'}`}>{pl.primerMesSimbolico ? `Primer mes: ${eur(QR_MENU.primerMes)}` : 'Sin mes a 1 €'}</p>
@@ -245,6 +245,7 @@ export default async function PreciosYFunciones() {
               <li>Con «desde {eur(QR_MENU.primerMes)}»: {IDIOMAS_PLAN.ampliado.toLowerCase()}, pedido desde la mesa, llamar al camarero, QR con logo, Google y reseñas.</li>
               <li>Sin permanencia. Puesta a punto regalada. 0 % de comisión.</li>
               <li>Demo de su carta hecha, gratis, antes de pagar nada.</li>
+              <li>Puesta a punto (te cargamos la carta): {eur(SERVICIOS_QR.puestaAPunto)}, o {eur(SERVICIOS_QR.puestaAPuntoBienvenida)} justo después de pagar el euro.</li>
             </ul>
           </div>
           <div className="rounded-2xl bg-red-600/[0.05] p-5 ring-1 ring-red-600/25">
@@ -253,6 +254,7 @@ export default async function PreciosYFunciones() {
               <li>«3 idiomas» con «desde {eur(QR_MENU.primerMes)}» (eso es {sala.nombre}, o idioma extra a {eur(SERVICIOS_QR.idiomaExtra)}).</li>
               <li>Pedido desde la mesa en el plan {QR_MENU.planes.basico.nombre} ({eur(QR_MENU.planes.basico.mensual)}).</li>
               <li>Carrito propio o asistente con IA fuera de Signature.</li>
+              <li>«Montaje gratis» en la web, en reels o en anuncios: solo para clientes de flyers y visitas (cupo de 20), y lo dice el comercial en persona.</li>
               <li>Descuentos u ofertas que no estén en esta página. Descuento del comercial: máximo 10 %, con motivo.</li>
               <li>{REGLAS_COMERCIALES.usaReferidos ? '' : 'Programas de referidos (no existen).'}</li>
             </ul>
