@@ -94,8 +94,6 @@ export default function AltaUnicaModal({
         codigo: codigo.trim() || undefined,
         descuentoComercialPct,
         motivoDescuento: motivoDescuento.trim() || undefined,
-        aprobacionDireccionDescuento,
-        aprobacionDireccionMontaje,
         origenMontaje,
         puestaAPunto,
         montajeGratis,

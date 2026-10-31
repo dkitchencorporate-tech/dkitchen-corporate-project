@@ -496,6 +496,8 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
   }
 
   const baseHoyEuros = calc.baseEuros!;
+  const ivaEuros = calc.ivaEuros!;
+  const totalHoyEuros = calc.totalHoyEuros!;
   const recurrenteEuros = calc.recurrenteEuros!;
   const intervaloMeses = calc.intervaloMeses!;
   const desglose = calc.desglose!;
