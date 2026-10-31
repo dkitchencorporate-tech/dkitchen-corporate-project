@@ -89,11 +89,19 @@ export default function VidaCentral() {
     const raiz = document.querySelector<HTMLElement>('[data-cv-main]');
     if (!raiz) return;
     let limpiar = () => {};
-    const id = requestAnimationFrame(() => { limpiar = animarPantalla(raiz); });
+    let hecho = false;
+    // Con loading.tsx llega primero el esqueleto: se anima cuando ya está el contenido real.
+    const intentar = () => {
+      if (hecho || raiz.querySelector('[aria-busy="true"]')) return;
+      hecho = true; vigia.disconnect(); limpiar = animarPantalla(raiz);
+    };
+    const vigia = new MutationObserver(() => intentar());
+    vigia.observe(raiz, { childList: true, subtree: true });
+    const id = requestAnimationFrame(intentar);
     if (!primera.current) setEstado('fin');
     primera.current = false;
     const t = window.setTimeout(() => setEstado('quieto'), 500);
-    return () => { cancelAnimationFrame(id); window.clearTimeout(t); limpiar(); };
+    return () => { cancelAnimationFrame(id); vigia.disconnect(); window.clearTimeout(t); limpiar(); };
   }, [ruta]);
 
   // Clic en un enlace interno de Central: arranca la barra.
