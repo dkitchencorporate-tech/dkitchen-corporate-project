@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
@@ -52,7 +52,8 @@ export default function AltaUnicaModal({
   const [codigo, setCodigo] = useState('');
   const [descuentoComercialPct, setDescuentoComercialPct] = useState<number>(0);
   const [motivoDescuento, setMotivoDescuento] = useState('');
-  const [montajeGratis, setMontajeGratis] = useState(true);
+  const [puestaAPunto, setPuestaAPunto] = useState(false);
+  const [montajeGratis, setMontajeGratis] = useState(false);
 
   if (!abierto) return null;
 
@@ -90,6 +91,7 @@ export default function AltaUnicaModal({
         codigo: codigo.trim() || undefined,
         descuentoComercialPct,
         motivoDescuento: motivoDescuento.trim() || undefined,
+        puestaAPunto,
         montajeGratis,
         enviarCorreo: false,
       };
@@ -115,6 +117,7 @@ export default function AltaUnicaModal({
         planQr,
         modoInicio: 'pago',
         modalidadTarifa,
+        puestaAPunto,
         montajeGratis,
         descuentoComercialPct,
         motivoDescuento: motivoDescuento.trim() || undefined,
@@ -529,15 +532,37 @@ export default function AltaUnicaModal({
                   </label>
                 )}
 
-                <label className="flex items-center gap-2 pt-1 text-xs font-semibold text-carbon cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={montajeGratis}
-                    onChange={(e) => setMontajeGratis(e.target.checked)}
-                    className="accent-vino"
-                  />
-                  Montaje gratis incluido (puesta a punto y digitalización inicial)
-                </label>
+                {servicios.includes('qr') && (
+                  <div className="rounded-xl border border-linea bg-papel p-3 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-carbon">Alta de servicio (159 €):</span>
+                      <span className="font-bold text-emerald-700">Incluida siempre (0 €)</span>
+                    </div>
+                    <label className="flex items-center gap-2 pt-1 text-xs font-semibold text-carbon cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={puestaAPunto}
+                        onChange={(e) => {
+                          setPuestaAPunto(e.target.checked);
+                          if (!e.target.checked) setMontajeGratis(false);
+                        }}
+                        className="accent-vino"
+                      />
+                      Añadir Puesta a punto (+{formatPrecio(QR_MENU.setup.precio)} · te cargamos y digitalizamos la carta)
+                    </label>
+                    {puestaAPunto && (
+                      <label className="flex items-center gap-2 pt-1 text-xs font-semibold text-carbon cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={montajeGratis}
+                          onChange={(e) => setMontajeGratis(e.target.checked)}
+                          className="accent-vino"
+                        />
+                        Montaje gratis flyer/visita (0 € · bonificación con OK de dirección)
+                      </label>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { PLANTILLAS, limpiarFirma } from '@/lib/composiciones';
 import { randomUUID } from 'node:crypto';
@@ -448,7 +448,11 @@ export type DatosAlta4Pasos = {
   codigo?: string;
   descuentoComercialPct?: number; // 0 | 5 | 10
   motivoDescuento?: string;
-  montajeGratis: boolean;
+  aprobacionDireccionDescuento?: boolean;
+  aprobacionDireccionMontaje?: boolean;
+  origenMontaje?: 'flyer' | 'visita';
+  puestaAPunto?: boolean;
+  montajeGratis?: boolean;
   enviarCorreo?: boolean;
 };
 
@@ -549,9 +553,16 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
       intervaloMeses = 1;
     }
 
-    if (!d.montajeGratis) {
-      desglose.push({ concepto: 'Puesta a punto y digitalización', importeEuros: QR_MENU.setup.precio });
+    // Puesta a punto (C2):
+    // El alta va incluida siempre (0 €).
+    // La puesta a punto es un extra opcional (49 €), desmarcada por defecto.
+    if (d.puestaAPunto && !d.montajeGratis) {
+      desglose.push({ concepto: 'Puesta a punto y digitalización (opcional)', importeEuros: QR_MENU.setup.precio });
       baseHoyEuros += QR_MENU.setup.precio;
+    } else if (d.montajeGratis) {
+      desglose.push({ concepto: 'Puesta a punto y digitalización (Montaje gratis incluido)', importeEuros: 0 });
+    } else {
+      desglose.push({ concepto: 'Alta inicial (159 € bonificada)', importeEuros: 0 });
     }
   }
 
