@@ -58,6 +58,20 @@ export default async function PreciosYFunciones() {
   const sala = QR_MENU.planes.sala;
   const mant = BASE_OPERATIVA.mantenimiento;
 
+  // Flyer v6 (12/10/2026, 1.000 uds.): cifras IMPRESAS, fijas. Se comparan con las vigentes.
+  const cierreVigente = fundador?.cierraEn?.slice(0, 10) ?? null;
+  const impreso: { t: string; i: string; v: string; ok: boolean }[] = [
+    { t: 'Plan Local, primer mes', i: '1 € + IVA', v: `${eur(QR_MENU.primerMes)} + IVA`, ok: Number(QR_MENU.primerMes) === 1 && Boolean(local.primerMesSimbolico) },
+    { t: 'Plan Local, después', i: '29 € + IVA/mes', v: `${eur(local.mensual)} + IVA/mes`, ok: Number(local.mensual) === 29 },
+    { t: 'Signature Fundador, entrada', i: '500 € (tachado 700 €)', v: `${eur(FUNDADOR.signature.entrada)} (normal ${eur(BASE_OPERATIVA.pagoUnico)})`, ok: Number(FUNDADOR.signature.entrada) === 500 && Number(BASE_OPERATIVA.pagoUnico) === 700 },
+    { t: 'Signature Fundador, cuota', i: '69 €/mes el primer año', v: `${eur(FUNDADOR.signature.mensual)}/mes × ${FUNDADOR.signature.meses} meses`, ok: Number(FUNDADOR.signature.mensual) === 69 && Number(FUNDADOR.signature.meses) === 12 },
+    { t: 'Meses incluidos', i: '2 meses', v: `${mant.mesesGratis} meses`, ok: Number(mant.mesesGratis) === 2 },
+    { t: 'Plazas de Fundador', i: '100 plazas', v: `${FUNDADOR.plazas} plazas`, ok: Number(FUNDADOR.plazas) === 100 },
+    { t: 'Cierre de Fundador', i: 'hasta el 10/01', v: cierreVigente ? fecha(cierreVigente) : 'sin dato en vivo', ok: cierreVigente === null ? false : cierreVigente.endsWith('-01-10') || cierreVigente.endsWith('-01-11') },
+    { t: 'Comisión', i: '0 %', v: REGLAS_COMERCIALES.cobraComision ? 'cobra comisión' : '0 %', ok: !Boolean(REGLAS_COMERCIALES.cobraComision) },
+    { t: 'Permanencia', i: 'Sin permanencia', v: 'Sin permanencia', ok: true },
+  ];
+
   const filas: { t: string; v: (p: PlanQr) => ReactNode }[] = [
     { t: 'Primer mes', v: (p) => (QR_MENU.planes[p].primerMesSimbolico ? <b className="text-vino">{eur(QR_MENU.primerMes)}</b> : eur(QR_MENU.planes[p].mensual)) },
     { t: 'Idiomas de la carta', v: (p) => IDIOMAS_PLAN[p].replace('Carta ', '').replace('en ', '') },
@@ -76,7 +90,7 @@ export default async function PreciosYFunciones() {
 
   const indice = [
     ['qr', 'Carta QR'], ['fundador', 'Fundador'], ['extras', 'Extras'], ['ofertas', 'Ofertas activas'],
-    ['signature', 'Signature'], ['experience', 'Experience'], ['auditoria', 'Auditoría'], ['reglas', 'Qué decir y qué no'],
+    ['signature', 'Signature'], ['experience', 'Experience'], ['auditoria', 'Auditoría'], ['impreso', 'Flyer en la calle'], ['reglas', 'Qué decir y qué no'],
   ] as const;
 
   return (
@@ -235,6 +249,29 @@ export default async function PreciosYFunciones() {
           <p className="mt-2 text-sm text-carbon">Uno a uno, con reunión. Revisamos plataformas, comisiones y presencia en Google.</p>
         </Seccion>
       </div>
+
+      <Seccion id="impreso" eyebrow="Material impreso en la calle · revisado el 31/10/2026" titulo="Flyer v6 · 1.000 unidades (impreso el 12/10)">
+        <p className="text-sm text-carbon">Lo impreso no se puede corregir. Cada cifra del flyer se compara aquí con el precio vigente: si alguien cambia un precio y deja el flyer desfasado, sale en rojo. <b>Antes de cambiar cualquiera de estos precios, decide qué hacer con los flyers.</b></p>
+        <div className="mt-4 overflow-x-auto rounded-2xl ring-1 ring-linea">
+          <table className="w-full min-w-[560px] text-sm">
+            <thead className="bg-papel text-left"><tr><th className="p-3 font-semibold">El flyer dice</th><th className="p-3 font-semibold">Impreso</th><th className="p-3 font-semibold">Vigente</th><th className="p-3 font-semibold">Estado</th></tr></thead>
+            <tbody>
+              {impreso.map((f) => (
+                <tr key={f.t} className="border-t border-linea">
+                  <td className="p-3 text-carbon">{f.t}</td><td className="p-3">{f.i}</td><td className="p-3">{f.v}</td>
+                  <td className="p-3">{f.ok ? <span className="font-semibold text-exito">✔ Coincide</span> : <span className="font-semibold text-red-700">⚠ Desfasado</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <ul className="mt-4 space-y-1.5 text-sm text-carbon">
+          <li><b>«Te lo dejamos funcionando»</b> (cargamos tu carta, la conectamos y formamos a tu equipo) = <b>montaje gratis de flyer</b>: cupo de 20 en la base (Central lo cuenta). El flyer no dice el límite: lo que pase después del montaje 20 lo decide karc0.</li>
+          <li>La conexión con su TPV depende de que su TPV acepte pedidos externos: se confirma antes de contratar.</li>
+          <li>QR del flyer: «Mira cómo queda» → /demos/carta · «Te hacemos una demo» → /contacto · «Mira apps reales» → /demos/signature (3 apps + calculadora en /signature) · «Te la enseñamos» → /contacto. Los cuatro están activos (Central → Campañas y QR).</li>
+          <li>«Cartas de autor en vivo» en el flyer = las demos de diseño, <b>no</b> el producto Carta de Autor de 199 €, que está cancelado.</li>
+        </ul>
+      </Seccion>
 
       <Seccion id="reglas" eyebrow="Para comerciales, Claude y Antigravity" titulo="Qué decir y qué no">
         <div className="grid gap-4 md:grid-cols-2">
