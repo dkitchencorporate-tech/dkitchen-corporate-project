@@ -374,6 +374,10 @@ async function alta(ctx: Contexto) {
               await crearProyecto(s, 'pago', altaProyecto(ctx, { referencia: `${ctx.idPago}:${s}`, datos: { restaurante_id: meta.restauranteId, ...(meta.dk_prueba === '1' ? { prueba: true } : {}) } }));
             }
           }
+          // Fundador desde el alta de Central (01/11): ocupa plaza y fija su precio (como /fundador). Las pruebas no gastan plaza.
+          if (meta.fundador_qr === '1' && meta.dk_prueba !== '1' && ctx.cliente) {
+            await comoAprovisionamiento((c) => c.query('SELECT dk.fundador_marcar($1)', [ctx.cliente])).catch((e) => console.error('Fundador (enlace de Central): no se pudo marcar', e));
+          }
           // Acceso del cliente (01/11): el alta de Central crea la cuenta sin contraseña; al pagar le llega
           // el enlace para crearla y la bienvenida (Carta QR) o el paso siguiente («Mis servicios»).
           const servicios = String(meta.servicios ?? '').split(',').filter(Boolean);
