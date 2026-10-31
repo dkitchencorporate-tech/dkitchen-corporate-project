@@ -242,7 +242,7 @@ const receta = (o: unknown) => { const t = JSON.stringify(o); return t.length <=
 const descuentos = (promocion?: string) => (promocion ? [{ promotion_code: promocion }] : undefined);
 
 /** Pago único: factura suelta con sus líneas e IVA, finalizada y lista para pagar en /pago. */
-export async function crearFacturaUnica(cliente: string, lineas: Linea[], metadata: Metadata, descripcion: string, promocion?: string): Promise<string> {
+export async function crearFacturaUnica(cliente: string, lineas: Linea[], metadata: Metadata, descripcion: string, promocion?: string, cuponTotal?: string): Promise<string> {
   if (pagosPausados()) return avisarReserva(cliente, descripcion, metadata);
   const [, factura] = await Promise.all([
     prepararCatalogo(lineas),
@@ -252,8 +252,8 @@ export async function crearFacturaUnica(cliente: string, lineas: Linea[], metada
       auto_advance: false,
       pending_invoice_items_behavior: 'exclude',
       description: descripcion.slice(0, 500),
-      discounts: descuentos(promocion),
-      metadata: limpiar({ ...metadata, [RECETA]: receta({ l: lineas }) }),
+      discounts: cuponTotal ? [{ coupon: cuponTotal }] : descuentos(promocion),
+      metadata: limpiar({ ...metadata, [RECETA]: cuponTotal ? undefined : receta({ l: lineas }) }),
     }),
   ]);
   const iva = await tipoIva();
@@ -339,6 +339,25 @@ export interface DatosSuscripcion {
   promocion?: string;
   /** Cupón fijo del producto (Signature Fundador). Con cupón, el cobro no admite códigos promocionales. */
   cupon?: string;
+  /** Cupón sobre TODO el cobro (cliente de prueba de dirección, 01/11): sin códigos ni tarjeta. */
+  cuponTotal?: string;
+}
+
+/** Cupón del 100 % para los clientes de PRUEBA que crea dirección (01/11, autorizado por karc0). Nunca es un código público. */
+export const CUPON_PRUEBAS = 'dk_pruebas_100';
+export async function asegurarCuponPruebas(): Promise<string> {
+  if (pagosPausados()) return CUPON_PRUEBAS;
+  try {
+    await stripe('GET', `/coupons/${CUPON_PRUEBAS}`);
+  } catch (e) {
+    if (!(e instanceof ErrorStripe) || e.estado !== 404) throw e;
+    try {
+      await stripe('POST', '/coupons', { id: CUPON_PRUEBAS, name: 'Pruebas internas 100 %', percent_off: 100, duration: 'forever', metadata: { uso: 'pruebas de punta a punta de Claude' } });
+    } catch (e2) {
+      if (!(e2 instanceof ErrorStripe) || e2.codigo !== 'resource_already_exists') throw e2;
+    }
+  }
+  return CUPON_PRUEBAS;
 }
 
 /**
@@ -382,14 +401,15 @@ export async function crearSuscripcion(d: DatosSuscripcion): Promise<string> {
     trial_settings: d.finPrueba ? { end_behavior: { missing_payment_method: 'cancel' } } : undefined,
     payment_behavior: 'default_incomplete',
     payment_settings: { save_default_payment_method: 'on_subscription' },
-    discounts: d.cupon ? undefined : descuentos(d.promocion),
-    metadata: limpiar({ ...d.metadata, [RECETA]: d.cupon ? undefined : receta({ c: d.cuota, h: d.hoy ?? [], t: d.finPrueba ?? null, m: d.intervaloMeses ?? 1 }) }),
+    discounts: d.cuponTotal ? [{ coupon: d.cuponTotal }] : d.cupon ? undefined : descuentos(d.promocion),
+    metadata: limpiar({ ...d.metadata, [RECETA]: d.cupon || d.cuponTotal ? undefined : receta({ c: d.cuota, h: d.hoy ?? [], t: d.finPrueba ?? null, m: d.intervaloMeses ?? 1 }) }),
     expand: ['latest_invoice'],
   });
   // Hoy no se cobra nada (upgrade en prueba, enlace sin primer cobro): la
   // tarjeta se guarda con un SetupIntent propio, enlazado a la suscripción por
   // metadata; el webhook (setup_intent.succeeded) la deja como tarjeta de cobro.
-  if (Number(sub.latest_invoice?.amount_due ?? 0) === 0) {
+  // Cliente de prueba (cupón del 100 %): sin tarjeta; el webhook lo activa con la factura de 0 €.
+  if (Number(sub.latest_invoice?.amount_due ?? 0) === 0 && !d.cuponTotal) {
     const si = await stripe('POST', '/setup_intents', {
       customer: d.cliente, usage: 'off_session', automatic_payment_methods: { enabled: true },
       metadata: { suscripcion: sub.id },
@@ -491,7 +511,8 @@ export async function resumenPago(id: string): Promise<ResumenPago | null> {
       !cobraHoy && s.metadata?.setup_intent ? stripe('GET', `/setup_intents/${s.metadata.setup_intent}`) : null,
       descuentoDe(s.discounts?.length ? s.discounts : f?.discounts, f),
     ]);
-    const pagado = cobraHoy ? f?.status === 'paid' && s.status !== 'incomplete' : si?.status === 'succeeded';
+    const pagado = cobraHoy ? f?.status === 'paid' && s.status !== 'incomplete'
+      : s.metadata?.dk_prueba === '1' ? ['active', 'trialing'].includes(String(s.status)) : si?.status === 'succeeded';
     return {
       id, tipo: cobraHoy ? 'pago' : 'tarjeta',
       secreto: cobraHoy ? f?.confirmation_secret?.client_secret ?? null : si?.client_secret ?? null,
@@ -588,6 +609,17 @@ export async function cancelarAlFinalDelPeriodo(suscripcion: string): Promise<{ 
 }
 
 /** Suscripciones vivas (activa, en prueba o con impago) de un cliente, la más reciente primero. */
+/** Cliente de PRUEBA archivado: cancela YA todas sus suscripciones (solo si llevan dk_prueba). Nunca lanza. */
+export async function cancelarSuscripcionesDePrueba(cliente: string): Promise<number> {
+  try {
+    if (!cliente.startsWith('cus_')) return 0;
+    const l = await stripe('GET', '/subscriptions', { customer: cliente, status: 'all', limit: 20 });
+    const vivas = (l.data as ObjetoStripe[]).filter((x) => x.metadata?.dk_prueba === '1' && !['canceled', 'incomplete_expired'].includes(x.status));
+    for (const s of vivas) await stripe('DELETE', `/subscriptions/${encodeURIComponent(s.id)}`).catch(() => {});
+    return vivas.length;
+  } catch { return 0; }
+}
+
 export async function suscripcionesVivas(cliente: string): Promise<ObjetoStripe[]> {
   if (!cliente.startsWith('cus_')) return [];
   const l = await stripe('GET', '/subscriptions', { customer: cliente, status: 'all', limit: 20 });

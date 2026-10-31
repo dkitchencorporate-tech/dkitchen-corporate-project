@@ -7,6 +7,7 @@ import {
   buscarFacturaAbierta,
   crearSuscripcion,
   asegurarCupon,
+  asegurarCuponPruebas,
   finPruebaQr,
   prepararCatalogo,
   stripe,
@@ -387,8 +388,11 @@ export async function crearCheckoutEnlaceAdmin(datos: {
   fase?: string;
   metadata?: Record<string, string>;
   origen: string;
+  /** Cliente de PRUEBA de dirección (01/11): cupón del 100 % sobre todo el cobro, sin tarjeta. */
+  prueba?: boolean;
 }): Promise<{ url: string }> {
   const cliente = await asegurarCliente({ email: datos.email, nombre: datos.restauranteNombre, negocio: datos.restauranteNombre });
+  const cuponTotal = datos.prueba ? await asegurarCuponPruebas() : undefined;
   const concepto = `DKitchen · ${datos.concepto}`.slice(0, 200);
   const meta = {
     producto: datos.fase === 'cuotas' ? 'nucleo-operativo' : 'enlace-admin',
@@ -400,6 +404,7 @@ export async function crearCheckoutEnlaceAdmin(datos: {
     destino: '/panel?pestana=plan&pago=ok',
     ...(datos.fase ? { fase: datos.fase } : {}),
     ...(datos.metadata ?? {}),
+    ...(datos.prueba ? { dk_prueba: '1' } : {}),
   };
   const primer = Math.round(datos.primerCentimos);
   const mensual = Math.round(datos.mensualCentimos);
@@ -422,6 +427,7 @@ export async function crearCheckoutEnlaceAdmin(datos: {
         cuotas: String(cuotas),
         concepto: `DKitchen Signature · cuota de la entrada (${cuotas} × ${importeCuota} €)`,
       },
+      cuponTotal,
     });
     return { url: urlPago(datos.origen, id) };
   }
@@ -444,13 +450,14 @@ export async function crearCheckoutEnlaceAdmin(datos: {
       hoy: primer > 0 ? [{ producto: 'dk_enlace_primer', nombre: 'DKitchen · Primer cobro acordado', centimos: primer }] : undefined,
       finPrueba,
       cupon: datos.cupon,
+      cuponTotal,
       metadata: meta,
     });
     return { url: urlPago(datos.origen, id) };
   }
-  const abierta = await buscarFacturaAbierta(cliente, { clave: 'enlaceId', valor: datos.enlaceId }, primer, meta);
+  const abierta = cuponTotal ? null : await buscarFacturaAbierta(cliente, { clave: 'enlaceId', valor: datos.enlaceId }, primer, meta);
   if (abierta) return { url: urlPago(datos.origen, abierta) };
-  const id = await crearFacturaUnica(cliente, [{ producto: 'dk_enlace_unico', nombre: concepto, centimos: primer }], meta, concepto);
+  const id = await crearFacturaUnica(cliente, [{ producto: 'dk_enlace_unico', nombre: concepto, centimos: primer }], meta, concepto, undefined, cuponTotal);
   return { url: urlPago(datos.origen, id) };
 }
 

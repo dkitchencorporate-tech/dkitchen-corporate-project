@@ -15,7 +15,7 @@ import {
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { COOKIE_PUESTA } from '@/lib/socio-codigo';
-import { cancelarTodoAlFinalDelPeriodo, reanudarTodo } from '@/lib/payments/stripe';
+import { cancelarTodoAlFinalDelPeriodo, reanudarTodo, cancelarSuscripcionesDePrueba } from '@/lib/payments/stripe';
 import { enviarCorreoCliente, enviarCorreoInterno, escaparHtml, escaparTexto } from '@/lib/email';
 import { cifrar } from '@/lib/cifrado';
 import { guardarTraducciones, type Traduccion } from '@/lib/idiomas';
@@ -379,7 +379,13 @@ export async function anularBajaAction(formulario: FormData) {
 export async function archivarAction(formulario: FormData) {
   const jwt = await exigirAdmin();
   const id = uuid(formulario.get('restauranteId'));
-  await archivarCliente(jwt, id, formulario.get('archivar') === '1');
+  const archivar = formulario.get('archivar') === '1';
+  await archivarCliente(jwt, id, archivar);
+  // Cliente de PRUEBA archivado: sus suscripciones (cupón del 100 %) se cancelan ya en Stripe.
+  if (archivar) {
+    const cliente = await clienteStripeAdmin(jwt, id).catch(() => null);
+    if (cliente) await cancelarSuscripcionesDePrueba(cliente);
+  }
   revalidatePath('/admin-dkitchen/qr');
   revalidatePath(`/admin-dkitchen/qr/${id}`);
 }
@@ -453,7 +459,9 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
   const jwt = await exigirAdmin();
   const email = String(d.email ?? '').trim().toLowerCase();
   const contacto = String(d.contacto ?? '').trim().slice(0, 80);
-  const local = String(d.local ?? '').trim().slice(0, 80);
+  const esPrueba = d.prueba === true;
+  const nombreLocal = String(d.local ?? '').trim().replace(/^PRUEBAs*·s*/i, '');
+  const local = (esPrueba ? `PRUEBA · ${nombreLocal}` : nombreLocal).slice(0, 80);
   const ciudad = String(d.ciudad ?? '').trim().slice(0, 80) || 'España';
   const direccion = String(d.direccion ?? '').trim().slice(0, 200);
   const telefono = String(d.telefono ?? '').trim().replace(/\s+/g, '');
@@ -468,6 +476,8 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
     return { ok: false, error: 'No se pudo comprobar tu rol ni el cupo de montajes gratis. No se ha creado nada; inténtalo de nuevo.' };
   }
   const rolAdmin = ctxAlta.rol_admin === 'direccion' ? 'direccion' : 'comercial';
+  if (esPrueba && rolAdmin !== 'direccion') return { ok: false, error: 'Los clientes de prueba son solo de Dirección.' };
+  if (esPrueba && d.modoInicio !== 'pago') return { ok: false, error: 'Un cliente de prueba va siempre con enlace de pago (cupón del 100 %).' };
 
   // Leer estado de fundador si se solicita
   const esFundadorSolicitado = d.modalidadTarifa === 'fundador' || d.codigo?.trim().toUpperCase() === 'FUNDADOR';
@@ -600,6 +610,7 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
       cupon: cuponSignature,
       fase: faseSignature,
       origen: 'https://dkitchencorporate.es',
+      prueba: esPrueba,
     });
 
     urlPago = chk.url;

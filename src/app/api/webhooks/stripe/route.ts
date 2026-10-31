@@ -115,7 +115,8 @@ async function procesar(evento: ObjetoStripe, o: ObjetoStripe, origen: string): 
         importe: Number(o.amount_paid ?? 0), origen,
       };
       // 0 € al crear (prueba sin cobro hoy): el alta llega con setup_intent.succeeded.
-      if (o.billing_reason === 'subscription_create' && ctx.importe === 0) return ok({ ignorado: 'factura de 0 €' });
+      // Excepción: cliente de PRUEBA de dirección (cupón del 100 %, metadata puesta solo por el servidor).
+      if (o.billing_reason === 'subscription_create' && ctx.importe === 0 && ctx.meta.dk_prueba !== '1') return ok({ ignorado: 'factura de 0 €' });
       if (o.billing_reason === 'subscription_cycle' || o.billing_reason === 'subscription_update') return renovacion(ctx);
       return alta(ctx);
     }

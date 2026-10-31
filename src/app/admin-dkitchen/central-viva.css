@@ -128,3 +128,16 @@
   .central-viva, .central-viva *, .central-viva *::before, .central-viva *::after { animation: none !important; transition: none !important; }
   .cv-oculto { opacity: 1; }
 }
+
+/* ── Rediseño 01/11 (decisiones de karc0): alta, tableros y paneles. Todo < 0,6 s. ── */
+.dk-paso { animation: dk-paso .32s var(--cv-ease, ease-out) both; }
+@keyframes dk-paso { from { opacity: 0; transform: translate3d(0, 10px, 0); } }
+.dk-tarjeta-on::after { content: '✓'; position: absolute; top: 10px; right: 12px; width: 22px; height: 22px; border-radius: 50%; background: #6E0C2B; color: #fff; font-size: 12px; display: grid; place-items: center; animation: dk-pop .28s var(--cv-ease, ease-out) both; }
+.dk-check { animation: dk-pop .4s var(--cv-ease, ease-out) both; }
+@keyframes dk-pop { from { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } }
+.dk-btn:active { transform: scale(.98); }
+.dk-col { min-width: 0; }
+.dk-carta { animation: dk-paso .35s var(--cv-ease, ease-out) both; animation-delay: calc(var(--i, 0) * 40ms); }
+.dk-barra-prog > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #6E0C2B, #D9B25C); transform-origin: 0 50%; animation: dk-crece .55s var(--cv-ease, ease-out) both; }
+@keyframes dk-crece { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .dk-paso, .dk-tarjeta-on::after, .dk-check, .dk-carta, .dk-barra-prog > span { animation: none; } }

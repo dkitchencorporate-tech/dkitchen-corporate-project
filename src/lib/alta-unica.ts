@@ -42,6 +42,8 @@ export type DatosAlta4Pasos = {
   puestaAPunto?: boolean;
   montajeGratis?: boolean;
   enviarCorreo?: boolean;
+  /** Cliente de PRUEBA (solo dirección, 01/11): nombre «PRUEBA · …», cupón del 100 % y archivado al terminar. */
+  prueba?: boolean;
 };
 
 export type LineaDesglose = { concepto: string; importeEuros: number };
