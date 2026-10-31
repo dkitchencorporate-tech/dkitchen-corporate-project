@@ -6,7 +6,9 @@ import { usePathname } from 'next/navigation';
 export default function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false);
   // La carta de un restaurante (/m/…) es del cliente, no de DKitchen: sin nuestro aviso ni nuestra medición.
-  const cartaCliente = usePathname()?.startsWith('/m/') ?? false;
+  // Zonas privadas (Central, 2FA, socio, panel del dueño): sin aviso ni analítica; tapaba botones del alta (01/11).
+  const ruta = usePathname() ?? '';
+  const cartaCliente = ['/m/', '/admin-dkitchen', '/acceso-seguro', '/socio', '/panel', '/mi-experience'].some((r) => ruta.startsWith(r));
 
   useEffect(() => {
     // Verificar si ya se aceptaron las cookies previamente
