@@ -425,3 +425,246 @@ export async function asignarSiguientePasoAction(formulario: FormData) {
 }
 
 const PESTANAS_SOPORTE = ['local', 'carta', 'estudio', 'diseno', 'landing', 'idiomas', 'promociones', 'sala', 'qr', 'legal'];
+
+
+// ---------------------------------------------------------------------------
+// P1.3 · Alta única en 4 pasos (Boceto aprobado 30/10 / Orden 31/10)
+// ---------------------------------------------------------------------------
+export type DatosAlta4Pasos = {
+  local: string;
+  ciudad?: string;
+  direccion?: string;
+  cif?: string;
+  contacto: string;
+  telefono?: string;
+  email: string;
+  servicios: string[]; // 'qr' | 'signature' | 'experience' | 'auditoria'
+  planQr?: string; // 'basico' | 'ampliado' | 'sala'
+  modoInicio: 'pago' | 'gratis' | 'demo';
+  modalidadTarifa: '1euro' | 'mensual' | 'fundador' | 'unico';
+  diasPrueba?: number;
+  ofertaId?: string;
+  codigo?: string;
+  descuentoComercialPct?: number; // 0 | 5 | 10
+  motivoDescuento?: string;
+  montajeGratis: boolean;
+  enviarCorreo?: boolean;
+};
+
+export type LineaDesglose = { concepto: string; importeEuros: number };
+
+export type ResultadoAlta4Pasos = {
+  ok: boolean;
+  restauranteId?: string;
+  urlPago?: string;
+  resumenWhatsapp?: string;
+  desglose?: LineaDesglose[];
+  baseEuros?: number;
+  ivaEuros?: number;
+  totalHoyEuros?: number;
+  error?: string;
+};
+
+export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<ResultadoAlta4Pasos> {
+  const jwt = await exigirAdmin();
+  const email = String(d.email ?? '').trim().toLowerCase();
+  const contacto = String(d.contacto ?? '').trim().slice(0, 80);
+  const local = String(d.local ?? '').trim().slice(0, 80);
+  const ciudad = String(d.ciudad ?? '').trim().slice(0, 80) || 'España';
+  const direccion = String(d.direccion ?? '').trim().slice(0, 200);
+  const telefono = String(d.telefono ?? '').trim().replace(/\s+/g, '');
+
+  if (!CORREO.test(email) || email.length > 254) return { ok: false, error: 'El correo electrónico no es válido.' };
+  if (contacto.length < 2 || local.length < 2) return { ok: false, error: 'Pon el nombre del contacto y del local.' };
+  if (!d.servicios || d.servicios.length === 0) return { ok: false, error: 'Debes seleccionar al menos un servicio.' };
+
+  // Doble cerrojo: descuento comercial máximo 10% validado estrictamente en servidor
+  const descCom = Math.min(10, Math.max(0, Number(d.descuentoComercialPct) || 0));
+  if (Number(d.descuentoComercialPct) > 10) {
+    return { ok: false, error: 'El descuento manual del comercial no puede superar el 10 %.' };
+  }
+  if (descCom > 0 && (!d.motivoDescuento || d.motivoDescuento.trim().length < 4)) {
+    return { ok: false, error: 'Indica el motivo del descuento del comercial (mínimo 4 caracteres).' };
+  }
+
+  // 1. Recálculo estricto de precios en servidor (nada proviene del cliente)
+  let baseHoyEuros = 0;
+  let mensualEuros = 0;
+  const desglose: LineaDesglose[] = [];
+
+  // A. Carta QR
+  if (d.servicios.includes('qr')) {
+    const plan = esPlanQr(d.planQr) ? d.planQr : 'ampliado';
+    const precioPlan = QR_MENU.planes[plan].mensual;
+
+    if (d.modalidadTarifa === '1euro' && plan === 'ampliado') {
+      desglose.push({ concepto: `Carta QR · ${nombrePlan(plan)} (primer mes promocional)`, importeEuros: 1 });
+      baseHoyEuros += 1;
+      mensualEuros += precioPlan;
+    } else if (d.modalidadTarifa === 'fundador' || d.codigo?.toUpperCase() === 'FUNDADOR') {
+      desglose.push({ concepto: 'Carta QR · Plan Sala Fundador (trimestre)', importeEuros: FUNDADOR.trimestre });
+      baseHoyEuros += FUNDADOR.trimestre;
+      mensualEuros += FUNDADOR.mensual;
+    } else {
+      desglose.push({ concepto: `Carta QR · Plan ${nombrePlan(plan)} (mensual)`, importeEuros: precioPlan });
+      baseHoyEuros += precioPlan;
+      mensualEuros += precioPlan;
+    }
+
+    if (!d.montajeGratis) {
+      desglose.push({ concepto: 'Puesta a punto y digitalización', importeEuros: QR_MENU.setup.precio });
+      baseHoyEuros += QR_MENU.setup.precio;
+    }
+  }
+
+  // B. Signature
+  if (d.servicios.includes('signature')) {
+    const esFundadorSig = d.modalidadTarifa === 'fundador' || d.codigo?.toUpperCase() === 'FUNDADOR';
+    const precioSig = esFundadorSig ? FUNDADOR.signature.entrada : 1650;
+    desglose.push({ concepto: 'Signature · App propia (pago inicial)', importeEuros: precioSig });
+    baseHoyEuros += precioSig;
+    mensualEuros += esFundadorSig ? FUNDADOR.signature.mensual : BASE_OPERATIVA.mantenimiento.mensual;
+  }
+
+  // C. Experience
+  if (d.servicios.includes('experience')) {
+    const precioExp = d.servicios.includes('qr') ? EXPERIENCE.tarifas.primeraParaClienteQr.precio : EXPERIENCE.tarifas.primeraVez.precio;
+    desglose.push({ concepto: 'Experience · 1.er evento gastronómico llave en mano', importeEuros: precioExp });
+    baseHoyEuros += precioExp;
+  }
+
+  // D. Auditoría
+  if (d.servicios.includes('auditoria')) {
+    desglose.push({ concepto: 'Auditoría de canales externos', importeEuros: AUDITORIA_CANALES.precioOferta });
+    baseHoyEuros += AUDITORIA_CANALES.precioOferta;
+  }
+
+  // Descuentos porcentuales
+  let totalDescPct = 0;
+  if (d.ofertaId === 'halloween') totalDescPct += 20;
+  totalDescPct += descCom;
+
+  if (totalDescPct > 0) {
+    const ahorro = Math.round((baseHoyEuros * totalDescPct) / 100);
+    desglose.push({ concepto: `Descuento aplicado (-${totalDescPct} %)`, importeEuros: -ahorro });
+    baseHoyEuros = Math.max(0, baseHoyEuros - ahorro);
+  }
+
+  const ivaEuros = Math.round(baseHoyEuros * 0.21 * 100) / 100;
+  const totalHoyEuros = Math.round((baseHoyEuros + ivaEuros) * 100) / 100;
+
+  // 2. Identidad del comercial que tramita el alta
+  const yo = await identidadActual().catch(() => null);
+  const miId = yo?.id ?? null;
+
+  // 3. Crear cuenta de Neon Auth si no existe
+  let identidadId: string;
+  try {
+    identidadId = (await crearCuentaCliente({ email, nombre: contacto })).id;
+  } catch {
+    // Si ya existe la cuenta, intentamos resolver el propietario
+    const { rows: idRows } = await comoAprovisionamiento((c) =>
+      c.query<{ id: string }>('SELECT id FROM public.identidades WHERE lower(email) = $1 LIMIT 1', [email])
+    );
+    identidadId = idRows[0]?.id ?? randomUUID();
+  }
+
+  // 4. Aprovisionamiento del cliente / restaurante
+  const ref = 'alta-' + randomUUID();
+  const planElegido = d.servicios.includes('qr') && esPlanQr(d.planQr) ? d.planQr : 'ampliado';
+  const slug = slugBase(local);
+
+  const { rows } = await comoAprovisionamiento((c) =>
+    c.query<{ restaurante_id: string }>(
+      'SELECT * FROM dk.aprovisionar_cliente_qr($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+      [ref, identidadId, email, contacto, planElegido, local, slug, ref, ref]
+    )
+  );
+  const restauranteId = rows[0]?.restaurante_id;
+  if (!restauranteId) return { ok: false, error: 'No se pudo crear el cliente en la base de datos.' };
+
+  // Fijar comercial, ciudad, dirección y siguiente paso
+  await comoAprovisionamiento(async (c) => {
+    if (miId) {
+      await c.query(
+        'UPDATE public.restaurantes SET comercial = $1, ciudad = $2, direccion = $3, siguiente_paso = $4 WHERE id = $5',
+        [miId, ciudad, direccion || null, 'Alta tramitada · pendiente de activación', restauranteId]
+      );
+    }
+  });
+
+  // 5. Manejo según Modo: Demo, Gratis o Enlace de Pago
+  let urlPago = '';
+  if (d.modoInicio === 'demo') {
+    await marcarDemo(jwt, restauranteId, true);
+    await regalarTodo(jwt, restauranteId, null);
+  } else if (d.modoInicio === 'gratis') {
+    const dias = Math.max(1, Math.min(120, Number(d.diasPrueba) || 15));
+    await regalarTodo(jwt, restauranteId, dias);
+  } else {
+    // Modo Pago: Generar checkout de Stripe con desglose
+    const notaCobro = [
+      `Servicios: ${d.servicios.join(', ')}`,
+      descCom > 0 ? `Descuento comercial: ${descCom}% (Motivo: ${d.motivoDescuento})` : null,
+      d.montajeGratis ? 'Montaje gratis incluido' : null,
+    ].filter(Boolean).join(' · ');
+
+    const enlaceId = await crearEnlace(jwt, restauranteId, {
+      plan: planElegido,
+      servicios: d.servicios,
+      primer: Math.round(totalHoyEuros * 100),
+      mensual: Math.round(mensualEuros * 100),
+      nota: notaCobro,
+    });
+
+    const chk = await crearCheckoutEnlaceAdmin({
+      enlaceId,
+      restauranteId,
+      restauranteNombre: local,
+      email,
+      concepto: `${local} · ${d.servicios.map((s) => s.toUpperCase()).join(' + ')}`,
+      primerCentimos: Math.round(totalHoyEuros * 100),
+      mensualCentimos: Math.round(mensualEuros * 100),
+      origen: 'https://dkitchencorporate.es',
+    });
+
+    urlPago = chk.url;
+    await fijarUrlEnlace(jwt, enlaceId, urlPago);
+  }
+
+  // Generar mensaje de WhatsApp preformateado
+  const lineasTxt = desglose.map((x) => `• ${x.concepto}: ${x.importeEuros >= 0 ? x.importeEuros + ' €' : x.importeEuros + ' €'}`).join('\n');
+  const resumenWhatsapp =
+    `¡Hola ${contacto}! Te comparto el resumen acordado para ${local}:\n\n` +
+    lineasTxt +
+    `\n\nTotal hoy (IVA incluido): ${totalHoyEuros} €` +
+    (urlPago ? `\n\nPuedes activar tu servicio directamente aquí con tarjeta o Bizum:\n${urlPago}\n\nAl pagar, te llegará el acceso para crear tu contraseña y entrar a tu panel.` : '');
+
+  // Envío opcional de correo electrónico formal de propuesta
+  if (d.enviarCorreo && urlPago) {
+    await enviarCorreoCliente(
+      email,
+      `Tu propuesta de servicios DKitchen · ${local}`,
+      `<p style="margin:0 0 12px">Hola ${escaparHtml(contacto)},</p>
+       <p style="margin:0 0 12px">Te enviamos el resumen de los servicios acordados para <strong>${escaparHtml(local)}</strong>:</p>
+       <ul style="margin:0 0 16px;padding-left:20px">
+         ${desglose.map((x) => `<li style="margin-bottom:6px">${escaparHtml(x.concepto)}: <strong>${x.importeEuros} €</strong></li>`).join('')}
+       </ul>
+       <p style="margin:0 0 16px;font-size:16px;font-weight:bold">Total hoy (con IVA): ${totalHoyEuros} €</p>
+       <p style="margin:0 0 12px">Para activar tus servicios inmediatamente, pulsa en el botón:</p>`,
+      { titulo: 'Activar servicios DKitchen', boton: { texto: 'Completar activación y pago', url: urlPago } }
+    ).catch((err) => console.error('No se pudo enviar el correo de propuesta:', err));
+  }
+
+  revalidatePath('/admin-dkitchen/qr');
+  return {
+    ok: true,
+    restauranteId,
+    urlPago,
+    resumenWhatsapp,
+    desglose,
+    baseEuros: baseHoyEuros,
+    ivaEuros,
+    totalHoyEuros,
+  };
+}

@@ -1,673 +1,763 @@
-import DisenoCentral from '@/components/admin/DisenoCentral';
-import { limpiarFirma } from '@/lib/composiciones';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
-import { cuentaEnSeguimiento, eventosSeguimiento } from '@/lib/admin-seguimiento';
-import SeguimientoEnVivo from '@/components/admin/SeguimientoEnVivo';
-import { fichaCliente, historialCliente, serviciosCliente, listarEnlaces, catalogoPrecios, bandejaSoporte, type EntradaHistorial } from '@/lib/admin-clientes';
-import { plantillas, verComunicaciones, usoPlanCliente, NOMBRES_USO } from '@/lib/comunicaciones';
-import ComunicacionCliente from '@/components/admin/ComunicacionCliente';
-import { comunicarAction, recordatorioHechoAction } from '../comunicacion';
-import EnlacesPago from '@/components/admin/EnlacesPago';
-import { resumenCobro, euros, fechaLarga, diasHasta } from '@/lib/prueba';
-import { obtenerCarta } from '@/lib/menu';
-import { listarTraducciones } from '@/lib/idiomas';
-import TraductorCarta from '@/components/admin/TraductorCarta';
-import { anularEnlaceAction, regalarTodoAction, reenviarAccesoAction, cambiarEstadoAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction,
-  darDeBajaAction, anularBajaAction, archivarAction, demoInternaAction, entrarSoporteAction } from '../actions';
-import { QR_MENU, PLANES_QR, esPlanQr, nombrePlan } from '@/lib/pricing-config';
+import {
+  fichaCliente, historialCliente, serviciosCliente, listarEnlaces, catalogoPrecios, resumenCobro,
+  usoPlanCliente, verComunicaciones, bandejaSoporte, cuentaEnSeguimiento, eventosSeguimiento,
+  listarTraducciones, montajesGratis, administradores,
+} from '@/lib/admin-clientes';
+import { listarProyectos, nombreFase, PRODUCTOS_PROYECTO } from '@/lib/proyectos';
+import { comoCliente } from '@/lib/db';
+import { esPlanQr, nombrePlan, QR_MENU } from '@/lib/pricing-config';
+import { obtenerCarta } from '@/lib/carta';
 import GuiaZona from '@/components/admin/GuiaZona';
-import { listarProyectos, nombreFase, PRODUCTOS_PROYECTO } from '@/lib/proyectos';
 import MontajeGratisFicha from '@/components/admin/MontajeGratis';
-import { montajesGratis } from '@/lib/montajes-gratis';
+import EnlaceMedida from '@/components/admin/EnlaceMedida';
+import HistorialFicha from '@/components/admin/HistorialFicha';
+import ComunicacionFicha from '@/components/admin/ComunicacionFicha';
+import DisenoFicha from '@/components/admin/DisenoFicha';
+import {
+  cambiarEstadoAction, cambiarPlanAction, regalarTodoAction, cartaDemoAction, reenviarAccesoAction,
+  servicioAdminAction, checklistSetupAction, conexionTpvAction, responderTicketAction,
+  archivarAction, demoInternaAction, programarBajaAction, anularBajaAction, entrarSoporteAction,
+  asignarComercialAction, asignarSiguientePasoAction,
+} from '../actions';
 
 export const dynamic = 'force-dynamic';
 
-const CATALOGO_SERVICIOS: [string, string][] = [
-  ['setup_esencial', 'Puesta a punto'], ['setup_experto', 'Carta de Autor (ya no se vende)'], ['idiomas', 'Pack de idiomas (antiguo)'], ['idioma_extra', 'Idioma extra'], ['bono_ia', 'Bono de 50 fotos con IA'],
-];
-// 08/10 (karc0): plano de mesas, app de sala, TPV y Pack Sala ya no son módulos sueltos: van
-// incluidos según el plan (Carta/Local/Sala, 0050). La ficha solo enseña los extras de pago único.
-const PUNTOS_SETUP: [string, string][] = [
-  ['carta', 'Carta completa cargada'], ['imagenes', 'Imágenes optimizadas'], ['banner', 'Banner de lanzamiento'], ['google', 'Google Business optimizado'],
-  ['redes', 'Contenido redes 1.er mes'], ['material', 'Pegatinas / flyers enviados'], ['soporte', 'Soporte premium activo'], ['formacion', 'Formaciones realizadas'],
-];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const fechaHora = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-const fecha = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+const fecha = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Madrid' });
+const fechaHora = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
+const euros = (c: number) => (c / 100).toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' €';
 
-const ACCION: Record<string, string> = {
-  'restaurantes.update': 'Editó los datos del local',
-  'menu_items.insert': 'Añadió un plato',
-  'menu_items.update': 'Editó un plato',
-  'menu_items.delete': 'Eliminó un plato',
-  'menu_secciones.insert': 'Creó una sección',
-  'menu_secciones.update': 'Renombró una sección',
-  'menu_secciones.delete': 'Eliminó una sección',
-  'admin.cambiar_estado': 'DKitchen cambió el estado de la cuenta',
-  'admin.cambiar_plan': 'DKitchen cambió el plan',
-  'admin.asignar_diseno': 'DKitchen asignó el diseño de la carta',
-  'admin.servicio': 'DKitchen gestionó un servicio',
-  'admin.conexion_tpv': 'DKitchen configuró la conexión TPV',
-  'pago.servicio': 'Contrató un servicio (pago)',
-  'admin.responder_ticket': 'DKitchen respondió un ticket',
-  'admin.estado_solicitud_qr': 'DKitchen actualizó un pedido de QR físico',
-  aprovisionamiento_stripe: 'Alta tras el pago',
-  'admin.regalar_todo': 'DKitchen activó la prueba con todo incluido',
-  'admin.archivar': 'DKitchen archivó la cuenta',
-  'admin.desarchivar': 'DKitchen sacó la cuenta del archivo',
-  'admin.demo': 'DKitchen cambió la marca de cuenta demo interna',
-  'admin.programar_baja': 'DKitchen programó la baja',
-  'admin.anular_baja': 'DKitchen anuló la baja programada',
-  'panel.programar_baja': 'Pidió la baja desde su panel',
-  'sistema.baja_ejecutada': 'Baja ejecutada: carta fuera y panel cerrado',
-  'sistema.borrado_60_dias': 'Borrado a los 60 días de la baja',
-  'admin.carta_demo': 'DKitchen cargó la carta de ejemplo',
-  'admin.enlace_pago': 'DKitchen preparó un enlace de pago',
-  'pago.enlace_admin': 'Pagó un enlace preparado por DKitchen',
-  'prueba.quedarme': 'Pulsó «Quedarme con todo» en su prueba',
-  'prueba.vencida': 'Terminó su prueba sin pagar (pasa a solo lectura)',
+const NOMBRES_USO: Record<string, string> = {
+  platos: 'Platos activos', mesas: 'Mesas en el plano', camareros: 'Camareros con acceso',
+  comandas_mes: 'Comandas al TPV este mes', reservas_mes: 'Reservas este mes', banners: 'Banners activos',
 };
 
-/** Historial legible (fallo 6 del recorrido 114): nada de «mesas.update» ni nombres de columna. */
-const TABLA: Record<string, string> = {
-  restaurantes: 'los datos del local', menu_items: 'un plato', menu_secciones: 'una sección', mesas: 'una mesa', elementos_plano: 'el plano de mesas',
-  promociones: 'una promoción', menu_combo_items: 'un combo', traducciones: 'una traducción', camareros: 'un camarero', reservas: 'una reserva',
-  tickets_soporte: 'un ticket de soporte', codigos_qr: 'el código QR', servicios_contratados: 'un servicio', equipo: 'su equipo',
-};
-const OPERACION: Record<string, string> = { insert: 'Añadió', update: 'Editó', delete: 'Eliminó' };
-const CAMPO: Record<string, string> = {
-  nombre: 'Nombre', descripcion: 'Descripción', precio: 'Precio', precio_promo: 'Precio de promoción', disponible: 'Disponible', alergenos: 'Alérgenos',
-  foto_url: 'Foto', imagen_url: 'Foto', orden: 'Orden', seccion_id: 'Sección', telefono: 'Teléfono', direccion: 'Dirección', horario: 'Horario',
-  instagram: 'Instagram', url_resenas: 'Enlace de reseñas', whatsapp: 'WhatsApp', color_marca: 'Color', logo_url: 'Logo', portada_url: 'Portada',
-  plantilla: 'Plantilla', estilo_fondo: 'Fondo', estilo_letra: 'Letra', etiqueta: 'Etiqueta', capacidad: 'Plazas', x: 'Posición', y: 'Posición',
-  zona: 'Zona', numero: 'Número', activo: 'Activo', idiomas: 'Idiomas', estado: 'Estado', plan: 'Plan',
-};
-const EDITORES_360: [string, string][] = [
-  ['carta', 'Carta y platos'], ['estudio', 'Categorías y combos'], ['local', 'Datos del local'], ['landing', 'Landing'],
-  ['idiomas', 'Idiomas'], ['promociones', 'Promociones y banners'], ['sala', 'Plano y mesas'], ['qr', 'QR y kit'], ['legal', 'Textos legales'],
-];
+const TAB_TITULOS = [
+  { id: 'resumen', nombre: 'Resumen' },
+  { id: 'qr', nombre: 'Carta QR' },
+  { id: 'signature', nombre: 'Signature' },
+  { id: 'experience', nombre: 'Experience' },
+  { id: 'cobros', nombre: 'Cobros' },
+  { id: 'comunicacion', nombre: 'Comunicación' },
+  { id: 'tickets', nombre: 'Tickets' },
+] as const;
 
-function nombreAccion(accion: string): string {
-  if (ACCION[accion]) return ACCION[accion];
-  const [tabla, op] = accion.split('.');
-  if (TABLA[tabla] && OPERACION[op]) return `${OPERACION[op]} ${TABLA[tabla]}`;
-  return accion.replace(/[._]/g, ' ').replace(/^\w/, (x) => x.toUpperCase());
-}
-const nombreCampo = (k: string) => CAMPO[k] ?? k.replace(/_/g, ' ').replace(/^\w/, (x) => x.toUpperCase());
+type TabId = (typeof TAB_TITULOS)[number]['id'];
 
-function valor(v: unknown): string {
-  if (v === null || v === undefined || v === '') return '—';
-  if (v === true) return 'sí';
-  if (v === false) return 'no';
-  if (Array.isArray(v)) return v.join(', ') || '—';
-  if (typeof v === 'object') return 'cambiado';
-  const s = String(v);
-  return s.length > 60 ? `${s.slice(0, 57)}…` : s;
-}
-
-function Cambios({ e }: { e: EntradaHistorial }) {
-  const cambios = e.detalle?.cambios;
-  if (!cambios || typeof cambios !== 'object') return null;
-  const lineas = Object.entries(cambios);
-  if (e.accion.endsWith('.update')) {
-    return (
-      <ul className="mt-1 space-y-0.5 text-xs text-niebla">
-        {lineas.map(([k, d]) => (
-          <li key={k}>
-            <span className="text-grafito">{nombreCampo(k)}</span>: {valor(d?.antes)} → <span className="text-grafito">{valor(d?.despues)}</span>
-          </li>
-        ))}
-      </ul>
-    );
-  }
-  const nombre = (cambios as Record<string, unknown>).nombre;
-  return nombre ? <p className="mt-1 text-xs text-niebla">«{valor(nombre)}»</p> : null;
-}
-
-export default async function FichaClienteQr({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ montaje?: string }> }) {
+export default async function FichaClienteQr({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ montaje?: string; tab?: string; ok?: string; e?: string }>;
+}) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   if (!UUID.test(id)) notFound();
   const jwt = await exigirAdmin();
-  const [ficha, historial, servicios, enlaces, catalogo, cobro] = await Promise.all([fichaCliente(jwt, id), historialCliente(jwt, id), serviciosCliente(jwt, id), listarEnlaces(jwt, id), catalogoPrecios(jwt), resumenCobro(jwt, id)]);
-  // Ficha 360 (0089): uso frente a su plan, comunicaciones y sus tickets
-  const [uso, comunicaciones, tickets] = await Promise.all([usoPlanCliente(jwt, id).catch(() => []), verComunicaciones(jwt, id).catch(() => []), bandejaSoporte(jwt).then((l) => l.filter((t) => t.restauranteId === id)).catch(() => [])]);
-  const abiertosTk = tickets.filter((t) => t.estado === 'abierto').length;
-  const montajes = await montajesGratis(jwt).catch(() => null);
-  if (!ficha?.restaurante) notFound();
 
+  const [ficha, historial, servicios, enlaces, catalogo, cobro] = await Promise.all([
+    fichaCliente(jwt, id),
+    historialCliente(jwt, id),
+    serviciosCliente(jwt, id),
+    listarEnlaces(jwt, id),
+    catalogoPrecios(jwt),
+    resumenCobro(jwt, id),
+  ]);
+
+  const [uso, comunicaciones, tickets, equipo] = await Promise.all([
+    usoPlanCliente(jwt, id).catch(() => []),
+    verComunicaciones(jwt, id).catch(() => []),
+    bandejaSoporte(jwt).then((l) => l.filter((t) => t.restauranteId === id)).catch(() => []),
+    administradores(jwt).catch(() => []),
+  ]);
+
+  if (!ficha?.restaurante) notFound();
   const r = ficha.restaurante;
-  // Piloto (0078): seguimiento en vivo solo si la cuenta está marcada.
-  const seguimiento = await cuentaEnSeguimiento(jwt, id).catch(() => null);
-  const eventosSeg = seguimiento ? await eventosSeguimiento(jwt, id).catch(() => []) : [];
-  // Enlace cliente ↔ proyectos (fallo 10): Signature, Experience, Auditoría… del mismo correo.
-  const proyectos = ficha.email ? (await listarProyectos(jwt, {}).catch(() => [])).filter((p) => p.email.toLowerCase() === ficha.email!.toLowerCase()) : [];
-  // Pack de idiomas: DKitchen traduce aquí la carta del cliente (0028).
-  const conIdiomas = servicios.some((x) => x.servicio === 'idiomas');
-  const [cartaCliente, traducciones] = conIdiomas
-    ? await Promise.all([obtenerCarta(r.slug), listarTraducciones(jwt, id)])
-    : [null, []];
-  // Ficha 360 · Diseño: fotos reales de su carta para la vista previa.
-  const cartaDiseno = cartaCliente ?? await obtenerCarta(r.slug).catch(() => null);
-  const fotosCarta = cartaDiseno ? [...cartaDiseno.secciones.flatMap((x) => x.platos), ...cartaDiseno.sueltos].map((p) => p.fotoUrl).filter((u): u is string => !!u).slice(0, 3) : [];
-  const maxDia = Math.max(1, ...ficha.escaneos_30d.map((d) => d.n));
+
+  // Proyectos asociados por email o por nombre
+  const [todosProyectos, eventos, montajes] = await Promise.all([
+    listarProyectos(jwt, {}).catch(() => []),
+    comoCliente(jwt, async (c) => (await c.query(
+      'SELECT id, slug, local_nombre, titulo, fecha, precio_centimos, aforo, vendidas, usadas, ingresos_centimos, estado, formato FROM eventos WHERE local_nombre ILIKE $1 OR slug ILIKE $2 ORDER BY fecha DESC',
+      [`%${r.nombre}%`, `%${r.slug}%`]
+    )).rows).catch(() => []),
+    montajesGratis(jwt).catch(() => null),
+  ]);
+
+  const proyectos = ficha.email
+    ? todosProyectos.filter((p) => p.email && p.email.toLowerCase() === ficha.email!.toLowerCase())
+    : [];
+  const proyectosSig = proyectos.filter((p) => p.producto === 'signature');
+  const proyectosExp = proyectos.filter((p) => p.producto === 'experience');
+
+  const cartaDiseno = await obtenerCarta(r.slug).catch(() => null);
+  const fotosCarta = cartaDiseno
+    ? [...cartaDiseno.secciones.flatMap((x) => x.platos), ...cartaDiseno.sueltos]
+        .map((p) => p.fotoUrl)
+        .filter((u): u is string => !!u)
+        .slice(0, 3)
+    : [];
+
   const total30 = ficha.escaneos_30d.reduce((s, d) => s + d.n, 0);
-  const bajaPendiente = r.baja_programada_en && r.estado_acceso !== 'suspendido' ? r.baja_programada_en.slice(0, 10) : null;
+  const abiertosTk = tickets.filter((t) => t.estado === 'abierto').length;
+
+  const tabActiva: TabId = (TAB_TITULOS.some((t) => t.id === sp.tab) ? sp.tab : 'resumen') as TabId;
+
   const pago =
     r.demo_interna ? 'Demo interna (no paga)'
-    : r.estado_acceso === 'suspendido' ? `De baja${r.baja_desde ? ` desde ${fecha.format(new Date(r.baja_desde.slice(0, 10) + 'T12:00:00Z'))}` : ''}`
-    : bajaPendiente ? `Baja el ${fecha.format(new Date(bajaPendiente + 'T12:00:00Z'))}`
-    : cobro?.prueba_hasta && r.estado_acceso === 'activo' ? `Prueba · quedan ${Math.max(0, diasHasta(cobro.prueba_hasta))} días`
-    : cobro?.prueba_hasta && r.estado_acceso === 'solo_lectura' ? 'Prueba vencida'
+    : r.estado_acceso === 'suspendido' ? 'De baja'
+    : cobro?.prueba_hasta && r.estado_acceso === 'activo' ? `Prueba activa`
+    : r.pago_fallido_desde ? 'Pago fallido'
     : r.estado_acceso === 'activo' ? 'Al día'
-    : r.pago_fallido_desde ? `Pago fallido desde ${fecha.format(new Date(r.pago_fallido_desde))}`
     : r.estado_acceso;
 
   return (
-    <div className="px-4 py-6 sm:p-6 lg:p-10 text-carbon space-y-8">
+    <div className="px-4 py-6 text-carbon space-y-6 sm:p-6 lg:p-10">
+      {/* Cabecera unificada de la ficha */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link href="/admin-dkitchen/qr" className="text-xs text-niebla hover:text-carbon">← Clientes QR</Link>
-          <h1 className="font-display mt-1 text-3xl font-semibold tracking-tight md:text-4xl">{r.nombre}</h1>
-          <p className="text-sm text-niebla">
-            /{r.slug} · alta {fecha.format(new Date(r.creado_en))} · último acceso{' '}
+          <div className="flex items-center gap-2 text-xs text-niebla">
+            <Link href="/admin-dkitchen/qr" className="hover:text-vino">← Clientes</Link>
+            <span>/</span>
+            <span>Ficha de local</span>
+            <span className="rounded-full bg-[#EFE6D3] px-2 py-0.5 text-[10px] font-bold text-carbon">
+              {esPlanQr(r.plan) ? QR_MENU.planes[r.plan].nombre : r.plan}
+            </span>
+          </div>
+          <h1 className="font-display mt-1 text-3xl font-semibold tracking-tight md:text-4xl text-carbon">
+            {r.nombre}
+          </h1>
+          <p className="mt-1 text-xs text-niebla">
+            /{r.slug} · Alta {fecha.format(new Date(r.creado_en))} · Último acceso:{' '}
             {ficha.ultimo_acceso ? fechaHora.format(new Date(ficha.ultimo_acceso)) : 'nunca'}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+
+        <div className="flex flex-wrap items-center gap-2">
           {r.estado_acceso !== 'suspendido' && (
             <form action={entrarSoporteAction}>
               <input type="hidden" name="restauranteId" value={r.id} />
-              <button className="rounded-full bg-vino px-4 py-2 text-sm font-semibold text-white hover:bg-vino-hondo" title="Abre su panel tal y como lo ve el cliente (modo soporte)">Entrar en su panel</button>
+              <button
+                type="submit"
+                className="rounded-full bg-vino px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-hondo"
+              >
+                Entrar en su panel →
+              </button>
             </form>
           )}
-          <a href={`/m/${r.slug}`} target="_blank" rel="noopener" className="rounded-full border border-linea-fuerte px-4 py-2 text-sm font-semibold hover:border-vino">
-            Ver su carta ↗
+          <a
+            href={`/m/${r.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-linea bg-white px-4 py-2 text-xs font-semibold text-carbon hover:bg-papel transition"
+          >
+            Ver carta ↗
           </a>
         </div>
       </div>
 
-      {(r.demo_interna || r.archivado_en || bajaPendiente) && (
-        <div className="flex flex-wrap gap-2 text-xs font-semibold">
-          {r.demo_interna && <span className="rounded-full bg-papel px-3 py-1 text-niebla">Cuenta demo interna · fuera de ingresos y del parte</span>}
-          {r.archivado_en && <span className="rounded-full bg-papel px-3 py-1 text-niebla">Archivado el {fecha.format(new Date(r.archivado_en))}</span>}
-          {bajaPendiente && <span className="rounded-full bg-vino/10 px-3 py-1 text-vino">Baja programada: deja de estar activo el {fecha.format(new Date(bajaPendiente + 'T12:00:00Z'))}{r.baja_por === 'cliente' ? ' (la pidió el cliente)' : ''}</span>}
+      <GuiaZona
+        titulo="Ficha única de cliente"
+        ancla="ficha-unica"
+        que="Supervisión integral 360° del restaurante. Centraliza Carta QR, Signature, Experience, cobros de Stripe, comunicación y soporte en una sola pantalla por pestañas."
+        pasos={[
+          'Pestaña Resumen: consulta KPIs generales, cambia el comercial asignado o anota el siguiente paso.',
+          'Pestaña Carta QR: gestiona el plan, topes de platos, comandas y pedidos físicos.',
+          'Pestañas Signature y Experience: consulta las fases de app o los eventos con taquilla en tiempo real.',
+          'Pestaña Cobros: emite enlaces de pago a medida con Stripe o gestiona bajas.',
+        ]}
+      />
+
+      {/* Selector de pestañas de la ficha (Gran Reserva tabs) */}
+      <nav
+        aria-label="Pestañas de la Ficha"
+        className="flex gap-1.5 overflow-x-auto border-b border-linea pb-2 [scrollbar-width:none]"
+      >
+        {TAB_TITULOS.map((t) => {
+          const activa = tabActiva === t.id;
+          const badge = t.id === 'tickets' && abiertosTk > 0 ? abiertosTk : null;
+          return (
+            <Link
+              key={t.id}
+              href={`/admin-dkitchen/qr/${id}?tab=${t.id}`}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition ${
+                activa
+                  ? 'bg-tinta text-white shadow-sm'
+                  : 'border border-linea bg-white text-carbon hover:bg-papel'
+              }`}
+            >
+              <span>{t.nombre}</span>
+              {badge && (
+                <span className="rounded-full bg-vino px-1.5 py-0.2 text-[10px] font-bold text-white leading-none">
+                  {badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* ── PESTAÑA 1: RESUMEN ────────────────────────────────────────── */}
+      {tabActiva === 'resumen' && (
+        <div className="space-y-6">
+          {/* KPIs Principales */}
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="rounded-2xl border border-linea bg-noche p-5 text-white">
+              <p className="text-xs text-white/55">Cuota mensual</p>
+              <p className="mt-1 font-display text-2xl font-black tabular-nums text-oro">
+                {esPlanQr(r.plan) ? `${QR_MENU.planes[r.plan].mensual} €` : '—'}
+              </p>
+              <p className="mt-0.5 text-[11px] text-white/45">{pago}</p>
+            </div>
+            <div className="rounded-2xl border border-linea bg-white p-5">
+              <p className="text-xs text-niebla">Escaneos 30 días</p>
+              <p className="mt-1 font-display text-2xl font-black tabular-nums text-carbon">
+                {total30.toLocaleString('es-ES')}
+              </p>
+              <p className="mt-0.5 text-[11px] text-ceniza">{ficha.llamadas_30d} llamadas camarero</p>
+            </div>
+            <div className="rounded-2xl border border-linea bg-white p-5">
+              <p className="text-xs text-niebla">Servicios contratados</p>
+              <p className="mt-1 font-display text-2xl font-black tabular-nums text-carbon">
+                {1 + (proyectosSig.length > 0 ? 1 : 0) + (eventos.length > 0 ? 1 : 0)}
+              </p>
+              <p className="mt-0.5 text-[11px] text-ceniza">
+                Carta QR{proyectosSig.length > 0 ? ' · Signature' : ''}{eventos.length > 0 ? ' · Experience' : ''}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-linea bg-white p-5">
+              <p className="text-xs text-niebla">Tickets de soporte</p>
+              <p className="mt-1 font-display text-2xl font-black tabular-nums text-carbon">{tickets.length}</p>
+              <p className="mt-0.5 text-[11px] text-ceniza">{abiertosTk} pendientes de atender</p>
+            </div>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Tarjeta de Datos del Local & Comercial */}
+            <div className="rounded-2xl border border-linea bg-white p-5 sm:p-6 space-y-4">
+              <h2 className="font-display text-lg font-bold text-carbon">Datos del local y comercial</h2>
+              <dl className="divide-y divide-linea text-xs">
+                <div className="flex justify-between py-2">
+                  <dt className="text-niebla">Contacto</dt>
+                  <dd className="font-semibold text-carbon">{ficha.contacto || 'Sin contacto'}</dd>
+                </div>
+                <div className="flex justify-between py-2">
+                  <dt className="text-niebla">Correo</dt>
+                  <dd className="font-semibold text-carbon">{ficha.email || '—'}</dd>
+                </div>
+                <div className="flex justify-between py-2">
+                  <dt className="text-niebla">Ciudad / Dirección</dt>
+                  <dd className="font-semibold text-carbon text-right max-w-xs truncate">
+                    {r.ciudad || 'España'} · {r.direccion || 'Sin dirección física'}
+                  </dd>
+                </div>
+                <div className="flex justify-between py-2">
+                  <dt className="text-niebla">Siguiente paso comercial</dt>
+                  <dd className="font-semibold text-vino text-right max-w-xs truncate">
+                    {r.siguiente_paso || '—'}
+                  </dd>
+                </div>
+              </dl>
+
+              {/* Formulario rápido para reasignar comercial */}
+              <form action={asignarComercialAction} className="pt-2 border-t border-linea">
+                <input type="hidden" name="restauranteId" value={r.id} />
+                <label className="block text-xs font-semibold text-carbon mb-1">
+                  Comercial asignado en Central:
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    name="comercial"
+                    defaultValue={r.comercial || ''}
+                    className="w-full rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-semibold outline-none focus:border-vino"
+                  >
+                    <option value="">Sin comercial asignado</option>
+                    {equipo.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.nombre} ({m.email})
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="submit"
+                    className="shrink-0 rounded-xl bg-tinta px-4 py-2 text-xs font-bold text-white hover:bg-black"
+                  >
+                    Asignar
+                  </button>
+                </div>
+              </form>
+
+              {/* Formulario rápido de siguiente paso */}
+              <form action={asignarSiguientePasoAction} className="pt-2">
+                <input type="hidden" name="restauranteId" value={r.id} />
+                <label className="block text-xs font-semibold text-carbon mb-1">
+                  Actualizar siguiente paso:
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="siguientePaso"
+                    placeholder="Ej.: Llamada 5 nov para revisar carta"
+                    defaultValue={r.siguiente_paso || ''}
+                    className="w-full rounded-xl border border-linea bg-papel px-3 py-2 text-xs outline-none focus:border-vino"
+                  />
+                  <button
+                    type="submit"
+                    className="shrink-0 rounded-xl bg-vino px-4 py-2 text-xs font-bold text-white hover:bg-hondo"
+                  >
+                    Guardar
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Acciones y Acceso */}
+            <div className="rounded-2xl border border-linea bg-white p-5 sm:p-6 space-y-4">
+              <h2 className="font-display text-lg font-bold text-carbon">Acciones operativas</h2>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <form action={entrarSoporteAction}>
+                  <input type="hidden" name="restauranteId" value={r.id} />
+                  <button className="w-full rounded-xl border border-linea bg-papel p-3 text-left hover:border-vino transition">
+                    <span className="block text-xs font-bold text-carbon">Entrar en su panel</span>
+                    <span className="text-[11px] text-niebla">Modo soporte (12 horas)</span>
+                  </button>
+                </form>
+
+                <form action={reenviarAccesoAction}>
+                  <input type="hidden" name="email" value={ficha.email || ''} />
+                  <button className="w-full rounded-xl border border-linea bg-papel p-3 text-left hover:border-vino transition">
+                    <span className="block text-xs font-bold text-carbon">Reenviar contraseña</span>
+                    <span className="text-[11px] text-niebla">Enlace a su correo</span>
+                  </button>
+                </form>
+
+                <form action={cartaDemoAction}>
+                  <input type="hidden" name="restauranteId" value={r.id} />
+                  <button className="w-full rounded-xl border border-linea bg-papel p-3 text-left hover:border-vino transition">
+                    <span className="block text-xs font-bold text-carbon">Cargar carta demo</span>
+                    <span className="text-[11px] text-niebla">14 platos de ejemplo</span>
+                  </button>
+                </form>
+
+                <Link
+                  href={`/admin-dkitchen/qr/${id}?tab=cobros#enlace`}
+                  className="rounded-xl border border-linea bg-papel p-3 text-left hover:border-vino transition block"
+                >
+                  <span className="block text-xs font-bold text-vino">Preparar enlace de pago</span>
+                  <span className="text-[11px] text-niebla">Stripe checkout a medida</span>
+                </Link>
+              </div>
+
+              {/* Banner de servicios complementarios */}
+              <div className="rounded-xl bg-crema p-4 border border-linea space-y-2">
+                <p className="text-xs font-bold text-carbon">Servicios vinculados al titular:</p>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <span className="rounded-full bg-vino/15 px-3 py-1 font-semibold text-vino">
+                    Carta QR: {nombrePlan(r.plan)}
+                  </span>
+                  {proyectosSig.length > 0 ? (
+                    <span className="rounded-full bg-emerald-500/15 px-3 py-1 font-semibold text-emerald-800">
+                      Signature activo ({proyectosSig[0].fase})
+                    </span>
+                  ) : (
+                    <Link
+                      href={`/admin-dkitchen/qr/${id}?tab=signature`}
+                      className="rounded-full border border-dashed border-linea bg-white px-3 py-1 font-semibold text-niebla hover:border-vino"
+                    >
+                      + Añadir Signature
+                    </Link>
+                  )}
+                  {eventos.length > 0 ? (
+                    <span className="rounded-full bg-blue-500/15 px-3 py-1 font-semibold text-blue-800">
+                      Experience: {eventos.length} evento(s)
+                    </span>
+                  ) : (
+                    <Link
+                      href={`/admin-dkitchen/qr/${id}?tab=experience`}
+                      className="rounded-full border border-dashed border-linea bg-white px-3 py-1 font-semibold text-niebla hover:border-vino"
+                    >
+                      + Añadir Experience
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      {seguimiento && <SeguimientoEnVivo restauranteId={id} inicial={eventosSeg} hasta={seguimiento.hasta} />}
+      {/* ── PESTAÑA 2: CARTA QR ──────────────────────────────────────── */}
+      {tabActiva === 'qr' && (
+        <div className="space-y-6">
+          {/* Selector de Plan */}
+          <div className="rounded-2xl border border-linea bg-white p-5 sm:p-6 space-y-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-display text-lg font-bold text-carbon">Plan Carta QR activo</h2>
+              <span className="rounded-full bg-[#EFE6D3] px-3 py-1 text-xs font-bold text-carbon">
+                Plan {nombrePlan(r.plan)}
+              </span>
+            </div>
 
-      {r.demo_interna && (
-        <section className="rounded-[22px] border border-vino/25 bg-vino/[0.04] p-5 sm:p-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">Demo para captar</p>
-          <h2 className="mt-1 font-display text-xl font-semibold tracking-tight">De demo a cliente en 3 pasos</h2>
-          <ol className="mt-3 space-y-1.5 text-sm text-pizarra">
-            <li><strong>1.</strong> Déjala con la cara del local: nombre, logo, fotos y 3–5 platos. Usa «Entrar en su panel».</li>
-            <li><strong>2.</strong> Prepara el cobro: «Convertir esta demo en cliente» → plan (Local = 1 € + IVA el primer mes). Cópialo o envíalo por WhatsApp.</li>
-            <li><strong>3.</strong> Si el local está en Prospección, su propuesta ya enseña esta carta y el botón de pago. Al pagar, deja de ser demo y cuenta como cliente.</li>
-          </ol>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <a href="#enlace" className="rounded-full bg-vino px-4 py-2 text-sm font-semibold text-white">Convertir en cliente</a>
-            <a href={`/m/${r.slug}`} target="_blank" rel="noopener" className="rounded-full border border-linea bg-white px-4 py-2 text-sm font-semibold">Ver su carta</a>
-            <a href="/admin-dkitchen/prospeccion" className="rounded-full border border-linea bg-white px-4 py-2 text-sm font-semibold">Ir a Prospección</a>
+            <form action={cambiarPlanAction} className="flex flex-wrap items-center gap-3">
+              <input type="hidden" name="restauranteId" value={r.id} />
+              <select
+                name="plan"
+                defaultValue={r.plan}
+                className="rounded-xl border border-linea bg-papel px-3.5 py-2 text-xs font-semibold outline-none focus:border-vino"
+              >
+                {(['ampliado', 'basico', 'sala'] as const).map((p) => (
+                  <option key={p} value={p}>
+                    {nombrePlan(p)} · {QR_MENU.planes[p].mensual} €/mes
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                className="rounded-full bg-vino px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-hondo"
+              >
+                Cambiar plan
+              </button>
+            </form>
           </div>
+
+          {/* Uso frente al Plan */}
+          <section className="rounded-2xl border border-linea bg-white p-5 sm:p-6 space-y-4">
+            <h2 className="font-display text-lg font-bold text-carbon">
+              Uso frente a los límites del plan
+            </h2>
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {uso.map((u) => {
+                const pct = u.tope ? Math.min(100, Math.round((u.usados / u.tope) * 100)) : 0;
+                return (
+                  <li key={u.que} className="rounded-xl bg-papel p-3.5 space-y-1.5 text-xs">
+                    <div className="flex justify-between font-semibold text-carbon">
+                      <span>{NOMBRES_USO[u.que] ?? u.que}</span>
+                      <span className="tabular-nums font-bold">{u.usados} / {u.tope}</span>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-linea overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${pct > 85 ? 'bg-amber-600' : 'bg-vino'}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+
+          {/* Montaje gratis y puesta a punto */}
+          {montajes && (
+            <MontajeGratisFicha
+              m={montajes}
+              restaurante={id}
+              volver={`/admin-dkitchen/qr/${id}?tab=qr`}
+              aviso={sp.montaje}
+            />
+          )}
+
+          {/* Diseño y editores */}
+          <section className="rounded-2xl border border-linea bg-white p-5 sm:p-6">
+            <h2 className="font-display text-lg font-bold text-carbon">Ficha 360 · Diseño y editores</h2>
+            <DisenoFicha restauranteId={id} cartaCliente={cartaDiseno} fotosCarta={fotosCarta} />
+          </section>
+        </div>
+      )}
+
+      {/* ── PESTAÑA 3: SIGNATURE ─────────────────────────────────────── */}
+      {tabActiva === 'signature' && (
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="font-display text-xl font-bold text-carbon">Signature · App Propia</h2>
+              <p className="text-xs text-niebla">
+                Desarrollo y mantenimiento de aplicación PWA / nativa de autor.
+              </p>
+            </div>
+            {proyectosSig.length === 0 && (
+              <Link
+                href={`/admin-dkitchen/qr/${id}?tab=cobros#enlace`}
+                className="rounded-full bg-vino px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-hondo"
+              >
+                + Contratar Signature
+              </Link>
+            )}
+          </div>
+
+          {proyectosSig.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-linea-fuerte bg-white p-10 text-center space-y-3">
+              <span className="text-2xl">📱</span>
+              <h3 className="font-display text-base font-bold text-carbon">Este cliente aún no tiene Signature</h3>
+              <p className="text-xs text-niebla max-w-md mx-auto">
+                Ofrece una app propia para su restaurante desde 500 € Fundador o 1.650 € estándar con mantenimiento mensual.
+              </p>
+              <Link
+                href={`/admin-dkitchen/qr/${id}?tab=cobros#enlace`}
+                className="inline-block rounded-full bg-tinta px-5 py-2.5 text-xs font-bold text-white hover:bg-black"
+              >
+                Preparar propuesta Signature →
+              </Link>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {proyectosSig.map((p) => (
+                <div key={p.id} className="rounded-2xl border border-linea bg-white p-5 space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-display text-base font-bold text-carbon block">{p.negocio || p.nombre}</span>
+                      <p className="text-xs text-niebla">Fase: <span className="font-bold text-vino">{nombreFase('signature', p.fase)}</span></p>
+                    </div>
+                    {p.importe_centimos ? (
+                      <span className="rounded-full bg-papel px-2.5 py-1 text-xs font-bold text-carbon">
+                        {euros(p.importe_centimos)}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {p.siguiente_paso && (
+                    <div className="rounded-xl bg-papel p-3 text-xs">
+                      <span className="font-bold text-carbon block">Siguiente paso:</span>
+                      <span className="text-grafito">{p.siguiente_paso}</span>
+                      {p.siguiente_fecha && <span className="text-niebla block mt-1 text-[11px]">Fecha: {p.siguiente_fecha}</span>}
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center pt-2 border-t border-linea text-xs">
+                    <span className="text-niebla">{p.comercial ? `Comercial: ${p.comercial}` : 'DKitchen'}</span>
+                    <Link href={`/admin-dkitchen/proyectos/${p.id}`} className="font-bold text-vino hover:underline">
+                      Ver proyecto completo →
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── PESTAÑA 4: EXPERIENCE ────────────────────────────────────── */}
+      {tabActiva === 'experience' && (
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="font-display text-xl font-bold text-carbon">Experience · Eventos Gastronómicos</h2>
+              <p className="text-xs text-niebla">
+                Cenas clandestinas, mesa del chef, maridajes y venta de entradas.
+              </p>
+            </div>
+            <Link
+              href="/admin-dkitchen/entradas"
+              className="rounded-full bg-vino px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-hondo"
+            >
+              + Nuevo evento Experience
+            </Link>
+          </div>
+
+          {eventos.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-linea-fuerte bg-white p-10 text-center space-y-3">
+              <span className="text-2xl">🎟️</span>
+              <h3 className="font-display text-base font-bold text-carbon">No hay eventos Experience creados</h3>
+              <p className="text-xs text-niebla max-w-md mx-auto">
+                Monta el primer evento llave en mano para este restaurante (299 € nuevo / 199 € con Carta QR).
+              </p>
+              <Link
+                href="/admin-dkitchen/entradas"
+                className="inline-block rounded-full bg-tinta px-5 py-2.5 text-xs font-bold text-white hover:bg-black"
+              >
+                Abrir asistente de eventos →
+              </Link>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-linea bg-white shadow-sm">
+              <table className="w-full text-sm">
+                <thead className="border-b border-linea bg-papel text-left text-xs uppercase tracking-wider text-niebla">
+                  <tr>
+                    <th className="px-4 py-3">Evento</th>
+                    <th className="px-4 py-3">Fecha</th>
+                    <th className="px-4 py-3 text-right">Precio Entrada</th>
+                    <th className="px-4 py-3 text-right">Aforo / Vendidas</th>
+                    <th className="px-4 py-3 text-right">Recaudación</th>
+                    <th className="px-4 py-3">Estado</th>
+                    <th className="px-4 py-3 text-right">Enlaces</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-linea">
+                  {eventos.map((e: any) => (
+                    <tr key={e.id} className="hover:bg-papel/60 transition">
+                      <td className="px-4 py-3 font-semibold text-carbon">
+                        {e.titulo}
+                        {e.formato && <span className="block text-[11px] text-niebla capitalize">Formato: {e.formato}</span>}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-niebla whitespace-nowrap">
+                        {fecha.format(new Date(e.fecha))}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums font-semibold">
+                        {euros(e.precio_centimos)}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums">
+                        <span className="font-semibold text-carbon">{e.vendidas}</span> / {e.aforo}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums font-bold text-carbon">
+                        {euros(Number(e.ingresos_centimos || 0))}
+                      </td>
+                      <td className="px-4 py-3 text-xs">
+                        <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-semibold text-emerald-800">
+                          {e.estado}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap text-xs space-x-2">
+                        <a href={`/e/${e.slug}`} target="_blank" rel="noopener" className="text-vino hover:underline font-bold">
+                          Entradas ↗
+                        </a>
+                        <a href={`/e/${e.slug}/puerta`} target="_blank" rel="noopener" className="text-carbon hover:underline">
+                          Puerta ↗
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── PESTAÑA 5: COBROS Y ENLACES ───────────────────────────────── */}
+      {tabActiva === 'cobros' && (
+        <div className="space-y-6">
+          <section id="enlace" className="rounded-2xl border border-linea bg-white p-5 sm:p-6 space-y-5">
+            <h2 className="font-display text-xl font-semibold tracking-tight text-carbon">
+              Enlace de pago a medida
+            </h2>
+            <p className="text-xs text-niebla">
+              Prepara un checkout seguro de Stripe para este cliente con importes validados en servidor.
+            </p>
+            <EnlaceMedida
+              restauranteId={id}
+              planActual={r.plan}
+              enlaces={enlaces}
+              catalogo={catalogo}
+            />
+          </section>
+
+          {/* Opciones de baja y archivo */}
+          <section className="rounded-2xl border border-linea bg-white p-5 sm:p-6 space-y-4">
+            <h2 className="font-display text-lg font-bold text-carbon">Baja, archivo y demo</h2>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <form action={programarBajaAction} className="rounded-xl border border-linea p-3.5 space-y-2">
+                <input type="hidden" name="restauranteId" value={r.id} />
+                <span className="text-xs font-bold text-carbon block">Programar baja</span>
+                <span className="text-[11px] text-niebla block">Cancela la suscripción en Stripe al final del periodo</span>
+                <button type="submit" className="rounded-full border border-red-300 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50">
+                  Dar de baja
+                </button>
+              </form>
+
+              <form action={archivarAction} className="rounded-xl border border-linea p-3.5 space-y-2">
+                <input type="hidden" name="restauranteId" value={r.id} />
+                <input type="hidden" name="archivar" value={r.archivado_en ? '0' : '1'} />
+                <span className="text-xs font-bold text-carbon block">{r.archivado_en ? 'Desarchivar' : 'Archivar cliente'}</span>
+                <span className="text-[11px] text-niebla block">Oculta el local de la lista principal</span>
+                <button type="submit" className="rounded-full border border-linea px-3 py-1 text-xs font-semibold hover:bg-papel">
+                  {r.archivado_en ? 'Desarchivar' : 'Archivar'}
+                </button>
+              </form>
+
+              <form action={demoInternaAction} className="rounded-xl border border-linea p-3.5 space-y-2">
+                <input type="hidden" name="restauranteId" value={r.id} />
+                <input type="hidden" name="demo" value={r.demo_interna ? '0' : '1'} />
+                <span className="text-xs font-bold text-carbon block">Demo interna</span>
+                <span className="text-[11px] text-niebla block">No computa en ingresos ni en estadísticas</span>
+                <button type="submit" className="rounded-full border border-linea px-3 py-1 text-xs font-semibold hover:bg-papel">
+                  {r.demo_interna ? 'Quitar demo' : 'Marcar demo'}
+                </button>
+              </form>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* ── PESTAÑA 6: COMUNICACIÓN ───────────────────────────────────── */}
+      {tabActiva === 'comunicacion' && (
+        <section className="rounded-2xl border border-linea bg-white p-5 sm:p-6 space-y-4">
+          <h2 className="font-display text-xl font-semibold tracking-tight text-carbon">
+            Comunicación y Seguimiento
+          </h2>
+          <ComunicacionFicha restauranteId={id} comunicaciones={comunicaciones} />
         </section>
       )}
 
-      {proyectos.length > 0 && (
-        <p className="rounded-2xl bg-papel px-4 py-3 text-sm">Proyectos de este cliente: {proyectos.map((p, i) => <span key={p.id}>{i ? ' · ' : ''}<Link href={`/admin-dkitchen/proyectos/${p.id}`} className="font-semibold text-vino underline">{PRODUCTOS_PROYECTO[p.producto]} ({nombreFase(p.producto, p.fase)})</Link></span>)}</p>
-      )}
-
-      <GuiaZona titulo="Ficha del cliente" ancla="ficha"
-        que="Todo lo de este local en una pantalla. Lo que se hace aquí queda en su historial con «por DKitchen»."
-        pasos={[
-          '«Entrar en su panel» abre su panel tal y como lo ve el cliente (modo soporte): carta, secciones, datos del local, plano, QR, traducciones, promociones y combos. Para salir, «Salir y volver a su ficha» en la franja de arriba.',
-          'Cobrar: prepara un enlace de pago (1 €, Fundador o a medida) y, si quieres, se lo enviamos por correo.',
-          'Prueba con todo incluido: siempre con fecha de fin. Al acabar sin pago, su panel pasa a solo lectura.',
-          'Gestión de la cuenta: dar de baja (al final del periodo pagado), archivar o marcar como demo interna.',
-          'Historial (al final): cada cambio, quién lo hizo y cuándo.',
-        ]}
-        ojo={['Dar de baja cancela su cuota en Stripe sin reembolso. Ese día su carta deja de verse y a los 60 días se borra todo.', 'Mientras la baja no haya llegado se puede anular; después, solo «Reactivar cuenta».']} />
-
-      <nav aria-label="Secciones de la ficha" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
-        {[['#resumen', 'Resumen'], ['#comunicacion', 'Comunicación'], ['#tickets', abiertosTk ? `Tickets (${abiertosTk})` : 'Tickets'], ['#acciones', 'Acciones'], ['#enlace', 'Cobrar'], ['#cuenta', 'Baja y archivo'], ['#servicios', 'Servicios'], ['#diseno', 'Diseño'], ['#historial', 'Historial']].map(([h, t]) => (
-          <a key={h} href={h} className="shrink-0 rounded-full border border-linea bg-white px-4 py-2 text-sm font-medium hover:border-tinta">{t}</a>
-        ))}
-      </nav>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { t: 'Plan', v: esPlanQr(r.plan) ? `${nombrePlan(r.plan)} · ${QR_MENU.planes[r.plan].mensual} € + IVA` : r.plan },
-          { t: 'Pago', v: pago },
-          { t: 'Escaneos 30 días', v: total30 },
-          { t: 'Llamadas de mesa 30 días', v: ficha.llamadas_30d },
-        ].map((k) => (
-          <div key={k.t} className="rounded-2xl border border-linea bg-white p-5">
-            <p className="text-xs text-niebla">{k.t}</p>
-            <p className="mt-1 text-lg font-black">{k.v}</p>
+      {/* ── PESTAÑA 7: TICKETS ───────────────────────────────────────── */}
+      {tabActiva === 'tickets' && (
+        <section className="rounded-2xl border border-linea bg-white p-5 sm:p-6 space-y-4">
+          <div className="flex justify-between items-baseline">
+            <h2 className="font-display text-xl font-semibold tracking-tight text-carbon">
+              Tickets de soporte ({tickets.length})
+            </h2>
+            <span className="text-xs text-niebla">{abiertosTk} abiertos</span>
           </div>
-        ))}
-      </div>
 
-      <section id="resumen" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-xl font-semibold tracking-tight">Uso frente a su plan {esPlanQr(r.plan) ? QR_MENU.planes[r.plan].nombre : r.plan}</h2>
-          <p className="text-xs text-niebla">Lo mismo que ve el cliente en «Mi plan». Desde el 80 %, buen momento para proponerle subir de plan.</p>
-        </div>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {uso.map((u) => {
-            const pct = u.tope ? Math.min(100, Math.round((u.usados / u.tope) * 100)) : 0;
-            return (
-              <li key={u.que} className="rounded-2xl bg-papel p-4">
-                <p className="flex justify-between text-sm"><span>{NOMBRES_USO[u.que] ?? u.que}</span><span className="font-semibold tabular-nums">{u.usados} / {u.tope}</span></p>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-linea"><div className={`h-full rounded-full ${pct >= 100 ? 'bg-red-600' : pct >= 80 ? 'bg-oro' : 'bg-exito'}`} style={{ width: `${pct}%` }} /></div>
-              </li>
-            );
-          })}
-          {!uso.length && <li className="text-sm text-niebla">Sin datos de uso todavía.</li>}
-        </ul>
-      </section>
+          {tickets.length === 0 ? (
+            <p className="text-xs text-niebla p-8 text-center bg-papel rounded-xl">
+              Este cliente no tiene tickets de soporte técnico.
+            </p>
+          ) : (
+            <ul className="divide-y divide-linea">
+              {tickets.map((t) => (
+                <li key={t.id} className="py-4 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-xs font-bold text-carbon">{t.asunto}</span>
+                      <span className="block text-[11px] text-niebla">
+                        {fechaHora.format(new Date(t.creadoEn))} · {t.estado}
+                      </span>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                      t.estado === 'abierto' ? 'bg-amber-500/15 text-amber-800' : 'bg-papel text-niebla'
+                    }`}>
+                      {t.estado}
+                    </span>
+                  </div>
+                  <p className="text-xs text-carbon bg-papel p-3 rounded-xl">{t.mensaje}</p>
 
-      <section id="comunicacion" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-xl font-semibold tracking-tight">Comunicación</h2>
-          <p className="text-xs text-niebla">{ficha.email ?? 'Sin correo'} · {r.telefono ?? 'sin teléfono'}</p>
-        </div>
-        <div className="mt-4 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-          <ComunicacionCliente restauranteId={r.id} email={ficha.email} telefono={r.telefono} accion={comunicarAction}
-            plantillas={plantillas({ contacto: ficha.contacto, local: r.nombre, plan: r.plan, slug: r.slug, proximoCobro: null })} />
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-vino">Lo último con este cliente</p>
-            <ol className="mt-3 max-h-[520px] space-y-2 overflow-y-auto pr-1">
-              {comunicaciones.map((c) => (
-                <li key={c.id} className={`rounded-2xl border p-3 text-sm ${c.canal === 'recordatorio' && !c.hecho ? 'border-oro bg-oro/10' : 'border-linea'}`}>
-                  <p className="flex flex-wrap items-center justify-between gap-2 text-xs text-niebla">
-                    <span className="font-semibold uppercase tracking-wide text-carbon">{({ email: '✉ Correo', whatsapp: 'WhatsApp', nota: 'Nota interna', llamada: 'Llamada', recordatorio: `Recordatorio · ${c.recordarEn ?? ''}` } as Record<string, string>)[c.canal]}</span>
-                    <span>{fechaHora.format(new Date(c.creadoEn))}</span>
-                  </p>
-                  {c.asunto && c.canal === 'email' && <p className="mt-1 font-semibold">{c.asunto}</p>}
-                  {c.cuerpo && <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-niebla">{c.cuerpo}</p>}
-                  {c.canal === 'recordatorio' && !c.hecho && (
-                    <form action={recordatorioHechoAction} className="mt-2"><input type="hidden" name="id" value={c.id} /><input type="hidden" name="volver" value={`/admin-dkitchen/qr/${r.id}`} /><button className="rounded-full bg-tinta px-3 py-1.5 text-xs font-semibold text-white">Hecho</button></form>
+                  {t.respuesta && (
+                    <div className="text-xs bg-crema p-3 rounded-xl border border-linea text-vino">
+                      <b>Respuesta de DKitchen:</b> {t.respuesta}
+                    </div>
+                  )}
+
+                  {t.estado === 'abierto' && (
+                    <form action={responderTicketAction} className="pt-2 space-y-2">
+                      <input type="hidden" name="ticketId" value={t.id} />
+                      <textarea
+                        name="respuesta"
+                        required
+                        placeholder="Escribe la respuesta al cliente..."
+                        className="w-full rounded-xl border border-linea bg-white p-2.5 text-xs outline-none focus:border-vino"
+                      />
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs text-niebla flex items-center gap-1.5 cursor-pointer">
+                          <input type="checkbox" name="cerrar" defaultChecked className="accent-vino" />
+                          Marcar como resuelto al enviar
+                        </label>
+                        <button
+                          type="submit"
+                          className="rounded-full bg-vino px-4 py-1.5 text-xs font-bold text-white hover:bg-hondo"
+                        >
+                          Responder ticket
+                        </button>
+                      </div>
+                    </form>
                   )}
                 </li>
               ))}
-              {!comunicaciones.length && <li className="text-sm text-niebla">Todavía no hay nada. Lo que envíes o anotes desde aquí aparecerá en esta lista.</li>}
-            </ol>
-          </div>
-        </div>
-      </section>
-
-      <section id="tickets" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-xl font-semibold tracking-tight">Tickets de este cliente</h2>
-          <Link href="/admin-dkitchen/soporte" className="text-sm font-semibold text-vino underline">Responder en Soporte (con ayuda de la IA N2) →</Link>
-        </div>
-        <ul className="mt-3 space-y-2 text-sm">
-          {tickets.map((t) => (
-            <li key={t.id} className="rounded-2xl border border-linea p-3">
-              <p className="flex flex-wrap justify-between gap-2"><span className="font-semibold">{t.asunto}</span><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${t.estado === 'abierto' ? 'bg-vino text-white' : 'bg-papel'}`}>{t.estado}</span></p>
-              <p className="mt-1 line-clamp-2 text-niebla">{t.mensaje}</p>
-            </li>
-          ))}
-          {!tickets.length && <li className="text-niebla">Sin tickets.</li>}
-        </ul>
-      </section>
-
-      {cobro && (
-        <section id="cobro" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-display text-xl font-semibold tracking-tight">Cobro</h2>
-            <p className="text-xs text-niebla">Todos los clientes pagan el día {cobro.dia_cobro} de cada mes · precios + IVA</p>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl bg-papel p-4">
-              <p className="text-xs text-niebla">Valor de lo que tiene</p>
-              <p className="mt-1 text-lg font-black">{euros(cobro.valor_mensual)}/mes</p>
-            </div>
-            <div className="rounded-2xl bg-papel p-4">
-              <p className="text-xs text-niebla">Paga</p>
-              <p className="mt-1 text-lg font-black">{cobro.paga_mensual ? `${euros(cobro.paga_mensual)}/mes` : '0 €'}</p>
-            </div>
-            <div className="rounded-2xl bg-papel p-4">
-              <p className="text-xs text-niebla">{cobro.proximo_cobro ? 'Próximo cobro' : cobro.prueba_hasta ? 'Si paga hoy, primer cobro' : 'Cobro'}</p>
-              <p className="mt-1 text-lg font-black">
-                {r.demo_interna ? 'Demo interna' : cobro.proximo_cobro ? fechaLarga(cobro.proximo_cobro) : cobro.prueba_hasta ? fechaLarga(cobro.cobro_si_paga_hoy) : cobro.paga_mensual ? '—' : 'Sin cobro activo'}
-              </p>
-            </div>
-          </div>
-          {cobro.prueba_hasta && (
-            <p className="mt-3 rounded-xl bg-vino/10 px-4 py-3 text-sm text-vino">
-              Prueba con todo incluido hasta el <strong>{fechaLarga(cobro.prueba_hasta)}</strong>
-              {r.estado_acceso === 'solo_lectura'
-                ? ` · vencida: si paga ahora, abona la parte proporcional hasta el día ${cobro.dia_cobro}.`
-                : ` · si paga antes, no paga nada hasta el ${fechaLarga(cobro.cobro_si_paga_hoy)}.`}
-            </p>
+            </ul>
           )}
-          <ul className="mt-4 divide-y divide-linea text-sm">
-            <li className="flex justify-between gap-3 py-2"><span>Plan {nombrePlan(cobro.plan)}{cobro.fundador ? ' · Fundador' : ''}</span><span className="text-niebla">{euros(cobro.precio_plan)}/mes</span></li>
-            {cobro.items.map((i) => (
-              <li key={i.servicio} className="flex justify-between gap-3 py-2">
-                <span>{i.nombre} <span className="text-xs text-niebla">· {i.origen === 'pago' ? 'pagado' : i.origen === 'regalo' ? 'regalo (antiguo)' : i.origen === 'plan' ? 'incluido en el plan' : 'demo (antiguo)'}</span></span>
-                <span className="shrink-0 text-niebla">{euros(i.precio)}{i.tipo === 'mensual' ? '/mes' : ' una vez'}</span>
-              </li>
-            ))}
-          </ul>
         </section>
       )}
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="rounded-[22px] border border-linea bg-white p-5 sm:p-6 lg:col-span-2">
-          <h2 className="font-display text-xl font-semibold tracking-tight">Escaneos de los últimos 30 días</h2>
-          <div className="mt-4 flex h-32 items-end gap-1" role="img" aria-label={`${total30} escaneos en 30 días`}>
-            {ficha.escaneos_30d.map((d) => (
-              <div
-                key={d.dia}
-                title={`${d.dia}: ${d.n}`}
-                className="flex-1 rounded-t bg-vino"
-                style={{ height: `${Math.max(3, (d.n / maxDia) * 100)}%`, opacity: d.n ? 1 : 0.25 }}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-[22px] border border-linea bg-white p-5 sm:p-6 space-y-3 text-sm">
-          <h2 className="font-display text-xl font-semibold tracking-tight">Contacto y carta</h2>
-          <p>{ficha.contacto ?? '—'}</p>
-          {ficha.email && <a href={`mailto:${ficha.email}`} className="block text-vino hover:underline">{ficha.email}</a>}
-          <p className="text-niebla">{r.telefono ?? 'Sin teléfono'} · {r.direccion ?? 'Sin dirección'}</p>
-          <p className="text-niebla">{ficha.secciones} secciones · {ficha.platos} platos</p>
-          <p className="text-niebla">QR: {ficha.codigos.join(', ') || '—'}</p>
-          {ficha.codigos.length > 0 && <a href={`/kit/${r.id}`} className="inline-block font-semibold text-vino hover:underline">Kit para imprimir (cartel, mesas, pegatinas, flyer) →</a>}
-        </section>
-      </div>
-
-      <MontajeGratisFicha m={montajes} restaurante={id} volver={`/admin-dkitchen/qr/${id}`} aviso={sp.montaje} />
-
-      <section id="acciones" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <h2 className="font-display text-xl font-semibold tracking-tight">Acciones</h2>
-        <p className="text-xs text-niebla">Cada acción queda registrada en el historial.</p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          {!r.demo_interna && r.estado_acceso !== 'suspendido' && (
-            <form action={regalarTodoAction} className="flex w-full flex-wrap items-center gap-2 rounded-2xl bg-papel p-3">
-              <input type="hidden" name="restauranteId" value={r.id} />
-              <label className="text-sm font-semibold" htmlFor="dias-prueba">Prueba con todo incluido</label>
-              <select id="dias-prueba" name="dias" defaultValue="15" className="rounded-lg border border-acero bg-white px-3 py-2 text-sm">
-                <option value="7">7 días</option>
-                <option value="15">15 días</option>
-                <option value="30">30 días</option>
-                <option value="fecha">Hasta una fecha…</option>
-              </select>
-              <input type="date" name="hasta" aria-label="Fecha de fin de la prueba" className="rounded-lg border border-acero bg-white px-3 py-2 text-sm" />
-              <button className="rounded-full bg-vino px-4 py-2 text-sm font-bold text-white hover:bg-vino-hondo">Activar prueba</button>
-              <p className="w-full text-xs text-niebla">Siempre con fecha de fin (no hay regalos sin fecha). La fecha solo cuenta con «Hasta una fecha…». Si termina sin pago, el panel pasa a solo lectura y la carta sigue visible.</p>
-            </form>
-          )}
-          {/* 18/10 (karc0): cada acción dice qué hace y cuándo usarla */}
-          <div className="grid w-full gap-3 sm:grid-cols-2">
-            {/* 18/10 (revisión de karc0): acciones con sentido para un cliente que ya paga: vender mejor, no regalar */}
-            <div className="rounded-2xl border border-linea p-4">
-              <p className="font-semibold">Montar su carta desde una foto</p>
-              <p className="mt-1 text-xs text-niebla">{ficha.platos === 0 ? 'Su carta está vacía.' : `Tiene ${ficha.platos} platos.`} Pídele una foto o el PDF de su carta (plantilla «Mensaje libre» por WhatsApp) y la cargamos nosotros entrando en su panel. Si no tiene la Puesta a punto, ofrécesela con descuento.</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <a href="#comunicacion" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Pedirle la foto</a>
-                <a href="#enlace" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Puesta a punto con descuento</a>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-linea p-4">
-              <p className="font-semibold">Proponerle una mejora</p>
-              <p className="mt-1 text-xs text-niebla">Mira «Resumen»: si va por encima del 80 % de su plan, prepárale el cambio en «Cobrar → Cambiar de plan» (en el paso 2 puedes poner un precio con descuento) y mándaselo con la plantilla «Propuesta de mejora de plan». Si tiene volumen, la de «Invitación a Signature».</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <a href="#enlace" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Preparar la mejora</a>
-                <Link href="/admin-dkitchen/oportunidades" className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Ver oportunidades →</Link>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-linea p-4">
-              <p className="font-semibold">Soporte y QR físico</p>
-              <p className="mt-1 text-xs text-niebla">Sus tickets están arriba, en «Tickets». Los pedidos de QR impresos (pegatinas o metacrilato) se gestionan en Soporte → Pedidos de QR físico.</p>
-              <Link href="/admin-dkitchen/soporte" className="mt-3 inline-block rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">Abrir Soporte →</Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="enlace" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6 space-y-5">
-        <div>
-          <h2 className="font-display text-xl font-semibold tracking-tight">Enlace de pago a medida</h2>
-          <p className="text-xs text-niebla">Plan y/o servicios al precio que decidas. Al pagarlo se activa solo y queda en el historial.</p>
-        </div>
-        <EnlacesPago restauranteId={r.id} catalogo={catalogo} demo={!!r.demo_interna} planActual={r.plan} pagando={r.activo && !r.demo_interna && !r.prueba_hasta && r.estado_acceso !== 'suspendido'} />
-        {enlaces.length > 0 && (
-          <ul className="divide-y divide-linea border-t border-linea pt-2 text-sm">
-            {enlaces.map((e) => (
-              <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                <div className="min-w-0">
-                  <p className="font-medium">{[e.plan ? `Plan ${e.plan}` : null, ...e.servicios].filter(Boolean).join(' + ')}</p>
-                  <p className="text-xs text-niebla">
-                    {(e.primerCentimos / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
-                    {e.mensualCentimos ? ` + ${(e.mensualCentimos / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}/mes` : ''} · {fecha.format(new Date(e.creadoEn))}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${e.estado === 'pagado' ? 'bg-green-500/15 text-green-700' : e.estado === 'anulado' ? 'bg-papel text-niebla' : 'bg-amber-500/15 text-amber-700'}`}>{e.estado}</span>
-                  {e.estado === 'pendiente' && e.url && <a href={e.url} target="_blank" rel="noopener" className="text-xs text-niebla underline">Abrir</a>}
-                  {e.estado === 'pendiente' && (
-                    <form action={anularEnlaceAction}>
-                      <input type="hidden" name="enlaceId" value={e.id} />
-                      <input type="hidden" name="restauranteId" value={r.id} />
-                      <button className="text-xs text-red-600">Anular</button>
-                    </form>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section id="cuenta" className="scroll-mt-20 space-y-4 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <div>
-          <h2 className="font-display text-xl font-semibold tracking-tight">Baja, archivo y demo</h2>
-          <p className="text-xs text-niebla">Nada de esto borra datos al momento. La baja sí arranca el borrado a 60 días desde el día en que se hace efectiva.</p>
-        </div>
-
-        {r.estado_acceso === 'suspendido' ? (
-          <div className="rounded-2xl bg-red-500/[0.07] p-4 text-sm">
-            <p className="font-semibold text-red-700">De baja{r.baja_desde ? ` desde el ${fecha.format(new Date(r.baja_desde.slice(0, 10) + 'T12:00:00Z'))}` : ''}: carta fuera y panel cerrado.</p>
-            {r.baja_desde && <p className="mt-1 text-niebla">Se borra todo el {fecha.format(new Date(new Date(r.baja_desde.slice(0, 10) + 'T12:00:00Z').getTime() + 60 * 864e5))} si no vuelve antes.</p>}
-            {r.baja_motivo && <p className="mt-1 text-niebla">Motivo: {r.baja_motivo}</p>}
-            <form action={cambiarEstadoAction} className="mt-3">
-              <input type="hidden" name="restauranteId" value={r.id} />
-              <input type="hidden" name="estado" value="activo" />
-              <button className="rounded-full bg-green-500/15 px-4 py-2 text-sm font-semibold text-green-700 hover:bg-green-500/25">Reactivar cuenta</button>
-              <p className="mt-1 text-xs text-ceniza">Reactivar vuelve a publicar su carta y abre su panel. Si tiene que pagar, prepárale antes un enlace en «Cobrar».</p>
-            </form>
-          </div>
-        ) : bajaPendiente ? (
-          <div className="rounded-2xl bg-vino/[0.06] p-4 text-sm">
-            <p className="font-semibold text-vino">Baja programada para el {fecha.format(new Date(bajaPendiente + 'T12:00:00Z'))}{r.baja_por === 'cliente' ? ' (la pidió el cliente desde su panel)' : ''}.</p>
-            <p className="mt-1 text-niebla">Hasta ese día todo sigue funcionando. Ese día su carta deja de verse y su panel se cierra.{r.baja_motivo ? ` Motivo: ${r.baja_motivo}` : ''}</p>
-            <form action={anularBajaAction} className="mt-3">
-              <input type="hidden" name="restauranteId" value={r.id} />
-              <button className="rounded-full border border-linea-fuerte bg-white px-4 py-2 text-sm font-semibold hover:border-vino">Anular la baja (sigue como cliente)</button>
-              <p className="mt-1 text-xs text-ceniza">Vuelve a activar la renovación en Stripe: el siguiente cobro se hará con normalidad.</p>
-            </form>
-          </div>
-        ) : (
-          <details className="rounded-2xl border border-linea p-4 text-sm">
-            <summary className="cursor-pointer list-none font-semibold text-red-700">Dar de baja…</summary>
-            <form action={darDeBajaAction} className="mt-3 space-y-3">
-              <input type="hidden" name="restauranteId" value={r.id} />
-              <p className="text-niebla">Cancela su cuota en Stripe <strong>al final del periodo que ya pagó</strong> (sin reembolso). Hasta ese día sigue todo igual; ese día su carta deja de verse y su panel se cierra. Si no tiene cuota en Stripe (prueba o cuenta sin pago), la baja es <strong>inmediata</strong>.</p>
-              <label className="block">
-                <span className="text-xs text-niebla">Motivo</span>
-                <select name="motivo" required defaultValue="" className="mt-1 w-full rounded-lg border border-acero bg-white px-3 py-2">
-                  <option value="" disabled>Elige un motivo…</option>
-                  {['Lo pide el cliente', 'Impago', 'Cierra el local', 'Se va a otra solución', 'Prueba sin pagar', 'Duplicado o error', 'Otro'].map((m) => <option key={m}>{m}</option>)}
-                </select>
-              </label>
-              <input name="detalle" maxLength={600} placeholder="Detalle (opcional)" className="w-full rounded-lg border border-acero bg-white px-3 py-2" />
-              <label className="flex items-center gap-2"><input type="checkbox" name="avisar" defaultChecked className="accent-vino" /> Enviarle un correo con la fecha de la baja</label>
-              <label className="flex items-center gap-2"><input type="checkbox" name="confirmo" required className="accent-vino" /> Confirmo la baja de {r.nombre}</label>
-              <button className="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Dar de baja</button>
-            </form>
-          </details>
-        )}
-
-        <div className="flex flex-wrap gap-3">
-          <form action={archivarAction}>
-            <input type="hidden" name="restauranteId" value={r.id} />
-            <input type="hidden" name="archivar" value={r.archivado_en ? '0' : '1'} />
-            <button className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">{r.archivado_en ? 'Sacar del archivo' : 'Archivar'}</button>
-          </form>
-          <form action={demoInternaAction}>
-            <input type="hidden" name="restauranteId" value={r.id} />
-            <input type="hidden" name="demo" value={r.demo_interna ? '0' : '1'} />
-            <button className="rounded-full bg-papel px-4 py-2 text-sm font-semibold hover:bg-linea">{r.demo_interna ? 'Quitar marca de demo interna' : 'Marcar como demo interna'}</button>
-          </form>
-        </div>
-        <p className="text-xs text-ceniza">Archivar = sacarlo de la lista principal sin tocar nada (duplicados, pruebas que no siguieron, bajas antiguas). Demo interna = tus cuentas para enseñar o grabar: todo incluido sin fecha y fuera de ingresos, del parte y de las alertas.</p>
-      </section>
-
-      <section id="servicios" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6 space-y-4">
-        <div>
-          <h2 className="font-display text-xl font-semibold tracking-tight">Extras contratados y lo que puedes ofrecerle</h2>
-          <p className="text-xs text-niebla">Mesas, camareros, reservas, TPV y app de sala van incluidos según su plan ({nombrePlan(r.plan)}); para cambiarlos, cambia de plan. Aquí solo están los extras de pago único: se cobran en «Cobrar» y aquí se marcan como entregados o se cancelan. Todo queda en el historial.</p>
-        </div>
-        <ul className="divide-y divide-linea text-sm">
-          {CATALOGO_SERVICIOS.filter(([clave]) => servicios.some((x) => x.servicio === clave && x.estado !== 'cancelado')).map(([clave, nombre]) => {
-            const s = servicios.find((x) => x.servicio === clave);
-            const enPack = !s && ['plano_mesas', 'app_sala', 'conexion_tpv'].includes(clave) && servicios.some((x) => x.servicio === 'pack_sala' && x.estado !== 'cancelado');
-            if (enPack) return (
-              <li key={clave} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
-                <span><strong>{nombre}</strong><span className="ml-2 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] text-green-700">activo · incluido en Pack Sala</span></span>
-              </li>
-            );
-            return (
-              <li key={clave} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
-                <span>
-                  <strong>{nombre}</strong>
-                  {s ? <span className="ml-2 rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] text-green-700">{s.estado} · {s.origen}</span>
-                     : <span className="ml-2 text-xs text-ceniza">no contratado</span>}
-                </span>
-                <span className="flex gap-2">
-                  {(s ? ['entregado', 'cancelar'] : []).map((accion) => (
-                    <form key={accion} action={servicioAdminAction}>
-                      <input type="hidden" name="restauranteId" value={r.id} />
-                      <input type="hidden" name="servicio" value={clave} />
-                      <input type="hidden" name="accion" value={accion} />
-                      <button className={`rounded-md px-2.5 py-1 text-xs font-semibold ${accion === 'cancelar' ? 'bg-red-500/15 text-red-600' : 'bg-papel hover:bg-linea'}`}>
-                        {accion === 'entregado' ? 'Marcar entregado' : accion === 'cancelar' ? 'Cancelar' : accion === 'demo' ? 'Activar demo' : 'Regalar'}
-                      </button>
-                    </form>
-                  ))}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-        {!servicios.some((x) => x.estado !== 'cancelado' && CATALOGO_SERVICIOS.some(([k]) => k === x.servicio)) && <p className="text-sm text-niebla">No tiene extras contratados.</p>}
-        {/* 18/10 (karc0): aquí se vende, no se listan cosas que ya no existen */}
-        <div className="grid gap-2 sm:grid-cols-2">
-          {!servicios.some((x) => x.servicio === 'setup_esencial' && x.estado !== 'cancelado') && (
-            <a href="#enlace" className="rounded-2xl border border-oro/50 bg-oro/10 p-4 text-sm"><span className="block font-semibold">Puesta a punto · 29 € en vez de 49 €</span><span className="mt-1 block text-xs text-niebla">Carta cargada, TPV conectado, formación y fotos con IA. Prepara el cobro con descuento en «Cobrar».</span></a>
-          )}
-          <a href="#enlace" className="rounded-2xl border border-linea p-4 text-sm"><span className="block font-semibold">Bono de 50 fotos con IA · 9 €</span><span className="mt-1 block text-xs text-niebla">Para que todos sus platos tengan foto (3 gratis siempre).</span></a>
-          <a href="#enlace" className="rounded-2xl border border-linea p-4 text-sm"><span className="block font-semibold">Idioma extra · 15 €</span><span className="mt-1 block text-xs text-niebla">Si recibe turistas y su plan ya tiene los idiomas ocupados.</span></a>
-          <Link href="/admin-dkitchen/soporte" className="rounded-2xl border border-linea p-4 text-sm"><span className="block font-semibold">QR físicos para las mesas</span><span className="mt-1 block text-xs text-niebla">Pegatinas o metacrilato con su QR (pedidos en Soporte).</span></Link>
-        </div>
-
-        {servicios.filter((x) => x.servicio === 'setup_esencial' || x.servicio === 'setup_experto').map((s) => (
-          <form key={s.servicio} action={checklistSetupAction} className="rounded-xl bg-white p-4 text-sm">
-            <input type="hidden" name="restauranteId" value={r.id} />
-            <input type="hidden" name="servicio" value={s.servicio} />
-            <p className="mb-2 font-bold">Entrega del {s.servicio === 'setup_experto' ? 'Setup Experto' : 'Setup Esencial'}</p>
-            <div className="grid gap-1.5 sm:grid-cols-2">
-              {PUNTOS_SETUP.filter(([k]) => s.servicio === 'setup_experto' || !['redes', 'soporte'].includes(k)).map(([k, t]) => (
-                <label key={k} className="flex items-center gap-2"><input type="checkbox" name={k} defaultChecked={s.checklist[k] === true} className="accent-vino" /> {t}</label>
-              ))}
-            </div>
-            <button className="mt-3 rounded-md bg-papel px-3 py-1.5 text-xs font-bold">Guardar progreso</button>
-          </form>
-        ))}
-
-        {/* 0050: la conexión con el TPV va incluida en todos los planes */}
-        {true && (
-          <form action={conexionTpvAction} autoComplete="off" className="space-y-2 rounded-xl bg-white p-4 text-sm">
-            <input type="hidden" name="restauranteId" value={r.id} />
-            <p className="font-bold">Conexión con el TPV</p>
-            {/* Sin type="password": así Chrome no rellena el correo y la contraseña de DKitchen (fallo 3 del recorrido 114) */}
-            <div className="grid gap-2 sm:grid-cols-2">
-              <input name="proveedor" required autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="TPV (Revo, Ágora, Last.app…)" className="rounded-lg border border-acero bg-white px-3 py-2" />
-              <input name="endpoint" required type="url" inputMode="url" autoComplete="off" data-1p-ignore data-lpignore="true" placeholder="https://… (endpoint del fabricante)" className="rounded-lg border border-acero bg-white px-3 py-2" />
-            </div>
-            <input name="credencial" type="text" autoComplete="off" spellCheck={false} data-1p-ignore data-lpignore="true" placeholder="Cabecera Authorization (p. ej. Bearer xxx). Vacío = mantener" className="w-full rounded-lg border border-acero bg-white px-3 py-2 font-mono [-webkit-text-security:disc]" />
-            <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="activa" defaultChecked className="accent-vino" /> Activa</label>
-            <p className="text-[11px] text-ceniza">La credencial se cifra (AES-256-GCM) antes de guardarse; nadie puede volver a leerla desde el panel.</p>
-            <button className="rounded-md bg-vino px-3 py-1.5 text-xs font-bold">Guardar conexión</button>
-          </form>
-        )}
-      </section>
-
-      <section id="diseno" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <h2 className="font-display text-xl font-semibold tracking-tight">Ficha 360 · Diseño y editores</h2>
-        <p className="text-xs text-niebla">
-          La carta de autor se monta aquí: composición, fondo, color libre y firma, con vista previa. Con nivel Esencial el cliente puede seguir cambiándolo en su panel; con Autor o Signature queda bloqueado para él.
-        </p>
-        <DisenoCentral accion={asignarDisenoAction} restauranteId={r.id} slug={r.slug} nombre={r.nombre} logo={r.logo_url} portada={r.portada_url ?? null}
-          fotos={fotosCarta}
-          inicial={{ plantilla: r.plantilla ?? 'clasica', nivel: r.nivel_diseno ?? 'esencial', fondo: r.estilo_fondo ?? 'papel', letra: r.estilo_letra ?? 'sans', color: (r.color_marca ?? '#6E0C2B').toUpperCase(), firma: limpiarFirma(r.firma) }} />
-        {r.estado_acceso !== 'suspendido' && (
-          <div className="mt-8 border-t border-linea pt-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ceniza">Editar el resto de su carta</p>
-            <p className="mt-1 text-xs text-niebla">Cada botón abre esa pantalla de su panel en modo soporte (franja vino arriba; «Salir y volver a su ficha» para regresar). Cada cambio queda en su historial como DKitchen.</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {EDITORES_360.map(([pestana, texto]) => (
-                <form key={pestana} action={entrarSoporteAction}>
-                  <input type="hidden" name="restauranteId" value={r.id} />
-                  <input type="hidden" name="pestana" value={pestana} />
-                  <button className="rounded-full border border-linea-fuerte px-4 py-2 text-sm font-semibold hover:border-vino hover:text-vino">{texto}</button>
-                </form>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {cartaCliente && (
-        <section className="rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-          <TraductorCarta
-            restauranteId={id}
-            activos={cartaCliente.idiomas ?? []}
-            secciones={cartaCliente.secciones.map((x) => ({ id: x.id, nombre: x.nombre }))}
-            platos={[...cartaCliente.secciones.flatMap((x) => x.platos), ...cartaCliente.sueltos].map((p) => ({ id: p.id, nombre: p.nombre, descripcion: p.descripcion, seccionId: p.seccionId }))}
-            traducciones={traducciones}
-          />
-        </section>
-      )}
-
-      <details id="historial" className="scroll-mt-20 rounded-[22px] border border-linea bg-white p-5 sm:p-6">
-        <summary className="cursor-pointer list-none font-bold">Historial de cambios <span className="ml-2 text-sm font-normal text-ceniza">{historial.length} registros · pulsa para ver</span></summary>
-        {historial.length === 0 ? (
-          <p className="mt-3 text-sm text-niebla">Sin cambios registrados todavía.</p>
-        ) : (
-          <ol className="mt-4 space-y-3">
-            {historial.map((e, i) => (
-              <li key={i} className="border-l-2 border-linea pl-4">
-                <p className="text-sm">
-                  <span className={e.quien === 'DKitchen' ? 'text-vino' : e.quien === 'sistema' ? 'text-niebla' : 'text-carbon'}>
-                    {nombreAccion(e.accion)}
-                  </span>
-                  <span className="ml-2 text-xs text-ceniza">{e.quien === 'DKitchen' ? 'por DKitchen' : e.quien === 'sistema' ? 'automático' : 'por el cliente'}</span>
-                  <span className="ml-2 text-xs text-ceniza">{fechaHora.format(new Date(e.ocurridoEn))}</span>
-                </p>
-                <Cambios e={e} />
-              </li>
-            ))}
-          </ol>
-        )}
-      </details>
     </div>
   );
 }

@@ -33,12 +33,16 @@ export async function estadoBuzon(jwt: string, id: string, estado: EstadoBuzon) 
 
 export async function administradores(jwt: string): Promise<Administrador[]> {
   return comoCliente(jwt, async (c) => (await c.query('SELECT * FROM dk.admin_admins()')).rows.map((r) => ({
-    id: r.id, email: r.email, nombre: r.nombre ?? r.email, dosFa: r.dos_fa, yo: r.yo, creadoEn: new Date(r.creado_en).toISOString(), rolAdmin: (r.rol_admin as string | undefined) ?? "direccion",
+    id: r.id, email: r.email, nombre: r.nombre ?? r.email, dosFa: r.dos_fa, yo: r.yo, creadoEn: new Date(r.creado_en).toISOString(), rolAdmin: (r.rol_admin as string | undefined) ?? "comercial",
   })));
 }
 
-export async function altaAdministrador(jwt: string, email: string, nombre: string) {
-  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_admin_alta($1, $2)', [email, nombre]));
+export async function altaAdministrador(jwt: string, email: string, nombre: string, rolAdmin: string = 'comercial') {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_admin_alta($1, $2, $3)', [email, nombre, rolAdmin]));
+}
+
+export async function cambiarRolAdministrador(jwt: string, id: string, nuevoRol: string) {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.admin_cambiar_rol_admin($1, $2)', [id, nuevoRol]));
 }
 
 export async function retirarAdministrador(jwt: string, id: string) {
