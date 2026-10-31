@@ -42,7 +42,7 @@ export default async function KitVenta() {
           <li><strong>Entrada (20 s).</strong> «Hola, soy {ficha?.nombre.split(' ')[0] ?? 'de DKitchen'}, de DKitchen. Ayudamos a bares y restaurantes de la zona a tener la carta en el móvil con reservas y aviso al camarero. ¿Tienes dos minutos cuando baje el servicio?»</li>
           <li><strong>Pregunta (1 min).</strong> «¿Cómo cambias hoy un precio o un plato agotado? ¿Te llegan reservas por teléfono a deshoras? ¿Tienes clientes extranjeros?»</li>
           <li><strong>Demo en su móvil (2 min).</strong> Que escanee tu QR de demo o abre la carta de ejemplo (abajo). Enséñale alérgenos, idiomas y el botón de llamar al camarero; después el panel: cambiar un precio y verlo al momento.</li>
-          <li><strong>Plan (1 min).</strong> Recomienda según el local: barra o local pequeño → Carta; con mesas y camareros → Local (primer mes a {eur(QR_MENU.primerMes)}); con mucho volumen o equipo grande → Sala (todos traen TPV, comandero y español + inglés; cambia la cantidad).{fundador?.abierto ? ` Si es Sala, ofrece Fundador mientras queden plazas (${fundador.quedan}).` : ''}</li>
+          <li><strong>Plan (1 min).</strong> Recomienda según el local: barra o local pequeño → Carta; con mesas y camareros → Local (primer mes a {eur(QR_MENU.primerMes)}); con mucho volumen o equipo grande → Sala (todos traen TPV y comandero; Local añade español + inglés y Sala un tercer idioma; cambia la cantidad).{fundador?.abierto ? ` Si es Sala, ofrece Fundador mientras queden plazas (${fundador.quedan}).` : ''}</li>
           <li><strong>Cierre (30 s).</strong> «Lo damos de alta ahora en dos minutos y esta semana te dejo la carta montada.» Alta desde tu enlace o tu QR: el código {codigo} se rellena solo. Si lo hace él más tarde, que escriba tu código en «Código de tu asesor».</li>
         </ol>
       </section>
@@ -62,7 +62,7 @@ export default async function KitVenta() {
         </div>
         <p className="mt-3 text-xs text-niebla">
           Sin permanencia. {fundador?.abierto
-            ? `Fundador (abierto, quedan ${fundador.quedan} de ${fundador.plazas}): plan Sala al 40 % de por vida, ${eur(FUNDADOR.trimestre)} + IVA cada trimestre (${eur(FUNDADOR.mensual)}/mes), mientras siga activo en Sala y sin impagos.`
+            ? `Fundador (abierto, quedan ${fundador.quedan} de ${fundador.plazas}): plan Sala con un ${Math.round(FUNDADOR.descuento * 100)} % de descuento de por vida, ${eur(FUNDADOR.trimestre)} + IVA cada trimestre (${eur(FUNDADOR.mensual)}/mes), mientras siga activo en Sala y sin impagos.`
             : 'La oferta Fundador está cerrada ahora: no la ofrezcas hasta que DKitchen la abra.'}
         </p>
       </section>
