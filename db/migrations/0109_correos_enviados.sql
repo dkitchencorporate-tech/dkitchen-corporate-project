@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.stripe_correos_enviados (
 );
 
 ALTER TABLE public.stripe_correos_enviados ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.stripe_correos_enviados FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON public.stripe_correos_enviados FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION dk.marcar_correo_stripe(p_clave text)
