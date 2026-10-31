@@ -132,8 +132,11 @@ export function validarYCalcularAlta(
     if (!['flyer', 'visita'].includes(origen)) {
       return { ok: false, error: 'El montaje gratis solo es aplicable a clientes procedentes de flyer o visita.' };
     }
-    const usados = ctx.cupoMontajesGratis?.usados ?? 0;
-    const cupo = ctx.cupoMontajesGratis?.cupo ?? 20;
+    // Falla cerrado: sin datos del cupo no hay montaje gratis.
+    if (!ctx.cupoMontajesGratis) {
+      return { ok: false, error: 'No se pudo comprobar el cupo de montajes gratis. Inténtalo de nuevo.' };
+    }
+    const { usados, cupo } = ctx.cupoMontajesGratis;
     if (usados >= cupo) {
       return { ok: false, error: `El cupo de ${cupo} montajes gratis ya está completo (${usados} de ${cupo} usados).` };
     }

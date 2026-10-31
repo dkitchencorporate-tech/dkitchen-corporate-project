@@ -317,7 +317,57 @@ BEGIN
 END;
 $$;
 
+-- 6.9 Alta única: contexto y cierre atómico (Claude, cupo que falla cerrado).
+-- La acción del alta ya no lee ni escribe tablas con dk_aprovisionamiento (no tiene permisos
+-- sobre identidades, restaurantes ni montajes_gratis): usa estas dos funciones con el JWT del admin.
+CREATE OR REPLACE FUNCTION dk.admin_alta_contexto()
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO pg_catalog AS $$
+BEGIN
+  PERFORM dk.exigir_admin();
+  RETURN jsonb_build_object(
+    'rol_admin', dk.rol_admin_actual(),
+    'cupo', dk.montajes_gratis_cupo(),
+    'usados', (SELECT count(*) FROM public.montajes_gratis));
+END;
+$$;
+
+-- Fija comercial, ciudad, dirección y siguiente paso y, si se pide, registra el montaje gratis
+-- contra el cupo con bloqueo. Cualquier fallo (cupo completo, ya marcado, rol) aborta TODO.
+CREATE OR REPLACE FUNCTION dk.admin_alta_completar(p_restaurante uuid, p_ciudad text, p_direccion text, p_montaje boolean, p_origen text)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO pg_catalog AS $$
+DECLARE v_nombre text; v_yo uuid := dk.identidad_actual();
+BEGIN
+  PERFORM dk.exigir_admin();
+  SELECT nombre INTO v_nombre FROM public.restaurantes WHERE id = p_restaurante;
+  IF v_nombre IS NULL THEN RAISE EXCEPTION 'no encontrado' USING ERRCODE = 'P0002'; END IF;
+  UPDATE public.restaurantes
+     SET comercial_id = coalesce(comercial_id, v_yo),
+         ciudad = nullif(left(btrim(coalesce(p_ciudad, '')), 80), ''),
+         direccion = nullif(left(btrim(coalesce(p_direccion, '')), 200), ''),
+         siguiente_paso = 'Alta tramitada · pendiente de activación'
+   WHERE id = p_restaurante;
+  IF coalesce(p_montaje, false) THEN
+    IF dk.rol_admin_actual() <> 'direccion' THEN
+      RAISE EXCEPTION 'no autorizado: el montaje gratis es de direccion' USING ERRCODE = '42501';
+    END IF;
+    IF coalesce(p_origen, '') NOT IN ('flyer', 'visita') THEN RAISE EXCEPTION 'datos: origen' USING ERRCODE = '22023'; END IF;
+    PERFORM pg_advisory_xact_lock(hashtext('dk.montajes_gratis'));
+    IF EXISTS (SELECT 1 FROM public.montajes_gratis WHERE restaurante_id = p_restaurante) THEN
+      RAISE EXCEPTION 'ya marcado' USING ERRCODE = '23505';
+    END IF;
+    IF (SELECT count(*) FROM public.montajes_gratis) >= dk.montajes_gratis_cupo() THEN
+      RAISE EXCEPTION 'cupo completo' USING ERRCODE = 'P0001';
+    END IF;
+    INSERT INTO public.montajes_gratis (restaurante_id, nombre, origen, nota, creado_por)
+    VALUES (p_restaurante, left(v_nombre, 160), p_origen, 'Montaje gratis alta única Central', v_yo);
+  END IF;
+END;
+$$;
+
 -- 7. Permisos
+REVOKE ALL ON FUNCTION dk.admin_alta_contexto(), dk.admin_alta_completar(uuid, text, text, boolean, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION dk.admin_alta_contexto(), dk.admin_alta_completar(uuid, text, text, boolean, text) TO dk_auth;
+
 REVOKE ALL ON FUNCTION dk.admin_admin_alta(text, text, text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION dk.admin_admin_alta(text, text, text) TO dk_auth;
 
@@ -337,5 +387,7 @@ REVOKE ALL ON FUNCTION dk.admin_decisiones(), dk.admin_tareas(), dk.admin_resume
 GRANT EXECUTE ON FUNCTION dk.admin_decisiones(), dk.admin_tareas(), dk.admin_resumen_clientes(),
                           dk.admin_documentos(text), dk.admin_partes(integer), dk.admin_embudo(int),
                           dk.admin_mapa(uuid), dk.admin_proyectos(text, text, boolean) TO dk_auth;
+
+INSERT INTO public.dk_migraciones (nombre) VALUES ('0110_comercial_clientes.sql') ON CONFLICT DO NOTHING;
 
 COMMIT;

@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { crearCuentaCliente, enviarEnlaceDeContrasena } from '@/lib/neon-auth';
 import { enviarBienvenidaQr } from '@/lib/bienvenida';
-import { comoAprovisionamiento } from '@/lib/db';
+import { comoAprovisionamiento, comoCliente } from '@/lib/db';
 import { crearCheckoutEnlaceAdmin, asegurarCupon } from '@/lib/payments/cobros';
 import { exigirAdmin } from '@/lib/guard-admin';
 import {
@@ -22,7 +22,6 @@ import { guardarTraducciones, type Traduccion } from '@/lib/idiomas';
 import { esPlanQr, nombrePlan, QR_MENU, FUNDADOR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES } from '@/lib/pricing-config';
 import { validarYCalcularAlta, type DatosAlta4Pasos, type LineaDesglose } from '@/lib/alta-unica';
 export type { DatosAlta4Pasos, LineaDesglose };
-import { identidadActual } from '@/lib/sesion';
 import { estadoFundador } from '@/lib/fundador';
 
 /**
@@ -456,12 +455,15 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
   const telefono = String(d.telefono ?? '').trim().replace(/\s+/g, '');
 
   // Comprobar rol de quien ejecuta en identidades
-  const yo = await identidadActual().catch(() => null);
-  const miId = yo?.id ?? null;
-  const { rows: admRows } = await comoAprovisionamiento((client) =>
-    client.query<{ rol_admin: string }>('SELECT rol_admin FROM public.identidades WHERE id = $1 LIMIT 1', [miId])
-  );
-  const rolAdmin = admRows[0]?.rol_admin ?? 'comercial';
+  // Rol y cupo desde la base con el JWT del admin (falla cerrado: sin contexto no hay alta).
+  let ctxAlta: { rol_admin: string; cupo: number; usados: number };
+  try {
+    ctxAlta = await comoCliente(jwt, async (c) => (await c.query('SELECT dk.admin_alta_contexto() AS x')).rows[0].x);
+    if (!ctxAlta || !Number.isFinite(Number(ctxAlta.cupo)) || !Number.isFinite(Number(ctxAlta.usados))) throw new Error('contexto');
+  } catch {
+    return { ok: false, error: 'No se pudo comprobar tu rol ni el cupo de montajes gratis. No se ha creado nada; inténtalo de nuevo.' };
+  }
+  const rolAdmin = ctxAlta.rol_admin === 'direccion' ? 'direccion' : 'comercial';
 
   // Leer estado de fundador si se solicita
   const esFundadorSolicitado = d.modalidadTarifa === 'fundador' || d.codigo?.trim().toUpperCase() === 'FUNDADOR';
@@ -473,15 +475,7 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
   // Leer cupo de montajes gratis si se solicita
   let cupoInfo: { usados: number; cupo: number } | undefined;
   if (d.montajeGratis) {
-    const { rows: cupoRows } = await comoAprovisionamiento(async (client) =>
-      client.query<{ usados: string; cupo: number }>(
-        'SELECT (SELECT count(*) FROM public.montajes_gratis) AS usados, dk.montajes_gratis_cupo() AS cupo'
-      )
-    ).catch(() => ({ rows: [] }));
-    cupoInfo = {
-      usados: Number(cupoRows[0]?.usados ?? 0),
-      cupo: Number(cupoRows[0]?.cupo ?? 20),
-    };
+    cupoInfo = { usados: Number(ctxAlta.usados), cupo: Number(ctxAlta.cupo) };
   }
 
   // Validación y cálculo centralizado en src/lib/alta-unica.ts (R1 / R2)
@@ -521,13 +515,8 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
   try {
     identidadId = (await crearCuentaCliente({ email, nombre: contacto })).id;
   } catch {
-    const { rows: idRows } = await comoAprovisionamiento((c) =>
-      c.query<{ id: string }>('SELECT id FROM public.identidades WHERE lower(email) = $1 LIMIT 1', [email])
-    );
-    if (!idRows[0]?.id) {
-      return { ok: false, error: 'No se pudo crear ni encontrar la identidad de usuario para este correo electrónico.' };
-    }
-    identidadId = idRows[0].id;
+    // dk_aprovisionamiento no puede leer identidades: un correo que ya tiene cuenta se rechaza (igual que crearClienteAction).
+    return { ok: false, error: 'Ese correo ya tiene cuenta o Neon Auth no respondió. No se ha creado nada: usa otro correo o asigna el local desde su ficha.' };
   }
 
   // 4. Aprovisionamiento del cliente / restaurante
@@ -545,23 +534,23 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
   if (!restauranteId) return { ok: false, error: 'No se pudo crear el cliente en la base de datos.' };
 
   // Fijar comercial, ciudad, dirección y siguiente paso
-  await comoAprovisionamiento(async (c) => {
-    if (miId) {
-      await c.query(
-        'UPDATE public.restaurantes SET comercial = $1, ciudad = $2, direccion = $3, siguiente_paso = $4 WHERE id = $5',
-        [miId, ciudad, direccion || null, 'Alta tramitada · pendiente de activación', restauranteId]
-      );
-    }
-  });
-
-  // C4: Registrar montaje gratis contra el cupo de 20 si se aplicó
-  if (d.montajeGratis && restauranteId) {
-    await comoAprovisionamiento(async (c) => {
-      await c.query(
-        'INSERT INTO public.montajes_gratis (restaurante_id, nombre, origen, nota, creado_por) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (restaurante_id) DO NOTHING',
-        [restauranteId, local, d.origenMontaje ?? 'flyer', 'Montaje gratis alta única Central', miId]
-      );
-    }).catch((e) => console.error('Error registrando montaje gratis:', e));
+  // y, si se aplicó, registrar el montaje gratis contra el cupo con bloqueo (todo o nada).
+  // Falla cerrado: si el cupo está completo o algo falla, no se genera enlace de pago ni se regala nada.
+  try {
+    await comoCliente(jwt, (c) =>
+      c.query('SELECT dk.admin_alta_completar($1, $2, $3, $4, $5)', [
+        restauranteId, ciudad, direccion || null, !!d.montajeGratis, d.origenMontaje ?? 'flyer',
+      ])
+    );
+  } catch (e) {
+    const msg = String((e as Error)?.message ?? '');
+    const motivo = msg.includes('cupo completo')
+      ? 'el cupo de montajes gratis ya está completo'
+      : 'no se pudo registrar el montaje gratis ni los datos del comercial';
+    return {
+      ok: false,
+      error: `El cliente se ha creado, pero ${motivo}. No se ha generado ningún enlace de pago: revisa su ficha antes de seguir.`,
+    };
   }
 
   // 5. Manejo según Modo: Demo, Gratis o Enlace de Pago
