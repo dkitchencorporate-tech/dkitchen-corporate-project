@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { identidadActual } from '@/lib/sesion';
 import { listarClientesQr, pestanaDe, type ClienteQr } from '@/lib/admin-clientes';
+import { administradores } from '@/lib/buzon';
 import NuevoCliente from '@/components/admin/NuevoCliente';
 import GuiaZona from '@/components/admin/GuiaZona';
 import ClientesCentralView from '@/components/admin/ClientesCentralView';
@@ -16,11 +17,15 @@ export default async function ClientesQr({
   searchParams: Promise<{ p?: string; s?: string; q?: string; com?: string; mis?: string }>;
 }) {
   const jwt = await exigirAdmin();
-  const [todos, yo, sp] = await Promise.all([
+  const [todos, yo, equipo, sp] = await Promise.all([
     listarClientesQr(jwt),
     identidadActual().catch(() => null),
+    administradores(jwt).catch(() => []),
     searchParams,
   ]);
+
+  const miembroActual = equipo.find((m) => m.id === yo?.id);
+  const esComercial = (miembroActual as any)?.rolAdmin === 'comercial';
 
   const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
   const de = (id: string) => todos.filter((c) => pestanaDe(c, hoy) === id);
@@ -29,19 +34,38 @@ export default async function ClientesQr({
   const pagan = todos.filter((c) => c.cuota > 0).length;
   const pendientes = todos.reduce((s, c) => s + c.ticketsAbiertos + c.solicitudesQrPendientes, 0);
 
-  const kpis: [string, string, string][] = [
-    ['Ingreso mensual real', euros(ingreso), `${pagan} cliente${pagan === 1 ? '' : 's'} que paga${pagan === 1 ? '' : 'n'} · sin IVA`],
-    ['Activos', String(de('activos').length), `${de('prueba').length} en prueba`],
-    ['En riesgo', String(de('riesgo').length), 'impago, solo lectura o baja programada'],
-    ['Tickets / QR físicos', String(pendientes), 'pendientes de atender'],
-  ];
+  // Si es comercial, no ve ingresos totales (karc0: decisión 31/10)
+  const kpis: [string, string, string][] = esComercial
+    ? [
+        ['Mis clientes', String(todos.length), 'en seguimiento'],
+        ['Activos', String(de('activos').length), `${de('prueba').length} en prueba`],
+        ['En riesgo', String(de('riesgo').length), 'atención prioritaria'],
+        ['Tickets / QR físicos', String(pendientes), 'pendientes de atender'],
+      ]
+    : [
+        ['Ingreso mensual real', euros(ingreso), `${pagan} cliente${pagan === 1 ? '' : 's'} que paga${pagan === 1 ? '' : 'n'} · sin IVA`],
+        ['Activos', String(de('activos').length), `${de('prueba').length} en prueba`],
+        ['En riesgo', String(de('riesgo').length), 'impago, solo lectura o baja programada'],
+        ['Tickets / QR físicos', String(pendientes), 'pendientes de atender'],
+      ];
+
+  const miembrosEquipo = equipo.map((m) => ({
+    id: m.id,
+    nombre: m.nombre,
+    email: m.email,
+    rolAdmin: (m as any).rolAdmin,
+  }));
 
   return (
     <div className="space-y-6 px-4 py-6 text-carbon sm:p-6 lg:p-10">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Clientes</h1>
-          <p className="text-sm text-niebla">Lista única con Carta QR, Signature y Experience · datos reales al momento.</p>
+          <p className="text-sm text-niebla">
+            {esComercial
+              ? 'Tus clientes y cartera asignada · datos reales al momento.'
+              : 'Lista única con Carta QR, Signature y Experience · datos reales al momento.'}
+          </p>
         </div>
         <NuevoCliente />
       </div>
@@ -49,7 +73,11 @@ export default async function ClientesQr({
       <GuiaZona
         titulo="Clientes"
         ancla="clientes"
-        que="Lista única de todos los clientes de DKitchen (Carta QR, Signature y Experience). Desde aquí buscas por local, ciudad o comercial, filtras por servicio o situación, o ves únicamente «Mis clientes»."
+        que={
+          esComercial
+            ? 'Tu cartera de clientes: Carta QR, Signature y Experience. Registra seguimientos, revisa el estado del local y gestiona el siguiente paso comercial.'
+            : 'Lista única de todos los clientes de DKitchen (Carta QR, Signature y Experience). Desde aquí buscas por local, ciudad o comercial, filtras por servicio o situación, o ves únicamente «Mis clientes».'
+        }
         pasos={[
           'Filtros rápidos: Todos, Carta QR, Signature, Experience, En prueba, En riesgo o «Mis clientes» para ver solo los tuyos.',
           'Buscador: encuentra locales al instante por nombre, ciudad, comercial o siguiente paso.',
@@ -73,6 +101,8 @@ export default async function ClientesQr({
       <ClientesCentralView
         clientesIniciales={todos}
         usuarioActual={yo}
+        miembrosEquipo={miembrosEquipo}
+        esComercial={esComercial}
         filtroInicial={{
           pestana: sp.p,
           servicio: sp.s,

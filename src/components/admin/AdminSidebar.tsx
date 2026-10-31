@@ -65,18 +65,19 @@ export function SubmenuZona({ avisos = {} }: { avisos?: Avisos }) {
   );
 }
 
-export default function AdminSidebar({ cuenta, avisos = {} }: { cuenta: Cuenta; avisos?: Avisos }) {
+export default function AdminSidebar({ cuenta, avisos = {}, esComercial = false }: { cuenta: Cuenta; avisos?: Avisos; esComercial?: boolean }) {
   const [mas, setMas] = useState(false);
   const ruta = usePathname();
   const actual = zonaDe(ruta)?.id;
-  const enMovil = ZONAS.filter((z) => z.id !== 'conocimiento');
+  const zonasDisponibles = esComercial ? ZONAS.filter((z) => !['lanzamiento', 'conocimiento'].includes(z.id)) : ZONAS;
+  const enMovil = zonasDisponibles.filter((z) => z.id !== 'conocimiento');
 
   return (
     <>
       <aside className="sticky top-0 z-[45] hidden h-screen w-[88px] shrink-0 flex-col items-center bg-noche py-5 text-white md:flex">
         <Link href="/admin-dkitchen/inicio" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.06] font-display text-lg font-semibold text-oro" title="DKitchen · Central">D</Link>
         <nav aria-label="Central" className="mt-8 flex flex-1 flex-col gap-1.5">
-          {ZONAS.map((z) => {
+          {zonasDisponibles.map((z) => {
             const a = actual === z.id;
             return (
               <Link key={z.id} href={z.items[0].href} aria-current={a ? 'page' : undefined} title={z.items.map((i) => i.nombre).join(' · ')}

@@ -8,6 +8,7 @@ import { verDecisiones } from '@/lib/decisiones';
 import { verTareas } from '@/lib/tareas';
 import { verRevisiones } from '@/lib/revisiones';
 import { tareasDeHoy } from '@/lib/tareas-hoy';
+import { administradores } from '@/lib/buzon';
 
 export const metadata = {
   title: 'DKitchen · Central de Operaciones',
@@ -23,9 +24,10 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const jwt = await exigirAdmin();
-  const [yo, decisiones, tareas, revisiones] = await Promise.all([
-    identidadActual().catch(() => null), verDecisiones(jwt).catch(() => null), verTareas(jwt).catch(() => null), verRevisiones(jwt).catch(() => null),
+  const [yo, decisiones, tareas, revisiones, equipo] = await Promise.all([
+    identidadActual().catch(() => null), verDecisiones(jwt).catch(() => null), verTareas(jwt).catch(() => null), verRevisiones(jwt).catch(() => null), administradores(jwt).catch(() => []),
   ]);
+  const esComercial = (equipo.find((m) => m.id === yo?.id) as any)?.rolAdmin === 'comercial';
   // Avisos del menú: lo que espera a karc0 (decidir, tareas de hoy, respuestas de Claude por aprobar, revisiones).
   const hoyT = tareas ? tareasDeHoy(tareas) : null;
   const avisos = {
@@ -38,7 +40,7 @@ export default async function AdminLayout({
     <>
       <div className="flex h-[100dvh] overflow-hidden flex-col bg-crema text-carbon selection:bg-orange-500/30 md:flex-row">
         {/* Navigation Sidebar */}
-        <AdminSidebar cuenta={cuenta} avisos={avisos} />
+        <AdminSidebar cuenta={cuenta} avisos={avisos} esComercial={esComercial} />
 
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col h-screen overflow-hidden">

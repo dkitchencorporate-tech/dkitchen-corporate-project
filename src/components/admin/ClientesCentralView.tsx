@@ -4,6 +4,8 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { nombrePlan } from '@/lib/pricing-config';
 import type { ClienteQr, Pestana } from '@/lib/admin-clientes';
+import { asignarComercialAction } from '@/app/admin-dkitchen/qr/actions';
+
 export function pestanaDe(c: ClienteQr, hoy = new Date().toISOString().slice(0, 10)): Pestana {
   if (c.archivadoEn) return 'archivados';
   if (c.demoInterna) return 'demo';
@@ -13,9 +15,18 @@ export function pestanaDe(c: ClienteQr, hoy = new Date().toISOString().slice(0, 
   return 'activos';
 }
 
+export interface MiembroEquipo {
+  id: string;
+  nombre: string;
+  email: string;
+  rolAdmin?: string;
+}
+
 interface Props {
   clientesIniciales: ClienteQr[];
   usuarioActual: { id?: string; nombre?: string; email?: string } | null;
+  miembrosEquipo?: MiembroEquipo[];
+  esComercial?: boolean;
   filtroInicial?: {
     pestana?: string;
     servicio?: string;
@@ -43,6 +54,8 @@ function EstadoBadge({ c }: { c: ClienteQr }) {
 export default function ClientesCentralView({
   clientesIniciales,
   usuarioActual,
+  miembrosEquipo = [],
+  esComercial = false,
   filtroInicial = {},
 }: Props) {
   const hoy = useMemo(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' }), []);
@@ -56,17 +69,8 @@ export default function ClientesCentralView({
   const [ciudadFiltro, setCiudadFiltro] = useState<string>('');
   const [soloMisClientes, setSoloMisClientes] = useState<boolean>(filtroInicial.mis === '1');
 
-  // Identificador del comercial actual
-  const miNombre = (usuarioActual?.nombre || '').toLowerCase().trim();
-
-  // Lista única de comerciales para el selector
-  const listaComerciales = useMemo(() => {
-    const setCom = new Set<string>();
-    clientesIniciales.forEach((c) => {
-      if (c.comercial && c.comercial.trim()) setCom.add(c.comercial.trim());
-    });
-    return Array.from(setCom).sort();
-  }, [clientesIniciales]);
+  // Identificador UUID estricto del usuario actual (servidor)
+  const miId = usuarioActual?.id || null;
 
   // Lista única de ciudades para el selector
   const listaCiudades = useMemo(() => {
@@ -85,27 +89,22 @@ export default function ClientesCentralView({
     const exp = clientesIniciales.filter((c) => c.tieneExperience).length;
     const prueba = clientesIniciales.filter((c) => pestanaDe(c, hoy) === 'prueba').length;
     const riesgo = clientesIniciales.filter((c) => pestanaDe(c, hoy) === 'riesgo').length;
-    const mis = clientesIniciales.filter((c) => {
-      const cCom = (c.comercial || '').toLowerCase().trim();
-      return miNombre && (cCom === miNombre || cCom.includes(miNombre) || cCom === 'yo' || cCom === 'karc0');
-    }).length;
+    // Comparación estricta por UUID de identidad asignada
+    const mis = miId ? clientesIniciales.filter((c) => c.comercialId === miId).length : 0;
     return { todos, qr, sig, exp, prueba, riesgo, mis };
-  }, [clientesIniciales, hoy, miNombre]);
+  }, [clientesIniciales, hoy, miId]);
 
   // Filtrado reactivo en tiempo real
   const clientesFiltrados = useMemo(() => {
     return clientesIniciales.filter((c) => {
-      // 1. Filtro "Mis clientes"
-      if (soloMisClientes) {
-        const cCom = (c.comercial || '').toLowerCase().trim();
-        const coincide = miNombre && (cCom === miNombre || cCom.includes(miNombre) || cCom === 'yo' || cCom === 'karc0');
-        if (!coincide) return false;
+      // 1. Filtro "Mis clientes" (estricto por UUID de identidad)
+      if (soloMisClientes && miId) {
+        if (c.comercialId !== miId) return false;
       }
 
-      // 2. Filtro por comercial seleccionado
+      // 2. Filtro por comercial seleccionado (UUID de identidad)
       if (comercialFiltro) {
-        const cCom = (c.comercial || '').toLowerCase().trim();
-        if (cCom !== comercialFiltro.toLowerCase().trim()) return false;
+        if (c.comercialId !== comercialFiltro) return false;
       }
 
       // 3. Filtro por ciudad seleccionada
@@ -133,7 +132,7 @@ export default function ClientesCentralView({
         const enEmail = (c.email || '').toLowerCase().includes(q);
         const enContacto = (c.contacto || '').toLowerCase().includes(q);
         const enCiudad = (c.ciudad || '').toLowerCase().includes(q);
-        const enComercial = (c.comercial || '').toLowerCase().includes(q);
+        const enComercial = (c.comercialNombre || '').toLowerCase().includes(q);
         const enPaso = (c.siguientePaso || '').toLowerCase().includes(q);
         if (!enNombre && !enSlug && !enEmail && !enContacto && !enCiudad && !enComercial && !enPaso) {
           return false;
@@ -142,7 +141,7 @@ export default function ClientesCentralView({
 
       return true;
     });
-  }, [clientesIniciales, soloMisClientes, comercialFiltro, ciudadFiltro, servicioFiltro, estadoFiltro, busqueda, miNombre, hoy]);
+  }, [clientesIniciales, soloMisClientes, comercialFiltro, ciudadFiltro, servicioFiltro, estadoFiltro, busqueda, miId, hoy]);
 
   // Limpiar todos los filtros
   const limpiarFiltros = () => {
@@ -158,7 +157,7 @@ export default function ClientesCentralView({
 
   return (
     <div className="space-y-6">
-      {/* Píldoras de filtrado rápido — diseño de autor Gran Reserva idéntico al boceto aprobado */}
+      {/* Píldoras de filtrado rápido — diseño de autor Gran Reserva */}
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -251,19 +250,21 @@ export default function ClientesCentralView({
           En riesgo <span className="ml-1 opacity-75 tabular-nums">{conteo.riesgo}</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => {
-            setSoloMisClientes(!soloMisClientes);
-          }}
-          className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-            soloMisClientes
-              ? 'bg-oro text-noche ring-2 ring-oro/40 font-bold'
-              : 'border border-oro/60 bg-oro/10 text-carbon hover:bg-oro/20'
-          }`}
-        >
-          ★ Mis clientes {conteo.mis > 0 && <span className="ml-1 tabular-nums">({conteo.mis})</span>}
-        </button>
+        {!esComercial && miId && (
+          <button
+            type="button"
+            onClick={() => {
+              setSoloMisClientes(!soloMisClientes);
+            }}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+              soloMisClientes
+                ? 'bg-oro text-noche ring-2 ring-oro/40 font-bold'
+                : 'border border-oro/60 bg-oro/10 text-carbon hover:bg-oro/20'
+            }`}
+          >
+            ★ Mis clientes {conteo.mis > 0 && <span className="ml-1 tabular-nums">({conteo.mis})</span>}
+          </button>
+        )}
 
         {hayFiltrosActivos && (
           <button
@@ -306,19 +307,21 @@ export default function ClientesCentralView({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Selector de comercial */}
-          <select
-            value={comercialFiltro}
-            onChange={(e) => setComercialFiltro(e.target.value)}
-            className="rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-medium text-carbon outline-none focus:border-vino"
-          >
-            <option value="">Todos los comerciales</option>
-            {listaComerciales.map((com) => (
-              <option key={com} value={com}>
-                Comercial: {com}
-              </option>
-            ))}
-          </select>
+          {/* Selector de comercial con miembros del Equipo (identidades) */}
+          {!esComercial && miembrosEquipo.length > 0 && (
+            <select
+              value={comercialFiltro}
+              onChange={(e) => setComercialFiltro(e.target.value)}
+              className="rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-medium text-carbon outline-none focus:border-vino"
+            >
+              <option value="">Todos los comerciales</option>
+              {miembrosEquipo.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.nombre} ({m.email})
+                </option>
+              ))}
+            </select>
+          )}
 
           {/* Selector de ciudad */}
           {listaCiudades.length > 0 && (
@@ -371,7 +374,10 @@ export default function ClientesCentralView({
           {/* Vista móvil (<768px): tarjeta responsive por cliente sin corte lateral */}
           <ul className="space-y-3 md:hidden">
             {clientesFiltrados.map((c) => {
-              const urlFicha = c.soloProyecto ? `/admin-dkitchen/proyectos/${c.restauranteId}` : `/admin-dkitchen/qr/${c.restauranteId}`;
+              const urlFicha = c.soloProyecto
+                ? `/admin-dkitchen/proyectos/${c.restauranteId}`
+                : `/admin-dkitchen/qr/${c.restauranteId}`;
+
               return (
                 <li key={c.restauranteId}>
                   <div className="rounded-2xl border border-linea bg-white p-4 shadow-sm">
@@ -381,7 +387,8 @@ export default function ClientesCentralView({
                           {c.nombre}
                         </Link>
                         <p className="truncate text-xs text-niebla">
-                          {c.ciudad || 'España'}{c.comercial ? ` · comercial ${c.comercial}` : c.contacto ? ` · ${c.contacto}` : ''}
+                          {c.ciudad || 'España'}
+                          {c.comercialNombre ? ` · comercial ${c.comercialNombre}` : c.contacto ? ` · ${c.contacto}` : ''}
                         </p>
                       </div>
                       <EstadoBadge c={c} />
@@ -419,10 +426,37 @@ export default function ClientesCentralView({
                       </div>
                     )}
 
+                    {/* Selector de comercial con el Equipo */}
+                    {!esComercial && miembrosEquipo.length > 0 && !c.soloProyecto && (
+                      <div className="mt-3 border-t border-linea pt-2.5">
+                        <form action={asignarComercialAction} className="flex items-center justify-between gap-2 text-xs">
+                          <input type="hidden" name="restauranteId" value={c.restauranteId} />
+                          <label className="text-niebla shrink-0">Comercial:</label>
+                          <select
+                            name="comercialId"
+                            defaultValue={c.comercialId || ''}
+                            onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                            className="rounded-lg border border-linea bg-papel px-2 py-1 text-xs text-carbon outline-none focus:border-vino"
+                          >
+                            <option value="">Sin asignar</option>
+                            {miembrosEquipo.map((m) => (
+                              <option key={m.id} value={m.id}>
+                                {m.nombre}
+                              </option>
+                            ))}
+                          </select>
+                        </form>
+                      </div>
+                    )}
+
                     <div className="mt-3 flex items-center justify-between border-t border-linea pt-3 text-xs">
                       <div>
-                        <span className="text-niebla">Paga: </span>
-                        <span className="font-semibold tabular-nums text-carbon">{euros(c.cuota)}/mes</span>
+                        {!esComercial && (
+                          <>
+                            <span className="text-niebla">Paga: </span>
+                            <span className="font-semibold tabular-nums text-carbon">{euros(c.cuota)}/mes</span>
+                          </>
+                        )}
                       </div>
                       <div className="flex gap-2">
                         {!c.soloProyecto && (
@@ -457,15 +491,18 @@ export default function ClientesCentralView({
                   <th className="px-5 py-3.5">Local</th>
                   <th className="px-4 py-3.5">Servicios</th>
                   <th className="px-4 py-3.5">Estado</th>
+                  <th className="px-4 py-3.5">Comercial</th>
                   <th className="px-4 py-3.5">Siguiente paso</th>
-                  <th className="px-4 py-3.5 text-right">Paga/mes</th>
-                  <th className="px-4 py-3.5 text-right">Escaneos</th>
+                  {!esComercial && <th className="px-4 py-3.5 text-right">Paga/mes</th>}
                   <th className="px-5 py-3.5 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-linea">
                 {clientesFiltrados.map((c) => {
-                  const urlFicha = c.soloProyecto ? `/admin-dkitchen/proyectos/${c.restauranteId}` : `/admin-dkitchen/qr/${c.restauranteId}`;
+                  const urlFicha = c.soloProyecto
+                    ? `/admin-dkitchen/proyectos/${c.restauranteId}`
+                    : `/admin-dkitchen/qr/${c.restauranteId}`;
+
                   return (
                     <tr key={c.restauranteId} className="transition-colors hover:bg-papel/60">
                       <td className="px-5 py-3.5">
@@ -474,9 +511,8 @@ export default function ClientesCentralView({
                         </Link>
                         <p className="text-xs text-ceniza">
                           <span>{c.ciudad || 'España'}</span>
-                          {c.comercial && <span className="font-medium text-niebla"> · comercial {c.comercial}</span>}
-                          {!c.comercial && c.contacto && <span> · {c.contacto}</span>}
-                          {!c.soloProyecto && (
+                          {c.contacto && <span> · {c.contacto}</span>}
+                          {!c.soloProyecto ? (
                             <a
                               href={`/m/${c.slug}`}
                               target="_blank"
@@ -485,6 +521,8 @@ export default function ClientesCentralView({
                             >
                               /{c.slug} ↗
                             </a>
+                          ) : (
+                            <span className="ml-1.5 text-niebla italic">(Proyecto)</span>
                           )}
                         </p>
                       </td>
@@ -518,6 +556,33 @@ export default function ClientesCentralView({
                         <EstadoBadge c={c} />
                       </td>
 
+                      {/* Asignación de comercial con selector del Equipo */}
+                      <td className="px-4 py-3.5 text-xs">
+                        {!esComercial && miembrosEquipo.length > 0 && !c.soloProyecto ? (
+                          <form action={asignarComercialAction}>
+                            <input type="hidden" name="restauranteId" value={c.restauranteId} />
+                            <select
+                              name="comercialId"
+                              defaultValue={c.comercialId || ''}
+                              onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                              className="rounded-lg border border-linea bg-papel px-2 py-1 text-xs text-carbon outline-none focus:border-vino transition hover:border-acero"
+                              title="Reasignar comercial del equipo"
+                            >
+                              <option value="">Sin asignar</option>
+                              {miembrosEquipo.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                  {m.nombre}
+                                </option>
+                              ))}
+                            </select>
+                          </form>
+                        ) : (
+                          <span className="font-medium text-carbon">
+                            {c.comercialNombre || 'Sin asignar'}
+                          </span>
+                        )}
+                      </td>
+
                       <td className="px-4 py-3.5 text-xs">
                         {c.siguientePaso ? (
                           <span className="font-medium text-carbon">{c.siguientePaso}</span>
@@ -526,20 +591,11 @@ export default function ClientesCentralView({
                         )}
                       </td>
 
-                      <td className="px-4 py-3.5 text-right font-semibold tabular-nums text-carbon">
-                        {euros(c.cuota)}
-                      </td>
-
-                      <td className="px-4 py-3.5 text-right tabular-nums text-niebla text-xs">
-                        {!c.soloProyecto ? (
-                          <>
-                            <span className="font-medium text-carbon">{c.escaneosMes}</span>
-                            <span className="text-ceniza"> / {c.escaneosTotal}</span>
-                          </>
-                        ) : (
-                          <span className="text-ceniza">—</span>
-                        )}
-                      </td>
+                      {!esComercial && (
+                        <td className="px-4 py-3.5 text-right font-semibold tabular-nums text-carbon">
+                          {euros(c.cuota)}
+                        </td>
+                      )}
 
                       <td className="px-5 py-3.5 text-right whitespace-nowrap">
                         <Link
