@@ -17,7 +17,7 @@ type Item = { nombre: string; href: string };
 type Zona = { id: string; nombre: string; icono: string; items: Item[] };
 export const ZONAS: Zona[] = [
   { id: 'inicio', nombre: 'Hoy', icono: 'inicio', items: [
-    { nombre: 'Resumen', href: '/admin-dkitchen/inicio' }, { nombre: 'Mis tareas', href: '/admin-dkitchen/tareas' },
+    { nombre: 'Hoy', href: '/admin-dkitchen/inicio' }, { nombre: 'Mis tareas', href: '/admin-dkitchen/tareas' },
     { nombre: 'Decisiones', href: '/admin-dkitchen/decisiones' }, { nombre: 'Partes diarios', href: '/admin-dkitchen/partes' }] },
   { id: 'clientes', nombre: 'Clientes', icono: 'carta', items: [
     { nombre: 'Clientes', href: '/admin-dkitchen/qr' },

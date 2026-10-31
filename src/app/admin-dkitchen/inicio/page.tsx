@@ -1,270 +1,213 @@
 import Link from 'next/link';
+import { revalidatePath } from 'next/cache';
 import { exigirAdmin } from '@/lib/guard-admin';
-import { listarClientesQr, type ClienteQr } from '@/lib/admin-clientes';
+import { listarClientesQr, pestanaDe, type ClienteQr } from '@/lib/admin-clientes';
 import { comoCliente } from '@/lib/db';
-import { PRODUCTOS_PAGO } from '@/lib/productos-pago';
-import { NOMBRE_ALERTA, enlaceAlerta, type DatosMando, type Ventana } from '@/lib/mando';
-import { resumenProyectos } from '@/lib/proyectos';
-import GuiaZona from '@/components/admin/GuiaZona';
+import { listarProyectos, type ProyectoFila } from '@/lib/proyectos';
+import { listaProspectos } from '@/lib/prospeccion';
 import { recordatoriosPendientes } from '@/lib/comunicaciones';
-import { recordatorioHechoAction } from '../qr/comunicacion';
-import { MontajesInicio } from '@/components/admin/MontajeGratis';
-import { montajesGratis } from '@/lib/montajes-gratis';
+import { dineroReal, objetivoMensual, guardarObjetivoMensual } from '@/lib/hoy-central';
+import { esComercialActual } from '@/lib/rol-central';
+import NuevoCliente from '@/components/admin/NuevoCliente';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Portada de Central (29/09/2026): el estado del negocio de un vistazo y la
- * lista de a quién atender hoy. Todo sale de la base en cada visita.
- * Umbrales de subida según DKITCHEN_ESTRATEGIA_PRECIOS_ESCALERA (§7).
+ * Central → Hoy (decisión 5 de karc0, 01/11): PANEL VISUAL, nada de listas.
+ * (a) Ingresos en vivo: anillo del objetivo + gráfica de 30 días (cobrado frente a pendiente de enlaces).
+ * (b) Embudo animado Prospecto → Enlace → Pagado → Activo. (c) Mapa de salud: un punto por cliente.
+ * (d) Servicios en marcha: 3 medidores por fase + próxima fecha clave. Todo pulsable y < 0,6 s.
  */
-type Capacidad = { bytes_base: string; conexiones: number; max_conexiones: number; restaurantes: string; platos: string; escaneos_30d: string; escaneos_total: string };
+const eur = (n: number) => n.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + ' €';
 
-/** Límites del plan actual de Neon (Free: 0,5 GB y 0,25 CU fijo). Si cambias de plan, actualiza aquí. */
-const PLAN_NEON = { nombre: 'Free', bytes: 512 * 1024 * 1024 };
-function evaluarCapacidad(c?: Capacidad) {
-  if (!c) return { uso: 0, texto: 'No se pudo leer la capacidad.', nivel: 'aviso' as const, filas: [] as [string, string][] };
-  const uso = Number(c.bytes_base) / PLAN_NEON.bytes;
-  const con = c.conexiones / c.max_conexiones;
-  const rest = Number(c.restaurantes);
-  const nivel = uso > 0.8 || con > 0.8 ? 'urgente' as const : uso > 0.6 || con > 0.6 || rest > 150 || Number(c.escaneos_30d) > 150000 ? 'aviso' as const : 'ok' as const;
-  const texto = nivel === 'urgente' ? 'Sube ya al plan Launch de Neon: la base está cerca de su límite.'
-    : nivel === 'aviso' ? 'Prepara la subida al plan Launch de Neon (autoescalado de cómputo y más espacio).'
-    : 'Todo holgado para el plan actual.';
-  const filas: [string, string][] = [
-    ['Espacio usado', `${(Number(c.bytes_base) / 1048576).toFixed(0)} MB de ${PLAN_NEON.bytes / 1048576} MB (${Math.round(uso * 100)} %)`],
-    ['Conexiones en uso', `${c.conexiones} de ${c.max_conexiones}`],
-    ['Restaurantes · platos', `${rest} · ${c.platos}`],
-    ['Escaneos últimos 30 días', Number(c.escaneos_30d).toLocaleString('es-ES')],
-  ];
-  return { uso, texto, nivel, filas };
+async function objetivoAction(f: FormData) {
+  'use server';
+  await exigirAdmin();
+  const n = Math.round(Number(String(f.get('euros') ?? '').replace(',', '.')));
+  if (Number.isFinite(n) && n >= 100 && n <= 1_000_000) await guardarObjetivoMensual(n);
+  revalidatePath('/admin-dkitchen/inicio');
 }
 
-const tarjeta = 'rounded-[22px] border border-linea bg-white p-5';
+type Salud = 'bien' | 'atencion' | 'riesgo' | 'espera';
+function salud(c: ClienteQr, hoy: string): Salud {
+  const p = pestanaDe(c, hoy);
+  if (p === 'riesgo' || c.pagoFallidoDesde) return 'riesgo';
+  if (!c.activo && c.estadoAcceso !== 'activo') return 'espera';
+  if (p === 'prueba' || c.platos === 0 || c.escaneos14d === 0) return 'atencion';
+  return 'bien';
+}
+const COLOR: Record<Salud, string> = { bien: '#2F8F6B', atencion: '#D9B25C', riesgo: '#B3261E', espera: '#9A9EA6' };
+const NOMBRE_SALUD: Record<Salud, string> = { bien: 'Van bien', atencion: 'Necesitan un empujón', riesgo: 'En riesgo', espera: 'Esperando pago' };
 
-function Lista({ titulo, vacio, filas, accion }: { titulo: string; vacio: string; filas: { c: ClienteQr; d: string }[]; accion?: string }) {
+function Anillo({ seguro, pendiente, objetivo }: { seguro: number; pendiente: number; objetivo: number }) {
+  const R = 54, C = 2 * Math.PI * R;
+  const pS = Math.min(1, seguro / objetivo), pP = Math.min(1 - pS, pendiente / objetivo);
   return (
-    <section className={tarjeta}>
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-sm font-semibold">{titulo}</p>
-        <span className="rounded-full bg-papel px-2.5 py-0.5 text-xs tabular-nums text-niebla">{filas.length}</span>
-      </div>
-      {filas.length === 0 ? <p className="mt-4 text-sm text-ceniza">{vacio}</p> : (
-        <ul className="mt-3 divide-y divide-linea">
-          {filas.slice(0, 6).map(({ c, d }) => (
-            <li key={c.restauranteId}>
-              <Link href={`/admin-dkitchen/qr/${c.restauranteId}`} className="flex items-center justify-between gap-3 py-2.5 text-sm hover:text-vino">
-                <span className="truncate font-medium">{c.nombre}</span>
-                <span className="shrink-0 text-xs text-niebla">{d}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-      {accion && filas.length > 0 && <p className="mt-3 text-xs text-ceniza">{accion}</p>}
-    </section>
+    <svg viewBox="0 0 140 140" className="h-36 w-36 shrink-0 -rotate-90" role="img" aria-label={`${Math.round(pS * 100)} % del objetivo`}>
+      <circle cx="70" cy="70" r={R} fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="14" />
+      <circle cx="70" cy="70" r={R} fill="none" stroke="rgba(217,178,92,.35)" strokeWidth="14" strokeLinecap="round"
+        strokeDasharray={`${(pS + pP) * C} ${C}`} className="dk-anillo" style={{ ['--l' as string]: `${C}` }} />
+      <circle cx="70" cy="70" r={R} fill="none" stroke="#D9B25C" strokeWidth="14" strokeLinecap="round"
+        strokeDasharray={`${pS * C} ${C}`} className="dk-anillo" style={{ ['--l' as string]: `${C}` }} />
+    </svg>
   );
 }
 
-/**
- * Panel de mando (punto 8, 0056): qué necesita a una persona hoy, movimiento
- * de altas, pasos a pago y bajas, y tickets por nivel. Mismos datos que el
- * parte diario de las 08:30 (histórico en /admin-dkitchen/partes).
- */
-function Movimiento({ titulo, v, vino }: { titulo: string; v: Ventana; vino?: boolean }) {
+function Grafica({ dias }: { dias: { dia: string; euros: number }[] }) {
+  const W = 300, H = 90, max = Math.max(1, ...dias.map((d) => d.euros));
+  const pts = dias.map((d, i) => [(i / (dias.length - 1)) * W, H - (d.euros / max) * (H - 8) - 4] as const);
+  const linea = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
   return (
-    <div className="rounded-2xl bg-papel px-2 py-3 text-center">
-      <p className="text-xs text-niebla">{titulo}</p>
-      <p className={`font-display mt-1 text-3xl font-semibold tabular-nums ${vino && v.hoy ? 'text-vino' : ''}`}>{v.hoy}</p>
-      <p className="text-[11px] tabular-nums text-ceniza">7 d: {v.d7} · 30 d: {v.d30}</p>
-    </div>
+    <svg viewBox={`0 0 ${W} ${H}`} className="h-24 w-full" preserveAspectRatio="none" role="img" aria-label="Cobrado en los últimos 30 días">
+      <defs><linearGradient id="dkArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#D9B25C" stopOpacity=".35" /><stop offset="1" stopColor="#D9B25C" stopOpacity="0" /></linearGradient></defs>
+      <path d={`${linea} L${W},${H} L0,${H} Z`} fill="url(#dkArea)" className="dk-aparece" />
+      <path d={linea} fill="none" stroke="#D9B25C" strokeWidth="2.2" vectorEffect="non-scaling-stroke" pathLength={1} className="dk-traza" />
+    </svg>
   );
 }
 
-function PanelMando({ m }: { m?: DatosMando }) {
-  if (!m) return <section className={`${tarjeta} border-vino`}><p className="text-sm font-semibold text-vino">No se pudo leer el panel de mando.</p></section>;
-  const grupos = new Map<string, DatosMando['alertas']>();
-  for (const a of m.alertas) grupos.set(NOMBRE_ALERTA[a.tipo], [...(grupos.get(NOMBRE_ALERTA[a.tipo]) ?? []), a]);
-  const t = m.tickets;
-  const plural = (n: number, s: string) => `${n} ${s}${n === 1 ? '' : 's'}`;
-  return (
-    <div className="grid gap-3 lg:grid-cols-3">
-      <section className={`${tarjeta} lg:col-span-2 ${m.urgentes ? 'border-vino' : ''}`}>
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="text-sm font-semibold">Necesita a una persona</p>
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums ${m.urgentes ? 'bg-vino/10 text-vino' : m.necesita_humano ? 'bg-amber-500/15 text-amber-700' : 'bg-exito/15 text-exito'}`}>
-            {m.necesita_humano === 0 ? 'Todo en orden' : `${plural(m.necesita_humano, 'pendiente')}${m.urgentes ? ` · ${plural(m.urgentes, 'urgente')}` : ''}`}
-          </span>
-        </div>
-        {m.alertas.length === 0 ? <p className="mt-4 text-sm text-ceniza">Sin pagos fallidos, locales atascados, tickets sin responder ni topes cerca.</p> : (
-          <div className="mt-3 space-y-3">
-            {[...grupos].map(([g, lista]) => (
-              <div key={g}>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ceniza">{g}</p>
-                <ul className="mt-1 divide-y divide-linea">
-                  {lista.map((a, i) => (
-                    <li key={g + i}>
-                      <Link href={enlaceAlerta(a)} className="flex items-start gap-3 py-2.5 text-sm hover:text-vino">
-                        <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${a.gravedad === 'urgente' ? 'bg-vino' : 'bg-amber-500'}`} title={a.gravedad === 'urgente' ? 'Urgente' : 'Aviso'} />
-                        <span className="min-w-0 flex-1">{a.nombre && <span className="font-medium">{a.nombre}: </span>}<span className="text-niebla">{a.texto}</span></span>
-                        <span className="shrink-0 text-xs text-vino">Abrir</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        )}
-        <p className="mt-4 text-xs text-ceniza">
-          {m.ultimo_parte
-            ? <>Último parte: {new Date(m.ultimo_parte.fecha + 'T12:00:00Z').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} · {m.ultimo_parte.enviado_en ? 'enviado por correo' : 'sin enviar'} · </>
-            : 'El primer parte sale mañana a las 08:30 · '}
-          <Link href="/admin-dkitchen/partes" className="text-vino underline">Ver partes</Link>
-        </p>
-      </section>
-      <section className={tarjeta}>
-        <p className="text-sm font-semibold">Movimiento · hoy</p>
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          <Movimiento titulo="Altas" v={m.altas} />
-          <Movimiento titulo="A pago" v={m.pasos_pago} />
-          <Movimiento titulo="Bajas" v={m.bajas} vino />
-        </div>
-        <p className="mt-5 text-sm font-semibold">Tickets abiertos · {t.abiertos}</p>
-        <dl className="mt-2 grid grid-cols-4 gap-2 text-center text-xs">
-          {([['N1', t.n1], ['N2', t.n2], ['N3', t.n3], ['Sin nivel', t.sin_nivel]] as const).map(([k, v]) => (
-            <div key={k} className="rounded-xl bg-papel py-2"><dt className="text-ceniza">{k}</dt><dd className="mt-0.5 text-base font-semibold tabular-nums">{v}</dd></div>
-          ))}
-        </dl>
-        <p className="mt-3 text-xs text-ceniza">{t.abiertos_24h} con más de 24 h · N2 resueltos {t.resueltos_n2}/50 · {m.en_prueba} en prueba · {m.fundadores} fundadores</p>
-      </section>
-    </div>
-  );
-}
-
-export default async function CentralInicio() {
+export default async function CentralHoy() {
   const jwt = await exigirAdmin();
-  const [clientes, embudo, capacidad, mando, proyectos] = await Promise.all([
-    listarClientesQr(jwt),
-    comoCliente(jwt, async (c) => (await c.query<{ producto: string; visitas: string; pagados: string }>('SELECT producto, visitas, pagados FROM dk.admin_embudo(30)')).rows).catch(() => []),
-    comoCliente(jwt, async (c) => (await c.query<Capacidad>('SELECT * FROM dk.admin_capacidad()')).rows[0]).catch(() => undefined),
-    comoCliente(jwt, async (c) => (await c.query<{ m: DatosMando }>('SELECT dk.admin_mando() AS m')).rows[0]?.m).catch(() => undefined),
-    resumenProyectos(jwt).catch(() => undefined),
+  const [clientes, proyectos, prospectos, recordatorios, dinero, objetivo, eventos, esComercial] = await Promise.all([
+    listarClientesQr(jwt).catch(() => [] as ClienteQr[]),
+    listarProyectos(jwt, {}).catch(() => [] as ProyectoFila[]),
+    listaProspectos(jwt, null, null).catch(() => [] as { estado: string }[]),
+    recordatoriosPendientes(jwt).catch(() => []),
+    dineroReal(),
+    objetivoMensual(),
+    comoCliente(jwt, async (c) => (await c.query<{ id: string; titulo: string; fecha: string; vendidas: number; aforo: number; estado: string }>('SELECT id, titulo, fecha, vendidas, aforo, estado FROM dk.admin_eventos() WHERE NOT muestra')).rows).catch(() => []),
+    esComercialActual(jwt),
   ]);
-  const avisos = evaluarCapacidad(capacidad);
-  // 0089: recordatorios de la ficha 360 («llámale el día X») de hoy, mañana o atrasados
-  const [recordatorios, montajes] = await Promise.all([recordatoriosPendientes(jwt).catch(() => []), montajesGratis(jwt).catch(() => null)]);
-  const hace30 = Date.now() - 30 * 864e5;
-  // 0061: las cuentas demo internas y las archivadas no cuentan en nada de esta portada.
-  const reales = clientes.filter((c) => !c.demoInterna && !c.archivadoEn);
-  const activos = reales.filter((c) => c.activo && c.estadoAcceso === 'activo');
+  const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
+  const reales = clientes.filter((c) => !c.demoInterna && !c.archivadoEn && !c.nombre.startsWith('PRUEBA'));
   const mrr = reales.reduce((s, c) => s + c.cuota, 0);
-  const pagan = reales.filter((c) => c.cuota > 0).length;
-  const altas = reales.filter((c) => new Date(c.creadoEn).getTime() > hace30);
-  const riesgo = reales.filter((c) => ['gracia', 'solo_lectura'].includes(c.estadoAcceso) || (c.bajaProgramadaEn && c.estadoAcceso !== 'suspendido'));
-  const atender = reales
-    .filter((c) => c.ticketsAbiertos + c.solicitudesQrPendientes > 0)
-    .map((c) => ({ c, d: [c.ticketsAbiertos && `${c.ticketsAbiertos} ticket${c.ticketsAbiertos > 1 ? 's' : ''}`, c.solicitudesQrPendientes && `${c.solicitudesQrPendientes} QR físico`].filter(Boolean).join(' · ') }));
-  const signature = activos.filter((c) => c.escaneosMes >= 600).map((c) => ({ c, d: `${c.escaneosMes} escaneos/mes` }));
-  const ampliado = activos.filter((c) => c.plan === 'basico' && c.escaneosMes >= 150).map((c) => ({ c, d: `${c.escaneosMes} escaneos/mes` }));
-  // Sin escaneos en 14 días (o desde el alta, si tiene más de 3 días): antes solo contaba a partir de 14 días de vida.
-  const dormidos = activos.filter((c) => c.escaneos14d === 0 && new Date(c.creadoEn).getTime() < Date.now() - 3 * 864e5)
-    .map((c) => ({ c, d: c.escaneosTotal === 0 ? 'nunca han escaneado su QR' : 'sin escaneos en 14 días' }));
-  const visitas = embudo.reduce((s, e) => s + Number(e.visitas), 0);
-  const pagos = embudo.reduce((s, e) => s + Number(e.pagados), 0);
-  const ingresos = embudo.reduce((s, e) => s + Number(e.pagados) * (PRODUCTOS_PAGO[e.producto]?.precio ?? 0), 0);
-  const hora = new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: 'numeric', hour12: false });
-  const saludo = Number(hora) < 13 ? 'Buenos días' : Number(hora) < 20 ? 'Buenas tardes' : 'Buenas noches';
+  const saludes = reales.filter((c) => pestanaDe(c, hoy) !== 'bajas').map((c) => ({ c, s: salud(c, hoy) }));
 
-  const kpis: [string, string, string][] = [
-    ['Ingreso mensual real', `${mrr.toLocaleString('es-ES', { maximumFractionDigits: 2 })} €`, `${pagan} cliente${pagan === 1 ? '' : 's'} que paga${pagan === 1 ? '' : 'n'} · sin IVA, sin pruebas ni demos`],
-    ['Clientes activos', String(activos.length), `${altas.length} altas en 30 días`],
-    ['En riesgo', String(riesgo.length), 'impago, solo lectura o baja programada'],
-    ['Por atender', String(atender.length), 'tickets y QR físicos'],
+  // (b) Embudo
+  const pros = (prospectos as { estado: string }[]).filter((p) => p.estado !== 'descartado' && p.estado !== 'cliente').length;
+  const enlace = saludes.filter((x) => x.s === 'espera').length;
+  const hace30 = Date.now() - 30 * 864e5;
+  const pagados = reales.filter((c) => c.activo && new Date(c.creadoEn).getTime() > hace30).length;
+  const activos = reales.filter((c) => c.activo && c.estadoAcceso === 'activo').length;
+  const embudo: [string, number, string][] = [
+    ['Prospectos', pros, '/admin-dkitchen/prospeccion'], ['Enlace enviado', enlace, '/admin-dkitchen/servicios/qr'],
+    ['Pagado (30 d)', pagados, '/admin-dkitchen/qr'], ['Activos', activos, '/admin-dkitchen/qr'],
   ];
+  const maxE = Math.max(1, ...embudo.map((e) => e[1]));
+
+  // (d) Servicios en marcha
+  const vivos = proyectos.filter((p) => !['descartado', 'cerrado', 'cerrada', 'mantenimiento'].includes(p.fase));
+  const proxEvento = eventos.filter((e) => new Date(e.fecha).getTime() > Date.now()).sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
+  const medidores = [
+    { t: 'Carta QR', a: saludes.filter((x) => x.c.activo && x.c.platos === 0).length, b: saludes.filter((x) => x.s === 'bien').length, an: 'por montar', bn: 'en marcha', href: '/admin-dkitchen/servicios/qr', clave: null as string | null },
+    { t: 'Signature', a: vivos.filter((p) => p.producto === 'signature' && ['solicitud', 'pagado', 'contrato_enviado', 'contrato_firmado', 'datos_recibidos'].includes(p.fase)).length, b: vivos.filter((p) => p.producto === 'signature' && ['en_construccion', 'primera_version', 'publicado'].includes(p.fase)).length, an: 'por arrancar', bn: 'en producción', href: '/admin-dkitchen/servicios/signature', clave: vivos.filter((p) => p.producto === 'signature' && p.siguiente_fecha).sort((a, b) => a.siguiente_fecha!.localeCompare(b.siguiente_fecha!))[0]?.siguiente_fecha ?? null },
+    { t: 'Experience', a: vivos.filter((p) => p.producto === 'experience' && ['solicitud', 'llamada', 'contrato_pago', 'concepto'].includes(p.fase)).length, b: eventos.filter((e) => e.estado === 'venta').length, an: 'preparando', bn: 'en venta', href: '/admin-dkitchen/servicios/experience', clave: proxEvento?.fecha?.slice(0, 10) ?? null },
+  ];
+  const hora = Number(new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: 'numeric', hour12: false }));
+  const saludo = hora < 13 ? 'Buenos días' : hora < 20 ? 'Buenas tardes' : 'Buenas noches';
+  const fechaHoy = new Date().toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', weekday: 'long', day: 'numeric', month: 'long' });
+  const delMes = mrr + dinero.mesCobrado;
+  const dia = (s: string) => new Date(s + 'T12:00:00Z').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 text-carbon sm:p-6 lg:p-10">
-      <header>
-        <p className="text-sm text-niebla">{saludo}</p>
-        <h1 className="font-display mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">Central</h1>
+    <div className="mx-auto max-w-6xl space-y-4 px-4 py-6 text-tinta sm:p-6 lg:p-10" data-testid="hoy">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-sm capitalize text-niebla">{saludo} · {fechaHoy}</p>
+          <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">Hoy</h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {recordatorios.length > 0 && <Link href="/admin-dkitchen/tareas" className="inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 border-oro bg-white px-4 text-sm font-bold"><span className="h-2 w-2 animate-pulse rounded-full bg-oro" />{recordatorios.length} recordatorio{recordatorios.length > 1 ? 's' : ''}</Link>}
+          <NuevoCliente esComercial={esComercial} />
+        </div>
       </header>
 
-      {recordatorios.length > 0 && (
-        <section className="rounded-[22px] border-2 border-oro bg-white p-5 sm:p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Recordatorios de clientes</p>
-          <ul className="mt-3 space-y-2">
-            {recordatorios.map((x) => (
-              <li key={x.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-papel px-4 py-3 text-sm">
-                <span className="min-w-0 flex-1"><span className="font-semibold">{x.local ?? 'Cliente'}</span> · <span className="text-niebla">{x.recordarEn}</span><span className="mt-0.5 block line-clamp-2 text-carbon">{x.cuerpo}</span></span>
-                <span className="flex shrink-0 gap-2">
-                  {x.restauranteId && <Link href={`/admin-dkitchen/qr/${x.restauranteId}#comunicacion`} className="rounded-full bg-tinta px-3 py-1.5 text-xs font-semibold text-white">Abrir ficha</Link>}
-                  <form action={recordatorioHechoAction}><input type="hidden" name="id" value={x.id} /><input type="hidden" name="volver" value="/admin-dkitchen/inicio" /><button className="rounded-full border border-acero px-3 py-1.5 text-xs font-semibold">Hecho</button></form>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <GuiaZona titulo="Inicio" ancla="inicio"
-        que="El estado del negocio de un vistazo y lo que necesita a una persona hoy. Las cuentas demo internas y las archivadas no cuentan aquí."
-        pasos={['Empieza por «Necesita a una persona»: pulsa «Abrir» en cada aviso y resuélvelo.', '«Proyectos que tocan hoy»: los proyectos con el siguiente paso para hoy o atrasado.', '«Sin actividad»: locales sin escaneos en 14 días; llámales.', 'Cada mañana a las 08:30 te llega este mismo resumen por correo (Más → Partes diarios).']} />
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {kpis.map(([t, v, d], i) => (
-          <div key={t} className={`${i === 0 ? 'col-span-2 bg-noche text-white lg:col-span-1' : 'bg-white'} rounded-[22px] border border-linea p-5`}>
-            <p className={`text-xs ${i === 0 ? 'text-white/55' : 'text-niebla'}`}>{t}</p>
-            <p className={`font-display mt-2 text-4xl font-semibold tabular-nums ${i === 0 ? 'text-oro' : i === 2 && riesgo.length ? 'text-vino' : ''}`}>{v}</p>
-            <p className={`mt-1 text-xs ${i === 0 ? 'text-white/45' : 'text-ceniza'}`}>{d}</p>
+      <div className="grid gap-4 lg:grid-cols-5">
+        {/* (a) Ingresos en vivo */}
+        <section className="dk-carta overflow-hidden rounded-[26px] bg-noche p-5 text-white lg:col-span-3" data-testid="hoy-ingresos">
+          <div className="flex flex-wrap items-center gap-5">
+            <Link href="/admin-dkitchen/qr" className="relative grid place-items-center" aria-label="Ver clientes que pagan">
+              <Anillo seguro={delMes} pendiente={dinero.pendiente} objetivo={objetivo} />
+              <span className="absolute text-center"><b className="cv-cifra block font-display text-2xl">{Math.round((delMes / objetivo) * 100)} %</b><span className="text-[10px] uppercase tracking-[0.18em] text-white/60">del objetivo</span></span>
+            </Link>
+            <div className="min-w-0 flex-1 space-y-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-oro">Ingresos de {new Date().toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', month: 'long' })}</p>
+              <p className="font-display text-4xl font-bold"><span className="cv-cifra">{eur(delMes)}</span> <span className="text-base font-normal text-white/50">/ {eur(objetivo)}</span></p>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                <span><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-oro" />Cuotas {eur(mrr)}/mes · cobrado {eur(dinero.mesCobrado)}</span>
+                <span className="text-white/70"><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-oro/35" />Pendiente {eur(dinero.pendiente)} en {dinero.nPendientes} enlace{dinero.nPendientes === 1 ? '' : 's'}</span>
+              </div>
+              <details className="text-xs text-white/50"><summary className="cursor-pointer">Cambiar objetivo</summary>
+                <form action={objetivoAction} className="mt-2 flex gap-2"><input name="euros" inputMode="numeric" defaultValue={objetivo} className="w-28 rounded-full bg-white/10 px-3 py-2 text-white" /><button className="rounded-full bg-oro px-4 py-2 font-bold text-noche">Guardar</button></form>
+              </details>
+            </div>
           </div>
-        ))}
+          <div className="mt-4">
+            <Grafica dias={dinero.dias} />
+            <p className="mt-1 flex justify-between text-[11px] text-white/45"><span>hace 30 días</span><span>{dinero.ok ? 'cobrado por Stripe, día a día' : 'Stripe no respondió: reintenta en un momento'}</span><span>hoy</span></p>
+          </div>
+        </section>
+
+        {/* (b) Embudo */}
+        <section className="dk-carta rounded-[26px] bg-white p-5 shadow-[0_20px_60px_-40px_rgba(62,5,21,.5)] lg:col-span-2" style={{ ['--i' as string]: 1 }} data-testid="hoy-embudo">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vino">Embudo</p>
+          <ol className="mt-3 space-y-2.5">
+            {embudo.map(([t, n, href], i) => {
+              const conv = i > 0 && embudo[i - 1][1] ? Math.round((n / embudo[i - 1][1]) * 100) : null;
+              return (
+                <li key={t}>
+                  <Link href={href} className="group block">
+                    <span className="flex items-baseline justify-between text-sm"><span className="font-semibold group-hover:text-vino">{t}</span><span><b className="cv-cifra font-display text-lg">{n}</b>{conv !== null && <span className="ml-2 text-xs text-niebla">{conv} %</span>}</span></span>
+                    <span className="dk-barra-prog mt-1 block h-3 overflow-hidden rounded-full bg-papel" style={{ marginLeft: `${i * 6}%`, marginRight: `${i * 6}%` }}><span style={{ width: `${Math.max(4, (n / maxE) * 100)}%`, animationDelay: `${i * 90}ms` }} /></span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
       </div>
 
-      <PanelMando m={mando} />
+      <div className="grid gap-4 lg:grid-cols-5">
+        {/* (c) Mapa de salud */}
+        <section className="dk-carta rounded-[26px] bg-white p-5 shadow-[0_20px_60px_-40px_rgba(62,5,21,.5)] lg:col-span-2" style={{ ['--i' as string]: 2 }} data-testid="hoy-salud">
+          <div className="flex items-baseline justify-between"><p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vino">Salud de clientes</p><span className="text-xs text-niebla">{saludes.length} clientes</span></div>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {saludes.map(({ c, s }, i) => (
+              <Link key={c.restauranteId} href={`/admin-dkitchen/qr/${c.restauranteId}`} title={`${c.nombre} · ${NOMBRE_SALUD[s]}`}
+                className="dk-punto block h-5 w-5 rounded-full ring-offset-2 transition hover:scale-125 hover:ring-2" style={{ background: COLOR[s], ['--i' as string]: i % 40, ['--tw-ring-color' as string]: COLOR[s] }} />
+            ))}
+            {!saludes.length && <p className="text-sm text-niebla">Aún no hay clientes. Empieza con «+ Nuevo cliente».</p>}
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+            {(Object.keys(COLOR) as Salud[]).map((s) => (
+              <Link key={s} href={s === 'riesgo' ? '/admin-dkitchen/qr?pestana=riesgo' : s === 'espera' ? '/admin-dkitchen/servicios/qr' : '/admin-dkitchen/qr'} className="flex items-center gap-2 rounded-xl bg-papel px-3 py-2 hover:bg-linea">
+                <span className="h-3 w-3 rounded-full" style={{ background: COLOR[s] }} /><span className="flex-1">{NOMBRE_SALUD[s]}</span><b className="cv-cifra">{saludes.filter((x) => x.s === s).length}</b>
+              </Link>
+            ))}
+          </div>
+        </section>
 
-      <Link href={proyectos?.hoy ? '/admin-dkitchen/proyectos?hoy=1' : '/admin-dkitchen/proyectos'}
-        className={`${tarjeta} flex flex-wrap items-center justify-between gap-3 transition-colors hover:border-linea-fuerte ${proyectos?.hoy ? 'border-vino' : ''}`}>
-        <span>
-          <span className="block text-sm font-semibold">Proyectos que tocan hoy</span>
-          <span className="block text-xs text-niebla">{proyectos ? `${proyectos.abiertos} abiertos · ${proyectos.nuevos_7d} nuevos en 7 días · Signature, Experience, Auditoría, Dark Kitchen` : 'No se pudieron leer los proyectos.'}</span>
-        </span>
-        <span className={`font-display text-3xl font-semibold tabular-nums ${proyectos?.hoy ? 'text-vino' : ''}`}>{proyectos?.hoy ?? '—'}</span>
-      </Link>
-
-      <MontajesInicio m={montajes} />
-
-      <div className="grid gap-3 lg:grid-cols-3">
-        <div className="lg:col-span-2"><Lista titulo="Atender hoy" vacio="Nada pendiente. Todo al día." filas={atender} accion="Abre la ficha para responder o gestionar el envío." /></div>
-        <Link href="/admin-dkitchen/embudo" className={`${tarjeta} block transition-colors hover:border-[#D6D1CA]`}>
-          <p className="text-sm font-semibold">Pagos directos · 30 días</p>
-          <p className="font-display mt-3 text-4xl font-semibold tabular-nums">{pagos}</p>
-          <p className="mt-1 text-xs text-niebla">pagos de {visitas} visitas · {ingresos.toLocaleString('es-ES')} € + IVA</p>
-          <p className="mt-5 text-xs text-vino underline">Ver embudo</p>
-        </Link>
+        {/* (d) Servicios en marcha */}
+        <section className="grid gap-3 sm:grid-cols-3 lg:col-span-3" data-testid="hoy-servicios">
+          {medidores.map((m, i) => {
+            const total = Math.max(1, m.a + m.b);
+            return (
+              <Link key={m.t} href={m.href} style={{ ['--i' as string]: 3 + i }} className="dk-carta group flex flex-col rounded-[26px] bg-white p-5 shadow-[0_20px_60px_-40px_rgba(62,5,21,.5)] transition hover:shadow-[0_24px_60px_-30px_rgba(62,5,21,.55)]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vino">{m.t}</p>
+                <div className="relative mx-auto mt-3 h-20 w-36">
+                  <svg viewBox="0 0 120 64" className="h-full w-full" aria-hidden>
+                    <path d="M8,60 A52,52 0 0 1 112,60" fill="none" stroke="#EDEDEA" strokeWidth="12" strokeLinecap="round" />
+                    <path d="M8,60 A52,52 0 0 1 112,60" fill="none" stroke="#6E0C2B" strokeWidth="12" strokeLinecap="round" pathLength={1} strokeDasharray={`${m.b / total} 1`} className="dk-medidor" />
+                  </svg>
+                  <b className="cv-cifra absolute inset-x-0 bottom-0 text-center font-display text-2xl">{m.b}</b>
+                </div>
+                <p className="mt-2 text-center text-sm"><b>{m.b}</b> {m.bn} · <b>{m.a}</b> {m.an}</p>
+                <p className="mt-auto pt-2 text-center text-xs text-niebla">{m.clave ? `Próxima fecha: ${dia(m.clave)}` : 'Sin fechas próximas'}</p>
+              </Link>
+            );
+          })}
+        </section>
       </div>
-
-      <div className="grid gap-3 lg:grid-cols-3">
-        <Lista titulo="Listos para Signature" vacio="Ningún cliente supera 600 escaneos al mes todavía." filas={signature} accion="Umbral de la escalera: 600 escaneos/mes sostenidos." />
-        <Lista titulo="Listos para Local" vacio="Ningún Carta supera 150 escaneos al mes." filas={ampliado} />
-        <Lista titulo="Sin actividad" vacio="Todos los clientes activos tienen escaneos en los últimos 14 días." filas={dormidos} accion="Sin escaneos en 14 días: llámales o escríbeles antes de que se vayan (¿han puesto el QR en las mesas?)." />
-      </div>
-
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Lista titulo="En riesgo de baja" vacio="Ningún cliente en impago ni con baja programada." filas={riesgo.map((c) => ({ c, d: c.bajaProgramadaEn ? `baja el ${new Date(c.bajaProgramadaEn + 'T12:00:00Z').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}` : c.estadoAcceso === 'gracia' ? 'cobro fallido' : 'solo lectura' }))} />
-        <Lista titulo="Altas recientes" vacio="Sin altas en los últimos 30 días." filas={altas.map((c) => ({ c, d: new Date(c.creadoEn).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) }))} />
-      </div>
-      <section className={`${tarjeta} ${avisos.nivel === 'urgente' ? 'border-vino' : ''}`}>
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="text-sm font-semibold">Capacidad del sistema · Neon {PLAN_NEON.nombre}</p>
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${avisos.nivel === 'ok' ? 'bg-exito/15 text-exito' : avisos.nivel === 'aviso' ? 'bg-amber-500/15 text-amber-700' : 'bg-vino/10 text-vino'}`}>{avisos.nivel === 'ok' ? 'Holgado' : avisos.nivel === 'aviso' ? 'Preparar subida' : 'Subir ya'}</span>
-        </div>
-        <p className="mt-2 text-sm text-niebla">{avisos.texto}</p>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-papel"><div className="h-full rounded-full bg-vino" style={{ width: `${Math.min(100, Math.max(1, avisos.uso * 100))}%` }} /></div>
-        <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          {avisos.filas.map(([k, v]) => <div key={k}><dt className="text-xs text-ceniza">{k}</dt><dd className="font-medium tabular-nums">{v}</dd></div>)}
-        </dl>
-      </section>
     </div>
   );
 }

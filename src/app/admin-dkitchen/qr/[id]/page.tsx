@@ -180,7 +180,10 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
     : r.pago_fallido_desde || r.estado_acceso === 'solo_lectura' ? { t: 'Cobrar', href: '?tab=cobros#enlace' }
     : ficha.platos === 0 ? { t: 'Montar su carta', soporte: 'carta' }
     : { t: 'Entrar en su panel', soporte: '' };
-  const pasoSiguiente = (r as { siguiente_paso?: string | null }).siguiente_paso ?? (pendiente ? 'Esperando el pago de su enlace' : ficha.platos === 0 ? 'Subir su carta' : null);
+  const pasoGuardado = (r as { siguiente_paso?: string | null }).siguiente_paso ?? null;
+  const pasoSiguiente = pendiente ? 'Esperando el pago de su enlace'
+    : pasoGuardado && !(r.estado_acceso === 'activo' && /^Alta tramitada/i.test(pasoGuardado)) ? pasoGuardado
+    : ficha.platos === 0 ? 'Subir su carta' : null;
   const estadoChip = r.demo_interna ? ['Demo', 'bg-papel text-tinta'] : r.estado_acceso === 'suspendido' ? ['De baja', 'bg-red-100 text-red-700']
     : r.pago_fallido_desde ? ['Pago fallido', 'bg-red-100 text-red-700'] : cobro?.prueba_hasta ? ['En prueba', 'bg-oro/25 text-tinta']
     : pendiente ? ['Enlace enviado', 'bg-oro/25 text-tinta'] : r.estado_acceso === 'activo' ? ['Activo', 'bg-exito/15 text-exito'] : [r.estado_acceso, 'bg-papel text-tinta'];

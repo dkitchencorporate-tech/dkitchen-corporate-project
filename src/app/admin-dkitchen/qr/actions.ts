@@ -592,7 +592,7 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
     // dk.admin_crear_enlace solo admite extras del catálogo (0030): Signature, Experience y Auditoría
     // van por sus proyectos (webhook, metadata «servicios»); la Carta QR va por el plan (fallo 01/11).
     const enlaceId = await crearEnlace(jwt, restauranteId, {
-      plan: d.servicios.includes('qr') ? planElegido : null,
+      plan: planElegido, // la base exige plan o extras en cada enlace (enlaces_pago_check)
       servicios: d.servicios.includes('qr') && (d.puestaAPunto || d.montajeGratis) ? ['setup_esencial'] : [],
       primer: Math.round(baseHoyEuros * 100),
       mensual: Math.round(recurrenteEuros * 100),
