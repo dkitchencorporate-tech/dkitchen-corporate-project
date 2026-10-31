@@ -19,7 +19,11 @@ export const ZONAS: Zona[] = [
   { id: 'inicio', nombre: 'Inicio', icono: 'inicio', items: [{ nombre: 'Inicio', href: '/admin-dkitchen/inicio' }] },
   { id: 'clientes', nombre: 'Clientes', icono: 'carta', items: [
     { nombre: 'Clientes', href: '/admin-dkitchen/qr' }, { nombre: 'Proyectos', href: '/admin-dkitchen/proyectos' },
-    { nombre: 'Eventos (Experience)', href: '/admin-dkitchen/entradas' }, { nombre: 'Fundador', href: '/admin-dkitchen/fundador' }] },
+    { nombre: 'Fundador', href: '/admin-dkitchen/fundador' }] },
+  { id: 'servicios', nombre: 'Servicios', icono: 'servicio', items: [
+    { nombre: 'Carta QR', href: '/admin-dkitchen/servicios/qr' },
+    { nombre: 'Signature', href: '/admin-dkitchen/servicios/signature' },
+    { nombre: 'Experience', href: '/admin-dkitchen/servicios/experience' }] },
   { id: 'ventas', nombre: 'Ventas', icono: 'destello', items: [
     { nombre: 'Prospección', href: '/admin-dkitchen/prospeccion' }, { nombre: 'Oportunidades', href: '/admin-dkitchen/oportunidades' },
     { nombre: 'Embudo', href: '/admin-dkitchen/embudo' }, { nombre: 'Campañas y QR', href: '/admin-dkitchen/campanas' }, { nombre: 'Ofertas', href: '/admin-dkitchen/ofertas' },
@@ -70,7 +74,7 @@ export default function AdminSidebar({ cuenta, avisos = {}, esComercial = false 
   const ruta = usePathname();
   const actual = zonaDe(ruta)?.id;
   const zonasDisponibles = esComercial ? ZONAS.filter((z) => !['lanzamiento', 'conocimiento'].includes(z.id)) : ZONAS;
-  const enMovil = zonasDisponibles.filter((z) => z.id !== 'conocimiento');
+  const enMovil = zonasDisponibles.filter((z) => !['lanzamiento', 'conocimiento'].includes(z.id));
 
   return (
     <>
@@ -121,6 +125,17 @@ export default function AdminSidebar({ cuenta, avisos = {}, esComercial = false 
             <p className="text-xs text-niebla">Tu cuenta</p>
             <div className="mt-3"><OpcionesCuenta cuenta={cuenta} alElegir={() => setMas(false)} /></div>
             <hr className="my-4 border-linea" />
+            {!esComercial && (
+              <>
+                <p className="text-xs text-niebla">Lanzamiento</p>
+                <ul className="mt-3 mb-4 grid gap-1.5">
+                  {ZONAS.find((z) => z.id === 'lanzamiento')?.items.map((m) => (
+                    <li key={m.href}><Link href={m.href} onClick={() => setMas(false)} className={`block rounded-2xl px-4 py-3 text-sm font-medium ${activoEn(ruta, m.href) ? 'bg-tinta text-white' : 'bg-papel text-carbon'}`}>{m.nombre}</Link></li>
+                  ))}
+                </ul>
+                <hr className="my-4 border-linea" />
+              </>
+            )}
             <p className="text-xs text-niebla">Conocimiento</p>
             <ul className="mt-3 grid gap-1.5">
               {ZONAS.find((z) => z.id === 'conocimiento')!.items.map((m) => (
