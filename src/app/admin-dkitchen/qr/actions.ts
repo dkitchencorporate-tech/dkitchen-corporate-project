@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { crearCuentaCliente, enviarEnlaceDeContrasena } from '@/lib/neon-auth';
 import { enviarBienvenidaQr } from '@/lib/bienvenida';
 import { comoAprovisionamiento } from '@/lib/db';
-import { crearCheckoutEnlaceAdmin } from '@/lib/payments/cobros';
+import { crearCheckoutEnlaceAdmin, asegurarCupon } from '@/lib/payments/cobros';
 import { exigirAdmin } from '@/lib/guard-admin';
 import {
   cambiarEstadoCliente, cambiarPlanCliente, regalarTodo, cargarCartaDemo, crearEnlace, fijarUrlEnlace, anularEnlace, fichaCliente, responderTicket, cambiarEstadoSolicitudQr, guardarDisenoCentral, adminServicio, adminConexionTpv,
@@ -566,35 +566,48 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
     }
   }
 
-  // B. Signature
-  // B2.4: Signature entrada de 700 € o 2 cuotas de 375 €. Fundador Signature: 500 € pago único (sin cuotas) + 69 €/mes
+  let mesesGratisSignature: number | undefined;
+  let cuponSignature: string | undefined;
+  let faseSignature: string | undefined;
+
+  // B. Signature (C3: lógica reutilizada de cobros.ts)
   if (d.servicios.includes('signature')) {
     if (esFundadorSolicitado) {
       const ef = await estadoFundador();
       if (!ef || !ef.abierto || ef.quedan <= 0) {
         return { ok: false, error: 'El programa Fundador está cerrado o no quedan plazas disponibles para Signature.' };
       }
-      desglose.push({ concepto: 'Signature · Entrada Fundador (pago único)', importeEuros: FUNDADOR.signature.entrada });
-      baseHoyEuros += FUNDADOR.signature.entrada;
+      const fs = FUNDADOR.signature;
+      desglose.push({ concepto: 'Signature · Entrada Fundador (pago único)', importeEuros: fs.entrada });
+      baseHoyEuros += fs.entrada;
       if (!d.servicios.includes('qr')) {
-        recurrenteEuros = FUNDADOR.signature.mensual;
+        recurrenteEuros = BASE_OPERATIVA.mantenimiento.mensual; // 99 €
         intervaloMeses = 1;
+        mesesGratisSignature = BASE_OPERATIVA.mantenimiento.mesesGratis; // 2 meses incluidos, empieza en mes 3
+        cuponSignature = `dk_fundador_signature_${BASE_OPERATIVA.mantenimiento.mensual - fs.mensual}x${fs.meses}`;
+        await asegurarCupon(cuponSignature, {
+          nombre: `Fundador Signature ${fs.mensual} €/mes`,
+          centimos: (BASE_OPERATIVA.mantenimiento.mensual - fs.mensual) * 100,
+          meses: fs.meses,
+        });
       }
     } else if (d.modalidadTarifa === 'cuotas') {
-      const cuotaEntrada = BASE_OPERATIVA.fraccionado.importeCuota;
-      desglose.push({ concepto: `Signature · 1.ª cuota de entrada (${BASE_OPERATIVA.fraccionado.cuotas} × ${cuotaEntrada} €)`, importeEuros: cuotaEntrada });
-      baseHoyEuros += cuotaEntrada;
+      const { cuotas, importeCuota } = BASE_OPERATIVA.fraccionado;
+      desglose.push({ concepto: `Signature · 1.ª cuota de entrada (${cuotas} × ${importeCuota} €)`, importeEuros: importeCuota });
+      baseHoyEuros += importeCuota;
       if (!d.servicios.includes('qr')) {
-        recurrenteEuros = BASE_OPERATIVA.mantenimiento.mensual;
+        recurrenteEuros = importeCuota;
         intervaloMeses = 1;
+        faseSignature = 'cuotas';
       }
     } else {
       const entradaNormal = BASE_OPERATIVA.pagoUnico;
       desglose.push({ concepto: 'Signature · Entrada (pago único)', importeEuros: entradaNormal });
       baseHoyEuros += entradaNormal;
       if (!d.servicios.includes('qr')) {
-        recurrenteEuros = BASE_OPERATIVA.mantenimiento.mensual;
+        recurrenteEuros = BASE_OPERATIVA.mantenimiento.mensual; // 99 €
         intervaloMeses = 1;
+        mesesGratisSignature = BASE_OPERATIVA.mantenimiento.mesesGratis; // 2 meses incluidos, empieza en mes 3
       }
     }
   }
@@ -684,7 +697,7 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
       nota: notaCobro,
     });
 
-    // B2.5: Misma convención de IVA: tanto primerCentimos como mensualCentimos van sin IVA (centimos base)
+    // B2.5 & C3: Convención sin IVA + soporte de mesesGratis, cupon y cuotas de Signature
     const chk = await crearCheckoutEnlaceAdmin({
       enlaceId,
       restauranteId,
@@ -694,6 +707,9 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
       primerCentimos: Math.round(baseHoyEuros * 100),
       mensualCentimos: Math.round(recurrenteEuros * 100),
       intervaloMeses,
+      mesesGratis: mesesGratisSignature,
+      cupon: cuponSignature,
+      fase: faseSignature,
       origen: 'https://dkitchencorporate.es',
     });
 
