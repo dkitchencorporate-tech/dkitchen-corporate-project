@@ -30,7 +30,9 @@ export interface ClienteQr {
   cuota: number;
   tutorialPaso: number;
   tutorialCompletado: boolean;
-  // 0110: comercial, ciudad, servicios y siguiente paso
+  // 0110: comercial (uuid identidad), nombre comercial, ciudad, servicios y siguiente paso
+  comercialId?: string | null;
+  comercialNombre?: string | null;
   comercial?: string | null;
   ciudad?: string | null;
   direccion?: string | null;
