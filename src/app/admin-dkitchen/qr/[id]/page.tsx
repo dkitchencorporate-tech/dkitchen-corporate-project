@@ -153,6 +153,8 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
   const eventosSeg = seguimiento ? await eventosSeguimiento(jwt, id).catch(() => []) : [];
   // Enlace cliente ↔ proyectos (fallo 10): Signature, Experience, Auditoría… del mismo correo.
   const proyectos = ficha.email ? (await listarProyectos(jwt, {}).catch(() => [])).filter((p) => p.email.toLowerCase() === ficha.email!.toLowerCase()) : [];
+  const proyectosSig = proyectos.filter((p) => p.producto === 'signature');
+  const proyectosExp = proyectos.filter((p) => p.producto === 'experience');
   // Pack de idiomas: DKitchen traduce aquí la carta del cliente (0028).
   const conIdiomas = servicios.some((x) => x.servicio === 'idiomas');
   const [cartaCliente, traducciones] = conIdiomas

@@ -19,7 +19,8 @@ import { cancelarTodoAlFinalDelPeriodo, reanudarTodo } from '@/lib/payments/stri
 import { enviarCorreoCliente, enviarCorreoInterno, escaparHtml, escaparTexto } from '@/lib/email';
 import { cifrar } from '@/lib/cifrado';
 import { guardarTraducciones, type Traduccion } from '@/lib/idiomas';
-import { esPlanQr, nombrePlan } from '@/lib/pricing-config';
+import { esPlanQr, nombrePlan, QR_MENU, FUNDADOR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES } from '@/lib/pricing-config';
+import { identidadActual } from '@/lib/sesion';
 
 /**
  * Acciones del super admin. Doble cerrojo: exigirAdmin() aquí y dk.es_admin()
