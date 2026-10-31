@@ -1,4 +1,4 @@
-import { exigirAdmin } from '@/lib/guard-admin';
+﻿import { exigirAdmin } from '@/lib/guard-admin';
 import { administradores } from '@/lib/buzon';
 import GuiaZona from '@/components/admin/GuiaZona';
 import { altaAdminAction, cambiarRolAdminAction, retirarAdminAction } from './actions';
@@ -78,7 +78,7 @@ export default async function Administradores({ searchParams }: { searchParams: 
                     <input type="hidden" name="id" value={a.id} />
                     <input type="hidden" name="email" value={a.email} />
                     <label className="flex items-center gap-1.5 text-niebla"><input type="checkbox" name="confirmo" value="si" required /> Confirmo</label>
-                    <button className="rounded-full border border-vino/40 px-3.5 py-1.5 font-semibold text-vino hover:bg-vino hover:text-white">Retirar</button>
+                    <button className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-vino/40 px-3.5 py-1.5 font-semibold text-vino hover:bg-vino hover:text-white">Retirar</button>
                   </form>
                 )}
               </div>
@@ -102,7 +102,7 @@ export default async function Administradores({ searchParams }: { searchParams: 
             </select>
           </label>
           <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="confirmo" value="si" required className="mt-1" /> Confirmo el alta de este miembro en el equipo de Central.</label>
-          <button className="rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white hover:bg-hondo">Añadir miembro</button>
+          <button className="w-full sm:w-auto inline-flex min-h-[44px] items-center justify-center rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white hover:bg-hondo">Añadir miembro</button>
         </form>
       </section>
     </div>

@@ -143,7 +143,7 @@ export default function AltaUnicaModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-noche/60 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-[28px] border border-linea bg-crema p-5 sm:p-8 shadow-2xl text-carbon my-auto max-h-[92vh] overflow-y-auto">
+      <div className="relative w-full max-w-2xl rounded-[28px] border border-linea bg-crema p-5 sm:p-8 pb-32 sm:pb-8 shadow-2xl text-carbon my-auto max-h-[92vh] overflow-y-auto" style={{ paddingBottom: 'max(6.5rem, calc(env(safe-area-inset-bottom, 0px) + 5.5rem))' }}>
         {/* Cabecera del modal */}
         <div className="flex items-center justify-between border-b border-linea pb-4">
           <div>
@@ -272,7 +272,7 @@ export default function AltaUnicaModal({
                 type="button"
                 disabled={!validarPaso1()}
                 onClick={() => setPaso(2)}
-                className="rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo disabled:opacity-40"
+                className="w-full sm:w-auto min-h-[44px] rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo disabled:opacity-40"
               >
                 Siguiente: ¿Qué contrata? →
               </button>
@@ -414,18 +414,18 @@ export default function AltaUnicaModal({
               </div>
             </div>
 
-            <div className="flex justify-between pt-4">
+            <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-between w-full pt-4">
               <button
                 type="button"
                 onClick={() => setPaso(1)}
-                className="rounded-full border border-linea bg-white px-5 py-2 text-xs font-bold text-carbon hover:bg-papel"
+                className="w-full sm:w-auto min-h-[44px] rounded-full border border-linea bg-white px-5 py-2.5 text-xs font-bold text-carbon hover:bg-papel"
               >
                 ← Atrás
               </button>
               <button
                 type="button"
                 onClick={() => setPaso(3)}
-                className="rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo"
+                className="w-full sm:w-auto min-h-[44px] rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo"
               >
                 Siguiente: ¿Cómo empieza? →
               </button>
@@ -629,11 +629,11 @@ export default function AltaUnicaModal({
               </label>
             )}
 
-            <div className="flex justify-between pt-4">
+            <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-between w-full pt-4">
               <button
                 type="button"
                 onClick={() => setPaso(2)}
-                className="rounded-full border border-linea bg-white px-5 py-2 text-xs font-bold text-carbon hover:bg-papel"
+                className="w-full sm:w-auto min-h-[44px] rounded-full border border-linea bg-white px-5 py-2.5 text-xs font-bold text-carbon hover:bg-papel"
               >
                 ← Atrás
               </button>
@@ -646,7 +646,7 @@ export default function AltaUnicaModal({
                   (montajeGratis && !aprobacionDireccionMontaje)
                 }
                 onClick={tramitarAlta}
-                className="rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo disabled:opacity-40"
+                className="w-full sm:w-auto min-h-[44px] rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo disabled:opacity-40"
               >
                 {pendiente ? 'Calculando en servidor…' : 'Revisar y generar propuesta →'}
               </button>
@@ -673,7 +673,7 @@ export default function AltaUnicaModal({
                 {resultado.desglose?.map((x, i) => (
                   <div key={i} className="flex justify-between text-carbon">
                     <span>{x.concepto}</span>
-                    <span className={`font-mono font-semibold ${x.importeEuros < 0 ? 'text-emerald-700' : ''}`}>
+                    <span className={`font-mono font-semibold whitespace-nowrap tabular-nums ${x.importeEuros < 0 ? 'text-emerald-700' : ''}`}>
                       {x.importeEuros} €
                     </span>
                   </div>
@@ -682,15 +682,15 @@ export default function AltaUnicaModal({
                 <div className="border-t border-linea pt-2 space-y-1 text-niebla">
                   <div className="flex justify-between">
                     <span>Base imponible:</span>
-                    <span className="font-mono">{resultado.baseEuros} €</span>
+                    <span className="font-mono whitespace-nowrap tabular-nums">{resultado.baseEuros} €</span>
                   </div>
                   <div className="flex justify-between">
                     <span>IVA (21 %):</span>
-                    <span className="font-mono">{resultado.ivaEuros} €</span>
+                    <span className="font-mono whitespace-nowrap tabular-nums">{resultado.ivaEuros} €</span>
                   </div>
                   <div className="flex justify-between border-t border-linea pt-1.5 text-base font-bold text-vino">
                     <span>Total a pagar hoy:</span>
-                    <span className="font-mono text-xl">{resultado.totalHoyEuros} €</span>
+                    <span className="font-mono text-xl whitespace-nowrap tabular-nums">{resultado.totalHoyEuros} €</span>
                   </div>
                 </div>
               </div>
@@ -706,7 +706,7 @@ export default function AltaUnicaModal({
                     )}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-xs font-bold text-white shadow hover:bg-emerald-700"
+                    className="flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-xs font-bold text-white shadow hover:bg-emerald-700 text-center"
                   >
                     <span>💬</span> Enviar resumen por WhatsApp
                   </a>
@@ -714,19 +714,19 @@ export default function AltaUnicaModal({
                   <button
                     type="button"
                     onClick={copiarEnlace}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-linea bg-white px-4 py-3 text-xs font-bold text-carbon hover:bg-papel shadow-sm"
+                    className="flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-linea bg-white px-4 py-3 text-xs font-bold text-carbon hover:bg-papel shadow-sm"
                   >
                     <span>{copiado ? '✓' : '📋'}</span> {copiado ? '¡Enlace copiado!' : 'Copiar enlace de pago'}
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between rounded-xl bg-papel p-3 text-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-xl bg-papel p-3 text-xs">
                   <span className="text-niebla">Enviar propuesta formal por correo electrónico:</span>
                   <button
                     type="button"
                     disabled={correoEnviado || pendiente}
                     onClick={enviarCorreoPropuesta}
-                    className="rounded-lg bg-vino px-3 py-1.5 font-bold text-white hover:bg-hondo disabled:opacity-50"
+                    className="min-h-[44px] rounded-lg bg-vino px-3 py-1.5 font-bold text-white hover:bg-hondo disabled:opacity-50"
                   >
                     {correoEnviado ? '✓ Correo enviado' : 'Enviar por correo'}
                   </button>
@@ -738,11 +738,11 @@ export default function AltaUnicaModal({
               </div>
             )}
 
-            <div className="flex justify-between pt-4 border-t border-linea">
+            <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-between w-full pt-4 border-t border-linea">
               <button
                 type="button"
                 onClick={() => setPaso(3)}
-                className="rounded-full border border-linea bg-white px-5 py-2 text-xs font-bold text-carbon hover:bg-papel"
+                className="w-full sm:w-auto min-h-[44px] rounded-full border border-linea bg-white px-5 py-2.5 text-xs font-bold text-carbon hover:bg-papel"
               >
                 ← Volver a condiciones
               </button>
@@ -754,7 +754,7 @@ export default function AltaUnicaModal({
                     router.push(`/admin-dkitchen/qr/${resultado.restauranteId}`);
                   }
                 }}
-                className="rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo"
+                className="w-full sm:w-auto min-h-[44px] rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo"
               >
                 Finalizar y ver ficha →
               </button>

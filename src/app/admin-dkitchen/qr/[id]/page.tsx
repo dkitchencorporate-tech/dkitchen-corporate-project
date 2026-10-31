@@ -257,7 +257,7 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
           {proyectosSig.length === 0 ? (
             <div className="rounded-xl border border-dashed border-linea p-8 text-center space-y-2">
               <p className="text-sm font-semibold text-carbon">Este cliente aún no tiene app Signature</p>
-              <p className="text-xs text-niebla">Prepara una propuesta para su propia app nativa o PWA desde 500 € Fundador o 1.650 € estándar.</p>
+              <p className="text-xs text-niebla">Prepara una propuesta para su propia app nativa o PWA desde 500 € Fundador o 700 € (o 2 cuotas de 375 €).</p>
               <Link href={`/admin-dkitchen/qr/${id}?tab=cobros#enlace`} className="inline-block mt-2 rounded-full bg-vino px-4 py-2 text-xs font-bold text-white">
                 Preparar enlace de pago Signature →
               </Link>

@@ -15,7 +15,7 @@ export default function NuevoCliente() {
       <button
         type="button"
         onClick={() => setAbierto(true)}
-        className="inline-flex items-center gap-1.5 rounded-full bg-vino px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo transition"
+        className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-full bg-vino px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo transition"
       >
         + Nuevo cliente
       </button>
