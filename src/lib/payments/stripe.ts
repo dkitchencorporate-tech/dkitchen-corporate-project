@@ -273,6 +273,57 @@ export async function crearFacturaUnica(cliente: string, lineas: Linea[], metada
   return factura.id as string;
 }
 
+/**
+ * Busca una factura abierta (status: 'open') del mismo cliente y producto/embudo
+ * creada en las últimas 24 horas cuyo importe coincida con el catálogo actual.
+ * Si el precio cambió o tiene más de 24 h, se anula (void) para no dejar facturas
+ * obsoletas abiertas. Si coincide y sigue vigente, se reutiliza su id (y se actualiza
+ * metadata si se proporciona).
+ */
+export async function buscarFacturaAbierta(
+  cliente: string,
+  filtroMeta: { clave: string; valor: string },
+  centimosBaseEsperados: number,
+  metaNueva?: Metadata
+): Promise<string | null> {
+  if (pagosPausados() || !cliente || cliente.startsWith(RESERVA)) return null;
+  try {
+    const lista = await stripe('GET', '/invoices', { customer: cliente, status: 'open', limit: 10 });
+    const facturas = (lista.data as ObjetoStripe[]) || [];
+    const ahora = Math.floor(Date.now() / 1000);
+    const unDia = 24 * 60 * 60;
+
+    for (const f of facturas) {
+      if (f.status !== 'open') continue;
+      if (f.metadata?.[filtroMeta.clave] !== filtroMeta.valor) continue;
+
+      const creada = Number(f.created ?? 0);
+      if (ahora - creada > unDia) {
+        await stripe('POST', `/invoices/${f.id}/void`).catch(() => {});
+        continue;
+      }
+
+      const subtotal = Number(f.subtotal ?? 0);
+      const totalEsperado = conIva(centimosBaseEsperados);
+      const coincideImporte = subtotal === Math.round(centimosBaseEsperados) || Number(f.amount_due ?? 0) === totalEsperado;
+
+      if (!coincideImporte) {
+        await stripe('POST', `/invoices/${f.id}/void`).catch(() => {});
+        continue;
+      }
+
+      if (metaNueva && Object.keys(metaNueva).length > 0) {
+        await stripe('POST', `/invoices/${f.id}`, { metadata: limpiar({ ...(f.metadata ?? {}), ...metaNueva }) }).catch(() => {});
+      }
+
+      return f.id as string;
+    }
+  } catch (e) {
+    console.error('Error buscando factura abierta en Stripe:', e);
+  }
+  return null;
+}
+
 export interface DatosSuscripcion {
   cliente: string;
   /** Cuota recurrente mensual (sin IVA). */

@@ -4,6 +4,7 @@ import type { DatosCheckoutQr, DatosCheckoutAuditoria, DatosCheckoutNucleoOperat
 import {
   asegurarCliente,
   crearFacturaUnica,
+  buscarFacturaAbierta,
   crearSuscripcion,
   asegurarCupon,
   finPruebaQr,
@@ -161,13 +162,17 @@ export async function crearCheckoutNucleoOperativo(datos: DatosCheckoutNucleoOpe
 
 export async function crearCheckoutAuditoria(datos: DatosCheckoutAuditoria): Promise<{ url: string }> {
   const cliente = await asegurarCliente({ email: datos.email, nombre: datos.nombreContacto, negocio: datos.restauranteNombre });
-  const id = await crearFacturaUnica(cliente, [{ producto: 'dk_auditoria', nombre: 'Auditoría de canales + Escandallo', centimos: AUDITORIA_CANALES.precioOferta * 100 }], {
+  const centimosBase = AUDITORIA_CANALES.precioOferta * 100;
+  const metaCobro = {
     producto: 'auditoria',
     email: datos.email,
     nombreContacto: datos.nombreContacto,
     restauranteNombre: datos.restauranteNombre ?? '',
     destino: '/qr/bienvenida?auditoria=ok',
-  }, 'Auditoría de canales + Escandallo');
+  };
+  const abierta = await buscarFacturaAbierta(cliente, { clave: 'producto', valor: 'auditoria' }, centimosBase, metaCobro);
+  if (abierta) return { url: urlPago(datos.origen, abierta) };
+  const id = await crearFacturaUnica(cliente, [{ producto: 'dk_auditoria', nombre: 'Auditoría de canales + Escandallo', centimos: centimosBase }], metaCobro, 'Auditoría de canales + Escandallo');
   return { url: urlPago(datos.origen, id) };
 }
 
@@ -187,8 +192,9 @@ export async function crearCheckoutProductoDirecto(datos: {
   detalle: string;
   origen: string;
   fraccionado?: { cuotas: number; importeCuota: number; dias: number; ref: string };
+  extra?: Record<string, string>;
 }): Promise<{ url: string }> {
-  const extra = { embudo: datos.id, detalle: datos.detalle };
+  const extra = { embudo: datos.id, detalle: datos.detalle, ...(datos.extra ?? {}) };
   const destino = `/pagar/gracias?p=${encodeURIComponent(datos.id)}`;
   if (datos.metadataPago === 'nucleo-operativo') {
     return crearSignature({
@@ -198,7 +204,8 @@ export async function crearCheckoutProductoDirecto(datos: {
     });
   }
   const cliente = await asegurarCliente({ email: datos.email, nombre: datos.nombreContacto, negocio: datos.restauranteNombre, telefono: datos.telefono });
-  const id = await crearFacturaUnica(cliente, [{ producto: `dk_${datos.id.replace(/[^a-z0-9]/gi, '_')}`, nombre: datos.titulo, centimos: Math.round(datos.precio * 100) }], {
+  const centimosBase = Math.round(datos.precio * 100);
+  const metaCobro = {
     producto: datos.metadataPago,
     email: datos.email,
     nombreContacto: datos.nombreContacto,
@@ -206,7 +213,10 @@ export async function crearCheckoutProductoDirecto(datos: {
     telefono: datos.telefono,
     destino,
     ...extra,
-  }, datos.titulo);
+  };
+  const abierta = await buscarFacturaAbierta(cliente, { clave: 'embudo', valor: datos.id }, centimosBase, metaCobro);
+  if (abierta) return { url: urlPago(datos.origen, abierta) };
+  const id = await crearFacturaUnica(cliente, [{ producto: `dk_${datos.id.replace(/[^a-z0-9]/gi, '_')}`, nombre: datos.titulo, centimos: centimosBase }], metaCobro, datos.titulo);
   return { url: urlPago(datos.origen, id) };
 }
 
@@ -241,9 +251,14 @@ export async function crearCheckoutServicio(datos: {
     destino: datos.destino ?? '/panel?pestana=modulos&pago=ok',
   };
   const linea = { producto: `dk_qr_${datos.servicio}`, nombre: `QR Menú · ${datos.nombre}`, centimos: Math.round(datos.precioCentimos) };
-  const id = datos.tipo === 'mensual'
-    ? await crearSuscripcion({ cliente, cuota: linea, metadata: meta })
-    : await crearFacturaUnica(cliente, [linea], meta, linea.nombre);
+  if (datos.tipo === 'mensual') {
+    const id = await crearSuscripcion({ cliente, cuota: linea, metadata: meta });
+    return { url: urlPago(datos.origen, id) };
+  }
+  const centimosBase = Math.round(datos.precioCentimos);
+  const abierta = await buscarFacturaAbierta(cliente, { clave: 'servicio', valor: datos.servicio }, centimosBase, meta);
+  if (abierta) return { url: urlPago(datos.origen, abierta) };
+  const id = await crearFacturaUnica(cliente, [linea], meta, linea.nombre);
   return { url: urlPago(datos.origen, id) };
 }
 
@@ -382,15 +397,19 @@ export async function crearCheckoutEnlaceAdmin(datos: {
   const primer = Math.round(datos.primerCentimos);
   const mensual = Math.round(datos.mensualCentimos);
   const dias = Math.max(0, Math.round(datos.diasGratis ?? 0));
-  const id = mensual > 0
-    ? await crearSuscripcion({
-        cliente,
-        cuota: { producto: 'dk_enlace_cuota', nombre: 'DKitchen · Cuota mensual acordada', centimos: mensual },
-        hoy: primer > 0 ? [{ producto: 'dk_enlace_primer', nombre: 'DKitchen · Primer cobro acordado', centimos: primer }] : undefined,
-        finPrueba: dias > 0 ? dentroDeDias(dias) : dentroDeMeses(1),
-        metadata: meta,
-      })
-    : await crearFacturaUnica(cliente, [{ producto: 'dk_enlace_unico', nombre: concepto, centimos: primer }], meta, concepto);
+  if (mensual > 0) {
+    const id = await crearSuscripcion({
+      cliente,
+      cuota: { producto: 'dk_enlace_cuota', nombre: 'DKitchen · Cuota mensual acordada', centimos: mensual },
+      hoy: primer > 0 ? [{ producto: 'dk_enlace_primer', nombre: 'DKitchen · Primer cobro acordado', centimos: primer }] : undefined,
+      finPrueba: dias > 0 ? dentroDeDias(dias) : dentroDeMeses(1),
+      metadata: meta,
+    });
+    return { url: urlPago(datos.origen, id) };
+  }
+  const abierta = await buscarFacturaAbierta(cliente, { clave: 'enlaceId', valor: datos.enlaceId }, primer, meta);
+  if (abierta) return { url: urlPago(datos.origen, abierta) };
+  const id = await crearFacturaUnica(cliente, [{ producto: 'dk_enlace_unico', nombre: concepto, centimos: primer }], meta, concepto);
   return { url: urlPago(datos.origen, id) };
 }
 

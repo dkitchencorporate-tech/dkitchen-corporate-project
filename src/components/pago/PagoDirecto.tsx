@@ -23,7 +23,29 @@ function anotar(producto: string, evento: string, s: string, segundos?: number) 
   } catch {}
 }
 
-export default function PagoDirecto({ producto, precio, boton, detalle = '', fraccionable }: { producto: string; precio: number; boton: string; detalle?: string; fraccionable?: { cuotas: number; importeCuota: number } }) {
+export interface DatosExperiencePago {
+  formato: string;
+  fecha: string;
+  aforo: number;
+  precioEntrada: number;
+  cocina: string;
+}
+
+export default function PagoDirecto({
+  producto,
+  precio,
+  boton,
+  detalle = '',
+  fraccionable,
+  experience,
+}: {
+  producto: string;
+  precio: number;
+  boton: string;
+  detalle?: string;
+  fraccionable?: { cuotas: number; importeCuota: number };
+  experience?: DatosExperiencePago;
+}) {
   const [enCuotas, setEnCuotas] = useState(false);
   const [estado, setEstado] = useState<'form' | 'enviando'>('form');
   const [error, setError] = useState('');
@@ -48,8 +70,25 @@ export default function PagoDirecto({ producto, precio, boton, detalle = '', fra
     const f = new FormData(e.currentTarget);
     setEstado('enviando'); setError('');
     try {
-      const r = await fetch('/api/pagar', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...Object.fromEntries(f), producto, detalle, fraccionado: Boolean(fraccionable && enCuotas) }) });
+      const r = await fetch('/api/pagar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...Object.fromEntries(f),
+          producto,
+          detalle,
+          fraccionado: Boolean(fraccionable && enCuotas),
+          ...(experience
+            ? {
+                formato: experience.formato,
+                fecha: experience.fecha,
+                aforo: experience.aforo,
+                precioEntrada: experience.precioEntrada,
+                cocina: experience.cocina,
+              }
+            : {}),
+        }),
+      });
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.url) { setError(j.error || 'No se pudo abrir el pago. Inténtalo de nuevo.'); setEstado('form'); return; }
       pagando.current = true;
@@ -78,7 +117,7 @@ export default function PagoDirecto({ producto, precio, boton, detalle = '', fra
       )}
       {fraccionable && enCuotas && <p className="text-xs text-niebla">Hoy pagas {fraccionable.importeCuota} € + IVA y la segunda cuota se cobra sola al mes siguiente ({fraccionable.cuotas * fraccionable.importeCuota} € en total).</p>}
       {error && <p role="alert" className="rounded-xl bg-vino/10 px-4 py-3 text-sm text-vino">{error}</p>}
-      <button type="submit" disabled={estado === 'enviando'} className="mt-1 rounded-full bg-vino px-7 py-4 text-[16px] font-semibold text-white disabled:opacity-60">
+      <button type="submit" disabled={estado === 'enviando'} aria-busy={estado === 'enviando'} className="mt-1 rounded-full bg-vino px-7 py-4 text-[16px] font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60">
         {estado === 'enviando' ? 'Abriendo el pago seguro…' : `${boton} · ${fraccionable && enCuotas ? fraccionable.importeCuota : precio} € + IVA${fraccionable && enCuotas ? ' hoy' : ''}`}
       </button>
       <p className="text-center text-xs text-ceniza">No se cobra nada ahora: te escribimos para darte de alta.</p>

@@ -199,6 +199,22 @@ async function renovacion(ctx: Contexto) {
 // Altas (primer cobro de cada producto)
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * Idempotencia de correos en el webhook (P0.2): evita que un reintento de Stripe
+ * envíe correos duplicados al cliente. Utiliza dk.marcar_correo_stripe.
+ */
+async function marcarCorreoEnviado(clave: string): Promise<boolean> {
+  try {
+    return await comoAprovisionamiento(async (c) => {
+      const res = await c.query<{ ok: boolean }>('SELECT dk.marcar_correo_stripe($1) AS ok', [clave]);
+      return res.rows[0]?.ok === true;
+    });
+  } catch (e) {
+    console.warn('marcarCorreoEnviado: comprobación omitida (migración 0109 pendiente):', e);
+    return true;
+  }
+}
+
 async function alta(ctx: Contexto) {
   const { meta } = ctx;
 
@@ -208,24 +224,77 @@ async function alta(ctx: Contexto) {
   if (productoDirecto) {
     await comoAprovisionamiento((c) => c.query('SELECT dk.embudo_pagado($1)', [productoDirecto.id])).catch((e) => console.error('Embudo: no se pudo anotar el pago', e));
     if (productoDirecto.metadataPago !== 'nucleo-operativo' && meta.email) {
-      await enviarCorreoCliente(meta.email, `Pago confirmado · ${productoDirecto.nombre}`,
-        `<p>Hola ${escaparHtml(meta.nombreContacto)},</p>
-         <p>Hemos recibido tu pago de <strong>${euros(ctx.importe)}</strong> (IVA incluido) por <strong>${escaparHtml(productoDirecto.nombre)}</strong>. Stripe te envía la factura en un correo aparte. Gracias por confiar en DKitchen.</p>
-         <p><strong>Qué pasa ahora:</strong></p>
-         <ul>${productoDirecto.despues.map(([c, t]) => `<li><strong>${escaparHtml(c)}:</strong> ${escaparHtml(t)}</li>`).join('')}</ul>
-         <p>Si tienes cualquier duda, responde a este correo.</p><p>Un saludo,<br>El equipo de DKitchen</p>`).catch((e) => console.error('Pago directo: confirmación no enviada', e));
+      const claveCorreo = `confirmacion:${ctx.idEvento}`;
+      const debeEnviar = await marcarCorreoEnviado(claveCorreo);
+      if (debeEnviar) {
+        let detalleEvento = '';
+        if (meta.producto === 'experience' && meta.formato_nombre) {
+          detalleEvento = `<div style="margin:16px 0;padding:16px;background:#FAF6F0;border:1px solid #E5DCD0;border-radius:12px;">
+            <p style="margin:0 0 8px;font-weight:600;color:#5A0F1F;">Resumen del evento contratado:</p>
+            <ul style="margin:0;padding-left:20px;color:#333;">
+              <li><strong>Formato:</strong> ${escaparHtml(meta.formato_nombre)}</li>
+              ${meta.fecha_evento ? `<li><strong>Fecha deseada:</strong> ${escaparHtml(meta.fecha_evento)}</li>` : ''}
+              ${meta.aforo ? `<li><strong>Aforo previsto:</strong> ${escaparHtml(meta.aforo)} personas</li>` : ''}
+              ${meta.cocina ? `<li><strong>Cocina:</strong> ${escaparHtml(meta.cocina)}</li>` : ''}
+              ${meta.precio_entrada ? `<li><strong>Precio estimado entrada:</strong> ${escaparHtml(meta.precio_entrada)} €</li>` : ''}
+              ${meta.taquilla_estimada ? `<li><strong>Taquilla estimada:</strong> ${escaparHtml(meta.taquilla_estimada)} € (la recaudas tú al 100%)</li>` : ''}
+            </ul>
+          </div>`;
+        }
+        await enviarCorreoCliente(meta.email, `Pago confirmado · ${productoDirecto.nombre}`,
+          `<p>Hola ${escaparHtml(meta.nombreContacto)},</p>
+           <p>Hemos recibido tu pago de <strong>${euros(ctx.importe)}</strong> (IVA incluido) por <strong>${escaparHtml(productoDirecto.nombre)}</strong>. Stripe te envía la factura en un correo aparte. Gracias por confiar en DKitchen.</p>
+           ${detalleEvento}
+           <p><strong>Qué pasa ahora:</strong></p>
+           <ul>${productoDirecto.despues.map(([c, t]) => `<li><strong>${escaparHtml(c)}:</strong> ${escaparHtml(t)}</li>`).join('')}</ul>
+           <p>Si tienes cualquier duda, responde a este correo.</p><p>Un saludo,<br>El equipo de DKitchen</p>`).catch((e) => console.error('Pago directo: confirmación no enviada', e));
+      } else {
+        console.info(`Webhook Stripe: confirmación al cliente omitida (evento ${ctx.idEvento} ya procesado).`);
+      }
     }
   }
 
   if (PRODUCTOS_WEBHOOK_GENERICO.includes(String(meta.producto))) {
     if (meta.producto === 'experience' && meta.email) {
-      await crearProyecto('experience', 'pago', altaProyecto(ctx));
+      const datosExp = meta.formato ? {
+        formato: meta.formato,
+        formato_nombre: meta.formato_nombre || meta.formato,
+        fecha: meta.fecha_evento || null,
+        aforo: meta.aforo ? Number(meta.aforo) : null,
+        precio_entrada: meta.precio_entrada ? Number(meta.precio_entrada) : null,
+        cocina: meta.cocina || null,
+        taquilla_estimada: meta.taquilla_estimada ? Number(meta.taquilla_estimada) : null,
+      } : undefined;
+
+      await crearProyecto('experience', 'pago', altaProyecto(ctx, {
+        datos: datosExp,
+        texto: meta.fecha_evento
+          ? `Pago de ${euros(ctx.importe)} · ${meta.formato_nombre || 'Experience'} · ${meta.fecha_evento} (${meta.aforo ?? '?'} pax)`
+          : `Pago de ${euros(ctx.importe)} (Stripe ${ctx.idPago})`,
+      }));
       // 0088: cuenta + acceso a su zona de Experience (/mi-experience) con el briefing y la llamada
       await darAccesoExperience(meta.email, meta.nombreContacto);
     }
     if (productoDirecto) {
+      const filasAviso: [string, unknown][] = [
+        ['Nombre', meta.nombreContacto],
+        ['Negocio', meta.restauranteNombre],
+        ['Correo', meta.email],
+        ['Teléfono', meta.telefono],
+        ['Factura (Stripe)', ctx.idPago],
+      ];
+      if (meta.producto === 'experience' && meta.formato_nombre) {
+        filasAviso.push(
+          ['Formato', meta.formato_nombre],
+          ['Fecha', meta.fecha_evento],
+          ['Aforo', `${meta.aforo} plazas`],
+          ['Cocina', meta.cocina],
+          ['Precio entrada', `${meta.precio_entrada} €`],
+          ['Taquilla est.', `${meta.taquilla_estimada} €`]
+        );
+      }
       await enviarCorreoInterno(`PAGO DIRECTO (${euros(ctx.importe)}): ${productoDirecto.nombre} · ${meta.nombreContacto || meta.email}`,
-        `<h2>${escaparHtml(productoDirecto.nombre)} pagado</h2>${filasCorreo([['Nombre', meta.nombreContacto], ['Negocio', meta.restauranteNombre], ['Correo', meta.email], ['Teléfono', meta.telefono], ['Factura (Stripe)', ctx.idPago]])}`).catch(() => {});
+        `<h2>${escaparHtml(productoDirecto.nombre)} pagado</h2>${filasCorreo(filasAviso)}`).catch(() => {});
     }
     return ok();
   }

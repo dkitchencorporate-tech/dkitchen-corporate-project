@@ -131,3 +131,91 @@ export const FORMATOS_EXPERIENCE: FormatoExperience[] = [
 ];
 
 export const formatoPorSlug = (slug: string) => FORMATOS_EXPERIENCE.find((f) => f.slug === slug);
+
+export const COCINAS = [
+  'Mediterránea',
+  'Española tradicional',
+  'Italiana',
+  'Asiática',
+  'Latina',
+  'Hamburguesas o alitas',
+  'Tapas y bar',
+  'Cafetería o brunch',
+  'De autor',
+  'Otra',
+] as const;
+
+export type TipoCocina = (typeof COCINAS)[number];
+
+/** Fecha YYYY-MM-DD en hora de Madrid, `dias` a partir de hoy. */
+export function fechaMadrid(dias: number): string {
+  const d = new Date(Date.now() + dias * 86_400_000);
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+}
+
+export interface DatosExperienceValidados {
+  formato: FormatoExperience;
+  fecha: string;
+  aforo: number;
+  precioEntrada: number;
+  cocina: string;
+}
+
+/**
+ * Valida de forma estricta en el servidor los datos del evento configurado
+ * antes de crear el cobro en Stripe o registrar el proyecto.
+ */
+export function validarDatosExperience(input: {
+  formato?: unknown;
+  fecha?: unknown;
+  aforo?: unknown;
+  precioEntrada?: unknown;
+  cocina?: unknown;
+}): { ok: true; datos: DatosExperienceValidados } | { ok: false; error: string } {
+  const slugOcodigo = String(input.formato ?? '').trim().toLowerCase();
+  const formato = FORMATOS_EXPERIENCE.find((f) => f.slug.toLowerCase() === slugOcodigo || f.codigo.toLowerCase() === slugOcodigo);
+  if (!formato) {
+    return { ok: false, error: 'Elige un formato de evento válido de DKitchen Experience.' };
+  }
+
+  const fecha = String(input.fecha ?? '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+    return { ok: false, error: 'La fecha debe tener el formato AAAA-MM-DD.' };
+  }
+
+  const minima = fechaMadrid(ANTELACION_DIAS);
+  const maxima = fechaMadrid(365);
+  if (fecha < minima || fecha > maxima) {
+    return { ok: false, error: `La fecha debe ser entre el ${minima} y el ${maxima} (mínimo ${ANTELACION_DIAS} días de antelación).` };
+  }
+
+  const aforo = Number(input.aforo);
+  const minAforo = Math.max(5, Math.floor(formato.aforo[0] / 10) * 5);
+  const maxAforo = formato.aforo[1] * 2;
+  if (!Number.isInteger(aforo) || aforo < minAforo || aforo > maxAforo) {
+    return { ok: false, error: `El aforo para ${formato.nombre} debe ser un número entero entre ${minAforo} y ${maxAforo} personas.` };
+  }
+
+  const precioEntrada = Number(input.precioEntrada);
+  const minEntrada = Math.max(5, Math.floor(formato.entrada[0] / 2));
+  const maxEntrada = formato.entrada[1] * 2;
+  if (!Number.isInteger(precioEntrada) || precioEntrada < minEntrada || precioEntrada > maxEntrada) {
+    return { ok: false, error: `El precio de la entrada para ${formato.nombre} debe ser un número entero entre ${minEntrada} € y ${maxEntrada} €.` };
+  }
+
+  const cocina = String(input.cocina ?? '').trim();
+  if (!cocina || cocina.length > 60) {
+    return { ok: false, error: 'El tipo de cocina no es válido.' };
+  }
+
+  return {
+    ok: true,
+    datos: {
+      formato,
+      fecha,
+      aforo,
+      precioEntrada,
+      cocina,
+    },
+  };
+}

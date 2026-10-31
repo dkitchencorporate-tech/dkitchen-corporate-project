@@ -1,27 +1,7 @@
 'use client';
 
 import { useEffect, useId, useState } from 'react';
-import { ANTELACION_DIAS } from '@/lib/experience-formatos';
-
-/**
- * Configurador de cada landing de Experience (06/10/2026): tipo de cocina,
- * fecha (mínimo 21 días), aforo y precio de la entrada → resumen → pago en
- * /pagar/experience. El formato, la fecha y el aforo viajan al pago en
- * `modelo` (letras, números, espacios y guiones); todo queda además en el
- * navegador (con versión y hora) para rellenar el briefing tras pagar.
- *
- * Revisión de diseño (06/10): la fecha se calcula en hora de Madrid y solo en
- * el navegador (la página es estática: calcularla en el build daba un día
- * desfasado y un aviso de hidratación); sliders con valor accesible y área
- * táctil de 44 px; resumen anunciado al lector de pantalla.
- */
-const COCINAS = ['Mediterránea', 'Española tradicional', 'Italiana', 'Asiática', 'Latina', 'Hamburguesas o alitas', 'Tapas y bar', 'Cafetería o brunch', 'De autor', 'Otra'];
-
-/** Fecha YYYY-MM-DD en hora de Madrid, `dias` a partir de hoy. */
-const fechaMadrid = (dias: number) => {
-  const d = new Date(Date.now() + dias * 86_400_000);
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
-};
+import { ANTELACION_DIAS, COCINAS, fechaMadrid } from '@/lib/experience-formatos';
 
 export default function Configurador({ codigo, nombre, aforo, entrada, precio, precioClienteQr }: {
   codigo: string; nombre: string; aforo: [number, number]; entrada: [number, number]; precio: number; precioClienteQr: number;
@@ -48,7 +28,15 @@ export default function Configurador({ codigo, nombre, aforo, entrada, precio, p
     try {
       localStorage.setItem('dk_experience_config', JSON.stringify({ v: 1, ts: Date.now(), formato: nombre, codigo, cocina, fecha, plazas, precioEntrada }));
     } catch { /* sin almacenamiento: el briefing se rellena a mano */ }
-    window.location.href = `/pagar/experience?modelo=${encodeURIComponent(`${codigo} ${fecha} ${plazas}p`)}`;
+    const params = new URLSearchParams({
+      formato: codigo,
+      fecha,
+      aforo: String(plazas),
+      precioEntrada: String(precioEntrada),
+      cocina,
+      modelo: `${codigo} ${fecha} ${plazas}p`,
+    });
+    window.location.href = `/pagar/experience?${params.toString()}`;
   };
 
   const campo = 'mt-1.5 w-full rounded-xl border border-acero bg-white px-4 py-3 text-[15px] text-tinta outline-none focus-visible:border-vino focus-visible:ring-2 focus-visible:ring-vino/60';
