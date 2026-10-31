@@ -2,6 +2,8 @@ import React from 'react';
 import AdminSidebar, { SubmenuZona } from '@/components/admin/AdminSidebar';
 import AvisarFallo from '@/components/admin/AvisarFallo';
 import Autocorrector from '@/components/admin/Autocorrector';
+import VidaCentral from '@/components/admin/VidaCentral';
+import './central-viva.css';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { identidadActual } from '@/lib/sesion';
 import { verDecisiones } from '@/lib/decisiones';
@@ -38,13 +40,13 @@ export default async function AdminLayout({
   const cuenta = { nombre: yo?.nombre || 'Administrador', email: yo?.email ?? '' };
   return (
     <>
-      <div className="flex h-[100dvh] overflow-hidden flex-col bg-crema text-carbon selection:bg-orange-500/30 md:flex-row">
+      <div className="central-viva flex h-[100dvh] overflow-hidden flex-col bg-crema text-carbon selection:bg-orange-500/30 md:flex-row">
         {/* Navigation Sidebar */}
         <AdminSidebar cuenta={cuenta} avisos={avisos} esComercial={esComercial} />
 
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
-          <div className="flex-1 overflow-y-auto pb-28 md:pb-0">
+          <div data-cv-main className="flex-1 overflow-y-auto pb-28 md:pb-0">
              {/* 18/10: pestañas de la zona actual (6 zonas con submenú) */}
              <SubmenuZona avisos={avisos} />
              {children}
@@ -52,6 +54,7 @@ export default async function AdminLayout({
         </main>
         <AvisarFallo />
         <Autocorrector />
+        <VidaCentral />
       </div>
     </>
   );

@@ -31,7 +31,7 @@ export default function AltaUnicaModal({
   const [pendiente, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [resultado, setResultado] = useState<ResultadoAlta4Pasos | null>(null);
-  const [correoEnviado, setCorreoEnviado] = useState(false);
+  const [enviarCorreo, setEnviarCorreo] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
   // Form State
@@ -97,7 +97,7 @@ export default function AltaUnicaModal({
         origenMontaje,
         puestaAPunto,
         montajeGratis,
-        enviarCorreo: false,
+        enviarCorreo: modoInicio === 'pago' && enviarCorreo,
       };
 
       const res = await altaUnica4PasosAction(payload);
@@ -107,27 +107,6 @@ export default function AltaUnicaModal({
         setResultado(res);
         setPaso(4);
       }
-    });
-  };
-
-  const enviarCorreoPropuesta = () => {
-    if (!resultado?.urlPago) return;
-    iniciar(async () => {
-      await altaUnica4PasosAction({
-        local: local.trim(),
-        contacto: contacto.trim(),
-        email: email.trim(),
-        servicios,
-        planQr,
-        modoInicio: 'pago',
-        modalidadTarifa,
-        puestaAPunto,
-        montajeGratis,
-        descuentoComercialPct,
-        motivoDescuento: motivoDescuento.trim() || undefined,
-        enviarCorreo: true,
-      });
-      setCorreoEnviado(true);
     });
   };
 
@@ -619,6 +598,16 @@ export default function AltaUnicaModal({
               </label>
             )}
 
+            {modoInicio === 'pago' && (
+              <label className="flex items-start gap-2.5 rounded-2xl border border-linea bg-white p-4 text-xs font-semibold text-carbon">
+                <input type="checkbox" checked={enviarCorreo} onChange={(e) => setEnviarCorreo(e.target.checked)} className="mt-0.5 h-4 w-4 accent-vino" />
+                <span>Enviar también la propuesta por correo al cliente ({email.trim() || 'su correo'}).</span>
+              </label>
+            )}
+            <p className="text-[11px] leading-relaxed text-niebla">
+              Al pulsar se crea la cuenta del cliente{modoInicio === 'pago' ? ' y su enlace de pago (no se cobra nada hasta que pague)' : ''}. No se puede deshacer desde aquí.
+            </p>
+
             <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-between w-full pt-4">
               <button
                 type="button"
@@ -637,7 +626,7 @@ export default function AltaUnicaModal({
                 onClick={tramitarAlta}
                 className="w-full sm:w-auto min-h-[44px] rounded-full bg-vino px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-hondo disabled:opacity-40"
               >
-                {pendiente ? 'Calculando en servidor…' : 'Revisar y generar propuesta →'}
+                {pendiente ? 'Creando en el servidor…' : 'Crear cliente y generar propuesta →'}
               </button>
             </div>
           </div>
@@ -709,16 +698,12 @@ export default function AltaUnicaModal({
                   </button>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-xl bg-papel p-3 text-xs">
-                  <span className="text-niebla">Enviar propuesta formal por correo electrónico:</span>
-                  <button
-                    type="button"
-                    disabled={correoEnviado || pendiente}
-                    onClick={enviarCorreoPropuesta}
-                    className="min-h-[44px] rounded-lg bg-vino px-3 py-1.5 font-bold text-white hover:bg-hondo disabled:opacity-50"
-                  >
-                    {correoEnviado ? '✓ Correo enviado' : 'Enviar por correo'}
-                  </button>
+                <div className="rounded-xl bg-papel p-3 text-xs text-niebla">
+                  {resultado.correoEnviado
+                    ? <span className="font-bold text-carbon">✓ Propuesta enviada por correo a {email.trim()}.</span>
+                    : enviarCorreo
+                      ? <span className="font-bold text-vino">No se pudo enviar el correo: comparte el enlace por WhatsApp o cópialo.</span>
+                      : <span>Propuesta no enviada por correo: compártela por WhatsApp o copia el enlace.</span>}
                 </div>
               </div>
             ) : (

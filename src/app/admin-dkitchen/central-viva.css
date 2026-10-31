@@ -1,0 +1,122 @@
+/*
+ * Central viva (31/10/2026, orden de karc0): movimiento, profundidad y respuesta
+ * sin cambiar colores ni composición. Solo paleta Gran Reserva (vino, oro, noche, crema).
+ * Regla técnica: los contenedores NO reciben transform/filter de forma permanente
+ * (romperían los modales fijos que llevan dentro); el movimiento de entrada se quita
+ * al terminar (VidaCentral.tsx) y el hover de tarjetas es solo sombra y borde.
+ */
+.central-viva { --cv-ease: cubic-bezier(.22, 1, .36, 1); --cv-vino: 110, 12, 43; --cv-oro: 217, 178, 92; }
+
+/* ── Fondo que respira: luz de vino y oro que deriva despacio + retícula técnica ── */
+.central-viva > main { position: relative; isolation: isolate; }
+.central-viva > main::before {
+  content: ""; position: absolute; inset: -25%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(38% 32% at 12% 8%, rgba(163, 24, 74, .075), transparent 70%),
+    radial-gradient(34% 30% at 92% 28%, rgba(var(--cv-oro), .09), transparent 70%),
+    radial-gradient(44% 38% at 58% 98%, rgba(var(--cv-vino), .055), transparent 70%);
+  animation: cv-deriva 26s ease-in-out infinite alternate;
+}
+.central-viva > main::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(23, 25, 30, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 25, 30, .035) 1px, transparent 1px);
+  background-size: 34px 34px;
+  -webkit-mask-image: radial-gradient(120% 70% at 50% 0%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(120% 70% at 50% 0%, #000 0%, transparent 72%);
+}
+@keyframes cv-deriva { to { transform: translate3d(4%, -3%, 0) scale(1.06); } }
+
+/* ── Entrada escalonada (la clase la pone y la quita VidaCentral) ── */
+.cv-entra { animation: cv-entra .7s var(--cv-ease) both; animation-delay: calc(var(--cv-i, 0) * 48ms); }
+@keyframes cv-entra {
+  from { opacity: 0; transform: translate3d(0, 16px, 0) scale(.985); filter: blur(5px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.cv-oculto { opacity: 0; }
+
+/* ── Tarjetas: profundidad y borde que se enciende (sin transform) ── */
+.central-viva [data-cv-main] :is(.rounded-2xl, .rounded-3xl, [class*="rounded-[2"]):is(.border, .shadow-sm, .bg-white) {
+  transition: box-shadow .45s var(--cv-ease), border-color .45s var(--cv-ease), background-color .45s var(--cv-ease);
+}
+@media (hover: hover) {
+  .central-viva [data-cv-main] :is(.rounded-2xl, .rounded-3xl, [class*="rounded-[2"]):is(.border, .bg-white):hover {
+    border-color: rgba(var(--cv-vino), .22);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .7) inset, 0 22px 44px -26px rgba(62, 5, 21, .38), 0 0 0 1px rgba(var(--cv-vino), .05);
+  }
+  .central-viva [data-cv-main] :is([class*="bg-tinta"], [class*="bg-noche"], [class*="bg-carbon"]):is(.rounded-2xl, .rounded-3xl):hover {
+    box-shadow: 0 24px 50px -24px rgba(10, 8, 12, .7), 0 0 0 1px rgba(var(--cv-oro), .28), 0 0 32px -8px rgba(var(--cv-oro), .25);
+  }
+}
+/* Tarjeta oscura destacada: reflejo dorado que recorre el borde superior */
+.central-viva [data-cv-main] :is([class*="bg-tinta"], [class*="bg-noche"]):is(.rounded-2xl, .rounded-3xl) {
+  background-image: linear-gradient(100deg, transparent 0%, transparent 40%, rgba(var(--cv-oro), .10) 50%, transparent 60%, transparent 100%);
+  background-size: 260% 100%; background-repeat: no-repeat;
+  animation: cv-reflejo 7s ease-in-out infinite;
+}
+@keyframes cv-reflejo { 0%, 55% { background-position: 130% 0; } 100% { background-position: -30% 0; } }
+
+/* ── Cifras: números tabulares y brillo al terminar de contar ── */
+.cv-cifra { font-variant-numeric: tabular-nums; }
+.cv-cifra-lista { animation: cv-brillo .9s var(--cv-ease); }
+@keyframes cv-brillo { 0% { text-shadow: 0 0 0 rgba(var(--cv-oro), 0); } 35% { text-shadow: 0 0 18px rgba(var(--cv-oro), .55); } 100% { text-shadow: 0 0 0 rgba(var(--cv-oro), 0); } }
+
+/* ── Botones de acción: brillo que pasa, elevación y pulsación ── */
+.central-viva :is(a, button).bg-vino { position: relative; overflow: hidden; isolation: isolate; transition: transform .25s var(--cv-ease), box-shadow .3s var(--cv-ease), filter .3s; }
+.central-viva :is(a, button).bg-vino::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .26) 50%, transparent 65%);
+  background-size: 250% 100%; background-position: 130% 0; transition: background-position .9s var(--cv-ease);
+}
+@media (hover: hover) {
+  .central-viva :is(a, button).bg-vino:not(:disabled):hover { transform: translateY(-1px); filter: saturate(1.08); }
+  .central-viva :is(a, button).bg-vino:not(:disabled):hover::after { background-position: -30% 0; }
+}
+.central-viva :is(a, button).bg-vino:not(:disabled):active { transform: translateY(0) scale(.97); }
+.central-viva :is(a, button).rounded-full:not(.bg-vino) { transition: background-color .25s var(--cv-ease), color .25s, box-shadow .25s, transform .2s var(--cv-ease); }
+.central-viva :is(a, button).rounded-full:not(.bg-vino):not(:disabled):active { transform: scale(.97); }
+
+/* ── Tablas y listas: la fila se enciende con la marca de vino ── */
+.central-viva [data-cv-main] tbody tr { transition: background-color .25s var(--cv-ease), box-shadow .25s var(--cv-ease); }
+@media (hover: hover) {
+  .central-viva [data-cv-main] tbody tr:hover { background-color: rgba(var(--cv-vino), .035); box-shadow: inset 3px 0 0 rgb(var(--cv-vino)); }
+}
+
+/* ── Campos: foco con halo ── */
+.central-viva :is(input:not([type=checkbox]):not([type=radio]), select, textarea) { transition: border-color .25s var(--cv-ease), box-shadow .3s var(--cv-ease), background-color .25s; }
+.central-viva :is(input:not([type=checkbox]):not([type=radio]), select, textarea):focus { box-shadow: 0 0 0 4px rgba(163, 24, 74, .12); }
+
+/* ── Modales: aparecen con escala y desenfoque del fondo ── */
+.central-viva [role="dialog"] { animation: cv-velo .3s ease-out; }
+.central-viva [role="dialog"] > :last-child { animation: cv-modal .45s var(--cv-ease); }
+@keyframes cv-velo { from { opacity: 0; } }
+@keyframes cv-modal { from { opacity: 0; transform: translate3d(0, 18px, 0) scale(.97); } }
+
+/* ── Raíl lateral: iconos que responden y logotipo «en vivo» ── */
+.central-viva aside nav a svg { transition: transform .35s var(--cv-ease); }
+@media (hover: hover) { .central-viva aside nav a:hover svg { transform: translateY(-2px) scale(1.06); } }
+.central-viva aside > a:first-child { position: relative; }
+.central-viva aside > a:first-child::after {
+  content: ""; position: absolute; right: -2px; top: -2px; width: 9px; height: 9px; border-radius: 9999px;
+  background: #3FBF7F; box-shadow: 0 0 0 2px #0A080C; animation: cv-latido 2.4s ease-out infinite;
+}
+@keyframes cv-latido { 0% { box-shadow: 0 0 0 2px #0A080C, 0 0 0 2px rgba(63, 191, 127, .55); } 70%, 100% { box-shadow: 0 0 0 2px #0A080C, 0 0 0 9px rgba(63, 191, 127, 0); } }
+
+/* ── Barra de carga entre pantallas ── */
+.cv-barra { position: fixed; left: 0; top: 0; z-index: 80; height: 2px; width: 100%; pointer-events: none; transform-origin: 0 50%;
+  background: linear-gradient(90deg, #6E0C2B, #A3184A 45%, #D9B25C); box-shadow: 0 0 12px rgba(var(--cv-oro), .6); }
+.cv-barra[data-estado="carga"] { animation: cv-carga 8s cubic-bezier(.1, .7, .2, 1) forwards; }
+.cv-barra[data-estado="fin"] { animation: cv-fin .45s ease-out forwards; }
+@keyframes cv-carga { from { transform: scaleX(0); } to { transform: scaleX(.92); } }
+@keyframes cv-fin { from { transform: scaleX(.92); opacity: 1; } 60% { transform: scaleX(1); opacity: 1; } to { transform: scaleX(1); opacity: 0; } }
+
+/* ── Esqueleto de carga ── */
+.cv-esqueleto { position: relative; overflow: hidden; background: rgba(23, 25, 30, .055); }
+.cv-esqueleto::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, .65) 50%, transparent 80%); animation: cv-barrido 1.4s ease-in-out infinite; transform: translateX(-100%); }
+@keyframes cv-barrido { to { transform: translateX(100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .central-viva *, .central-viva *::before, .central-viva *::after, .central-viva > main::before { animation: none !important; transition: none !important; }
+  .cv-oculto { opacity: 1; }
+}

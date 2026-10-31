@@ -437,6 +437,7 @@ export type ResultadoAlta4Pasos = {
   ok: boolean;
   restauranteId?: string;
   urlPago?: string;
+  correoEnviado?: boolean;
   resumenWhatsapp?: string;
   desglose?: LineaDesglose[];
   baseEuros?: number;
@@ -606,8 +607,9 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
     (urlPago ? `\n\nPuedes activar tu servicio directamente aquí con tarjeta o Bizum:\n${urlPago}\n\nAl pagar, te llegará el acceso para crear tu contraseña y entrar a tu panel.` : '');
 
   // Envío opcional de correo electrónico formal de propuesta
+  let correoEnviado = false;
   if (d.enviarCorreo && urlPago) {
-    await enviarCorreoCliente(
+    correoEnviado = await enviarCorreoCliente(
       email,
       `Tu propuesta de servicios DKitchen · ${local}`,
       `<p style="margin:0 0 12px">Hola ${escaparHtml(contacto)},</p>
@@ -618,7 +620,7 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
        <p style="margin:0 0 16px;font-size:16px;font-weight:bold">Total hoy (con IVA): ${totalHoyEuros} €</p>
        <p style="margin:0 0 12px">Para activar tus servicios inmediatamente, pulsa en el botón:</p>`,
       { titulo: 'Activar servicios DKitchen', boton: { texto: 'Completar activación y pago', url: urlPago } }
-    ).catch((err) => console.error('No se pudo enviar el correo de propuesta:', err));
+    ).then(() => true).catch((err) => { console.error('No se pudo enviar el correo de propuesta:', err); return false; });
   }
 
   revalidatePath('/admin-dkitchen/qr');
@@ -626,6 +628,7 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
     ok: true,
     restauranteId,
     urlPago,
+    correoEnviado,
     resumenWhatsapp,
     desglose,
     baseEuros: baseHoyEuros,
