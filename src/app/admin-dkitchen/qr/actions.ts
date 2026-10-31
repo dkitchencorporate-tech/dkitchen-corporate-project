@@ -1,12 +1,12 @@
-'use server';
+﻿'use server';
 
 import { PLANTILLAS, limpiarFirma } from '@/lib/composiciones';
 import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { crearCuentaCliente, enviarEnlaceDeContrasena } from '@/lib/neon-auth';
 import { enviarBienvenidaQr } from '@/lib/bienvenida';
-import { comoAprovisionamiento } from '@/lib/db';
-import { crearCheckoutEnlaceAdmin } from '@/lib/payments/cobros';
+import { comoAprovisionamiento, comoCliente } from '@/lib/db';
+import { crearCheckoutEnlaceAdmin, asegurarCupon } from '@/lib/payments/cobros';
 import { exigirAdmin } from '@/lib/guard-admin';
 import {
   cambiarEstadoCliente, cambiarPlanCliente, regalarTodo, cargarCartaDemo, crearEnlace, fijarUrlEnlace, anularEnlace, fichaCliente, responderTicket, cambiarEstadoSolicitudQr, guardarDisenoCentral, adminServicio, adminConexionTpv,
@@ -19,7 +19,10 @@ import { cancelarTodoAlFinalDelPeriodo, reanudarTodo } from '@/lib/payments/stri
 import { enviarCorreoCliente, enviarCorreoInterno, escaparHtml, escaparTexto } from '@/lib/email';
 import { cifrar } from '@/lib/cifrado';
 import { guardarTraducciones, type Traduccion } from '@/lib/idiomas';
-import { esPlanQr, nombrePlan } from '@/lib/pricing-config';
+import { esPlanQr, nombrePlan, QR_MENU, FUNDADOR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES } from '@/lib/pricing-config';
+import { validarYCalcularAlta, type DatosAlta4Pasos, type LineaDesglose } from '@/lib/alta-unica';
+export type { DatosAlta4Pasos, LineaDesglose };
+import { estadoFundador } from '@/lib/fundador';
 
 /**
  * Acciones del super admin. Doble cerrojo: exigirAdmin() aquí y dk.es_admin()
@@ -404,4 +407,232 @@ export async function entrarSoporteAction(formulario: FormData) {
   redirect(PESTANAS_SOPORTE.includes(pestana) ? `/panel?pestana=${pestana}` : '/panel');
 }
 
+export async function asignarComercialAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  const comercial = String(formulario.get('comercial') ?? '').trim();
+  const { asignarComercialCliente } = await import('@/lib/admin-clientes');
+  await asignarComercialCliente(jwt, id, comercial);
+  revalidatePath('/admin-dkitchen/qr');
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
+export async function asignarSiguientePasoAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  const id = uuid(formulario.get('restauranteId'));
+  const paso = String(formulario.get('siguientePaso') ?? '').trim();
+  const { asignarSiguientePasoCliente } = await import('@/lib/admin-clientes');
+  await asignarSiguientePasoCliente(jwt, id, paso);
+  revalidatePath('/admin-dkitchen/qr');
+  revalidatePath(`/admin-dkitchen/qr/${id}`);
+}
+
 const PESTANAS_SOPORTE = ['local', 'carta', 'estudio', 'diseno', 'landing', 'idiomas', 'promociones', 'sala', 'qr', 'legal'];
+
+
+// ---------------------------------------------------------------------------
+// P1.3 · Alta única en 4 pasos (Boceto aprobado 30/10 / Orden 31/10)
+// ---------------------------------------------------------------------------
+export type ResultadoAlta4Pasos = {
+  ok: boolean;
+  restauranteId?: string;
+  urlPago?: string;
+  correoEnviado?: boolean;
+  resumenWhatsapp?: string;
+  desglose?: LineaDesglose[];
+  baseEuros?: number;
+  ivaEuros?: number;
+  totalHoyEuros?: number;
+  error?: string;
+};
+
+export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<ResultadoAlta4Pasos> {
+  const jwt = await exigirAdmin();
+  const email = String(d.email ?? '').trim().toLowerCase();
+  const contacto = String(d.contacto ?? '').trim().slice(0, 80);
+  const local = String(d.local ?? '').trim().slice(0, 80);
+  const ciudad = String(d.ciudad ?? '').trim().slice(0, 80) || 'España';
+  const direccion = String(d.direccion ?? '').trim().slice(0, 200);
+  const telefono = String(d.telefono ?? '').trim().replace(/\s+/g, '');
+
+  // Comprobar rol de quien ejecuta en identidades
+  // Rol y cupo desde la base con el JWT del admin (falla cerrado: sin contexto no hay alta).
+  let ctxAlta: { rol_admin: string; cupo: number; usados: number };
+  try {
+    ctxAlta = await comoCliente(jwt, async (c) => (await c.query('SELECT dk.admin_alta_contexto() AS x')).rows[0].x);
+    if (!ctxAlta || !Number.isFinite(Number(ctxAlta.cupo)) || !Number.isFinite(Number(ctxAlta.usados))) throw new Error('contexto');
+  } catch {
+    return { ok: false, error: 'No se pudo comprobar tu rol ni el cupo de montajes gratis. No se ha creado nada; inténtalo de nuevo.' };
+  }
+  const rolAdmin = ctxAlta.rol_admin === 'direccion' ? 'direccion' : 'comercial';
+
+  // Leer estado de fundador si se solicita
+  const esFundadorSolicitado = d.modalidadTarifa === 'fundador' || d.codigo?.trim().toUpperCase() === 'FUNDADOR';
+  let ef: { abierto: boolean; quedan: number } | undefined;
+  if (esFundadorSolicitado && (d.servicios.includes('qr') || d.servicios.includes('signature'))) {
+    ef = (await estadoFundador().catch(() => null)) ?? undefined;
+  }
+
+  // Leer cupo de montajes gratis si se solicita
+  let cupoInfo: { usados: number; cupo: number } | undefined;
+  if (d.montajeGratis) {
+    cupoInfo = { usados: Number(ctxAlta.usados), cupo: Number(ctxAlta.cupo) };
+  }
+
+  // Validación y cálculo centralizado en src/lib/alta-unica.ts (R1 / R2)
+  const calc = validarYCalcularAlta(d, {
+    rolAdmin,
+    estadoFundador: ef,
+    cupoMontajesGratis: cupoInfo,
+  });
+
+  if (!calc.ok) {
+    return { ok: false, error: calc.error };
+  }
+
+  const baseHoyEuros = calc.baseEuros!;
+  const ivaEuros = calc.ivaEuros!;
+  const totalHoyEuros = calc.totalHoyEuros!;
+  const recurrenteEuros = calc.recurrenteEuros!;
+  const intervaloMeses = calc.intervaloMeses!;
+  const desglose = calc.desglose!;
+  const mesesGratisSignature = calc.mesesGratisSignature;
+  const cuponSignature = calc.cuponSignature;
+  const faseSignature = calc.faseSignature;
+  const descCom = Number(d.descuentoComercialPct) || 0;
+
+  // Si requiere cupón para Signature Fundador, asegurar su existencia en Stripe
+  if (cuponSignature && d.servicios.includes('signature')) {
+    const fs = FUNDADOR.signature;
+    await asegurarCupon(cuponSignature, {
+      nombre: `Fundador Signature ${fs.mensual} €/mes`,
+      centimos: (BASE_OPERATIVA.mantenimiento.mensual - fs.mensual) * 100,
+      meses: fs.meses,
+    });
+  }
+
+  // B2.6: Resolver cuenta de Neon Auth; si ya existe y no se encuentra identidad en base de datos, ERROR (nada de randomUUID)
+  let identidadId: string;
+  try {
+    identidadId = (await crearCuentaCliente({ email, nombre: contacto })).id;
+  } catch {
+    // dk_aprovisionamiento no puede leer identidades: un correo que ya tiene cuenta se rechaza (igual que crearClienteAction).
+    return { ok: false, error: 'Ese correo ya tiene cuenta o Neon Auth no respondió. No se ha creado nada: usa otro correo o asigna el local desde su ficha.' };
+  }
+
+  // 4. Aprovisionamiento del cliente / restaurante
+  const ref = 'alta-' + randomUUID();
+  const planElegido = d.servicios.includes('qr') && esPlanQr(d.planQr) ? d.planQr : 'ampliado';
+  const slug = slugBase(local);
+
+  const { rows } = await comoAprovisionamiento((c) =>
+    c.query<{ restaurante_id: string }>(
+      'SELECT * FROM dk.aprovisionar_cliente_qr($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+      [ref, identidadId, email, contacto, planElegido, local, slug, ref, ref]
+    )
+  );
+  const restauranteId = rows[0]?.restaurante_id;
+  if (!restauranteId) return { ok: false, error: 'No se pudo crear el cliente en la base de datos.' };
+
+  // Fijar comercial, ciudad, dirección y siguiente paso
+  // y, si se aplicó, registrar el montaje gratis contra el cupo con bloqueo (todo o nada).
+  // Falla cerrado: si el cupo está completo o algo falla, no se genera enlace de pago ni se regala nada.
+  try {
+    await comoCliente(jwt, (c) =>
+      c.query('SELECT dk.admin_alta_completar($1, $2, $3, $4, $5)', [
+        restauranteId, ciudad, direccion || null, !!d.montajeGratis, d.origenMontaje ?? 'flyer',
+      ])
+    );
+  } catch (e) {
+    const msg = String((e as Error)?.message ?? '');
+    const motivo = msg.includes('cupo completo')
+      ? 'el cupo de montajes gratis ya está completo'
+      : 'no se pudo registrar el montaje gratis ni los datos del comercial';
+    return {
+      ok: false,
+      error: `El cliente se ha creado, pero ${motivo}. No se ha generado ningún enlace de pago: revisa su ficha antes de seguir.`,
+    };
+  }
+
+  // 5. Manejo según Modo: Demo, Gratis o Enlace de Pago
+  let urlPago = '';
+  if (d.modoInicio === 'demo') {
+    await marcarDemo(jwt, restauranteId, true);
+    await regalarTodo(jwt, restauranteId, null);
+  } else if (d.modoInicio === 'gratis') {
+    const dias = Math.max(1, Math.min(120, Number(d.diasPrueba) || 15));
+    await regalarTodo(jwt, restauranteId, dias);
+  } else {
+    // Modo Pago: Generar checkout de Stripe con desglose
+    const notaCobro = [
+      `Servicios: ${d.servicios.join(', ')}`,
+      descCom > 0 ? `Descuento comercial: ${descCom}% (Motivo: ${d.motivoDescuento})` : null,
+      d.montajeGratis ? 'Montaje gratis incluido' : null,
+    ].filter(Boolean).join(' · ');
+
+    const enlaceId = await crearEnlace(jwt, restauranteId, {
+      plan: planElegido,
+      servicios: d.servicios,
+      primer: Math.round(baseHoyEuros * 100),
+      mensual: Math.round(recurrenteEuros * 100),
+      nota: notaCobro,
+    });
+
+    // B2.5 & C3: Convención sin IVA + soporte de mesesGratis, cupon y cuotas de Signature
+    const chk = await crearCheckoutEnlaceAdmin({
+      enlaceId,
+      restauranteId,
+      restauranteNombre: local,
+      email,
+      concepto: `${local} · ${d.servicios.map((s) => s.toUpperCase()).join(' + ')}`,
+      primerCentimos: Math.round(baseHoyEuros * 100),
+      mensualCentimos: Math.round(recurrenteEuros * 100),
+      intervaloMeses,
+      mesesGratis: mesesGratisSignature,
+      cupon: cuponSignature,
+      fase: faseSignature,
+      origen: 'https://dkitchencorporate.es',
+    });
+
+    urlPago = chk.url;
+    await fijarUrlEnlace(jwt, enlaceId, urlPago);
+  }
+
+  // Generar mensaje de WhatsApp preformateado
+  const lineasTxt = desglose.map((x) => `• ${x.concepto}: ${x.importeEuros >= 0 ? x.importeEuros + ' €' : x.importeEuros + ' €'}`).join('\n');
+  const resumenWhatsapp =
+    `¡Hola ${contacto}! Te comparto el resumen acordado para ${local}:\n\n` +
+    lineasTxt +
+    `\n\nTotal hoy (IVA incluido): ${totalHoyEuros} €` +
+    (urlPago ? `\n\nPuedes activar tu servicio directamente aquí con tarjeta o Bizum:\n${urlPago}\n\nAl pagar, te llegará el acceso para crear tu contraseña y entrar a tu panel.` : '');
+
+  // Envío opcional de correo electrónico formal de propuesta
+  let correoEnviado = false;
+  if (d.enviarCorreo && urlPago) {
+    correoEnviado = await enviarCorreoCliente(
+      email,
+      `Tu propuesta de servicios DKitchen · ${local}`,
+      `<p style="margin:0 0 12px">Hola ${escaparHtml(contacto)},</p>
+       <p style="margin:0 0 12px">Te enviamos el resumen de los servicios acordados para <strong>${escaparHtml(local)}</strong>:</p>
+       <ul style="margin:0 0 16px;padding-left:20px">
+         ${desglose.map((x) => `<li style="margin-bottom:6px">${escaparHtml(x.concepto)}: <strong>${x.importeEuros} €</strong></li>`).join('')}
+       </ul>
+       <p style="margin:0 0 16px;font-size:16px;font-weight:bold">Total hoy (con IVA): ${totalHoyEuros} €</p>
+       <p style="margin:0 0 12px">Para activar tus servicios inmediatamente, pulsa en el botón:</p>`,
+      { titulo: 'Activar servicios DKitchen', boton: { texto: 'Completar activación y pago', url: urlPago } }
+    ).then(() => true).catch((err) => { console.error('No se pudo enviar el correo de propuesta:', err); return false; });
+  }
+
+  revalidatePath('/admin-dkitchen/qr');
+  return {
+    ok: true,
+    restauranteId,
+    urlPago,
+    correoEnviado,
+    resumenWhatsapp,
+    desglose,
+    baseEuros: baseHoyEuros,
+    ivaEuros,
+    totalHoyEuros,
+  };
+}

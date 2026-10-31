@@ -2,9 +2,11 @@ import DisenoCentral from '@/components/admin/DisenoCentral';
 import { limpiarFirma } from '@/lib/composiciones';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { comoCliente } from '@/lib/db';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { cuentaEnSeguimiento, eventosSeguimiento } from '@/lib/admin-seguimiento';
 import SeguimientoEnVivo from '@/components/admin/SeguimientoEnVivo';
+import { administradores } from '@/lib/buzon';
 import { fichaCliente, historialCliente, serviciosCliente, listarEnlaces, catalogoPrecios, bandejaSoporte, type EntradaHistorial } from '@/lib/admin-clientes';
 import { plantillas, verComunicaciones, usoPlanCliente, NOMBRES_USO } from '@/lib/comunicaciones';
 import ComunicacionCliente from '@/components/admin/ComunicacionCliente';
@@ -14,7 +16,7 @@ import { resumenCobro, euros, fechaLarga, diasHasta } from '@/lib/prueba';
 import { obtenerCarta } from '@/lib/menu';
 import { listarTraducciones } from '@/lib/idiomas';
 import TraductorCarta from '@/components/admin/TraductorCarta';
-import { anularEnlaceAction, regalarTodoAction, reenviarAccesoAction, cambiarEstadoAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction,
+import { asignarComercialAction, asignarSiguientePasoAction, anularEnlaceAction, regalarTodoAction, reenviarAccesoAction, cambiarEstadoAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction,
   darDeBajaAction, anularBajaAction, archivarAction, demoInternaAction, entrarSoporteAction } from '../actions';
 import { QR_MENU, PLANES_QR, esPlanQr, nombrePlan } from '@/lib/pricing-config';
 import GuiaZona from '@/components/admin/GuiaZona';
@@ -126,7 +128,7 @@ function Cambios({ e }: { e: EntradaHistorial }) {
   return nombre ? <p className="mt-1 text-xs text-niebla">«{valor(nombre)}»</p> : null;
 }
 
-export default async function FichaClienteQr({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ montaje?: string }> }) {
+export default async function FichaClienteQr({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ montaje?: string; tab?: string }> }) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   if (!UUID.test(id)) notFound();
   const jwt = await exigirAdmin();
@@ -143,7 +145,14 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
   const eventosSeg = seguimiento ? await eventosSeguimiento(jwt, id).catch(() => []) : [];
   // Enlace cliente ↔ proyectos (fallo 10): Signature, Experience, Auditoría… del mismo correo.
   const proyectos = ficha.email ? (await listarProyectos(jwt, {}).catch(() => [])).filter((p) => p.email.toLowerCase() === ficha.email!.toLowerCase()) : [];
-  // Pack de idiomas: DKitchen traduce aquí la carta del cliente (0028).
+  const proyectosSig = proyectos.filter((p) => p.producto === 'signature');
+  const proyectosExp = proyectos.filter((p) => p.producto === 'experience');
+  const equipo = await administradores(jwt).catch(() => []);
+  const eventos = await comoCliente(jwt, async (c) => (await c.query(
+    'SELECT id, slug, local_nombre, titulo, fecha, precio_centimos, aforo, vendidas, usadas, ingresos_centimos, estado, formato FROM eventos WHERE local_nombre ILIKE $1 OR slug ILIKE $2 ORDER BY fecha DESC',
+    ['%' + r.nombre + '%', '%' + r.slug + '%']
+  )).rows).catch(() => []);
+  const tabActiva = sp.tab || 'resumen';
   const conIdiomas = servicios.some((x) => x.servicio === 'idiomas');
   const [cartaCliente, traducciones] = conIdiomas
     ? await Promise.all([obtenerCarta(r.slug), listarTraducciones(jwt, id)])
@@ -235,6 +244,103 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
           <a key={h} href={h} className="shrink-0 rounded-full border border-linea bg-white px-4 py-2 text-sm font-medium hover:border-tinta">{t}</a>
         ))}
       </nav>
+
+      {/* ── VISTA DEDICADA: SIGNATURE (P1.4) ── */}
+      {tabActiva === 'signature' && (
+        <section className="rounded-2xl border border-linea bg-white p-5 sm:p-6 space-y-4">
+          <div className="flex justify-between items-baseline">
+            <h2 className="font-display text-xl font-semibold tracking-tight text-carbon">
+              Signature · Apps a medida
+            </h2>
+            <span className="text-xs text-niebla">{proyectosSig.length} app(s) registradas</span>
+          </div>
+          {proyectosSig.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-linea p-8 text-center space-y-2">
+              <p className="text-sm font-semibold text-carbon">Este cliente aún no tiene app Signature</p>
+              <p className="text-xs text-niebla">Prepara una propuesta para su propia app nativa o PWA desde 500 € Fundador o 700 € (o 2 cuotas de 375 €).</p>
+              <Link href={`/admin-dkitchen/qr/${id}?tab=cobros#enlace`} className="inline-block mt-2 rounded-full bg-vino px-4 py-2 text-xs font-bold text-white">
+                Preparar enlace de pago Signature →
+              </Link>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {proyectosSig.map((p) => (
+                <div key={p.id} className="rounded-xl border border-linea p-4 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <span className="font-bold text-carbon text-sm">{p.negocio || p.nombre}</span>
+                    <span className="rounded-full bg-vino/10 px-2 py-0.5 text-xs font-bold text-vino">{nombreFase('signature', p.fase)}</span>
+                  </div>
+                  {p.siguiente_paso && (
+                    <p className="text-xs text-grafito bg-papel p-2.5 rounded-lg">
+                      <b>Siguiente paso:</b> {p.siguiente_paso}
+                    </p>
+                  )}
+                  <div className="pt-2 flex justify-between items-center text-xs border-t border-linea">
+                    <span className="text-niebla">{p.comercial ? `Comercial: ${p.comercial}` : 'DKitchen'}</span>
+                    <Link href={`/admin-dkitchen/proyectos/${p.id}`} className="font-bold text-vino hover:underline">
+                      Ver proyecto completo →
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ── VISTA DEDICADA: EXPERIENCE (P1.4) ── */}
+      {tabActiva === 'experience' && (
+        <section className="rounded-2xl border border-linea bg-white p-5 sm:p-6 space-y-4">
+          <div className="flex justify-between items-baseline">
+            <h2 className="font-display text-xl font-semibold tracking-tight text-carbon">
+              Experience · Eventos con venta de entradas
+            </h2>
+            <Link href="/admin-dkitchen/entradas" className="text-xs font-bold text-vino hover:underline">
+              + Nuevo evento Experience
+            </Link>
+          </div>
+          {eventos.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-linea p-8 text-center space-y-2">
+              <p className="text-sm font-semibold text-carbon">No hay eventos Experience creados</p>
+              <p className="text-xs text-niebla">Monta el primer evento llave en mano para este restaurante con venta de entradas directa.</p>
+              <Link href="/admin-dkitchen/entradas" className="inline-block mt-2 rounded-full bg-tinta px-4 py-2 text-xs font-bold text-white">
+                Abrir asistente de eventos →
+              </Link>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-linea shadow-sm">
+              <table className="w-full text-xs">
+                <thead className="bg-papel text-niebla border-b border-linea">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Evento</th>
+                    <th className="px-3 py-2 text-left">Fecha</th>
+                    <th className="px-3 py-2 text-right">Precio</th>
+                    <th className="px-3 py-2 text-right">Vendidas / Aforo</th>
+                    <th className="px-3 py-2 text-right">Recaudación</th>
+                    <th className="px-3 py-2 text-right">Enlaces</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-linea">
+                  {eventos.map((e: any) => (
+                    <tr key={e.id} className="hover:bg-papel/60">
+                      <td className="px-3 py-2 font-semibold text-carbon">{e.titulo}</td>
+                      <td className="px-3 py-2 text-niebla">{fecha.format(new Date(e.fecha))}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{euros(e.precio_centimos)}</td>
+                      <td className="px-3 py-2 text-right tabular-nums"><b>{e.vendidas}</b> / {e.aforo}</td>
+                      <td className="px-3 py-2 text-right tabular-nums font-bold">{euros(Number(e.ingresos_centimos || 0))}</td>
+                      <td className="px-3 py-2 text-right space-x-2">
+                        <a href={`/e/${e.slug}`} target="_blank" rel="noopener" className="text-vino font-bold hover:underline">Entradas ↗</a>
+                        <a href={`/e/${e.slug}/puerta`} target="_blank" rel="noopener" className="text-carbon hover:underline">Puerta ↗</a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
+
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[

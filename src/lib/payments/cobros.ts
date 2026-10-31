@@ -1,4 +1,4 @@
-import 'server-only';
+﻿import 'server-only';
 import { QR_MENU, AUDITORIA_CANALES, BASE_OPERATIVA, FUNDADOR, type PlanQr } from '@/lib/pricing-config';
 import type { DatosCheckoutQr, DatosCheckoutAuditoria, DatosCheckoutNucleoOperativo } from './tipos';
 import {
@@ -267,7 +267,7 @@ export async function crearCheckoutServicio(datos: {
 // ─────────────────────────────────────────────────────────────
 
 /**
- * Suscripción nueva a 25 €/mes que empieza el mismo día que se renovaba la
+ * Suscripción nueva a 29 €/mes (Plan Local) que empieza el mismo día que se renovaba la
  * Básica. Hoy se paga solo la diferencia proporcional de los días que quedan
  * (nada si la Básica está aún en prueba). El webhook cancela la Básica al
  * momento, así que nunca se cobran las dos.
@@ -380,29 +380,70 @@ export async function crearCheckoutEnlaceAdmin(datos: {
   concepto: string;
   primerCentimos: number;
   mensualCentimos: number;
+  intervaloMeses?: number;
   diasGratis?: number;
+  mesesGratis?: number;
+  cupon?: string;
+  fase?: string;
+  metadata?: Record<string, string>;
   origen: string;
 }): Promise<{ url: string }> {
   const cliente = await asegurarCliente({ email: datos.email, nombre: datos.restauranteNombre, negocio: datos.restauranteNombre });
   const concepto = `DKitchen · ${datos.concepto}`.slice(0, 200);
   const meta = {
-    producto: 'enlace-admin',
+    producto: datos.fase === 'cuotas' ? 'nucleo-operativo' : 'enlace-admin',
     enlaceId: datos.enlaceId,
     restauranteId: datos.restauranteId,
     restauranteNombre: datos.restauranteNombre,
     email: datos.email,
     concepto,
     destino: '/panel?pestana=plan&pago=ok',
+    ...(datos.fase ? { fase: datos.fase } : {}),
+    ...(datos.metadata ?? {}),
   };
   const primer = Math.round(datos.primerCentimos);
   const mensual = Math.round(datos.mensualCentimos);
   const dias = Math.max(0, Math.round(datos.diasGratis ?? 0));
-  if (mensual > 0) {
+  const intervalo = datos.intervaloMeses ?? 1;
+
+  if (datos.fase === 'cuotas') {
+    const { cuotas, importeCuota } = BASE_OPERATIVA.fraccionado;
     const id = await crearSuscripcion({
       cliente,
-      cuota: { producto: 'dk_enlace_cuota', nombre: 'DKitchen · Cuota mensual acordada', centimos: mensual },
+      cuota: {
+        producto: 'dk_signature_entrada_cuota',
+        nombre: `DKitchen Signature · Entrada en ${cuotas} cuotas`,
+        centimos: importeCuota * 100,
+      },
+      metadata: {
+        ...meta,
+        producto: 'nucleo-operativo',
+        fase: 'cuotas',
+        cuotas: String(cuotas),
+        concepto: `DKitchen Signature · cuota de la entrada (${cuotas} × ${importeCuota} €)`,
+      },
+    });
+    return { url: urlPago(datos.origen, id) };
+  }
+
+  if (mensual > 0) {
+    const finPrueba = dias > 0
+      ? dentroDeDias(dias)
+      : datos.mesesGratis !== undefined
+        ? dentroDeMeses(datos.mesesGratis)
+        : dentroDeMeses(intervalo);
+
+    const id = await crearSuscripcion({
+      cliente,
+      cuota: {
+        producto: 'dk_enlace_cuota',
+        nombre: intervalo === 3 ? 'DKitchen · Cuota trimestral acordada' : 'DKitchen · Cuota mensual acordada',
+        centimos: mensual,
+      },
+      intervaloMeses: intervalo,
       hoy: primer > 0 ? [{ producto: 'dk_enlace_primer', nombre: 'DKitchen · Primer cobro acordado', centimos: primer }] : undefined,
-      finPrueba: dias > 0 ? dentroDeDias(dias) : dentroDeMeses(1),
+      finPrueba,
+      cupon: datos.cupon,
       metadata: meta,
     });
     return { url: urlPago(datos.origen, id) };
@@ -422,3 +463,5 @@ export async function cancelarMembresiaAlFinalDelPeriodo(suscripcion: string) {
   if (!suscripcion.startsWith('sub_')) return { ok: false as const, error: `La referencia ${suscripcion} no es una suscripción de Stripe` };
   return cancelarAlFinalDelPeriodo(suscripcion);
 }
+
+export { asegurarCupon };

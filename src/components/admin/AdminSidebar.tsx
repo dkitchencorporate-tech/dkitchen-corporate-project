@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -19,7 +19,11 @@ export const ZONAS: Zona[] = [
   { id: 'inicio', nombre: 'Inicio', icono: 'inicio', items: [{ nombre: 'Inicio', href: '/admin-dkitchen/inicio' }] },
   { id: 'clientes', nombre: 'Clientes', icono: 'carta', items: [
     { nombre: 'Clientes', href: '/admin-dkitchen/qr' }, { nombre: 'Proyectos', href: '/admin-dkitchen/proyectos' },
-    { nombre: 'Eventos (Experience)', href: '/admin-dkitchen/entradas' }, { nombre: 'Fundador', href: '/admin-dkitchen/fundador' }] },
+    { nombre: 'Fundador', href: '/admin-dkitchen/fundador' }] },
+  { id: 'servicios', nombre: 'Servicios', icono: 'servicio', items: [
+    { nombre: 'Carta QR', href: '/admin-dkitchen/servicios/qr' },
+    { nombre: 'Signature', href: '/admin-dkitchen/servicios/signature' },
+    { nombre: 'Experience', href: '/admin-dkitchen/servicios/experience' }] },
   { id: 'ventas', nombre: 'Ventas', icono: 'destello', items: [
     { nombre: 'Prospección', href: '/admin-dkitchen/prospeccion' }, { nombre: 'Oportunidades', href: '/admin-dkitchen/oportunidades' },
     { nombre: 'Embudo', href: '/admin-dkitchen/embudo' }, { nombre: 'Campañas y QR', href: '/admin-dkitchen/campanas' }, { nombre: 'Ofertas', href: '/admin-dkitchen/ofertas' }, { nombre: 'Precios y funciones', href: '/admin-dkitchen/precios' },
@@ -58,25 +62,35 @@ export function SubmenuZona({ avisos = {} }: { avisos?: Avisos }) {
         <span className="mr-1 hidden shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-vino sm:mr-2 sm:inline">{z.nombre}</span>
         {z.items.map((i) => {
           const a = activoEn(ruta, i.href);
-          return <Link key={i.href} href={i.href} ref={a ? (n) => { n?.scrollIntoView({ inline: 'center', block: 'nearest' }); } : undefined} aria-current={a ? 'page' : undefined} className={`inline-flex shrink-0 items-center rounded-full px-3 py-1.5 font-medium sm:px-3.5 ${a ? 'bg-tinta text-white' : 'text-carbon hover:bg-white'}`}>{i.nombre}<Aviso n={avisos[i.href] ?? 0} claro={!a} /></Link>;
+          return <Link key={i.href} href={i.href} aria-current={a ? 'page' : undefined} className={`inline-flex shrink-0 items-center rounded-full px-3 py-1.5 font-medium sm:px-3.5 ${a ? 'bg-tinta text-white' : 'text-carbon hover:bg-white'}`}>{i.nombre}<Aviso n={avisos[i.href] ?? 0} claro={!a} /></Link>;
         })}
       </div>
     </nav>
   );
 }
 
-export default function AdminSidebar({ cuenta, avisos = {} }: { cuenta: Cuenta; avisos?: Avisos }) {
+export default function AdminSidebar({
+  cuenta,
+  avisos = {},
+  esComercial = false,
+}: {
+  cuenta: Cuenta;
+  avisos?: Avisos;
+  esComercial?: boolean;
+}) {
   const [mas, setMas] = useState(false);
   const ruta = usePathname();
   const actual = zonaDe(ruta)?.id;
-  const enMovil = ZONAS.filter((z) => z.id !== 'conocimiento');
+  const esCom = esComercial || (cuenta as any)?.rol === 'comercial';
+  const zonasDisponibles = ZONAS.filter((z) => !(esCom && (z.id === 'lanzamiento' || z.id === 'conocimiento')));
+  const enMovil = zonasDisponibles.filter((z) => !['lanzamiento', 'conocimiento'].includes(z.id));
 
   return (
     <>
       <aside className="sticky top-0 z-[45] hidden h-screen w-[88px] shrink-0 flex-col items-center bg-noche py-5 text-white md:flex">
         <Link href="/admin-dkitchen/inicio" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.06] font-display text-lg font-semibold text-oro" title="DKitchen · Central">D</Link>
         <nav aria-label="Central" className="mt-8 flex flex-1 flex-col gap-1.5">
-          {ZONAS.map((z) => {
+          {zonasDisponibles.map((z) => {
             const a = actual === z.id;
             return (
               <Link key={z.id} href={z.items[0].href} aria-current={a ? 'page' : undefined} title={z.items.map((i) => i.nombre).join(' · ')}
@@ -120,6 +134,17 @@ export default function AdminSidebar({ cuenta, avisos = {} }: { cuenta: Cuenta; 
             <p className="text-xs text-niebla">Tu cuenta</p>
             <div className="mt-3"><OpcionesCuenta cuenta={cuenta} alElegir={() => setMas(false)} /></div>
             <hr className="my-4 border-linea" />
+            {!esComercial && (
+              <>
+                <p className="text-xs text-niebla">Lanzamiento</p>
+                <ul className="mt-3 mb-4 grid gap-1.5">
+                  {ZONAS.find((z) => z.id === 'lanzamiento')?.items.map((m) => (
+                    <li key={m.href}><Link href={m.href} onClick={() => setMas(false)} className={`block rounded-2xl px-4 py-3 text-sm font-medium ${activoEn(ruta, m.href) ? 'bg-tinta text-white' : 'bg-papel text-carbon'}`}>{m.nombre}</Link></li>
+                  ))}
+                </ul>
+                <hr className="my-4 border-linea" />
+              </>
+            )}
             <p className="text-xs text-niebla">Conocimiento</p>
             <ul className="mt-3 grid gap-1.5">
               {ZONAS.find((z) => z.id === 'conocimiento')!.items.map((m) => (
