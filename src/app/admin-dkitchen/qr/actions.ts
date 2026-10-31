@@ -493,11 +493,20 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
     cupoInfo = { usados: Number(ctxAlta.usados), cupo: Number(ctxAlta.cupo) };
   }
 
+  // 0112: palancas aprobadas por dirección para ESTE comercial y ESTE local (se consumen al crear).
+  type Sol = { id: string; tipo: string; local: string; estado: string; comercial: string; detalle: Record<string, unknown>; decision: Record<string, unknown> | null };
+  const aprobadas: Sol[] = rolAdmin === 'direccion' ? [] : await comoCliente(jwt, async (c) => (await c.query<{ j: Sol[] }>('SELECT dk.palancas_ver() AS j')).rows[0].j)
+    .then((l) => l.filter((s) => s.estado === 'aprobada' && s.local.trim().toLowerCase() === nombreLocal.toLowerCase())).catch(() => [] as Sol[]);
+  const val = (s: Sol | undefined, k: string) => { const v = Number((s?.decision ?? {})[k] ?? (s?.detalle ?? {})[k]); return Number.isFinite(v) ? v : undefined; };
+  const apDesc = aprobadas.find((s) => s.tipo === 'descuento'), apMont = aprobadas.find((s) => s.tipo === 'montaje_gratis');
+  const apPil = aprobadas.find((s) => s.tipo === 'experience_piloto'), apSig = aprobadas.find((s) => s.tipo === 'signature_fraccionado' || s.tipo === 'signature_financiado');
+
   // Validación y cálculo centralizado en src/lib/alta-unica.ts (R1 / R2)
   const calc = validarYCalcularAlta(d, {
     rolAdmin,
     estadoFundador: ef,
     cupoMontajesGratis: cupoInfo,
+    aprobaciones: { descuentoMax: val(apDesc, 'pct'), montaje: !!apMont, pilotoPct: val(apPil, 'pct'), cuotas: val(apSig, 'cuotas') },
   });
 
   if (!calc.ok) {
@@ -552,6 +561,9 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
   );
   const restauranteId = rows[0]?.restaurante_id;
   if (!restauranteId) return { ok: false, error: 'No se pudo crear el cliente en la base de datos.' };
+  // Las aprobaciones usadas quedan consumidas (una vez) y registradas para el embudo de dirección.
+  const usadas: [Sol | undefined, boolean][] = [[apDesc, descCom > 5], [apMont, !!d.montajeGratis], [apPil, Number(d.pilotoPct) > 0], [apSig, Number(d.cuotasSignature) >= 2]];
+  for (const [s, usada] of usadas) if (s && usada) await comoCliente(jwt, (c) => c.query('SELECT dk.palanca_consumir($1, $2)', [s.id, s.tipo])).catch((e) => console.error('Palanca no consumida', e));
 
   // Fijar comercial, ciudad, dirección y siguiente paso
   // y, si se aplicó, registrar el montaje gratis contra el cupo con bloqueo (todo o nada).

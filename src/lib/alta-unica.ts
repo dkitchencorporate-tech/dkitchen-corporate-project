@@ -44,6 +44,10 @@ export type DatosAlta4Pasos = {
   enviarCorreo?: boolean;
   /** Cliente de PRUEBA (solo dirección, 01/11): nombre «PRUEBA · …», cupón del 100 % y archivado al terminar. */
   prueba?: boolean;
+  /** Evento Experience piloto (§0.4 de karc0): % de descuento sobre el primer evento (≤ 50, OK de dirección). */
+  pilotoPct?: number;
+  /** Signature por hitos o financiado (§0.5): nº de pagos sobre la entrada normal (OK de dirección; nunca Fundador). */
+  cuotasSignature?: number;
 };
 
 export type LineaDesglose = { concepto: string; importeEuros: number };
@@ -52,6 +56,8 @@ export type ContextoValidacionAlta = {
   rolAdmin: 'direccion' | 'comercial' | string;
   estadoFundador?: { abierto: boolean; quedan: number };
   cupoMontajesGratis?: { usados: number; cupo: number };
+  /** Palancas aprobadas por dirección para este comercial y este local (0112). */
+  aprobaciones?: { descuentoMax?: number; montaje?: boolean; pilotoPct?: number; cuotas?: number };
 };
 
 export type ResultadoCalculoAlta = {
@@ -111,7 +117,8 @@ export function validarYCalcularAlta(
 
   // Regla R2: el servidor rechaza para el rol comercial cualquier descuento > 5 %,
   // aunque se envíe aprobacionDireccionDescuento = true a mano. Solo Dirección puede aplicarlo.
-  if (descCom > 5 && rolAdmin === 'comercial') {
+  const ap = ctx.aprobaciones ?? {};
+  if (descCom > 5 && rolAdmin !== 'direccion' && descCom > (ap.descuentoMax ?? 5)) {
     return {
       ok: false,
       error: 'Los descuentos superiores al 5 % (del 6 al 10 %) están reservados a Dirección. Pídeselo a dirección.',
@@ -124,10 +131,10 @@ export function validarYCalcularAlta(
     if (!d.servicios.includes('qr')) {
       return { ok: false, error: 'El montaje gratis solo es aplicable a Carta QR.' };
     }
-    if (rolAdmin === 'comercial') {
+    if (rolAdmin !== 'direccion' && !ap.montaje) {
       return {
         ok: false,
-        error: 'El montaje gratis está reservado a Dirección. Pídeselo a dirección.',
+        error: 'El montaje gratis necesita el OK de dirección. Pídelo con el botón.',
       };
     }
     const origen = d.origenMontaje ?? 'flyer';
@@ -208,6 +215,7 @@ export function validarYCalcularAlta(
   // B. Signature (C3: lógica alineada con cobros.ts)
   if (d.servicios.includes('signature')) {
     if (esFundadorSolicitado) {
+      if (Number(d.cuotasSignature) >= 2) return { ok: false, error: 'El Fundador Signature nunca va en cuotas ni por hitos.' };
       const ef = ctx.estadoFundador;
       if (!ef || !ef.abierto || ef.quedan <= 0) {
         return { ok: false, error: 'El programa Fundador está cerrado o no quedan plazas disponibles para Signature.' };
@@ -230,6 +238,19 @@ export function validarYCalcularAlta(
         intervaloMeses = 1;
         faseSignature = 'cuotas';
       }
+    } else if (Number(d.cuotasSignature) >= 2) {
+      // Por hitos o financiado (§0.5): precio normal en N pagos; hoy el primero, el resto desde su ficha al entregar cada hito.
+      const n = Math.round(Number(d.cuotasSignature));
+      if (n > 24) return { ok: false, error: 'Como máximo 24 pagos.' };
+      if (rolAdmin !== 'direccion' && ap.cuotas !== n) return { ok: false, error: 'El pago por hitos o financiado de Signature necesita el OK de dirección (con los plazos). Pídelo con el botón.' };
+      const hito = Math.round((BASE_OPERATIVA.pagoUnico / n) * 100) / 100;
+      desglose.push({ concepto: `Signature · Entrada en ${n} pagos (hoy el 1.º de ${n})`, importeEuros: hito });
+      baseHoyEuros += hito;
+      if (!d.servicios.includes('qr')) {
+        recurrenteEuros = BASE_OPERATIVA.mantenimiento.mensual;
+        intervaloMeses = 1;
+        mesesGratisSignature = BASE_OPERATIVA.mantenimiento.mesesGratis;
+      }
     } else {
       const entradaNormal = BASE_OPERATIVA.pagoUnico;
       desglose.push({ concepto: 'Signature · Entrada (pago único)', importeEuros: entradaNormal });
@@ -249,6 +270,17 @@ export function validarYCalcularAlta(
       : EXPERIENCE.tarifas.primeraVez.precio;
     desglose.push({ concepto: 'Experience · 1.er evento gastronómico llave en mano', importeEuros: precioExp });
     baseHoyEuros += precioExp;
+    // Piloto (§0.4): hasta −50 %, solo con OK de dirección (o dirección directamente).
+    const piloto = Math.round(Number(d.pilotoPct) || 0);
+    if (piloto > 0) {
+      if (piloto > 50) return { ok: false, error: 'El piloto de Experience llega como máximo al −50 %.' };
+      if (rolAdmin !== 'direccion' && piloto > (ap.pilotoPct ?? 0)) return { ok: false, error: 'El evento piloto necesita el OK de dirección. Pídelo con el botón.' };
+      const ahorro = Math.round((precioExp * piloto) / 100);
+      desglose.push({ concepto: `Experience piloto (−${piloto} %)`, importeEuros: -ahorro });
+      baseHoyEuros -= ahorro;
+    }
+  } else if (Number(d.pilotoPct) > 0) {
+    return { ok: false, error: 'El piloto solo se aplica a Experience.' };
   }
 
   // D. Auditoría

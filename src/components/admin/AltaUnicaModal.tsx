@@ -7,6 +7,7 @@ import {
   type DatosAlta4Pasos,
   type ResultadoAlta4Pasos,
 } from '@/app/admin-dkitchen/qr/actions';
+import { solicitarPalancaAction } from '@/app/admin-dkitchen/comerciales/actions';
 import {
   QR_MENU,
   FUNDADOR,
@@ -76,6 +77,9 @@ export default function AltaUnicaModal({
   const [montajeGratis, setMontajeGratis] = useState(false);
   const [origenMontaje, setOrigenMontaje] = useState<'flyer' | 'visita'>('flyer');
   const [prueba, setPrueba] = useState(false);
+  const [pilotoPct, setPilotoPct] = useState(0);
+  const [cuotasSig, setCuotasSig] = useState(0);
+  const [okPedido, setOkPedido] = useState<Record<string, string>>({});
 
   const tiene = (s: ServicioAlta) => servicios.includes(s);
 
@@ -102,7 +106,18 @@ export default function AltaUnicaModal({
   };
 
   const paso1Ok = local.trim().length >= 2 && contacto.trim().length >= 2 && /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email.trim());
-  const paso3Ok = !(descuentoComercialPct > 0 && motivoDescuento.trim().length < 4) && !(esComercial && (descuentoComercialPct > 5 || montajeGratis));
+  const paso3Ok = !(descuentoComercialPct > 0 && motivoDescuento.trim().length < 4);
+  // 0112: el comercial pide el OK de dirección sin salir del alta; al aprobarse, repite «Revisar» y se aplica.
+  const pedirOk = (tipo: string, detalle: Record<string, unknown>) => iniciar(async () => {
+    const r = await solicitarPalancaAction(tipo, local.trim(), detalle);
+    setOkPedido((o) => ({ ...o, [tipo]: r.ok ? 'Pedido: te avisamos cuando dirección responda. Luego pulsa «Revisar».' : r.error ?? 'No se pudo pedir.' }));
+  });
+  const BotonOk = ({ tipo, detalle }: { tipo: string; detalle: Record<string, unknown> }) => !esComercial ? null : (
+    <span className="flex flex-wrap items-center gap-2">
+      <button type="button" onClick={() => pedirOk(tipo, detalle)} className="min-h-[40px] rounded-full border-2 border-oro bg-white px-4 text-xs font-bold" data-testid={`pedir-ok-${tipo}`}>Pedir OK a dirección</button>
+      {okPedido[tipo] && <span className="text-xs text-niebla">{okPedido[tipo]}</span>}
+    </span>
+  );
 
   const tramitar = (modo: 'previa' | 'crear') => {
     setError(null);
@@ -115,6 +130,8 @@ export default function AltaUnicaModal({
         origenMontaje, puestaAPunto, montajeGratis,
         enviarCorreo: (prueba || modoInicio === 'pago') && enviarCorreo,
         prueba: esDireccion && prueba ? true : undefined,
+        pilotoPct: servicios.includes('experience') && !prueba ? pilotoPct : 0,
+        cuotasSignature: servicios.includes('signature') && modalidad === 'unico' && !prueba ? cuotasSig : 0,
       };
       const res = await altaUnica4PasosAction(payload, modo);
       if (!res.ok) { setError(res.error || 'No se pudo tramitar el alta.'); return; }
@@ -281,17 +298,41 @@ export default function AltaUnicaModal({
                     <div className="space-y-2">
                       <p className="text-xs font-bold uppercase tracking-[0.18em] text-vino">Descuento del comercial</p>
                       <div className="flex flex-wrap gap-2">
-                        {[0, 5, ...(esDireccion ? [10] : [])].map((p) => (
+                        {[0, 5, 8, 10].map((p) => (
                           <button key={p} type="button" onClick={() => { setDescuento(p); setPrevia(null); }} className={`min-h-[44px] rounded-full border px-5 text-sm font-bold transition ${descuentoComercialPct === p ? 'border-tinta bg-tinta text-white' : 'border-linea bg-white text-tinta hover:bg-papel'}`}>
-                            {p === 0 ? 'Sin descuento' : `−${p} %`}
+                            {p === 0 ? 'Sin descuento' : `−${p} %`}{p > 5 && esComercial ? ' · OK' : ''}
                           </button>
                         ))}
                       </div>
-                      {esComercial && <p className="text-xs text-niebla">Más del 5 % o montaje gratis: <b className="text-vino">pídeselo a dirección</b>.</p>}
+                      {descuentoComercialPct > 5 && <BotonOk tipo="descuento" detalle={{ pct: descuentoComercialPct, motivo: motivoDescuento }} />}
                       {descuentoComercialPct > 0 && (
                         <input value={motivoDescuento} onChange={(e) => setMotivo(e.target.value)} placeholder="Motivo del descuento (obligatorio)" className={campo} />
                       )}
                       <input value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="Código de oferta (opcional): FUNDADOR, socio…" className={`${campo} uppercase`} />
+                    </div>
+                  )}
+
+                  {tiene('experience') && !prueba && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-vino">Evento piloto (último recurso)</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[0, 20, 30, 40, 50].map((p) => (
+                          <button key={p} type="button" onClick={() => { setPilotoPct(p); setPrevia(null); }} className={`min-h-[44px] rounded-full border px-4 text-sm font-bold transition ${pilotoPct === p ? 'border-tinta bg-tinta text-white' : 'border-linea bg-white hover:bg-papel'}`} data-testid={`piloto-${p}`}>{p ? `−${p} %` : 'Precio normal'}</button>
+                        ))}
+                      </div>
+                      {pilotoPct > 0 && <BotonOk tipo="experience_piloto" detalle={{ pct: pilotoPct }} />}
+                    </div>
+                  )}
+
+                  {tiene('signature') && modalidad === 'unico' && !prueba && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-vino">Signature: facilidad de pago</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[0, 2, 3, 4, 6, 9, 12].map((n) => (
+                          <button key={n} type="button" onClick={() => { setCuotasSig(n); setPrevia(null); }} className={`min-h-[44px] rounded-full border px-4 text-sm font-bold transition ${cuotasSig === n ? 'border-tinta bg-tinta text-white' : 'border-linea bg-white hover:bg-papel'}`}>{n ? `${n} pagos` : 'Al contado'}</button>
+                        ))}
+                      </div>
+                      {cuotasSig > 0 && <BotonOk tipo="signature_fraccionado" detalle={{ cuotas: cuotasSig }} />}
                     </div>
                   )}
 
@@ -308,11 +349,12 @@ export default function AltaUnicaModal({
                           <span className="text-sm text-niebla">Puesta a punto +{formatPrecio(SERVICIOS_QR.puestaAPunto)}</span>
                         </button>
                       </div>
-                      {puestaAPunto && esDireccion && !prueba && (
+                      {puestaAPunto && !prueba && (
                         <div className="flex flex-wrap gap-2">
                           <button type="button" onClick={() => { setMontajeGratis(!montajeGratis); setPrevia(null); }} className={`min-h-[44px] rounded-full border px-5 text-sm font-bold transition ${montajeGratis ? 'border-exito bg-exito text-white' : 'border-linea bg-white hover:bg-papel'}`}>
                             {montajeGratis ? '✓ Montaje gratis (cupo)' : 'Regalar el montaje (cupo)'}
                           </button>
+                          {montajeGratis && <BotonOk tipo="montaje_gratis" detalle={{ origen: origenMontaje }} />}
                           {montajeGratis && (['flyer', 'visita'] as const).map((o) => (
                             <button key={o} type="button" onClick={() => setOrigenMontaje(o)} className={`min-h-[44px] rounded-full border px-4 text-sm font-semibold ${origenMontaje === o ? 'border-tinta bg-tinta text-white' : 'border-linea bg-white'}`}>
                               {o === 'flyer' ? 'Vino por flyer' : 'Visita comercial'}

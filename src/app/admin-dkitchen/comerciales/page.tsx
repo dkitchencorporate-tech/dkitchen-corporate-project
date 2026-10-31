@@ -1,0 +1,159 @@
+import Link from 'next/link';
+import { exigirAdmin } from '@/lib/guard-admin';
+import { comoCliente } from '@/lib/db';
+import { listarClientesQr, type ClienteQr } from '@/lib/admin-clientes';
+import { listaProspectos, FUENTES, ESTADOS, type Prospecto } from '@/lib/prospeccion';
+import { decidirPalancaAction, habilitarAction } from './actions';
+
+export const dynamic = 'force-dynamic';
+
+/**
+ * Central → Ventas → Comerciales (0112; ampliación de karc0 31/10 21:00): equipo con su progreso en la
+ * Academia, cartera, embudo por comercial y por canal, ventas (comisión cuando el contrato fije el %) y las
+ * solicitudes de OK pendientes, que dirección aprueba con un botón también desde el móvil.
+ */
+type Miembro = { id: string; email: string; nombre: string | null; rol: string; cumple: boolean; bloques: Record<string, { mejor: number; aprobado: boolean }> };
+type Solicitud = { id: string; tipo: string; local: string; detalle: Record<string, unknown>; estado: string; creado_en: string; comercial: string; comercial_nombre: string | null; comercial_email: string };
+
+const TIPO: Record<string, string> = { descuento: 'Descuento 6–10 %', montaje_gratis: 'Montaje gratis (cupo)', experience_piloto: 'Experience piloto', signature_fraccionado: 'Signature por hitos', signature_financiado: 'Signature financiado' };
+const ROL: Record<string, [string, string]> = { direccion: ['Dirección', 'bg-tinta text-white'], comercial: ['Comercial', 'bg-exito/15 text-exito'], en_formacion: ['En formación', 'bg-oro/25 text-tinta'] };
+const EMBUDO: (keyof typeof ESTADOS)[] = ['por_visitar', 'visitado', 'demo', 'interesado', 'cliente'];
+const eur = (n: number) => n.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + ' €';
+
+export default async function Comerciales({ searchParams }: { searchParams: Promise<{ ok?: string; e?: string; m?: string }> }) {
+  const jwt = await exigirAdmin();
+  const q = await searchParams;
+  const esDir = await comoCliente(jwt, async (c) => (await c.query<{ d: boolean }>('SELECT dk.es_direccion() AS d')).rows[0]?.d === true).catch(() => false);
+  if (!esDir) return <div className="p-10 text-center text-sm text-niebla">La zona de comerciales es de dirección.</div>;
+  const [equipo, solicitudes, clientes, prospectos] = await Promise.all([
+    comoCliente(jwt, async (c) => (await c.query<{ j: Miembro[] }>('SELECT dk.admin_academia_equipo() AS j')).rows[0].j).catch(() => [] as Miembro[]),
+    comoCliente(jwt, async (c) => (await c.query<{ j: Solicitud[] }>('SELECT dk.palancas_ver() AS j')).rows[0].j).catch(() => [] as Solicitud[]),
+    listarClientesQr(jwt).catch(() => [] as ClienteQr[]),
+    listaProspectos(jwt, null, null).catch(() => [] as Prospecto[]),
+  ]);
+  const pendientes = solicitudes.filter((s) => s.estado === 'pendiente');
+  const reales = clientes.filter((c) => !c.demoInterna && !c.archivadoEn && !c.nombre.startsWith('PRUEBA'));
+  const hace30 = Date.now() - 30 * 864e5;
+  const canales = Object.keys(FUENTES) as (keyof typeof FUENTES)[];
+  const maxCanal = Math.max(1, ...canales.map((k) => prospectos.filter((p) => p.fuente === k).length));
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 text-tinta sm:p-6 lg:p-10">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Ventas</p>
+          <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Comerciales</h1>
+        </div>
+        <Link href="/admin-dkitchen/administradores" className="dk-btn inline-flex min-h-[44px] items-center rounded-full bg-vino px-5 text-sm font-bold text-white">+ Nuevo comercial</Link>
+      </div>
+      {q.ok && <p role="status" className="rounded-2xl bg-exito/10 px-4 py-3 text-sm text-exito">{q.ok === 'aprobada' ? 'Aprobada: el comercial ya puede aplicarla en el alta.' : q.ok === 'rechazada' ? 'Rechazada.' : 'Habilitado: ya puede vender.'}</p>}
+      {q.e && <p role="alert" className="rounded-2xl bg-vino/10 px-4 py-3 text-sm text-vino">{q.m ? decodeURIComponent(q.m) : 'No se pudo hacer.'}</p>}
+
+      {/* Solicitudes de OK (lo primero: se aprueban al momento, también desde el móvil) */}
+      <section className="space-y-3" data-testid="solicitudes-ok">
+        <h2 className="font-display text-xl font-bold">Piden tu OK {pendientes.length > 0 && <span className="ml-1 rounded-full bg-vino px-2 py-0.5 text-sm text-white">{pendientes.length}</span>}</h2>
+        {!pendientes.length && <p className="rounded-2xl bg-white px-4 py-6 text-center text-sm text-niebla">Nada pendiente.</p>}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {pendientes.map((s) => (
+            <article key={s.id} className="dk-carta space-y-3 rounded-[22px] border-2 border-oro/60 bg-white p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div><p className="text-[11px] font-bold uppercase tracking-[0.18em] text-vino">{TIPO[s.tipo] ?? s.tipo}</p><p className="font-display text-lg font-bold">{s.local}</p>
+                  <p className="text-xs text-niebla">{s.comercial_nombre ?? s.comercial_email}{s.detalle?.motivo ? ` · «${String(s.detalle.motivo)}»` : ''}</p></div>
+                {typeof s.detalle?.pct === 'number' && <b className="font-display text-2xl text-vino">−{String(s.detalle.pct)} %</b>}
+              </div>
+              <form action={decidirPalancaAction} className="space-y-2">
+                <input type="hidden" name="id" value={s.id} />
+                {(s.tipo === 'experience_piloto' || s.tipo === 'descuento') && (
+                  <div className="flex flex-wrap gap-1.5">{(s.tipo === 'descuento' ? [6, 8, 10] : [20, 30, 40, 50]).map((p) => (
+                    <label key={p} className="cursor-pointer"><input type="radio" name="pct" value={p} defaultChecked={p === Number(s.detalle?.pct ?? (s.tipo === 'descuento' ? 10 : 50))} className="peer sr-only" /><span className="inline-flex min-h-[40px] items-center rounded-full border border-linea px-3 text-sm font-bold peer-checked:border-tinta peer-checked:bg-tinta peer-checked:text-white">−{p} %</span></label>
+                  ))}</div>
+                )}
+                {s.tipo.startsWith('signature_') && (
+                  <label className="block text-sm font-semibold">Plazos (los fijas tú)<select name="cuotas" defaultValue={String(s.detalle?.cuotas ?? 3)} className="mt-1 w-full rounded-2xl border border-linea bg-white px-3 py-2.5">{[2, 3, 4, 6, 9, 12].map((n) => <option key={n} value={n}>{n} pagos</option>)}</select></label>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  <button name="aprobar" value="1" className="dk-btn min-h-[48px] rounded-full bg-exito text-sm font-bold text-white" data-testid="aprobar">Aprobar</button>
+                  <button name="aprobar" value="0" className="min-h-[48px] rounded-full border border-linea bg-white text-sm font-bold">Rechazar</button>
+                </div>
+              </form>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* Equipo */}
+      <section className="space-y-3">
+        <h2 className="font-display text-xl font-bold">Equipo</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {equipo.map((m) => {
+            const mios = reales.filter((c) => c.comercialId === m.id);
+            const pros = prospectos.filter((p) => p.comercial_id === m.id);
+            const hechos = ['N1', 'N2', 'N3'].filter((n) => (m.bloques[`${n}:test`]?.mejor ?? 0) >= 90).length + ['E1', 'E2', 'E3', 'E4'].reduce((s, e) => s + (m.bloques[`${e}:pie`]?.aprobado ? 1 : 0) + (m.bloques[`${e}:digital`]?.aprobado ? 1 : 0), 0);
+            const [rolT, rolC] = ROL[m.rol] ?? [m.rol, 'bg-papel'];
+            return (
+              <article key={m.id} className="dk-carta space-y-3 rounded-[22px] border border-linea bg-white p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0"><p className="truncate font-display text-lg font-bold">{m.nombre ?? m.email}</p><p className="truncate text-xs text-niebla">{m.email}</p></div>
+                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${rolC}`}>{rolT}</span>
+                </div>
+                <div><p className="flex justify-between text-xs"><span className="text-niebla">Academia</span><b>{hechos}/11</b></p><div className="dk-barra-prog mt-1 h-2 overflow-hidden rounded-full bg-linea"><span style={{ width: `${(hechos / 11) * 100}%` }} /></div></div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <span className="rounded-xl bg-papel py-2"><b className="block font-display text-lg">{mios.length}</b><span className="text-[11px] text-niebla">clientes</span></span>
+                  <span className="rounded-xl bg-papel py-2"><b className="block font-display text-lg">{eur(mios.reduce((s, c) => s + c.cuota, 0))}</b><span className="text-[11px] text-niebla">cuota/mes</span></span>
+                  <span className="rounded-xl bg-papel py-2"><b className="block font-display text-lg">{pros.length}</b><span className="text-[11px] text-niebla">prospectos</span></span>
+                </div>
+                <p className="text-xs text-niebla">Altas en 30 días: <b className="text-tinta">{mios.filter((c) => new Date(c.creadoEn).getTime() > hace30).length}</b> · Comisión: se calcula al fijar el % en su contrato.</p>
+                {m.rol === 'en_formacion' && (
+                  <form action={habilitarAction}><input type="hidden" name="id" value={m.id} />
+                    <button disabled={!m.cumple} className="dk-btn min-h-[44px] w-full rounded-full bg-exito text-sm font-bold text-white disabled:bg-linea disabled:text-niebla">{m.cumple ? 'Habilitar para vender' : 'Aún no cumple la Academia'}</button></form>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Embudo por comercial */}
+        <section className="dk-carta rounded-[22px] border border-linea bg-white p-5">
+          <h2 className="font-display text-xl font-bold">Embudo por comercial</h2>
+          <div className="mt-3 space-y-4">
+            {equipo.map((m) => {
+              const pros = prospectos.filter((p) => p.comercial_id === m.id);
+              const max = Math.max(1, pros.length);
+              return (
+                <div key={m.id}>
+                  <p className="text-sm font-semibold">{m.nombre ?? m.email} <span className="text-xs font-normal text-niebla">· {pros.length} prospectos</span></p>
+                  <div className="mt-1 grid grid-cols-5 gap-1">
+                    {EMBUDO.map((e, i) => {
+                      const n = pros.filter((p) => EMBUDO.indexOf(p.estado as keyof typeof ESTADOS) >= i).length;
+                      return <div key={e} title={`${ESTADOS[e]}: ${n}`} className="rounded-lg bg-papel p-1.5 text-center"><div className="mx-auto flex h-10 w-3 items-end overflow-hidden rounded-full bg-linea"><div className="dk-aparece w-full rounded-full bg-vino" style={{ height: `${Math.max(4, (n / max) * 100)}%` }} /></div><b className="mt-1 block text-xs">{n}</b><span className="block truncate text-[9px] text-niebla">{ESTADOS[e]}</span></div>;
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Embudo por canal */}
+        <section className="dk-carta rounded-[22px] border border-linea bg-white p-5">
+          <h2 className="font-display text-xl font-bold">Por canal</h2>
+          <ul className="mt-3 space-y-3">
+            {canales.map((k) => {
+              const del = prospectos.filter((p) => p.fuente === k);
+              const cerrados = del.filter((p) => p.estado === 'cliente').length;
+              return (
+                <li key={k}>
+                  <p className="flex justify-between text-sm"><span className="font-semibold">{FUENTES[k]}</span><span><b>{del.length}</b> · {cerrados} cliente{cerrados === 1 ? '' : 's'}{del.length ? ` (${Math.round((cerrados / del.length) * 100)} %)` : ''}</span></p>
+                  <div className="dk-barra-prog mt-1 h-2.5 overflow-hidden rounded-full bg-papel"><span style={{ width: `${Math.max(2, (del.length / maxCanal) * 100)}%` }} /></div>
+                </li>
+              );
+            })}
+          </ul>
+          <Link href="/admin-dkitchen/prospeccion" className="mt-4 inline-block text-sm font-semibold text-vino">Ir a Prospección →</Link>
+        </section>
+      </div>
+    </div>
+  );
+}

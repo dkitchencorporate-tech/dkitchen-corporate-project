@@ -48,6 +48,25 @@ export async function exigirAdmin(): Promise<string> {
   const estado = await estadoAdmin(jwt);
   if (estado === 'ok') return jwt;
   if (estado === 'pendiente' || estado === 'sin_configurar') redirect('/acceso-seguro');
+  // 0112: un comercial «en formación» solo tiene la Academia.
+  if (await esAdminAcademia(jwt)) redirect('/academia');
+  redirect('/panel');
+}
+
+/** 0112: administrador con 2FA en esta sesión, sea cual sea su rol (incluido «en formación»). */
+export async function esAdminAcademia(jwt: string): Promise<boolean> {
+  try {
+    return await comoCliente(jwt, async (c) => (await c.query<{ a: boolean }>('SELECT dk.es_admin_academia() AS a')).rows[0]?.a === true);
+  } catch { return false; }
+}
+
+/** Puerta de /academia (0112): cualquier administrador con 2FA; sin 2FA → /acceso-seguro. */
+export async function exigirAcademia(): Promise<string> {
+  const jwt = await obtenerJwtDeSesion().catch(() => null);
+  if (!jwt) redirect('/panel/iniciar-sesion');
+  if (await esAdminAcademia(jwt)) return jwt;
+  const i = await estadoInterno(jwt);
+  if (i.estado === 'pendiente' || i.estado === 'sin_configurar') redirect('/acceso-seguro');
   redirect('/panel');
 }
 
