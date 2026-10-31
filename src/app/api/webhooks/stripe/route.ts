@@ -276,7 +276,7 @@ async function alta(ctx: Contexto) {
       await darAccesoExperience(meta.email, meta.nombreContacto);
     }
     if (productoDirecto) {
-      const filasAviso: [string, unknown][] = [
+      const filasAviso: [string, string | null | undefined][] = [
         ['Nombre', meta.nombreContacto],
         ['Negocio', meta.restauranteNombre],
         ['Correo', meta.email],

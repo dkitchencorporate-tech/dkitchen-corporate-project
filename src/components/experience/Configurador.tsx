@@ -9,7 +9,7 @@ export default function Configurador({ codigo, nombre, aforo, entrada, precio, p
   const id = useId();
   const [minima, setMinima] = useState('');
   const [maxima, setMaxima] = useState('');
-  const [cocina, setCocina] = useState(COCINAS[0]);
+  const [cocina, setCocina] = useState<string>(COCINAS[0]);
   const [fecha, setFecha] = useState('');
   const [plazas, setPlazas] = useState(Math.round((aforo[0] + aforo[1]) / 10) * 5);
   const [precioEntrada, setPrecioEntrada] = useState(Math.round((entrada[0] + entrada[1]) / 2));
