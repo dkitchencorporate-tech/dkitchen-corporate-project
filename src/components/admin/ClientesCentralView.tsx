@@ -87,9 +87,11 @@ export default function ClientesCentralView({
     const todos = clientesIniciales.filter((c) => !['demo', 'bajas', 'archivados'].includes(sit(c))).length;
     const demo = clientesIniciales.filter((c) => sit(c) === 'demo').length;
     const bajas = clientesIniciales.filter((c) => sit(c) === 'bajas').length;
-    const qr = clientesIniciales.filter((c) => !c.soloProyecto).length;
-    const sig = clientesIniciales.filter((c) => c.tieneSignature).length;
-    const exp = clientesIniciales.filter((c) => c.tieneExperience).length;
+    // Los contadores por servicio cuentan solo clientes reales (las demos y bajas van aparte).
+    const base = clientesIniciales.filter((c) => !['demo', 'bajas', 'archivados'].includes(sit(c)));
+    const qr = base.filter((c) => !c.soloProyecto).length;
+    const sig = base.filter((c) => c.tieneSignature).length;
+    const exp = base.filter((c) => c.tieneExperience).length;
     const prueba = clientesIniciales.filter((c) => pestanaDe(c, hoy) === 'prueba').length;
     const riesgo = clientesIniciales.filter((c) => pestanaDe(c, hoy) === 'riesgo').length;
     // Comparación estricta por UUID de identidad asignada

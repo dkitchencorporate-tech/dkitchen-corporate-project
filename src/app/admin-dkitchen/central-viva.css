@@ -7,26 +7,21 @@
  */
 .central-viva { --cv-ease: cubic-bezier(.22, 1, .36, 1); --cv-vino: 110, 12, 43; --cv-oro: 217, 178, 92; }
 
-/* ── Fondo que respira: luz de vino y oro que deriva despacio + retícula técnica ── */
-.central-viva > main { position: relative; isolation: isolate; }
-.central-viva > main::before {
-  content: ""; position: absolute; inset: -25%; z-index: -1; pointer-events: none;
-  background:
+/* ── Fondo que respira: luz de vino y oro que deriva despacio + retícula técnica ──
+   Va en el fondo del contenedor raíz (sin pseudo-elementos ni isolation en <main>): así los modales
+   de las pantallas siguen por encima de la barra de navegación del móvil. */
+.central-viva {
+  background-image:
     radial-gradient(38% 32% at 12% 8%, rgba(163, 24, 74, .075), transparent 70%),
     radial-gradient(34% 30% at 92% 28%, rgba(var(--cv-oro), .09), transparent 70%),
-    radial-gradient(44% 38% at 58% 98%, rgba(var(--cv-vino), .055), transparent 70%);
+    radial-gradient(44% 38% at 58% 98%, rgba(var(--cv-vino), .055), transparent 70%),
+    linear-gradient(rgba(23, 25, 30, .028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 25, 30, .028) 1px, transparent 1px);
+  background-size: 130% 130%, 130% 130%, 130% 130%, 34px 34px, 34px 34px;
+  background-position: 0% 0%, 100% 0%, 50% 100%, 0 0, 0 0;
   animation: cv-deriva 26s ease-in-out infinite alternate;
 }
-.central-viva > main::after {
-  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background-image:
-    linear-gradient(rgba(23, 25, 30, .035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(23, 25, 30, .035) 1px, transparent 1px);
-  background-size: 34px 34px;
-  -webkit-mask-image: radial-gradient(120% 70% at 50% 0%, #000 0%, transparent 72%);
-  mask-image: radial-gradient(120% 70% at 50% 0%, #000 0%, transparent 72%);
-}
-@keyframes cv-deriva { to { transform: translate3d(4%, -3%, 0) scale(1.06); } }
+@keyframes cv-deriva { to { background-position: 8% 6%, 92% 8%, 44% 92%, 0 0, 0 0; } }
 
 /* ── Entrada escalonada (la clase la pone y la quita VidaCentral) ── */
 .cv-entra { animation: cv-entra .7s var(--cv-ease) both; animation-delay: calc(var(--cv-i, 0) * 48ms); }
@@ -130,6 +125,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .central-viva *, .central-viva *::before, .central-viva *::after, .central-viva > main::before { animation: none !important; transition: none !important; }
+  .central-viva, .central-viva *, .central-viva *::before, .central-viva *::after { animation: none !important; transition: none !important; }
   .cv-oculto { opacity: 1; }
 }
