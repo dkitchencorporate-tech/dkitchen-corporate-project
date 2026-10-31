@@ -47,7 +47,7 @@ export async function POST(peticion: Request, contexto: { params: Promise<{ path
       ...(email ? [{ clave: claveDeLimite('recuperar-correo', email), limite: 3, ventanaSegundos: 60 * MINUTO }] : []),
     ])) {
       // Misma respuesta que un envío normal: no revela nada ni manda más correos.
-      return Response.json({ status: true });
+      return Response.json({ status: true, message: 'If this email exists in our system, check your email for the reset link' });
     }
   } catch (e) {
     console.error('Freno de autenticación no disponible:', (e as Error).message);
