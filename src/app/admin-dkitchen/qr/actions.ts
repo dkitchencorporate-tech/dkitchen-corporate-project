@@ -20,6 +20,8 @@ import { enviarCorreoCliente, enviarCorreoInterno, escaparHtml, escaparTexto } f
 import { cifrar } from '@/lib/cifrado';
 import { guardarTraducciones, type Traduccion } from '@/lib/idiomas';
 import { esPlanQr, nombrePlan, QR_MENU, FUNDADOR, BASE_OPERATIVA, EXPERIENCE, AUDITORIA_CANALES } from '@/lib/pricing-config';
+import { validarYCalcularAlta, type DatosAlta4Pasos, type LineaDesglose } from '@/lib/alta-unica';
+export type { DatosAlta4Pasos, LineaDesglose };
 import { identidadActual } from '@/lib/sesion';
 import { estadoFundador } from '@/lib/fundador';
 
@@ -432,32 +434,6 @@ const PESTANAS_SOPORTE = ['local', 'carta', 'estudio', 'diseno', 'landing', 'idi
 // ---------------------------------------------------------------------------
 // P1.3 · Alta única en 4 pasos (Boceto aprobado 30/10 / Orden 31/10)
 // ---------------------------------------------------------------------------
-export type DatosAlta4Pasos = {
-  local: string;
-  ciudad?: string;
-  direccion?: string;
-  cif?: string;
-  contacto: string;
-  telefono?: string;
-  email: string;
-  servicios: string[]; // 'qr' | 'signature' | 'experience' | 'auditoria'
-  planQr?: string; // 'basico' | 'ampliado' | 'sala'
-  modoInicio: 'pago' | 'gratis' | 'demo';
-  modalidadTarifa: '1euro' | 'mensual' | 'fundador' | 'unico' | 'cuotas';
-  diasPrueba?: number;
-  codigo?: string;
-  descuentoComercialPct?: number; // 0 | 5 | 10
-  motivoDescuento?: string;
-  aprobacionDireccionDescuento?: boolean;
-  aprobacionDireccionMontaje?: boolean;
-  origenMontaje?: 'flyer' | 'visita';
-  puestaAPunto?: boolean;
-  montajeGratis?: boolean;
-  enviarCorreo?: boolean;
-};
-
-export type LineaDesglose = { concepto: string; importeEuros: number };
-
 export type ResultadoAlta4Pasos = {
   ok: boolean;
   restauranteId?: string;
@@ -479,190 +455,64 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos): Promise<Resulta
   const direccion = String(d.direccion ?? '').trim().slice(0, 200);
   const telefono = String(d.telefono ?? '').trim().replace(/\s+/g, '');
 
-  if (!CORREO.test(email) || email.length > 254) return { ok: false, error: 'El correo electrónico no es válido.' };
-  if (contacto.length < 2 || local.length < 2) return { ok: false, error: 'Pon el nombre del contacto y del local.' };
-  if (!d.servicios || d.servicios.length === 0) return { ok: false, error: 'Debes seleccionar al menos un servicio.' };
-
   // Comprobar rol de quien ejecuta en identidades
   const yo = await identidadActual().catch(() => null);
   const miId = yo?.id ?? null;
-  const { rows: admRows } = await comoAprovisionamiento((c) =>
-    c.query<{ rol_admin: string }>('SELECT rol_admin FROM public.identidades WHERE id = $1 LIMIT 1', [miId])
+  const { rows: admRows } = await comoAprovisionamiento((client) =>
+    client.query<{ rol_admin: string }>('SELECT rol_admin FROM public.identidades WHERE id = $1 LIMIT 1', [miId])
   );
   const rolAdmin = admRows[0]?.rol_admin ?? 'comercial';
 
-  // Regla B2.7: Modos demo y cortesía/gratis SOLO para dirección (comprobado en servidor)
-  if ((d.modoInicio === 'demo' || d.modoInicio === 'gratis') && rolAdmin !== 'direccion') {
-    return { ok: false, error: 'Los modos demo y cortesía/gratis están reservados exclusivamente a Dirección.' };
+  // Leer estado de fundador si se solicita
+  const esFundadorSolicitado = d.modalidadTarifa === 'fundador' || d.codigo?.trim().toUpperCase() === 'FUNDADOR';
+  let ef: { abierto: boolean; quedan: number } | undefined;
+  if (esFundadorSolicitado && (d.servicios.includes('qr') || d.servicios.includes('signature'))) {
+    ef = (await estadoFundador().catch(() => null)) ?? undefined;
   }
 
-  // Regla B2.1 & B2: Descuento comercial máximo 10% estrictamente validado en servidor con motivo obligatorio
-  const descCom = Number(d.descuentoComercialPct) || 0;
-  if (descCom > 10) {
-    return { ok: false, error: 'El descuento manual del comercial no puede superar el 10 %.' };
-  }
-  if (descCom < 0) {
-    return { ok: false, error: 'El descuento no puede ser negativo.' };
-  }
-  if (descCom > 0 && (!d.motivoDescuento || d.motivoDescuento.trim().length < 4)) {
-    return { ok: false, error: 'Indica el motivo del descuento del comercial (mínimo 4 caracteres).' };
-  }
-
-  // Regla C4: Descuentos del 6 al 10 % requieren aprobación expresa de dirección si lo pide un comercial
-  if (descCom > 5 && rolAdmin === 'comercial' && !d.aprobacionDireccionDescuento) {
-    return { ok: false, error: 'Los descuentos superiores al 5 % (del 6 al 10 %) requieren la aprobación expresa de Dirección.' };
-  }
-
-  // Regla C4: Montaje gratis solo con aprobación de dirección, solo flyer o visita, y contando contra cupo de 20 (0104)
+  // Leer cupo de montajes gratis si se solicita
+  let cupoInfo: { usados: number; cupo: number } | undefined;
   if (d.montajeGratis) {
-    if (!d.servicios.includes('qr')) {
-      return { ok: false, error: 'El montaje gratis solo es aplicable a Carta QR.' };
-    }
-    const origen = d.origenMontaje ?? 'flyer';
-    if (!['flyer', 'visita'].includes(origen)) {
-      return { ok: false, error: 'El montaje gratis solo es aplicable a clientes procedentes de flyer o visita.' };
-    }
-    if (rolAdmin === 'comercial' && !d.aprobacionDireccionMontaje) {
-      return { ok: false, error: 'El montaje gratis requiere la aprobación expresa de Dirección.' };
-    }
-    const { rows: cupoRows } = await comoAprovisionamiento(async (c) =>
-      c.query<{ usados: string; cupo: number }>(
+    const { rows: cupoRows } = await comoAprovisionamiento(async (client) =>
+      client.query<{ usados: string; cupo: number }>(
         'SELECT (SELECT count(*) FROM public.montajes_gratis) AS usados, dk.montajes_gratis_cupo() AS cupo'
       )
-    );
-    const usados = Number(cupoRows[0]?.usados ?? 0);
-    const cupo = Number(cupoRows[0]?.cupo ?? 20);
-    if (usados >= cupo) {
-      return { ok: false, error: `El cupo de ${cupo} montajes gratis ya está completo (${usados} de ${cupo} usados).` };
-    }
+    ).catch(() => ({ rows: [] }));
+    cupoInfo = {
+      usados: Number(cupoRows[0]?.usados ?? 0),
+      cupo: Number(cupoRows[0]?.cupo ?? 20),
+    };
   }
 
-  // 1. Recálculo estricto de precios en servidor (nada proviene del cliente)
-  let baseHoyEuros = 0;
-  let recurrenteEuros = 0;
-  let intervaloMeses = 1;
-  const desglose: LineaDesglose[] = [];
+  // Validación y cálculo centralizado en src/lib/alta-unica.ts (R1 / R2)
+  const calc = validarYCalcularAlta(d, {
+    rolAdmin,
+    estadoFundador: ef,
+    cupoMontajesGratis: cupoInfo,
+  });
 
-  // B2.2: Validación estricta del programa Fundador (plazas, fecha y plan Sala)
-  const esFundadorSolicitado = d.modalidadTarifa === 'fundador' || d.codigo?.trim().toUpperCase() === 'FUNDADOR';
-  let esFundadorQrValido = false;
-
-  if (esFundadorSolicitado && d.servicios.includes('qr')) {
-    const planElegido = esPlanQr(d.planQr) ? d.planQr : 'ampliado';
-    if (planElegido !== 'sala') {
-      return { ok: false, error: 'El programa Fundador solo es aplicable al Plan Sala.' };
-    }
-    const ef = await estadoFundador();
-    if (!ef || !ef.abierto || ef.quedan <= 0) {
-      return { ok: false, error: 'El programa Fundador está cerrado o no quedan plazas disponibles.' };
-    }
-    esFundadorQrValido = true;
+  if (!calc.ok) {
+    return { ok: false, error: calc.error };
   }
 
-  // A. Carta QR
-  if (d.servicios.includes('qr')) {
-    const plan = esPlanQr(d.planQr) ? d.planQr : 'ampliado';
-    const precioPlan = QR_MENU.planes[plan].mensual;
+  const baseHoyEuros = calc.baseEuros!;
+  const recurrenteEuros = calc.recurrenteEuros!;
+  const intervaloMeses = calc.intervaloMeses!;
+  const desglose = calc.desglose!;
+  const mesesGratisSignature = calc.mesesGratisSignature;
+  const cuponSignature = calc.cuponSignature;
+  const faseSignature = calc.faseSignature;
+  const descCom = Number(d.descuentoComercialPct) || 0;
 
-    if (esFundadorQrValido) {
-      // B2.3: Fundador cobrado 147 € por trimestre, con recurrencia trimestral
-      desglose.push({ concepto: 'Carta QR · Plan Sala Fundador (cuota trimestral)', importeEuros: FUNDADOR.trimestre });
-      baseHoyEuros += FUNDADOR.trimestre;
-      recurrenteEuros = FUNDADOR.trimestre;
-      intervaloMeses = 3;
-    } else if (d.modalidadTarifa === '1euro' && plan === 'ampliado') {
-      desglose.push({ concepto: `Carta QR · ${nombrePlan(plan)} (primer mes promocional)`, importeEuros: QR_MENU.primerMes });
-      baseHoyEuros += QR_MENU.primerMes;
-      recurrenteEuros = precioPlan;
-      intervaloMeses = 1;
-    } else {
-      desglose.push({ concepto: `Carta QR · Plan ${nombrePlan(plan)} (mensual)`, importeEuros: precioPlan });
-      baseHoyEuros += precioPlan;
-      recurrenteEuros = precioPlan;
-      intervaloMeses = 1;
-    }
-
-    // Puesta a punto (C2):
-    // El alta va incluida siempre (0 €).
-    // La puesta a punto es un extra opcional (49 €), desmarcada por defecto.
-    if (d.puestaAPunto && !d.montajeGratis) {
-      desglose.push({ concepto: 'Puesta a punto y digitalización (opcional)', importeEuros: QR_MENU.setup.precio });
-      baseHoyEuros += QR_MENU.setup.precio;
-    } else if (d.montajeGratis) {
-      desglose.push({ concepto: 'Puesta a punto y digitalización (Montaje gratis incluido)', importeEuros: 0 });
-    } else {
-      desglose.push({ concepto: 'Alta inicial (159 € bonificada)', importeEuros: 0 });
-    }
+  // Si requiere cupón para Signature Fundador, asegurar su existencia en Stripe
+  if (cuponSignature && d.servicios.includes('signature')) {
+    const fs = FUNDADOR.signature;
+    await asegurarCupon(cuponSignature, {
+      nombre: `Fundador Signature ${fs.mensual} €/mes`,
+      centimos: (BASE_OPERATIVA.mantenimiento.mensual - fs.mensual) * 100,
+      meses: fs.meses,
+    });
   }
-
-  let mesesGratisSignature: number | undefined;
-  let cuponSignature: string | undefined;
-  let faseSignature: string | undefined;
-
-  // B. Signature (C3: lógica reutilizada de cobros.ts)
-  if (d.servicios.includes('signature')) {
-    if (esFundadorSolicitado) {
-      const ef = await estadoFundador();
-      if (!ef || !ef.abierto || ef.quedan <= 0) {
-        return { ok: false, error: 'El programa Fundador está cerrado o no quedan plazas disponibles para Signature.' };
-      }
-      const fs = FUNDADOR.signature;
-      desglose.push({ concepto: 'Signature · Entrada Fundador (pago único)', importeEuros: fs.entrada });
-      baseHoyEuros += fs.entrada;
-      if (!d.servicios.includes('qr')) {
-        recurrenteEuros = BASE_OPERATIVA.mantenimiento.mensual; // 99 €
-        intervaloMeses = 1;
-        mesesGratisSignature = BASE_OPERATIVA.mantenimiento.mesesGratis; // 2 meses incluidos, empieza en mes 3
-        cuponSignature = `dk_fundador_signature_${BASE_OPERATIVA.mantenimiento.mensual - fs.mensual}x${fs.meses}`;
-        await asegurarCupon(cuponSignature, {
-          nombre: `Fundador Signature ${fs.mensual} €/mes`,
-          centimos: (BASE_OPERATIVA.mantenimiento.mensual - fs.mensual) * 100,
-          meses: fs.meses,
-        });
-      }
-    } else if (d.modalidadTarifa === 'cuotas') {
-      const { cuotas, importeCuota } = BASE_OPERATIVA.fraccionado;
-      desglose.push({ concepto: `Signature · 1.ª cuota de entrada (${cuotas} × ${importeCuota} €)`, importeEuros: importeCuota });
-      baseHoyEuros += importeCuota;
-      if (!d.servicios.includes('qr')) {
-        recurrenteEuros = importeCuota;
-        intervaloMeses = 1;
-        faseSignature = 'cuotas';
-      }
-    } else {
-      const entradaNormal = BASE_OPERATIVA.pagoUnico;
-      desglose.push({ concepto: 'Signature · Entrada (pago único)', importeEuros: entradaNormal });
-      baseHoyEuros += entradaNormal;
-      if (!d.servicios.includes('qr')) {
-        recurrenteEuros = BASE_OPERATIVA.mantenimiento.mensual; // 99 €
-        intervaloMeses = 1;
-        mesesGratisSignature = BASE_OPERATIVA.mantenimiento.mesesGratis; // 2 meses incluidos, empieza en mes 3
-      }
-    }
-  }
-
-  // C. Experience
-  if (d.servicios.includes('experience')) {
-    const precioExp = d.servicios.includes('qr') ? EXPERIENCE.tarifas.primeraParaClienteQr.precio : EXPERIENCE.tarifas.primeraVez.precio;
-    desglose.push({ concepto: 'Experience · 1.er evento gastronómico llave en mano', importeEuros: precioExp });
-    baseHoyEuros += precioExp;
-  }
-
-  // D. Auditoría
-  if (d.servicios.includes('auditoria')) {
-    desglose.push({ concepto: 'Auditoría de canales externos', importeEuros: AUDITORIA_CANALES.precioOferta });
-    baseHoyEuros += AUDITORIA_CANALES.precioOferta;
-  }
-
-  // Aplicación exclusiva del descuento comercial (B2.1: ninguna oferta halloween inventada)
-  if (descCom > 0) {
-    const ahorro = Math.round((baseHoyEuros * descCom) / 100);
-    desglose.push({ concepto: `Descuento comercial (-${descCom} %)`, importeEuros: -ahorro });
-    baseHoyEuros = Math.max(0, baseHoyEuros - ahorro);
-  }
-
-  const ivaEuros = Math.round(baseHoyEuros * 0.21 * 100) / 100;
-  const totalHoyEuros = Math.round((baseHoyEuros + ivaEuros) * 100) / 100;
 
   // B2.6: Resolver cuenta de Neon Auth; si ya existe y no se encuentra identidad en base de datos, ERROR (nada de randomUUID)
   let identidadId: string;
