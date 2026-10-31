@@ -11,7 +11,7 @@ export async function guardarQrCampanaAction(f: FormData) {
   const nombre = String(f.get('nombre') ?? '').trim().slice(0, 80);
   const destino = String(f.get('destino') ?? '').trim().replace(/^https:\/\/dkitchencorporate\.es/, '');
   if (!/^[a-z0-9-]{3,32}$/.test(codigo)) throw new Error('El código solo admite minúsculas, números y guiones (3–32).');
-  if (!/^\/[A-Za-z0-9/_?&=%.,-]*$/.test(destino)) throw new Error('El destino debe ser una ruta de dkitchencorporate.es que empiece por «/».');
+  if (!/^\/[A-Za-z0-9/_?&=%.,-]*$/.test(destino) || destino.includes('//')) throw new Error('El destino debe ser una ruta de dkitchencorporate.es que empiece por «/».');
   await comoCliente(jwt, (c) => c.query('SELECT dk.admin_qr_campana_guardar($1, $2, $3, $4)', [codigo, nombre || codigo, destino, f.get('activo') === 'si']));
   revalidatePath('/admin-dkitchen/campanas');
 }

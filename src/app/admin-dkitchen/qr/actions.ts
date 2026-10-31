@@ -612,7 +612,7 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
       fase: faseSignature,
       origen: 'https://dkitchencorporate.es',
       prueba: esPrueba,
-      metadata: { servicios: d.servicios.filter((s) => ['qr', 'signature', 'experience', 'auditoria'].includes(s)).join(','), nombreContacto: contacto, ...(telefono ? { telefono } : {}) },
+      metadata: { plan: planElegido, servicios: d.servicios.filter((s) => ['qr', 'signature', 'experience', 'auditoria'].includes(s)).join(','), nombreContacto: contacto, ...(telefono ? { telefono } : {}) },
     });
 
     urlPago = chk.url;

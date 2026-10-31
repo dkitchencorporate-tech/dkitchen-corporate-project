@@ -24,6 +24,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ codi
   }
   if (!destino) return NextResponse.redirect(`${origen}/`, { status: 302, headers: sinCache });
   const url = new URL(destino, origen);
+  // Seguridad (ead848a6, 01/11): «//dominio» resolvía a otro sitio. Solo se redirige dentro de la web.
+  if (url.origin !== origen || destino.startsWith('//') || destino.includes('\\')) {
+    console.error(`QR de campaña ${codigo}: destino externo bloqueado`);
+    return NextResponse.redirect(`${origen}/`, { status: 302, headers: sinCache });
+  }
   url.searchParams.set('qr', codigo);
   return NextResponse.redirect(url, { status: 302, headers: sinCache });
 }

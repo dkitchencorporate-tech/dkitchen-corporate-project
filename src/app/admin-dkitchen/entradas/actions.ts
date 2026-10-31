@@ -34,6 +34,13 @@ const campo = (f: FormData, k: string, max = 200) => String(f.get(k) ?? '').trim
 // Experience unificado (decisión 1 de karc0, 01/11): los eventos viven dentro de Servicios → Experience.
 const volver = (q: string): never => redirect(`/admin-dkitchen/servicios/experience?${q}`);
 const refrescar = () => { revalidatePath('/admin-dkitchen/servicios/experience'); revalidatePath('/admin-dkitchen/entradas'); };
+/** Proyecto Experience al que pertenece un evento nuevo: el elegido en el tablero o el abierto de ese local. */
+async function proyectoDelLocal(jwt: string, proyecto: string | null, local: string): Promise<string | null> {
+  if (proyecto && UUID.test(proyecto)) return proyecto;
+  try {
+    return await comoCliente(jwt, async (c) => (await c.query<{ id: string }>("SELECT p->>'id' AS id FROM jsonb_array_elements(dk.admin_proyectos('experience', NULL, false)) p WHERE lower(p->>'negocio') = lower($1) AND p->>'fase' IN ('solicitud', 'llamada', 'contrato_pago', 'concepto') LIMIT 1", [local])).rows[0]?.id ?? null);
+  } catch { return null; }
+}
 /** Mueve el proyecto Experience del local a la fase del evento (sin fallar si no hay proyecto). */
 async function faseProyecto(jwt: string, proyecto: string | null, local: string | null, desde: string[], fase: string) {
   try {
@@ -80,6 +87,9 @@ export async function guardarEventoAction(f: FormData) {
     },
   };
   if (!Number.isFinite(euros) || !fechaLocal) volver('e=datos');
+  // Vínculo evento ↔ proyecto (0084): con él, el cliente ve su evento en /mi-experience.
+  const proyectoId = UUID.test(id) ? null : await proyectoDelLocal(jwt, campo(f, 'proyecto', 36) || null, datos.local_nombre);
+  if (proyectoId) (datos as Record<string, unknown>).proyecto_id = proyectoId;
   let nuevo = '';
   try {
     nuevo = await comoCliente(jwt, async (c) => (await c.query('SELECT dk.admin_evento_guardar($1, $2) AS id', [UUID.test(id) ? id : null, datos])).rows[0].id);
@@ -87,7 +97,7 @@ export async function guardarEventoAction(f: FormData) {
     console.error('Guardar evento:', e);
     volver('e=guardar');
   }
-  if (!UUID.test(id)) await faseProyecto(jwt, campo(f, 'proyecto', 36) || null, datos.local_nombre, ['solicitud', 'llamada', 'contrato_pago', 'concepto'], 'evento_montado');
+  if (proyectoId) await faseProyecto(jwt, proyectoId, null, [], 'evento_montado');
   refrescar();
   volver(`ok=guardado&ev=${nuevo}`);
 }

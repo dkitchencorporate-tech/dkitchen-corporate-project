@@ -17,6 +17,8 @@ import { pasarSignatureAMantenimiento } from '@/lib/payments/cobros';
 import { avisarCobroFallido } from '@/lib/avisos-impago';
 import { crearProyecto, type AltaProyecto } from '@/lib/proyectos';
 import { darAccesoExperience } from '@/lib/acceso-experience';
+import { enviarEnlaceDeContrasena } from '@/lib/neon-auth';
+import { enviarBienvenidaQr } from '@/lib/bienvenida';
 
 export const runtime = 'nodejs';
 
@@ -370,6 +372,21 @@ async function alta(ctx: Contexto) {
           for (const s of String(meta.servicios ?? '').split(',')) {
             if (s === 'signature' || s === 'experience' || s === 'auditoria') {
               await crearProyecto(s, 'pago', altaProyecto(ctx, { referencia: `${ctx.idPago}:${s}`, datos: { restaurante_id: meta.restauranteId, ...(meta.dk_prueba === '1' ? { prueba: true } : {}) } }));
+            }
+          }
+          // Acceso del cliente (01/11): el alta de Central crea la cuenta sin contraseña; al pagar le llega
+          // el enlace para crearla y la bienvenida (Carta QR) o el paso siguiente («Mis servicios»).
+          const servicios = String(meta.servicios ?? '').split(',').filter(Boolean);
+          if (meta.email) {
+            await enviarEnlaceDeContrasena(meta.email).catch((e) => console.error('Enlace de pago: no se pudo enviar el enlace de contraseña', e));
+            if (servicios.includes('qr')) await enviarBienvenidaQr(meta.email, meta.nombreContacto || '', meta.restauranteNombre || '', meta.plan || 'ampliado').catch((e) => console.error('Bienvenida no enviada', e));
+            const conSeguimiento = servicios.filter((s) => s === 'signature' || s === 'auditoria' || s === 'experience');
+            if (conSeguimiento.length) {
+              await enviarCorreoCliente(meta.email, `Pago recibido · siguiente paso para ${meta.restauranteNombre || 'tu proyecto'}`,
+                `<p style="margin:0 0 12px">Hola${meta.nombreContacto ? ` ${escaparHtml(meta.nombreContacto)}` : ''},</p>
+                 <p style="margin:0 0 12px">Tu pago está confirmado. Te acaba de llegar otro correo para crear tu contraseña.</p>
+                 <p style="margin:0 0 12px">Después entra en <strong>Mis servicios</strong>: ahí ves en qué punto está cada servicio y nos mandas lo que necesitamos (${conSeguimiento.map((s) => s === 'signature' ? 'marca, colores, carta y fotos de tu app' : s === 'auditoria' ? 'tus canales y la fecha de la reunión' : 'el briefing de tu evento').join('; ')}).</p>`,
+                { titulo: 'Tu siguiente paso', boton: { texto: 'Abrir Mis servicios', url: 'https://dkitchencorporate.es/mis-servicios' } }).catch((e) => console.error('Correo de siguiente paso no enviado', e));
             }
           }
           await enviarCorreoInterno(`PAGO DE ENLACE: ${meta.restauranteNombre}`,

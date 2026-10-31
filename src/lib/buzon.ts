@@ -32,7 +32,7 @@ export async function estadoBuzon(jwt: string, id: string, estado: EstadoBuzon) 
 }
 
 export async function administradores(jwt: string): Promise<Administrador[]> {
-  return comoCliente(jwt, async (c) => (await c.query('SELECT a.*, CASE WHEN a.yo THEN dk.rol_admin_actual() END AS rol_admin FROM dk.admin_admins() a')).rows.map((r) => ({
+  return comoCliente(jwt, async (c) => (await c.query('SELECT a.*, CASE WHEN a.yo THEN dk.rol_admin_actual() ELSE a.rol_equipo END AS rol_admin FROM dk.admin_admins() a')).rows.map((r) => ({
     id: r.id, email: r.email, nombre: r.nombre ?? r.email, dosFa: r.dos_fa, yo: r.yo, creadoEn: new Date(r.creado_en).toISOString(), rolAdmin: (r.rol_admin as string | undefined) ?? "comercial",
   })));
 }

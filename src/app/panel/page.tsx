@@ -11,6 +11,8 @@ import { listarPromociones } from '@/lib/promociones';
 import { listarMisReservas } from '@/lib/reservas';
 import { estadoServicios, tiene } from '@/lib/servicios';
 import { misExperiences } from '@/lib/mi-experience';
+import { misServicios } from '@/lib/mis-servicios';
+import Link from 'next/link';
 import { cargarPlano, listarCamareros, estadoConexionTpv, informeCamareros } from '@/lib/sala';
 import { listarTraducciones } from '@/lib/idiomas';
 import { llamadasPendientes } from '@/lib/llamadas-camarero';
@@ -50,6 +52,8 @@ export default async function Panel() {
       const interno = await estadoInterno(jwt);
       if (interno.tipo === 'socio' && interno.estado === 'ok') redirect('/socio');
       if (interno.tipo) redirect('/acceso-seguro');
+      // 0111: cliente solo de Signature / Experience / Auditoría → «Mis servicios»
+      if ((await misServicios(jwt).catch(() => [])).length) redirect('/mis-servicios');
       // 0088: cliente solo de Experience → su zona
       if ((await misExperiences(jwt).catch(() => [])).length) redirect('/mi-experience');
       return (
@@ -82,7 +86,7 @@ export default async function Panel() {
     ]);
     const [servicios, cobro, extras, legal, tutorial] = await Promise.all([estadoServicios(jwt, restaurante.id), puesta ? Promise.resolve(null) : resumenCobro(jwt, restaurante.id).catch(() => null),
       suave(listarExtras(jwt, restaurante.id), []), obtenerLegal(jwt, restaurante.id), puesta ? Promise.resolve(null) : tutorialEstado(jwt, restaurante.id).catch(() => null)]);
-    const landing = await leerLanding(jwt, restaurante.id).catch(() => null);
+    const [landing, servProyectos] = await Promise.all([leerLanding(jwt, restaurante.id).catch(() => null), misServicios(jwt).catch(() => [])]);
     const c = servicios.contratados;
     const hayPlano = tiene(c, 'plano_mesas'), hayApp = tiene(c, 'app_sala'), hayTpv = tiene(c, 'conexion_tpv');
     const [plano, camareros, tpv, llamadas, traducciones, informe] = await Promise.all([
@@ -95,6 +99,13 @@ export default async function Panel() {
     ]);
 
     return (
+      <>
+      {servProyectos.length > 0 && (
+        <Link href="/mis-servicios" className="relative z-[60] flex items-center justify-between gap-3 bg-noche px-4 py-2.5 text-sm text-white">
+          <span><b className="text-oro">{servProyectos.length === 1 ? 'Tienes 1 servicio en marcha' : `Tienes ${servProyectos.length} servicios en marcha`}</b> · Signature, eventos o auditoría</span>
+          <span className="shrink-0 font-semibold text-oro">Mis servicios →</span>
+        </Link>
+      )}
       <PanelShell
         identidad={identidad}
         restaurante={restaurante}
@@ -114,6 +125,7 @@ export default async function Panel() {
         tutorial={tutorial}
         socio={socio}
       />
+      </>
     );
   } catch (error) {
     // redirect() funciona lanzando una excepción: hay que dejarla pasar.
