@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -26,7 +26,7 @@ export const ZONAS: Zona[] = [
     { nombre: 'Experience', href: '/admin-dkitchen/servicios/experience' }] },
   { id: 'ventas', nombre: 'Ventas', icono: 'destello', items: [
     { nombre: 'Prospección', href: '/admin-dkitchen/prospeccion' }, { nombre: 'Oportunidades', href: '/admin-dkitchen/oportunidades' },
-    { nombre: 'Embudo', href: '/admin-dkitchen/embudo' }, { nombre: 'Campañas y QR', href: '/admin-dkitchen/campanas' }, { nombre: 'Ofertas', href: '/admin-dkitchen/ofertas' },
+    { nombre: 'Embudo', href: '/admin-dkitchen/embudo' }, { nombre: 'Campañas y QR', href: '/admin-dkitchen/campanas' }, { nombre: 'Ofertas', href: '/admin-dkitchen/ofertas' }, { nombre: 'Precios y funciones', href: '/admin-dkitchen/precios' },
     { nombre: 'Competencia', href: '/admin-dkitchen/competencia' }, { nombre: 'Socios', href: '/admin-dkitchen/socios' }] },
   { id: 'soporte', nombre: 'Soporte', icono: 'ayuda', items: [
     { nombre: 'Tickets y QR físicos', href: '/admin-dkitchen/soporte' }, { nombre: 'Avisos de fallo', href: '/admin-dkitchen/avisos' },
@@ -62,18 +62,19 @@ export function SubmenuZona({ avisos = {} }: { avisos?: Avisos }) {
         <span className="mr-1 hidden shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-vino sm:mr-2 sm:inline">{z.nombre}</span>
         {z.items.map((i) => {
           const a = activoEn(ruta, i.href);
-          return <Link key={i.href} href={i.href} ref={a ? (n) => { n?.scrollIntoView({ inline: 'center', block: 'nearest' }); } : undefined} aria-current={a ? 'page' : undefined} className={`inline-flex shrink-0 items-center rounded-full px-3 py-1.5 font-medium sm:px-3.5 ${a ? 'bg-tinta text-white' : 'text-carbon hover:bg-white'}`}>{i.nombre}<Aviso n={avisos[i.href] ?? 0} claro={!a} /></Link>;
+          return <Link key={i.href} href={i.href} aria-current={a ? 'page' : undefined} className={`inline-flex shrink-0 items-center rounded-full px-3 py-1.5 font-medium sm:px-3.5 ${a ? 'bg-tinta text-white' : 'text-carbon hover:bg-white'}`}>{i.nombre}<Aviso n={avisos[i.href] ?? 0} claro={!a} /></Link>;
         })}
       </div>
     </nav>
   );
 }
 
-export default function AdminSidebar({ cuenta, avisos = {}, esComercial = false }: { cuenta: Cuenta; avisos?: Avisos; esComercial?: boolean }) {
+export default function AdminSidebar({ cuenta, avisos = {} }: { cuenta: Cuenta; avisos?: Avisos }) {
   const [mas, setMas] = useState(false);
   const ruta = usePathname();
   const actual = zonaDe(ruta)?.id;
-  const zonasDisponibles = esComercial ? ZONAS.filter((z) => !['lanzamiento', 'conocimiento'].includes(z.id)) : ZONAS;
+  const esComercial = cuenta?.rol === 'comercial';
+  const zonasDisponibles = ZONAS.filter((z) => !(esComercial && (z.id === 'lanzamiento' || z.id === 'conocimiento')));
   const enMovil = zonasDisponibles.filter((z) => !['lanzamiento', 'conocimiento'].includes(z.id));
 
   return (
