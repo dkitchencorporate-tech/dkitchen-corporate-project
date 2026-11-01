@@ -222,7 +222,7 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
             )}
           </div>
         </div>
-        <nav aria-label="Pestañas de la ficha" className="-mx-1 mt-3 flex gap-1 overflow-x-auto px-1 [scrollbar-width:none]">
+        <nav aria-label="Pestañas de la ficha" className="-mx-1 mt-3 flex gap-1 overflow-x-auto px-1 pr-8 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_88%,transparent)] lg:pr-1 lg:[mask-image:none]">
           {PESTANAS.map(([k, t]) => (
             <Link key={k} href={`/admin-dkitchen/qr/${r.id}?tab=${k}`} scroll={false} aria-current={tabActiva === k ? 'page' : undefined}
               className={`shrink-0 border-b-2 px-3.5 py-2.5 text-sm font-semibold transition ${tabActiva === k ? 'border-vino text-vino' : 'border-transparent text-niebla hover:text-tinta'}`}>{t}</Link>

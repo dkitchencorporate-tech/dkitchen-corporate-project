@@ -45,7 +45,7 @@ export default async function ServiciosQrPage({ searchParams }: { searchParams: 
     esComercialActual(jwt),
   ]);
   const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
-  const reales = todos.filter((c) => !c.soloProyecto && !['archivados', 'demo', 'bajas'].includes(pestanaDe(c, hoy)));
+  const reales = todos.filter((c) => !c.soloProyecto && !c.archivadoEn && (c.nombre.startsWith('PRUEBA') || !['archivados', 'demo', 'bajas'].includes(pestanaDe(c, hoy))));
   const plan = sp.plan && ['basico', 'ampliado', 'sala'].includes(sp.plan) ? sp.plan : null;
   const vista = plan ? reales.filter((c) => c.plan === plan) : reales;
 

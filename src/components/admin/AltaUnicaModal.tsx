@@ -150,7 +150,7 @@ export default function AltaUnicaModal({
   const titulo = servicio ? `+ Nuevo ${NOMBRES[servicio]}` : '+ Nuevo cliente';
   const conPago = prueba || modoInicio === 'pago';
   const campo = 'mt-1.5 w-full rounded-2xl border border-linea bg-white px-4 py-3 text-base outline-none transition focus:border-vino focus:ring-2 focus:ring-vino/15';
-  const tarjeta = (on: boolean) => `dk-tarjeta relative cursor-pointer rounded-[20px] border-[1.5px] p-4 text-left transition ${on ? 'dk-tarjeta-on border-vino bg-[#FBF1F1]' : 'border-linea bg-white hover:border-linea-fuerte'}`;
+  const tarjeta = (on: boolean) => `dk-tarjeta relative cursor-pointer rounded-[20px] border-[1.5px] p-4 pr-10 text-left transition ${on ? 'dk-tarjeta-on border-vino bg-[#FBF1F1]' : 'border-linea bg-white hover:border-linea-fuerte'}`;
   const boton = 'dk-btn min-h-[48px] w-full rounded-full bg-vino px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-vino-hondo disabled:opacity-40 sm:w-auto';
   const botonSec = 'min-h-[48px] w-full rounded-full border border-linea bg-white px-5 py-3 text-sm font-bold text-tinta transition hover:bg-papel sm:w-auto';
 
@@ -216,11 +216,11 @@ export default function AltaUnicaModal({
               {tiene('qr') && (
                 <div className="space-y-2">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-vino">Carta QR · plan</p>
-                  <div className="grid gap-2.5 sm:grid-cols-3">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
                     {(['basico', 'ampliado', 'sala'] as const).map((p) => (
-                      <button key={p} type="button" data-testid={`alta-plan-${p}`} onClick={() => { setPlanQr(p); setPrevia(null); }} className={tarjeta(planQr === p)}>
-                        <b className="block font-display text-lg">{nombrePlan(p)}</b>
-                        <span className="text-sm text-niebla">{formatPrecio(QR_MENU.planes[p].mensual)}/mes{p === 'ampliado' ? ` · entra por ${formatPrecio(QR_MENU.primerMes)}` : ''}</span>
+                      <button key={p} type="button" data-testid={`alta-plan-${p}`} onClick={() => { setPlanQr(p); setPrevia(null); }} className={`${tarjeta(planQr === p)} !px-3 !pb-3 !pt-8 sm:!p-4 sm:!pr-10`}>
+                        <b className="block font-display text-base sm:text-lg">{nombrePlan(p)}</b>
+                        <span className="block text-xs leading-snug text-niebla sm:text-sm">{formatPrecio(QR_MENU.planes[p].mensual)}/mes{p === 'ampliado' ? ` · entra por ${formatPrecio(QR_MENU.primerMes)}` : ''}</span>
                       </button>
                     ))}
                   </div>
@@ -297,10 +297,10 @@ export default function AltaUnicaModal({
                   {!prueba && (
                     <div className="space-y-2">
                       <p className="text-xs font-bold uppercase tracking-[0.18em] text-vino">Descuento del comercial</p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="grid grid-cols-4 gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
                         {[0, 5, 8, 10].map((p) => (
-                          <button key={p} type="button" onClick={() => { setDescuento(p); setPrevia(null); }} className={`min-h-[44px] rounded-full border px-5 text-sm font-bold transition ${descuentoComercialPct === p ? 'border-tinta bg-tinta text-white' : 'border-linea bg-white text-tinta hover:bg-papel'}`}>
-                            {p === 0 ? 'Sin descuento' : `−${p} %`}{p > 5 && esComercial ? ' · OK' : ''}
+                          <button key={p} type="button" onClick={() => { setDescuento(p); setPrevia(null); }} className={`min-h-[44px] rounded-full border px-2 text-sm sm:px-5 font-bold transition ${descuentoComercialPct === p ? 'border-tinta bg-tinta text-white' : 'border-linea bg-white text-tinta hover:bg-papel'}`}>
+                            {p === 0 ? <><span className="sm:hidden">0 %</span><span className="hidden sm:inline">Sin descuento</span></> : `−${p} %`}{p > 5 && esComercial ? ' · OK' : ''}
                           </button>
                         ))}
                       </div>
@@ -308,7 +308,7 @@ export default function AltaUnicaModal({
                       {descuentoComercialPct > 0 && (
                         <input value={motivoDescuento} onChange={(e) => setMotivo(e.target.value)} placeholder="Motivo del descuento (obligatorio)" className={campo} />
                       )}
-                      <input value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="Código de oferta (opcional): FUNDADOR, socio…" className={`${campo} uppercase`} />
+                      <input value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="Código de oferta (opcional)" className={`${campo} uppercase placeholder:normal-case`} />
                     </div>
                   )}
 

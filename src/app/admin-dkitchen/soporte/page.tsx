@@ -50,7 +50,7 @@ export default async function SoporteQr({ searchParams }: { searchParams: Promis
   const pendientes = solicitudes.filter((s) => s.estado !== 'enviado').length;
 
   const carpeta = q.c === 'esperando' ? 'respondido' : q.c === 'cerrados' ? 'cerrado' : 'abierto';
-  const CARPETAS: [string, string, string][] = [['sin', 'abierto', 'Sin responder'], ['esperando', 'respondido', 'Esperando al cliente'], ['cerrados', 'cerrado', 'Cerrados']];
+  const CARPETAS: [string, string, string][] = [['sin', 'abierto', 'Sin responder'], ['esperando', 'respondido', 'Esperando'], ['cerrados', 'cerrado', 'Cerrados']];
   const lista = tickets.filter((x) => x.estado === carpeta);
   const t = tickets.find((x) => x.id === q.t) ?? null;
   const qs = (extra: Record<string, string>) => '?' + new URLSearchParams({ ...(q.c ? { c: q.c } : {}), ...extra }).toString();
@@ -69,10 +69,10 @@ export default async function SoporteQr({ searchParams }: { searchParams: Promis
 
       <div className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
         <aside className={`space-y-3 ${t ? 'hidden lg:block' : ''}`}>
-          <nav className="flex gap-1.5 overflow-x-auto [scrollbar-width:none]" aria-label="Carpetas">
+          <nav className="grid grid-cols-3 gap-1.5" aria-label="Carpetas">
             {CARPETAS.map(([k, e, n]) => {
               const cuantos = tickets.filter((x) => x.estado === e).length;
-              return <Link key={k} href={k === 'sin' ? '/admin-dkitchen/soporte' : `/admin-dkitchen/soporte?c=${k}`} className={`shrink-0 rounded-full px-3.5 py-2 text-sm font-semibold ${carpeta === e ? 'bg-tinta text-white' : 'border border-linea bg-white'}`}>{n} <span className="opacity-60">{cuantos}</span></Link>;
+              return <Link key={k} href={k === 'sin' ? '/admin-dkitchen/soporte' : `/admin-dkitchen/soporte?c=${k}`} className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-2xl px-2 py-2 text-center text-[13px] font-semibold leading-tight sm:text-sm ${carpeta === e ? 'bg-tinta text-white' : 'border border-linea bg-white'}`}>{n} <span className="opacity-60">{cuantos}</span></Link>;
             })}
           </nav>
           <ul className="overflow-hidden rounded-[22px] border border-linea bg-white">

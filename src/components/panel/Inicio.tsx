@@ -37,7 +37,7 @@ function Grafica({ serie }: { serie: number[] }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="h-20 w-full" preserveAspectRatio="none" aria-hidden="true">
       <defs><linearGradient id="pnArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#6E0C2B" stopOpacity=".25" /><stop offset="1" stopColor="#6E0C2B" stopOpacity="0" /></linearGradient></defs>
       <motion.path d={`${linea} L${W},${H} L0,${H} Z`} fill="url(#pnArea)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} />
-      <motion.path d={linea} fill="none" stroke="#6E0C2B" strokeWidth="2.4" vectorEffect="non-scaling-stroke" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.55, ease: 'easeOut' }} />
+      <motion.path d={linea} fill="none" stroke="#6E0C2B" strokeWidth="2.4" vectorEffect="non-scaling-stroke" initial={{ clipPath: 'inset(0 100% 0 0)' }} animate={{ clipPath: 'inset(0 0% 0 0)' }} transition={{ duration: 0.55, ease: 'easeOut' }} />
     </svg>
   );
 }

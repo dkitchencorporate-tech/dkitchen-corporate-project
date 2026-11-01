@@ -9,6 +9,8 @@ import { asignarComercialAction } from '@/app/admin-dkitchen/qr/actions';
 export function pestanaDe(c: ClienteQr, hoy = new Date().toISOString().slice(0, 10)): Pestana {
   if (c.archivadoEn) return 'archivados';
   if (c.demoInterna) return 'demo';
+  // 02/11: los clientes «PRUEBA · …» del entorno de pruebas van con las demos, nunca entre los reales.
+  if (/^PRUEBA\s*·/i.test(c.nombre)) return 'demo';
   if (c.estadoAcceso === 'suspendido') return 'bajas';
   if (c.bajaProgramadaEn || c.estadoAcceso === 'gracia' || c.estadoAcceso === 'solo_lectura') return 'riesgo';
   if (c.pruebaHasta && c.pruebaHasta >= hoy) return 'prueba';

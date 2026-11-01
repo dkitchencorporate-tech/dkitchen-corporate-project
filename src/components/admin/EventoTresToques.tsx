@@ -71,7 +71,7 @@ export default function EventoTresToques({ formatos, locales, accion, proyecto, 
 
   const Paso = ({ n, t }: { n: number; t: string }) => (
     <span className={`flex items-center gap-2 text-xs font-bold ${paso >= n ? 'text-tinta' : 'text-niebla'}`}>
-      <span className={`grid h-6 w-6 place-items-center rounded-full text-[11px] ${paso >= n ? 'bg-vino text-white' : 'bg-linea'}`}>{n}</span>{t}
+      <span className={`grid h-6 w-6 place-items-center rounded-full text-[11px] ${paso >= n ? 'bg-vino text-white' : 'bg-linea'}`}>{n}</span><span className={paso === n ? '' : 'hidden sm:inline'}>{t}</span>
     </span>
   );
   const stepper = (v: number, set: (n: number) => void, paso_: number, min: number, sufijo: string, testid: string) => (
@@ -88,7 +88,7 @@ export default function EventoTresToques({ formatos, locales, accion, proyecto, 
         <h2 className="font-display text-2xl font-bold">Nuevo evento</h2>
         <a href={cancelar} className="text-sm font-semibold text-vino">Cancelar</a>
       </div>
-      <div className="mb-5 flex flex-wrap gap-4"><Paso n={1} t="Formato" /><Paso n={2} t="Fecha, plazas y precio" /><Paso n={3} t="Vista previa" /></div>
+      <div className="mb-5 flex items-center gap-3 sm:gap-4"><Paso n={1} t="Formato" /><Paso n={2} t="Fecha, plazas y precio" /><Paso n={3} t="Vista previa" /></div>
 
       {paso === 1 && (
         <div className="dk-paso grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

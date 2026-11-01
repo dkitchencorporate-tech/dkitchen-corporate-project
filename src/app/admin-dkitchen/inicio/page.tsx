@@ -61,7 +61,7 @@ function Grafica({ dias }: { dias: { dia: string; euros: number }[] }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="h-24 w-full" preserveAspectRatio="none" role="img" aria-label="Cobrado en los últimos 30 días">
       <defs><linearGradient id="dkArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#D9B25C" stopOpacity=".35" /><stop offset="1" stopColor="#D9B25C" stopOpacity="0" /></linearGradient></defs>
       <path d={`${linea} L${W},${H} L0,${H} Z`} fill="url(#dkArea)" className="dk-aparece" />
-      <path d={linea} fill="none" stroke="#D9B25C" strokeWidth="2.2" vectorEffect="non-scaling-stroke" pathLength={1} className="dk-traza" />
+      <path d={linea} fill="none" stroke="#D9B25C" strokeWidth="2.2" vectorEffect="non-scaling-stroke" className="dk-traza" />
     </svg>
   );
 }

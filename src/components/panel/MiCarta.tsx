@@ -63,13 +63,13 @@ export default function MiCarta({
         <input
           value={nuevaSeccion}
           onChange={(e) => setNuevaSeccion(e.target.value)}
-          placeholder="Nombre de la nueva sección (ej. Entrantes)"
-          className="flex-1 rounded-lg bg-white border border-acero px-4 py-2.5 text-carbon placeholder-ceniza focus:outline-none focus:border-vino"
+          placeholder="Nueva sección (ej. Entrantes)"
+          className="min-w-0 flex-1 rounded-lg bg-white border border-acero px-4 py-2.5 text-carbon placeholder-ceniza focus:outline-none focus:border-vino"
         />
         <button
           onClick={agregarSeccion}
           disabled={pendiente}
-          className="rounded-lg bg-papel hover:bg-linea px-4 py-2.5 text-sm font-semibold transition-colors"
+          className="shrink-0 whitespace-nowrap rounded-lg bg-papel hover:bg-linea px-4 py-2.5 text-sm font-semibold transition-colors"
         >
           Añadir sección
         </button>
@@ -133,7 +133,7 @@ function SeccionCard({
             <input
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="flex-1 rounded-lg bg-white border border-acero px-3 py-1.5 text-carbon"
+              className="min-w-0 flex-1 rounded-lg bg-white border border-acero px-3 py-1.5 text-carbon"
             />
             <button onClick={guardarNombre} disabled={pendiente} className="text-sm text-green-700 font-semibold">
               Guardar

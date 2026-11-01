@@ -461,7 +461,7 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
   const email = String(d.email ?? '').trim().toLowerCase();
   const contacto = String(d.contacto ?? '').trim().slice(0, 80);
   const esPrueba = d.prueba === true;
-  const nombreLocal = String(d.local ?? '').trim().replace(/^PRUEBAs*·s*/i, '');
+  const nombreLocal = String(d.local ?? '').trim().replace(/^PRUEBA\s*·\s*/i, '');
   const local = (esPrueba ? `PRUEBA · ${nombreLocal}` : nombreLocal).slice(0, 80);
   const ciudad = String(d.ciudad ?? '').trim().slice(0, 80) || 'España';
   const direccion = String(d.direccion ?? '').trim().slice(0, 200);
