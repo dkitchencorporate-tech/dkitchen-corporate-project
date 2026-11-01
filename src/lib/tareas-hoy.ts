@@ -7,15 +7,17 @@ import type { Tarea } from '@/lib/tareas';
  */
 const madrid = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(d);
 export const hoyMadrid = () => madrid(new Date());
-// 0101: desde el 25/10 DKitchen es de dk-vzl (operadores en Venezuela); karc0 solo conserva los flyers.
-export const esMia = (t: Tarea) => t.responsable === 'dk-vzl' || t.responsable === 'karc0' || t.responsable === 'ambos';
+// 01/11 (Alex): dk-vzl sale de todo; «karc0» en la base es Alex.
+export const esMia = (t: Tarea) => t.responsable === 'karc0' || t.responsable === 'ambos';
+/** 01/11 (Alex): con una nota enviada y esperando respuesta, la tarea vive en Comunicación, no en «Hoy». */
+const esperandoRespuesta = (t: Tarea) => t.comEstado === 'abierta' || t.comEstado === 'reabierta';
 export const esDeClaude = (t: Tarea) => t.responsable === 'claude' || t.responsable === 'antigravity';
 
 export interface Adelanto { dia: string | null; lista: Tarea[] }
 export interface Hoy { hoy: string; mias: Tarea[]; claude: Tarea[]; adelantoMias: Adelanto | null; adelantoClaude: Adelanto | null; hechasHoyMias: number; hechasHoyClaude: number }
 
 export function tareasDeHoy(todas: Tarea[], hoy = hoyMadrid()): Hoy {
-  const abiertas = todas.filter((t) => t.estado !== 'hecha');
+  const abiertas = todas.filter((t) => t.estado !== 'hecha' && !esperandoRespuesta(t));
   const delDia = (t: Tarea) => (t.paraCuando ? t.paraCuando <= hoy : t.urgencia === 'urgente');
   const adelanto = (lista: Tarea[]): Adelanto | null => {
     const futuras = lista.filter((t) => t.paraCuando && t.paraCuando > hoy);
