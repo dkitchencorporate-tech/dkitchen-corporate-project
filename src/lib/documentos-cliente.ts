@@ -31,7 +31,7 @@ export type CobroDocumentado = {
 
 /** Lee una factura pagada con todo lo necesario para sus contratos (null si no existe o no está pagada). */
 export async function cobroDocumentado(factura: string): Promise<CobroDocumentado | null> {
-  const f: O = await stripe('GET', `/invoices/${factura}`, { expand: ['customer'] }).catch(() => null);
+  const f: O | null = await stripe('GET', `/invoices/${factura}`, { expand: ['customer'] }).catch(() => null);
   if (!f || f.status !== 'paid') return null;
   const idSub = f.parent?.subscription_details?.subscription;
   // La aceptación se guarda en el cobro tras crearlo: en una suscripción, se lee de la suscripción viva.
