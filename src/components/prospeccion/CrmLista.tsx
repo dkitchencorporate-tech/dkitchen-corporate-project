@@ -280,6 +280,42 @@ export default function CrmLista({ base, lista, estado, aviso, ok, contacto, cen
         )}
       </section>
 
+      <details id="alta" className={tarjeta} open={lista.length === 0}>
+        <summary className="cursor-pointer text-sm font-semibold">+ Alta rápida (a pie de calle)</summary>
+        <form action={guardarProspectoAction} className="mt-4 grid gap-3 sm:grid-cols-2">
+          <input type="hidden" name="base" value={base} />
+          <input name="nombre" required minLength={2} maxLength={120} placeholder="Nombre del local *" className={`${campo} sm:col-span-2`} />
+          <select name="tipo" defaultValue="restaurante" className={campo}>{Object.entries(TIPOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+          <select name="fuente" defaultValue="visita" className={campo}>{Object.entries(FUENTES).filter(([k]) => k !== 'script').map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+          <label className="text-xs text-niebla">Canal del primer contacto
+            <select name="canal" defaultValue="fisico" className={`${campo} mt-1 text-carbon`}>{(Object.keys(CANALES) as Canal[]).map((k) => <option key={k} value={k}>{CANALES[k]}{k === 'email' ? ' (solo con permiso)' : ''}</option>)}</select>
+          </label>
+          <div className="flex flex-col justify-end gap-1 text-xs text-niebla">
+            <input type="hidden" name="consentimiento_campo" value="1" />
+            <label className="flex items-center gap-2"><input type="checkbox" name="consentimiento" className="h-5 w-5" /> Nos da su consentimiento para escribirle</label>
+            <label className="flex items-center gap-2"><input type="checkbox" name="relacion_previa" className="h-5 w-5" /> Ya hay relación previa</label>
+          </div>
+          <input name="zona" defaultValue="Baza" maxLength={60} placeholder="Zona (pueblo/ciudad)" className={campo} />
+          <input name="barrio" maxLength={60} placeholder="Barrio o calle principal" className={campo} />
+          <input name="direccion" maxLength={200} placeholder="Dirección" className={`${campo} sm:col-span-2`} />
+          <input name="telefono" type="tel" maxLength={30} placeholder="Teléfono del local" className={campo} />
+          <input name="instagram" maxLength={120} placeholder="Instagram (@usuario)" className={campo} />
+          <input name="referido_por" maxLength={120} placeholder="Si es referido: ¿quién?" className={campo} />
+          <label className="text-xs text-niebla">Apertura prevista (si es nuevo)
+            <input name="apertura_prevista" type="date" className={`${campo} mt-1`} />
+          </label>
+          <textarea name="notas" maxLength={2000} rows={3} placeholder="Qué has visto: carta en papel, Glovo, colores, quién atiende…" className={`${campo} sm:col-span-2`} />
+          {central && comerciales && (
+            <select name="comercial_id" defaultValue="" className={`${campo} sm:col-span-2`}>
+              <option value="">Para mi cartera</option>
+              {comerciales.slice(1).map((c) => <option key={c.id} value={c.id}>Para {c.nombre}</option>)}
+            </select>
+          )}
+          <button className="rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white sm:col-span-2 sm:justify-self-start">Dar de alta</button>
+        </form>
+      </details>
+
+
       {tocaHoy.length > 0 && (
         <section className={`${tarjeta} p-0`}>
           <h2 className="px-5 pt-4 text-sm font-semibold text-vino">Toca hoy o va con retraso · {tocaHoy.length}</h2>
@@ -317,41 +353,6 @@ export default function CrmLista({ base, lista, estado, aviso, ok, contacto, cen
       ) : filtrada.length === 0 ? <p className={`${tarjeta} text-sm text-niebla`}>Nada en esta lista todavía.</p> : (
         <ul className="grid gap-3 md:grid-cols-2">{filtrada.map((p) => <Tarjeta key={p.id} p={p} base={base} central={!!central} demo={demos[p.id]} />)}</ul>
       )}
-
-      <details className={tarjeta} open={lista.length === 0}>
-        <summary className="cursor-pointer text-sm font-semibold">+ Alta rápida (a pie de calle)</summary>
-        <form action={guardarProspectoAction} className="mt-4 grid gap-3 sm:grid-cols-2">
-          <input type="hidden" name="base" value={base} />
-          <input name="nombre" required minLength={2} maxLength={120} placeholder="Nombre del local *" className={`${campo} sm:col-span-2`} />
-          <select name="tipo" defaultValue="restaurante" className={campo}>{Object.entries(TIPOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-          <select name="fuente" defaultValue="visita" className={campo}>{Object.entries(FUENTES).filter(([k]) => k !== 'script').map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-          <label className="text-xs text-niebla">Canal del primer contacto
-            <select name="canal" defaultValue="fisico" className={`${campo} mt-1 text-carbon`}>{(Object.keys(CANALES) as Canal[]).map((k) => <option key={k} value={k}>{CANALES[k]}{k === 'email' ? ' (solo con permiso)' : ''}</option>)}</select>
-          </label>
-          <div className="flex flex-col justify-end gap-1 text-xs text-niebla">
-            <input type="hidden" name="consentimiento_campo" value="1" />
-            <label className="flex items-center gap-2"><input type="checkbox" name="consentimiento" className="h-5 w-5" /> Nos da su consentimiento para escribirle</label>
-            <label className="flex items-center gap-2"><input type="checkbox" name="relacion_previa" className="h-5 w-5" /> Ya hay relación previa</label>
-          </div>
-          <input name="zona" defaultValue="Baza" maxLength={60} placeholder="Zona (pueblo/ciudad)" className={campo} />
-          <input name="barrio" maxLength={60} placeholder="Barrio o calle principal" className={campo} />
-          <input name="direccion" maxLength={200} placeholder="Dirección" className={`${campo} sm:col-span-2`} />
-          <input name="telefono" type="tel" maxLength={30} placeholder="Teléfono del local" className={campo} />
-          <input name="instagram" maxLength={120} placeholder="Instagram (@usuario)" className={campo} />
-          <input name="referido_por" maxLength={120} placeholder="Si es referido: ¿quién?" className={campo} />
-          <label className="text-xs text-niebla">Apertura prevista (si es nuevo)
-            <input name="apertura_prevista" type="date" className={`${campo} mt-1`} />
-          </label>
-          <textarea name="notas" maxLength={2000} rows={3} placeholder="Qué has visto: carta en papel, Glovo, colores, quién atiende…" className={`${campo} sm:col-span-2`} />
-          {central && comerciales && (
-            <select name="comercial_id" defaultValue="" className={`${campo} sm:col-span-2`}>
-              <option value="">Para mi cartera</option>
-              {comerciales.slice(1).map((c) => <option key={c.id} value={c.id}>Para {c.nombre}</option>)}
-            </select>
-          )}
-          <button className="rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white sm:col-span-2 sm:justify-self-start">Dar de alta</button>
-        </form>
-      </details>
 
       <details className={tarjeta} open={!contacto}>
         <summary className="cursor-pointer text-sm font-semibold">Mis datos para la propuesta{contacto ? ` · ${contacto.nombre_publico}` : ' (pendiente)'}</summary>
