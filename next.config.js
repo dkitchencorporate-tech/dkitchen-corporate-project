@@ -170,6 +170,9 @@ const nextConfig = {
       { source: '/l/:slug', headers: [{ key: 'Content-Security-Policy', value: CSP_DEMO_INCRUSTABLE }, { key: 'X-Frame-Options', value: 'SAMEORIGIN' }] },
       // Puerta de los eventos de Experience (0067): el portero escanea las entradas con la cámara trasera.
       { source: '/e/:slug/puerta', headers: [{ key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=(), usb=(), interest-cohort=()' }] },
+      // Prospección física (0114): el comercial sitúa el local con el GPS del móvil en la puerta. Solo aquí y solo nuestro origen.
+      ...['/admin-dkitchen/prospeccion', '/admin-dkitchen/prospeccion/:id', '/socio/prospeccion', '/socio/prospeccion/:id'].map((source) => (
+        { source, headers: [{ key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()' }] })),
     ];
   },
 };
