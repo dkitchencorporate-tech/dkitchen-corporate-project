@@ -36,7 +36,7 @@ export const ZONAS: Zona[] = [
   { id: 'lanzamiento', nombre: 'Lanzamiento', icono: 'flecha', items: [
     { nombre: 'Ruta', href: '/admin-dkitchen/ruta' }, { nombre: 'Planificación', href: '/admin-dkitchen/planificacion' }, { nombre: 'Mapa de la web', href: '/admin-dkitchen/mapa' }] },
   { id: 'conocimiento', nombre: 'Conocimiento', icono: 'negocio', items: [
-    { nombre: 'Academia', href: '/academia' }, { nombre: 'Mi entrenamiento', href: '/admin-dkitchen/entrenamiento' }, { nombre: 'Manual de Central', href: '/admin-dkitchen/manual' }, { nombre: 'Precios y funciones', href: '/admin-dkitchen/precios' }, { nombre: 'Documentos', href: '/admin-dkitchen/documentos' },
+    { nombre: 'Academia', href: '/academia' }, { nombre: 'Mi entrenamiento', href: '/admin-dkitchen/entrenamiento' }, { nombre: 'Manual de Central', href: '/admin-dkitchen/manual' }, { nombre: 'Precios y funciones', href: '/admin-dkitchen/precios' }, { nombre: 'Documentos', href: '/admin-dkitchen/documentos' }, { nombre: 'Contratos', href: '/admin-dkitchen/contratos' },
     { nombre: 'Reportes', href: '/admin-dkitchen/reportes' }, { nombre: 'Equipo', href: '/admin-dkitchen/administradores' }] },
 ];
 
