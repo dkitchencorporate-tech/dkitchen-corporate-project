@@ -19,7 +19,9 @@ import TraductorCarta from '@/components/admin/TraductorCarta';
 import { asignarComercialAction, asignarSiguientePasoAction, anularEnlaceAction, regalarTodoAction, reenviarAccesoAction, cambiarEstadoAction, asignarDisenoAction, servicioAdminAction, checklistSetupAction, conexionTpvAction,
   darDeBajaAction, anularBajaAction, archivarAction, demoInternaAction, entrarSoporteAction } from '../actions';
 import { QR_MENU, PLANES_QR, esPlanQr, nombrePlan } from '@/lib/pricing-config';
-import { listarProyectos, nombreFase, PRODUCTOS_PROYECTO } from '@/lib/proyectos';
+import { listarProyectos, fichaProyecto, nombreFase, PRODUCTOS_PROYECTO } from '@/lib/proyectos';
+import MarcaSignature from '@/components/admin/MarcaSignature';
+import { marcas as marcasSignature } from '@/lib/marcas-signature';
 import MontajeGratisFicha from '@/components/admin/MontajeGratis';
 import { montajesGratis } from '@/lib/montajes-gratis';
 
@@ -127,7 +129,7 @@ function Cambios({ e }: { e: EntradaHistorial }) {
   return nombre ? <p className="mt-1 text-xs text-niebla">«{valor(nombre)}»</p> : null;
 }
 
-export default async function FichaClienteQr({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ montaje?: string; tab?: string }> }) {
+export default async function FichaClienteQr({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ montaje?: string; tab?: string; marca?: string }> }) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   if (!UUID.test(id)) notFound();
   const jwt = await exigirAdmin();
@@ -152,6 +154,11 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
     ['%' + r.nombre + '%', '%' + r.slug + '%']
   )).rows).catch(() => []);
   const tabActiva = sp.tab || 'resumen';
+  // 0113: marca con el motor white label en la pestaña Signature (datos de marca del cliente ya rellenos).
+  const sigVivos = tabActiva === 'signature' ? proyectos.filter((p) => p.producto === 'signature' && p.fase !== 'descartado') : [];
+  const [marcasSig, fichasSig] = sigVivos.length
+    ? await Promise.all([marcasSignature(jwt).catch(() => []), Promise.all(sigVivos.map((p) => fichaProyecto(jwt, p.id).catch(() => null)))])
+    : [[] as Awaited<ReturnType<typeof marcasSignature>>, [] as (Awaited<ReturnType<typeof fichaProyecto>> | null)[]];
   const conIdiomas = servicios.some((x) => x.servicio === 'idiomas');
   const [cartaCliente, traducciones] = conIdiomas
     ? await Promise.all([obtenerCarta(r.slug), listarTraducciones(jwt, id)])
@@ -354,6 +361,10 @@ export default async function FichaClienteQr({ params, searchParams }: { params:
               ))}
             </div>
           )}
+          {sigVivos.map((p, i) => (
+            <MarcaSignature key={`marca-${p.id}`} proyecto={{ ...p, datos: fichasSig[i]?.datos ?? null }} marca={marcasSig.find((m) => m.proyectoId === p.id) ?? null}
+              volver={`/admin-dkitchen/qr/${id}?tab=signature`} aviso={sp.marca} />
+          ))}
         </section>
       )}
       {/* ── VISTA DEDICADA: EXPERIENCE (P1.4) ── */}

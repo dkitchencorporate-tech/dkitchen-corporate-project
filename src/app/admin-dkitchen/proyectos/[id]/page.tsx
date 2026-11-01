@@ -6,6 +6,8 @@ import { avanzarFaseAction, anotarAction, guardarDatosAction } from '../actions'
 import { listarClientesQr } from '@/lib/admin-clientes';
 import EnlacePagoProyecto from '@/components/admin/EnlacePagoProyecto';
 import GuiaZona from '@/components/admin/GuiaZona';
+import MarcaSignature from '@/components/admin/MarcaSignature';
+import { marcas as marcasSignature } from '@/lib/marcas-signature';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +55,7 @@ export default async function FichaProyecto({ params, searchParams }: { params: 
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const p = await fichaProyecto(jwt, id);
   if (!p) notFound();
+  const marca = p.producto === 'signature' ? (await marcasSignature(jwt, id).catch(() => []))[0] ?? null : null;
   // Enlace proyecto ↔ cliente (fallo 10): sus locales con carta QR, por correo.
   const susLocales = (await listarClientesQr(jwt).catch(() => [])).filter((c) => c.email && c.email.toLowerCase() === p.email.toLowerCase());
   const indice = p.fases.indexOf(p.fase);
@@ -161,6 +164,7 @@ export default async function FichaProyecto({ params, searchParams }: { params: 
         </section>
 
         <div className="space-y-5">
+          {p.producto === 'signature' && p.fase !== 'descartado' && <MarcaSignature proyecto={p} marca={marca} volver={`/admin-dkitchen/proyectos/${id}`} aviso={q.marca} />}
           {(p.producto === 'experience' || p.producto === 'signature' || p.producto === 'auditoria') && <EnlacePagoProyecto producto={p.producto} telefono={p.telefono} email={p.email} />}
           <section className={tarjeta}>
             <p className="text-sm font-semibold">Pago y documentos</p>

@@ -3,6 +3,8 @@ import { esComercialActual } from '@/lib/rol-central';
 import Tablero, { type Columna, type Tarjeta } from '@/components/admin/tablero/Tablero';
 import NuevoCliente from '@/components/admin/NuevoCliente';
 import type { ServicioAlta } from '@/components/admin/AltaUnicaModal';
+import Link from 'next/link';
+import { marcas as marcasSignature, type Marca } from '@/lib/marcas-signature';
 
 /**
  * Pantalla de tablero de un servicio con proyecto (Signature, Auditoría): cabecera con su «+ Nuevo»,
@@ -14,15 +16,24 @@ export default async function TableroProyectos({ jwt, producto, titulo, columnas
   jwt: string; producto: ProductoProyecto & ServicioAlta; titulo: string; columnas: Columna[]; volver: string; resaltar?: string; ok?: string;
   cifras: (l: ProyectoFila[]) => [string, string][];
 }) {
-  const [proyectos, esComercial] = await Promise.all([
+  const [proyectos, esComercial, marcas] = await Promise.all([
     listarProyectos(jwt, { producto }).catch(() => [] as ProyectoFila[]),
     esComercialActual(jwt),
+    producto === 'signature' ? marcasSignature(jwt).catch(() => [] as Marca[]) : Promise.resolve([] as Marca[]),
   ]);
+  // 0113: estado de la app con el motor en cada tarjeta Signature (un toque lleva a su checklist).
+  const chipMarca = (p: ProyectoFila) => {
+    if (producto !== 'signature' || ['solicitud', 'descartado'].includes(p.fase)) return undefined;
+    const m = marcas.find((x) => x.proyectoId === p.id);
+    const [t, c] = !m ? ['Preparar marca →', 'border-vino/30 text-vino'] : m.estado === 'lista' ? ['App lista ✓', 'border-exito/30 bg-exito/10 text-exito']
+      : m.estado === 'error' ? ['Marca con error', 'border-red-200 bg-red-50 text-red-700'] : ['Marca en marcha…', 'border-oro/50 bg-oro/15 text-tinta'];
+    return <Link href={`/admin-dkitchen/proyectos/${p.id}`} className={`mt-2.5 flex min-h-[40px] items-center justify-center rounded-full border text-xs font-bold ${c}`} data-testid="chip-marca">{t}</Link>;
+  };
   const vivos = proyectos.filter((p) => p.fase !== 'descartado');
   const tarjetas: Tarjeta[] = vivos.map((p) => ({
     id: p.id, titulo: p.negocio || p.nombre || p.email, sub: p.siguiente_paso || p.nombre || p.email, fase: p.fase,
     fecha: p.siguiente_fecha, vencido: p.vencido, href: `/admin-dkitchen/proyectos/${p.id}`, importe: euros(p.importe_centimos),
-    etiqueta: (p.negocio ?? '').startsWith('PRUEBA') ? 'prueba' : null,
+    etiqueta: (p.negocio ?? '').startsWith('PRUEBA') ? 'prueba' : null, extra: chipMarca(p),
   }));
   return (
     <div className="space-y-5 px-4 py-6 text-tinta sm:p-6 lg:p-10">
