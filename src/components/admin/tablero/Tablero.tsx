@@ -39,7 +39,7 @@ export default function Tablero({ columnas, tarjetas, volver, resaltar }: { colu
           </a>
         ))}
       </nav>
-      <div className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:thin] sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:scroll-px-0 lg:px-0">
+      <div className="-mx-4 flex items-start snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:thin] sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:scroll-px-0 lg:px-0">
         {columnas.map((col, ci) => {
           const suyas = porColumna[ci];
           const siguiente = columnas[ci + 1];

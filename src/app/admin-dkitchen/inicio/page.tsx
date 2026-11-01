@@ -43,7 +43,7 @@ function Anillo({ seguro, pendiente, objetivo }: { seguro: number; pendiente: nu
   const R = 54, C = 2 * Math.PI * R;
   const pS = Math.min(1, seguro / objetivo), pP = Math.min(1 - pS, pendiente / objetivo);
   return (
-    <svg viewBox="0 0 140 140" className="h-36 w-36 shrink-0 -rotate-90" role="img" aria-label={`${Math.round(pS * 100)} % del objetivo`}>
+    <svg viewBox="0 0 140 140" className="h-28 w-28 shrink-0 -rotate-90 sm:h-36 sm:w-36" role="img" aria-label={`${Math.round(pS * 100)} % del objetivo`}>
       <circle cx="70" cy="70" r={R} fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="14" />
       <circle cx="70" cy="70" r={R} fill="none" stroke="rgba(217,178,92,.35)" strokeWidth="14" strokeLinecap="round"
         strokeDasharray={`${(pS + pP) * C} ${C}`} className="dk-anillo" style={{ ['--l' as string]: `${C}` }} />

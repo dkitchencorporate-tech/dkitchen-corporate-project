@@ -45,7 +45,7 @@ export default async function AdminLayout({
         <AdminSidebar cuenta={cuenta} avisos={avisos} esComercial={esComercial} />
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col h-screen overflow-hidden">
+        <main className="flex min-w-0 flex-1 flex-col h-screen overflow-hidden">
           <div data-cv-main className="flex-1 overflow-y-auto pb-28 md:pb-0">
              {/* 18/10: pestañas de la zona actual (6 zonas con submenú) */}
              <SubmenuZona avisos={avisos} />
