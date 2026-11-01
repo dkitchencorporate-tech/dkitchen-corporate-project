@@ -97,7 +97,7 @@ export default async function Administradores({ searchParams }: { searchParams: 
           </div>
           <label className="block text-sm">Rol asignado
             <select name="rol_admin" defaultValue="comercial" className={campo}>
-              <option value="comercial">Comercial (por defecto: vender y cartera propia)</option>
+              <option value="comercial">Comercial (empieza en formación: solo Academia hasta que lo habilites en Comerciales)</option>
               <option value="direccion">Dirección (acceso global y administración completa)</option>
             </select>
           </label>

@@ -3,6 +3,10 @@
 import { useMemo, useState } from 'react';
 import { loadStripe, type Appearance } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
+import DatosFiscales from '@/components/pago/DatosFiscales';
+
+/** Datos de la factura y contratos de este cobro (01/11/2026). */
+export type ExtrasPago = { fiscal: { razon: string; nif: string } | null; obligatorio: boolean; contratos: { id: string; titulo: string }[] };
 
 /**
  * Paso 2 del checkout nativo (08/10/2026): Payment Element de Stripe
@@ -36,23 +40,25 @@ const APARIENCIA: Appearance = {
   },
 };
 
-function Formulario({ r, tipo, boton, terminosVersion, email }: { r: string; tipo: 'pago' | 'tarjeta'; boton: string; terminosVersion: string; email?: string | null }) {
+function Formulario({ r, tipo, boton, terminosVersion, email, extras }: { r: string; tipo: 'pago' | 'tarjeta'; boton: string; terminosVersion: string; email?: string | null; extras: ExtrasPago }) {
   const stripe = useStripe();
   const elements = useElements();
   const [acepta, setAcepta] = useState(false);
   const [listo, setListo] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
+  const [faltaFiscal, setFaltaFiscal] = useState(extras.obligatorio && !extras.fiscal);
 
   async function pagar(e: React.FormEvent) {
     e.preventDefault();
     if (!stripe || !elements) return;
-    if (!acepta) { setError('Para continuar tienes que aceptar los términos y la política de privacidad.'); return; }
+    if (faltaFiscal) { setError(extras.obligatorio ? 'Guarda tus datos fiscales para la factura antes de pagar.' : 'Guarda tus datos fiscales o elige la factura simplificada.'); return; }
+    if (!acepta) { setError('Para continuar tienes que aceptar los términos, la política de privacidad y tu contrato.'); return; }
     setEnviando(true); setError('');
     const { error: errorFormulario } = await elements.submit();
     if (errorFormulario) { setError(errorFormulario.message ?? 'Revisa los datos de pago.'); setEnviando(false); return; }
     const t = await fetch('/api/pago/terminos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ r, version: terminosVersion }) }).catch(() => null);
-    if (!t?.ok) { setError('No pudimos registrar la aceptación de los términos. Inténtalo de nuevo.'); setEnviando(false); return; }
+    if (!t?.ok) { const j = (await t?.json().catch(() => ({}))) as { error?: string } | undefined; setError(j?.error ?? 'No pudimos registrar la aceptación de los términos. Inténtalo de nuevo.'); setEnviando(false); return; }
     const return_url = `${window.location.origin}/pago/listo?r=${encodeURIComponent(r)}`;
     const { error: errorPago } = tipo === 'pago'
       ? await stripe.confirmPayment({ elements, confirmParams: { return_url } })
@@ -64,11 +70,12 @@ function Formulario({ r, tipo, boton, terminosVersion, email }: { r: string; tip
 
   return (
     <form onSubmit={pagar} className="grid gap-5">
+      {<DatosFiscales r={r} fiscal={extras.fiscal} obligatorio={extras.obligatorio} onPendiente={setFaltaFiscal} />}
       <PaymentElement onReady={() => setListo(true)} options={{ layout: { type: 'accordion', defaultCollapsed: false, radios: 'always', spacedAccordionItems: true }, business: { name: 'DKitchen' }, defaultValues: email ? { billingDetails: { email } } : undefined }} />
       {!listo && <div className="h-40 animate-pulse rounded-xl bg-papel" aria-label="Cargando el formulario de pago seguro" />}
       <label className="flex items-start gap-2.5 text-[13px] leading-relaxed text-pizarra">
         <input type="checkbox" checked={acepta} onChange={(e) => setAcepta(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-vino" />
-        <span>He leído y acepto los <a href="/terms" target="_blank" className="underline">términos de contratación</a> y la <a href="/privacy" target="_blank" className="underline">política de privacidad</a>.</span>
+        <span>He leído y acepto los <a href="/terms" target="_blank" className="underline">términos de contratación</a>, la <a href="/privacy" target="_blank" className="underline">política de privacidad</a>{extras.contratos.map((c, i) => <span key={c.id}>{i === extras.contratos.length - 1 ? ' y ' : ', '}el <a href={`/documentos/contrato?modelo=${c.id}`} target="_blank" className="underline">{c.titulo.replace(/^Contrato /, 'contrato ').replace(/^Condiciones/, 'las condiciones')}</a></span>)}. Al pagar recibirás tu contrato con tus datos y tu factura.</span>
       </label>
       {error && <p role="alert" className="rounded-xl bg-vino/10 px-4 py-3 text-sm text-vino">{error}</p>}
       <button type="submit" disabled={!stripe || !listo || enviando} className="rounded-full bg-vino px-7 py-4 text-[16px] font-semibold text-white disabled:opacity-60">
@@ -82,13 +89,13 @@ function Formulario({ r, tipo, boton, terminosVersion, email }: { r: string; tip
   );
 }
 
-export default function CheckoutStripe({ clavePublica, secreto, r, tipo, boton, terminosVersion, email }: {
-  clavePublica: string; secreto: string; r: string; tipo: 'pago' | 'tarjeta'; boton: string; terminosVersion: string; email?: string | null;
+export default function CheckoutStripe({ clavePublica, secreto, r, tipo, boton, terminosVersion, email, extras }: {
+  clavePublica: string; secreto: string; r: string; tipo: 'pago' | 'tarjeta'; boton: string; terminosVersion: string; email?: string | null; extras: ExtrasPago;
 }) {
   const promesa = useMemo(() => loadStripe(clavePublica, { locale: 'es' }), [clavePublica]);
   return (
     <Elements stripe={promesa} options={{ clientSecret: secreto, appearance: APARIENCIA, locale: 'es' }}>
-      <Formulario r={r} tipo={tipo} boton={boton} terminosVersion={terminosVersion} email={email} />
+      <Formulario r={r} tipo={tipo} boton={boton} terminosVersion={terminosVersion} email={email} extras={extras} />
     </Elements>
   );
 }

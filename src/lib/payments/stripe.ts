@@ -175,10 +175,32 @@ export async function asegurarCliente(d: DatosCliente): Promise<string> {
     metadata: { contacto: d.nombre.slice(0, 200), ...(d.negocio ? { negocio: d.negocio.slice(0, 200) } : {}) },
   };
   if (existente) {
-    await stripe('POST', `/customers/${existente.id}`, datos);
+    // 01/11: con datos fiscales guardados (factura completa), el nombre y la dirección son los fiscales.
+    const fiscal = Boolean(existente.metadata?.nif);
+    await stripe('POST', `/customers/${existente.id}`, fiscal ? { phone: datos.phone, preferred_locales: datos.preferred_locales } : datos);
     return existente.id as string;
   }
   return (await stripe('POST', '/customers', { email, ...datos })).id as string;
+}
+
+/**
+ * Factura completa (01/11/2026, decisión de Alex: opcional, obligatoria por encima de 400 € IVA incl.).
+ * El NIF va como campo personalizado de todas las facturas del cliente (invoice_settings), así lo
+ * llevan también las renovaciones; la razón social y la dirección, como nombre y dirección del cliente.
+ */
+export async function guardarDatosFiscales(cliente: string, d: { razon: string; nif: string; calle: string; cp: string; localidad: string }): Promise<void> {
+  await stripe('POST', `/customers/${cliente}`, {
+    name: d.razon,
+    address: { line1: d.calle, postal_code: d.cp, city: d.localidad, country: 'ES' },
+    invoice_settings: { custom_fields: [{ name: 'NIF', value: d.nif }] },
+    metadata: { nif: d.nif, razon_social: d.razon },
+  });
+}
+
+/** Datos fiscales que lleva una factura ya finalizada (null = factura sin NIF del cliente). */
+function fiscalDe(f: ObjetoStripe | undefined): { razon: string; nif: string } | null {
+  const c = ((f?.custom_fields ?? []) as ObjetoStripe[]).find((x) => x?.name === 'NIF');
+  return c?.value ? { razon: String(f?.customer_name ?? ''), nif: String(c.value) } : null;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -402,7 +424,8 @@ export async function crearSuscripcion(d: DatosSuscripcion): Promise<string> {
     payment_behavior: 'default_incomplete',
     payment_settings: { save_default_payment_method: 'on_subscription' },
     discounts: d.cuponTotal ? [{ coupon: d.cuponTotal }] : d.cupon ? undefined : descuentos(d.promocion),
-    metadata: limpiar({ ...d.metadata, [RECETA]: d.cupon || d.cuponTotal ? undefined : receta({ c: d.cuota, h: d.hoy ?? [], t: d.finPrueba ?? null, m: d.intervaloMeses ?? 1 }) }),
+    // 01/11: el cupón fijo (k) entra en la receta para rehacer el cobro con los datos fiscales; con k no se admiten códigos.
+    metadata: limpiar({ ...d.metadata, [RECETA]: d.cuponTotal ? undefined : receta({ c: d.cuota, h: d.hoy ?? [], t: d.finPrueba ?? null, m: d.intervaloMeses ?? 1, ...(d.cupon ? { k: d.cupon } : {}) }) }),
     expand: ['latest_invoice'],
   });
   // Hoy no se cobra nada (upgrade en prueba, enlace sin primer cobro): la
@@ -452,6 +475,15 @@ export interface ResumenPago {
   descuento: { codigo: string; centimos: number; texto: string } | null;
   /** Si el cobro admite códigos (los creados antes del 07/10 no llevan receta). */
   admiteCodigo: boolean;
+  /** Si el cobro se puede rehacer idéntico (para ponerle los datos fiscales). */
+  rehacible: boolean;
+  /** Razón social y NIF que lleva la factura de hoy (null = sin datos fiscales). */
+  fiscal: { razon: string; nif: string } | null;
+}
+
+/** Receta del cobro (null si no tiene). */
+function recetaDe(m: Record<string, string> | undefined): { l?: Linea[]; c?: Linea; h?: Linea[]; t?: number | null; m?: number; k?: string } | null {
+  try { return m?.[RECETA] ? JSON.parse(m[RECETA]) : null; } catch { return null; }
 }
 
 function lineasDe(factura: ObjetoStripe) {
@@ -499,7 +531,8 @@ export async function resumenPago(id: string): Promise<ResumenPago | null> {
         estado: f.status === 'paid' ? 'pagado' : f.status === 'open' ? 'pendiente' : 'caducado',
         lineas: lineasDe(f), ...totalesDe(f), recurrente: null, metadata: f.metadata ?? {},
         email: f.customer_email ?? f.customer?.email ?? null, cliente: f.customer?.id ?? (typeof f.customer === 'string' ? f.customer : null),
-        descuento: await descuentoDe(f.discounts, f), admiteCodigo: Boolean(f.metadata?.[RECETA]),
+        descuento: await descuentoDe(f.discounts, f), admiteCodigo: Boolean(recetaDe(f.metadata) && !recetaDe(f.metadata)?.k),
+        rehacible: Boolean(recetaDe(f.metadata)), fiscal: fiscalDe(f),
       };
     }
     const s = await stripe('GET', `/subscriptions/${id}`, { expand: ['latest_invoice.confirmation_secret', 'latest_invoice.discounts.promotion_code', 'customer', 'discounts.promotion_code.promotion.coupon'] });
@@ -527,7 +560,8 @@ export async function resumenPago(id: string): Promise<ResumenPago | null> {
       },
       metadata: s.metadata ?? {},
       email: s.customer?.email ?? null, cliente: s.customer?.id ?? (typeof s.customer === 'string' ? s.customer : null),
-      descuento, admiteCodigo: Boolean(s.metadata?.[RECETA]),
+      descuento, admiteCodigo: Boolean(recetaDe(s.metadata) && !recetaDe(s.metadata)?.k),
+      rehacible: Boolean(recetaDe(s.metadata)), fiscal: fiscalDe(f),
     };
   } catch (e) {
     console.error(`Stripe: no se pudo leer el pago ${id}:`, e);
@@ -566,26 +600,50 @@ export async function aplicarCodigo(id: string, codigo: string): Promise<{ ok: t
     if (!actual || actual.estado !== 'pendiente') return { ok: false, error: 'Este pago ya no se puede modificar.' };
     if (!actual.admiteCodigo) return { ok: false, error: 'Este pago no admite códigos. Vuelve a empezar desde la página del producto.' };
     if (codigo.trim() && !promo) return { ok: false, error: 'Ese código no existe o ya no está activo.' };
-    const rec = JSON.parse(actual.metadata[RECETA]);
-    if (id.startsWith('in_')) {
-      const f = await stripe('GET', `/invoices/${id}`);
-      const nuevo = await crearFacturaUnica(String(f.customer), rec.l, metaCopiable(f.metadata), String(f.description ?? ''), promo?.id);
-      return { ok: true, id: nuevo, retirar: async () => {
-        await stripe('POST', `/invoices/${id}/void`).catch((e) => console.error(`No se pudo anular la factura ${id}:`, e));
-      } };
-    }
-    if (!actual.cliente) throw new Error(`La suscripción ${id} no tiene cliente.`);
-    const nuevo = await crearSuscripcion({ cliente: actual.cliente, cuota: rec.c, hoy: rec.h, finPrueba: rec.t ?? undefined, intervaloMeses: rec.m ?? 1, metadata: metaCopiable(actual.metadata), promocion: promo?.id });
-    return { ok: true, id: nuevo, retirar: async () => {
-      // Marca para que el webhook no avise de una «suscripción terminada» que solo se ha sustituido.
-      await stripe('POST', `/subscriptions/${id}`, { metadata: { sustituida_por: nuevo } }).catch(() => {});
-      await stripe('DELETE', `/subscriptions/${id}`).catch((e) => console.error(`No se pudo cancelar la suscripción ${id}:`, e));
-    } };
+    return { ok: true, ...(await rehacer(id, actual, promo?.id)) };
   } catch (e) {
     console.error(`No se pudo aplicar el código a ${id}:`, e);
     if (e instanceof ErrorStripe && e.estado < 500) return { ok: false, error: 'Ese código no se puede usar en este pedido.' };
     return { ok: false, error: 'No se pudo aplicar el código. Inténtalo de nuevo en unos segundos.' };
   }
+}
+
+/**
+ * Datos fiscales en un cobro sin pagar (01/11): la factura ya finalizada no admite cambiar el
+ * cliente, así que se guardan en el cliente de Stripe y el cobro se rehace idéntico (mismas líneas,
+ * cupón fijo y código promocional). Nunca lanza.
+ */
+export async function rehacerConDatosFiscales(id: string, d: { razon: string; nif: string; calle: string; cp: string; localidad: string }): Promise<{ ok: true; id: string; retirar: () => Promise<void> } | { ok: false; error: string }> {
+  try {
+    const actual = await resumenPago(id);
+    if (!actual || actual.estado !== 'pendiente' || !actual.cliente) return { ok: false, error: 'Este pago ya no se puede modificar.' };
+    await guardarDatosFiscales(actual.cliente, d);
+    if (!actual.rehacible) return { ok: false, error: 'Hemos guardado tus datos fiscales para tus próximas facturas, pero este pago no se puede rehacer. Escríbenos y te enviamos la factura completa.' };
+    const promo = actual.descuento?.codigo ? (await buscarCodigo(actual.descuento.codigo))?.id : undefined;
+    return { ok: true, ...(await rehacer(id, actual, promo)) };
+  } catch (e) {
+    console.error(`No se pudieron poner los datos fiscales en ${id}:`, e);
+    return { ok: false, error: 'No se pudieron guardar los datos. Inténtalo de nuevo en unos segundos.' };
+  }
+}
+
+/** Rehace un cobro sin pagar idéntico (líneas, prueba, intervalo y cupón fijo) con el código indicado. */
+async function rehacer(id: string, actual: ResumenPago, promocion?: string): Promise<{ id: string; retirar: () => Promise<void> }> {
+    const rec = recetaDe(actual.metadata) ?? {};
+    if (id.startsWith('in_')) {
+      const f = await stripe('GET', `/invoices/${id}`);
+      const nuevo = await crearFacturaUnica(String(f.customer), rec.l ?? [], metaCopiable(f.metadata), String(f.description ?? ''), promocion);
+      return { id: nuevo, retirar: async () => {
+        await stripe('POST', `/invoices/${id}/void`).catch((e) => console.error(`No se pudo anular la factura ${id}:`, e));
+      } };
+    }
+    if (!actual.cliente || !rec.c) throw new Error(`La suscripción ${id} no tiene cliente o receta.`);
+    const nuevo = await crearSuscripcion({ cliente: actual.cliente, cuota: rec.c, hoy: rec.h, finPrueba: rec.t ?? undefined, intervaloMeses: rec.m ?? 1, metadata: metaCopiable(actual.metadata), promocion, cupon: rec.k });
+    return { id: nuevo, retirar: async () => {
+      // Marca para que el webhook no avise de una «suscripción terminada» que solo se ha sustituido.
+      await stripe('POST', `/subscriptions/${id}`, { metadata: { sustituida_por: nuevo } }).catch(() => {});
+      await stripe('DELETE', `/subscriptions/${id}`).catch((e) => console.error(`No se pudo cancelar la suscripción ${id}:`, e));
+    } };
 }
 
 /** Registra la aceptación de los términos (A4) en el objeto que se paga: fecha, IP y versión. */

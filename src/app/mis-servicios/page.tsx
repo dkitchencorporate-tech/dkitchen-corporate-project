@@ -98,7 +98,10 @@ export default async function MisServicios({ searchParams }: { searchParams: Pro
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-vino">DKitchen</p>
             <h1 className="font-display text-3xl font-bold sm:text-4xl">Mis servicios</h1>
           </div>
-          <Link href="/panel" className="text-sm font-semibold text-vino">Ir a mi panel →</Link>
+          <div className="flex flex-wrap gap-4">
+            <Link href="/panel/documentos" className="text-sm font-semibold text-vino">Mis documentos</Link>
+            <Link href="/panel" className="text-sm font-semibold text-vino">Ir a mi panel →</Link>
+          </div>
         </header>
         {aviso && <p role="status" className={`rounded-2xl px-4 py-3 text-sm ${q.ok ? 'bg-exito/10 text-exito' : 'bg-vino/10 text-vino'}`}>{aviso}</p>}
         {servicios === null && <p className="rounded-2xl bg-white p-5 text-sm">No hemos podido cargar tus servicios. Recarga en unos segundos.</p>}

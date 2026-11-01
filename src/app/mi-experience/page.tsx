@@ -48,6 +48,7 @@ export default async function MiExperiencePagina({ searchParams }: { searchParam
             <a href={WHATSAPP_DEMO} target="_blank" rel="noopener noreferrer" className="rounded-full bg-white/10 px-4 py-2 font-semibold">Escribirnos por WhatsApp</a>
             <Link href="/experience" className="rounded-full bg-white/10 px-4 py-2 text-white/80">Ver los formatos</Link>
             <Link href="/panel" className="rounded-full bg-white/10 px-4 py-2 text-white/80">Mi carta QR</Link>
+            <Link href="/panel/documentos" className="rounded-full bg-white/10 px-4 py-2 text-white/80">Mis documentos</Link>
             <SalirExperience />
           </div>
         </header>

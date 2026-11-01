@@ -6,6 +6,8 @@ import CodigoPromocional from '@/components/pago/CodigoPromocional';
 import PasosPago from '@/components/pago/PasosPago';
 import { IVA_PORCENTAJE, leerRefPago, modoPruebaStripe, resumenPago } from '@/lib/payments/stripe';
 import { TERMINOS_VERSION } from '@/lib/terminos';
+import { TOPE_SIMPLIFICADA_CENTIMOS } from '@/lib/nif';
+import { contratosDeCobro, contratoDe } from '@/lib/contratos';
 
 export const metadata: Metadata = { title: 'Pago seguro · DKitchen Corporate', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
@@ -40,6 +42,12 @@ export default async function Pago({ searchParams }: { searchParams: Promise<{ r
   const hoy = resumen.totalCentimos;
   const rec = resumen.recurrente;
   const boton = resumen.tipo === 'tarjeta' ? 'Guardar tarjeta y activar' : `Pagar ${euros(hoy)}`;
+  // 01/11: factura completa opcional; obligatoria por encima de 400 € con IVA (lo exige también el servidor).
+  const extras = {
+    fiscal: resumen.fiscal,
+    obligatorio: resumen.tipo === 'pago' && hoy > TOPE_SIMPLIFICADA_CENTIMOS,
+    contratos: contratosDeCobro(resumen.metadata).map((id) => ({ id, titulo: contratoDe(id).titulo })),
+  };
 
   return (
     <div className="bg-crema text-tinta">
@@ -87,7 +95,7 @@ export default async function Pago({ searchParams }: { searchParams: Promise<{ r
                 </p>
               )}
               {resumen.admiteCodigo && <CodigoPromocional r={r} aplicado={resumen.descuento?.codigo || null} />}
-              <p className="mt-4 text-[13px] text-pizarra [overflow-wrap:anywhere]">Recibirás la factura con el IVA desglosado en {resumen.email ?? 'tu correo'}.</p>
+              <p className="mt-4 text-[13px] text-pizarra [overflow-wrap:anywhere]">Recibirás la factura con el IVA desglosado y tu contrato en {resumen.email ?? 'tu correo'}.</p>
             </aside>
 
             <div className="min-w-0 rounded-[24px] border border-linea bg-white p-5 sm:p-6 md:p-8">
@@ -97,7 +105,7 @@ export default async function Pago({ searchParams }: { searchParams: Promise<{ r
               </p>
               <div className="mt-6">
                 {resumen.secreto ? (
-                  <CheckoutStripe clavePublica={clavePublica} secreto={resumen.secreto} r={r} tipo={resumen.tipo} boton={boton} terminosVersion={TERMINOS_VERSION} email={resumen.email} />
+                  <CheckoutStripe clavePublica={clavePublica} secreto={resumen.secreto} r={r} tipo={resumen.tipo} boton={boton} terminosVersion={TERMINOS_VERSION} email={resumen.email} extras={extras} />
                 ) : (
                   <p className="text-sm text-vino">No se pudo preparar el pago. Recarga la página en unos segundos.</p>
                 )}

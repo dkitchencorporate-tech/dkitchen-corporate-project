@@ -1,5 +1,7 @@
 import { comoAprovisionamiento } from '@/lib/db';
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
+import { enlaceContrato } from '@/lib/documentos-cliente';
+import { contratosDeCobro, contratoDe } from '@/lib/contratos';
 import {
   aprovisionarClienteQr,
   avisarAltaQr, avisarClienteAltaPendiente,
@@ -74,7 +76,38 @@ export async function POST(request: Request) {
   const o = evento.data?.object as ObjetoStripe;
   const respuesta = await procesar(evento, o, new URL(request.url).origin);
   await anotarParaElMando(evento, o, respuesta);
+  // 01/11 (Alex): factura y contrato al cliente en CADA cobro, sea cual sea el producto (después de responder).
+  if (evento.type === 'invoice.paid' && respuesta.status < 300) after(() => enviarDocumentos(o));
   return respuesta;
+}
+
+/**
+ * «Tu factura y tu contrato» (01/11/2026): un solo correo nuestro por cobro pagado, con el PDF de la
+ * factura de Stripe y, en la primera compra (no en las renovaciones), el enlace a sus contratos ya
+ * rellenados. Idempotente por factura (dk.marcar_correo_stripe). Nunca lanza.
+ */
+async function enviarDocumentos(o: ObjetoStripe): Promise<void> {
+  try {
+    const email = String(o.customer_email ?? '');
+    if (!email.includes('@') || Number(o.amount_paid ?? 0) <= 0) return;
+    if (!(await marcarCorreoEnviado(`documentos:${o.id}`))) return;
+    const renovacion = o.billing_reason === 'subscription_cycle';
+    const meta = { ...(o.parent?.subscription_details?.metadata ?? {}), ...(o.metadata ?? {}) } as Record<string, string>;
+    const nombres = renovacion ? [] : contratosDeCobro(meta).map((id) => contratoDe(id).titulo);
+    const total = (Number(o.amount_paid) / 100).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+    const pdf = o.invoice_pdf ? `<p><a href="${escaparHtml(String(o.invoice_pdf))}">Descargar la factura ${escaparHtml(String(o.number ?? ''))} (PDF)</a></p>` : '';
+    const cuerpo = `<p>Hola${o.customer_name ? ' ' + escaparHtml(String(o.customer_name)) : ''}:</p>
+<p>Hemos recibido tu pago de <strong>${total}</strong> (IVA incluido). Aquí tienes tu factura${nombres.length ? ' y tu contrato' : ''}.</p>
+${pdf}
+${nombres.length ? `<p>Tu contrato (${nombres.map((n) => escaparHtml(n)).join(', ')}) ya lleva tus datos y la fecha, la IP y la versión que aceptaste al pagar. Guárdalo: también está siempre en tu panel, en «Mis documentos».</p>` : '<p>Tus facturas y contratos están siempre en tu panel, en «Mis documentos».</p>'}
+<p>Un saludo,<br>El equipo de DKitchen</p>`;
+    await enviarCorreoCliente(email, renovacion ? 'Tu factura de DKitchen' : 'Tu factura y tu contrato · DKitchen', cuerpo, {
+      titulo: renovacion ? 'Tu factura' : 'Tu factura y tu contrato',
+      boton: nombres.length ? { texto: 'Ver mi contrato', url: enlaceContrato(String(o.id)) } : undefined,
+    });
+  } catch (e) {
+    console.error(`Documentos: no se pudo enviar la factura y el contrato de ${o?.id}`, e);
+  }
 }
 
 /**
@@ -246,7 +279,7 @@ async function alta(ctx: Contexto) {
         }
         await enviarCorreoCliente(meta.email, `Pago confirmado · ${productoDirecto.nombre}`,
           `<p>Hola ${escaparHtml(meta.nombreContacto)},</p>
-           <p>Hemos recibido tu pago de <strong>${euros(ctx.importe)}</strong> (IVA incluido) por <strong>${escaparHtml(productoDirecto.nombre)}</strong>. Stripe te envía la factura en un correo aparte. Gracias por confiar en DKitchen.</p>
+           <p>Hemos recibido tu pago de <strong>${euros(ctx.importe)}</strong> (IVA incluido) por <strong>${escaparHtml(productoDirecto.nombre)}</strong>. Te enviamos tu factura y tu contrato en un correo aparte. Gracias por confiar en DKitchen.</p>
            ${detalleEvento}
            <p><strong>Qué pasa ahora:</strong></p>
            <ul>${productoDirecto.despues.map(([c, t]) => `<li><strong>${escaparHtml(c)}:</strong> ${escaparHtml(t)}</li>`).join('')}</ul>

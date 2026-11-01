@@ -97,6 +97,7 @@ export function DesgloseCobro({ cobro }: { cobro: ResumenCobro | null }) {
       <div className="mt-5 flex flex-wrap items-start gap-3">
         {cobro.prueba_hasta && <BotonQuedarme />}
         <BotonFacturas />
+        <a href="/panel/documentos" className="rounded-full bg-tinta px-5 py-2.5 text-sm font-semibold text-white hover:bg-carbon">Mis documentos</a>
       </div>
     </section>
   );

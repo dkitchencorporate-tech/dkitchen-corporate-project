@@ -1,4 +1,4 @@
-import { BASE_OPERATIVA, FUNDADOR } from '@/lib/pricing-config';
+import { BASE_OPERATIVA, FUNDADOR, QR_MENU, EXPERIENCE } from '@/lib/pricing-config';
 import { titular, CORREO_TITULAR } from '@/lib/titular';
 
 /**
@@ -10,7 +10,7 @@ import { titular, CORREO_TITULAR } from '@/lib/titular';
  */
 export type Clausula = { n: string; titulo: string; texto: string[] };
 export type Contrato = {
-  id: 'comercial' | 'signature' | 'encargado';
+  id: 'comercial' | 'signature' | 'encargado' | 'qr' | 'experience' | 'particulares';
   tipo: string;
   titulo: string;
   version: string;
@@ -26,12 +26,13 @@ export type Contrato = {
 const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' €';
 const M = BASE_OPERATIVA.mantenimiento;
 const [T1, T2, T3] = M.tramos;
+const L = QR_MENU.planes.ampliado;
 /** Licencia perpetua del motor (Alex, 01/11): ver pricing-config. */
 const LICENCIA_PERPETUA = BASE_OPERATIVA.licenciaPerpetua;
 
 /** Titular: Elisabet (autónoma) hasta que exista la empresa de Alex. Sus datos llegan con la tarea 279b7668. */
 const T = titular();
-const TITULAR = `${T ? T.nombre : '[[Elisabet · nombre completo]]'}, con NIF ${T ? T.nif : '[[NIF]]'} y domicilio fiscal en ${T ? T.domicilio : '[[dirección fiscal]]'}, que actúa con el nombre comercial DKitchen (dkitchencorporate.es) y el correo ${CORREO_TITULAR} (en adelante, «DKitchen»)`;
+const TITULAR = `${T ? T.nombre : '[[Elisabet · nombre completo]]'}, con NIF ${T ? T.nif : '[[NIF del titular]]'} y domicilio fiscal en ${T ? T.domicilio : '[[dirección fiscal]]'}, que actúa con el nombre comercial DKitchen (dkitchencorporate.es) y el correo ${CORREO_TITULAR} (en adelante, «DKitchen»)`;
 
 export const CONTRATOS: Contrato[] = [
   {
@@ -175,7 +176,7 @@ export const CONTRATOS: Contrato[] = [
         'Al ser un contrato entre empresas, no aplica el derecho de desistimiento de los consumidores.',
       ] },
       { n: '15', titulo: 'Ley, tribunales y firma', texto: [
-        'Se aplica la ley española. Para cualquier controversia, las partes se someten a los juzgados de [[ciudad]]. Las partes firman de forma electrónica; DKitchen guarda la aceptación con la fecha, la IP y la versión del texto.',
+        'Se aplica la ley española. Para cualquier controversia, las partes se someten a los juzgados del domicilio de DKitchen. Las partes firman de forma electrónica; DKitchen guarda la aceptación con la fecha, la IP y la versión del texto.',
       ] },
     ],
     anexo: [
@@ -248,6 +249,132 @@ export const CONTRATOS: Contrato[] = [
     ],
     firmas: ['El Responsable (local)', 'Por DKitchen (Encargado)'],
   },
+  {
+    id: 'qr',
+    tipo: 'Condiciones particulares',
+    titulo: 'Contrato Carta QR',
+    version: 'v0.1',
+    fecha: '01/11/2026',
+    estado: 'vigente',
+    resumen: 'Para Carta, Local, Sala y Fundador. Recoge el plan, la cuota y las fechas de cada cliente y remite a las Condiciones del servicio (/terms), que se aceptan al pagar.',
+    partes: [
+      TITULAR,
+      '[[razón social o nombre del titular del local]], con NIF/CIF [[NIF]] y domicilio en [[dirección]], titular del local [[nombre comercial]] (en adelante, «el Cliente»)',
+    ],
+    clausulas: [
+      { n: '1', titulo: 'Objeto', texto: [
+        'DKitchen presta al Cliente el servicio de carta digital con código QR en el plan indicado en el Anexo A, con el panel de gestión y las funciones de ese plan.',
+        'Este contrato completa las Condiciones del servicio publicadas en dkitchencorporate.es/terms, en la versión aceptada al pagar, que forman parte de él.',
+      ] },
+      { n: '2', titulo: 'Precio y cobro', texto: [
+        `La cuota es la del Anexo A, más IVA, y se cobra por adelantado con la tarjeta del Cliente en cada periodo. En el plan ${L.nombre}, el primer mes cuesta ${eur(QR_MENU.primerMes)} + IVA con garantía de 30 días.`,
+        'En la oferta Fundador (si aplica), el precio se mantiene mientras el Cliente siga activo en ese plan y sin impagos, cobrado por trimestre.',
+      ] },
+      { n: '3', titulo: 'Duración y baja', texto: [
+        'Sin permanencia: el Cliente da de baja la renovación desde su panel cuando quiera y el servicio sigue hasta el final del periodo pagado. Los periodos pagados no se devuelven.',
+      ] },
+      { n: '4', titulo: 'Impago', texto: [
+        'Si un cobro falla, DKitchen avisa y reintenta. Si el pago sigue sin entrar, el panel pasa a solo lectura y, a los 30 días del primer fallo, el servicio se suspende hasta que se regularice.',
+      ] },
+      { n: '5', titulo: 'Contenido y datos', texto: [
+        'El contenido de la carta (platos, precios, alérgenos y disponibilidad) lo decide y mantiene el Cliente, que responde de que sea correcto. Los datos de sus comensales se tratan según el contrato de encargado del tratamiento, que se acepta junto a este.',
+        'Tras la baja, DKitchen conserva la carta y los datos 60 días para que el Cliente pueda volver o pedir una copia; después los elimina.',
+      ] },
+      { n: '6', titulo: 'Ley y firma', texto: [
+        'Se aplica la ley española. El Cliente acepta este contrato de forma electrónica al pagar; DKitchen guarda la fecha, la IP y la versión.',
+      ] },
+    ],
+    anexo: [
+      { campo: 'Cliente (razón social, NIF, domicilio)', valor: '[[desde la ficha del cliente]]' },
+      { campo: 'Local', valor: '[[desde la ficha]]' },
+      { campo: 'Lo contratado', valor: '[[concepto del cobro]]' },
+      { campo: 'Importe pagado hoy', valor: '[[importe pagado]]' },
+      { campo: 'Fecha de pago y aceptación', valor: '[[desde Stripe y el registro de aceptación]]' },
+      { campo: 'Versión del texto', valor: 'v0.1 · 01/11/2026' },
+    ],
+    firmas: ['Por DKitchen', 'El Cliente'],
+  },
+  {
+    id: 'experience',
+    tipo: 'Contrato de servicio',
+    titulo: 'Contrato DKitchen Experience',
+    version: 'v0.1',
+    fecha: '01/11/2026',
+    estado: 'vigente',
+    resumen: 'Para cada evento: DKitchen prepara el evento y su página de entradas por una tarifa fija; las entradas las cobra el local en su propia cuenta y DKitchen no cobra comisión.',
+    partes: [
+      TITULAR,
+      '[[razón social o nombre del titular del local]], con NIF/CIF [[NIF]] y domicilio en [[dirección]], titular del local [[nombre comercial]] (en adelante, «el Cliente»)',
+    ],
+    clausulas: [
+      { n: '1', titulo: 'Objeto', texto: [
+        'DKitchen prepara para el Cliente el evento indicado en el Anexo A: briefing, propuesta, página del evento para los comensales con venta de entradas, materiales de difusión y acompañamiento hasta el día del evento.',
+      ] },
+      { n: '2', titulo: 'Tarifa fija y sin comisión', texto: [
+        `El Cliente paga la tarifa fija del Anexo A, más IVA (de ${eur(EXPERIENCE.tarifas.reusoFidelizado.precio)} a ${eur(EXPERIENCE.tarifas.primeraVez.precio)} según el caso). DKitchen no cobra comisión ni porcentaje sobre las entradas.`,
+      ] },
+      { n: '3', titulo: 'Entradas', texto: [
+        'Las entradas se cobran directamente en la cuenta de pagos del Cliente (Stripe Connect). DKitchen nunca recibe ni retiene ese dinero. Las devoluciones de entradas, si las hay, las decide y hace el Cliente.',
+      ] },
+      { n: '4', titulo: 'Publicidad', texto: [
+        'Si el Cliente quiere anuncios pagados del evento, el presupuesto de publicidad lo paga siempre el Cliente; DKitchen no adelanta capital.',
+      ] },
+      { n: '5', titulo: 'Plazos y cambios', texto: [
+        'DKitchen entrega la propuesta tras recibir el briefing completo del Cliente. La tarifa cubre el trabajo de preparación: una vez empezado el briefing no se reembolsa, pero el Cliente puede cambiar la fecha del evento una vez sin coste.',
+      ] },
+      { n: '6', titulo: 'Datos y responsabilidad', texto: [
+        'Los datos de los asistentes se tratan según el contrato de encargado del tratamiento, que se acepta junto a este. El Cliente organiza y responde del evento en su local (aforo, licencias, alérgenos y servicio).',
+      ] },
+      { n: '7', titulo: 'Ley y firma', texto: [
+        'Se aplica la ley española. El Cliente acepta este contrato de forma electrónica al pagar; DKitchen guarda la fecha, la IP y la versión.',
+      ] },
+    ],
+    anexo: [
+      { campo: 'Cliente (razón social, NIF, domicilio)', valor: '[[desde la ficha del cliente]]' },
+      { campo: 'Local', valor: '[[desde la ficha]]' },
+      { campo: 'Evento y tarifa', valor: '[[concepto del cobro]]' },
+      { campo: 'Importe pagado hoy', valor: '[[importe pagado]]' },
+      { campo: 'Fecha de pago y aceptación', valor: '[[desde Stripe y el registro de aceptación]]' },
+      { campo: 'Versión del texto', valor: 'v0.1 · 01/11/2026' },
+    ],
+    firmas: ['Por DKitchen', 'El Cliente'],
+  },
+  {
+    id: 'particulares',
+    tipo: 'Condiciones particulares',
+    titulo: 'Condiciones particulares del servicio',
+    version: 'v0.1',
+    fecha: '01/11/2026',
+    estado: 'vigente',
+    resumen: 'Para los servicios sueltos (Auditoría, puesta a punto, Carta de Autor, idiomas, bono de imágenes, QR físicos y enlaces de cobro de Central): qué se ha comprado, por cuánto y en qué condiciones.',
+    partes: [
+      TITULAR,
+      '[[razón social o nombre del titular del local]], con NIF/CIF [[NIF]] y domicilio en [[dirección]] (en adelante, «el Cliente»)',
+    ],
+    clausulas: [
+      { n: '1', titulo: 'Objeto', texto: [
+        'DKitchen presta al Cliente el servicio indicado en el Anexo A, con el alcance descrito en su página de contratación o en la propuesta enviada desde DKitchen.',
+        'Estas condiciones completan las Condiciones del servicio publicadas en dkitchencorporate.es/terms, en la versión aceptada al pagar.',
+      ] },
+      { n: '2', titulo: 'Precio', texto: [
+        'El precio es el del Anexo A, más IVA, y se paga por adelantado. Si el servicio es periódico, se renueva al final de cada periodo hasta que el Cliente lo dé de baja desde su panel.',
+      ] },
+      { n: '3', titulo: 'Entrega', texto: [
+        'DKitchen empieza el trabajo al recibir el pago y lo que necesite del Cliente (fotos, datos o accesos). Si DKitchen no puede prestar el servicio por causa propia, devuelve lo pagado. Una vez empezado el trabajo, el pago no se reembolsa.',
+      ] },
+      { n: '4', titulo: 'Ley y firma', texto: [
+        'Se aplica la ley española. El Cliente acepta estas condiciones de forma electrónica al pagar; DKitchen guarda la fecha, la IP y la versión.',
+      ] },
+    ],
+    anexo: [
+      { campo: 'Cliente (razón social, NIF, domicilio)', valor: '[[desde la ficha del cliente]]' },
+      { campo: 'Lo contratado', valor: '[[concepto del cobro]]' },
+      { campo: 'Importe pagado hoy', valor: '[[importe pagado]]' },
+      { campo: 'Fecha de pago y aceptación', valor: '[[desde Stripe y el registro de aceptación]]' },
+      { campo: 'Versión del texto', valor: 'v0.1 · 01/11/2026' },
+    ],
+    firmas: ['Por DKitchen', 'El Cliente'],
+  },
 ];
 
 export const contratoDe = (id: string) => CONTRATOS.find((c) => c.id === id) ?? CONTRATOS[0];
@@ -256,4 +383,41 @@ export const contratoDe = (id: string) => CONTRATOS.find((c) => c.id === id) ?? 
 export function huecos(c: Contrato): string[] {
   const todo = [...c.partes, ...c.clausulas.flatMap((x) => x.texto), ...c.anexo.map((a) => a.valor)].join(' ');
   return [...new Set([...todo.matchAll(/\[\[([^\]]+)\]\]/g)].map((m) => m[1].trim()))];
+}
+
+/** Contratos que ve el cliente antes de pagar (el del comercial es interno). */
+export const PUBLICOS = new Set<Contrato['id']>(['signature', 'encargado', 'qr', 'experience', 'particulares']);
+
+/**
+ * Qué contratos firma el cliente con cada cobro (01/11/2026, automatización de Alex), según la
+ * metadata que el servidor pone en Stripe: producto y, en los enlaces de Central, servicios.
+ */
+export function contratosDeCobro(meta: Record<string, string | undefined>): Contrato['id'][] {
+  const p = meta.producto ?? '';
+  const ids = new Set<Contrato['id']>();
+  if (['qr-menu', 'qr-upgrade', 'fundador'].includes(p)) ids.add('qr');
+  else if (p === 'nucleo-operativo') ids.add('signature');
+  else if (p === 'experience') ids.add('experience');
+  else if (p === 'enlace-admin') {
+    for (const sv of String(meta.servicios ?? '').split(',')) {
+      if (sv === 'qr') ids.add('qr');
+      else if (sv === 'signature') ids.add('signature');
+      else if (sv === 'experience') ids.add('experience');
+      else if (sv) ids.add('particulares');
+    }
+  }
+  if (!ids.size) ids.add('particulares');
+  if (ids.has('qr') || ids.has('signature') || ids.has('experience')) ids.add('encargado');
+  return [...ids];
+}
+
+/** Rellena los huecos [[…]] que se conocen; los demás quedan a la vista. */
+export function rellenar(c: Contrato, valores: Record<string, string>): Contrato {
+  const f = (t: string) => t.replace(/\[\[([^\]]+)\]\]/g, (m, k: string) => valores[k.trim()] ?? m);
+  return {
+    ...c,
+    partes: [f(c.partes[0]), f(c.partes[1])],
+    clausulas: c.clausulas.map((x) => ({ ...x, texto: x.texto.map(f) })),
+    anexo: c.anexo.map((a) => ({ ...a, valor: f(a.valor) })),
+  };
 }
