@@ -114,7 +114,7 @@
 /* ── Responsive: ninguna pantalla de Central puede desbordar el ancho del móvil ── */
 .central-viva [data-cv-main] { overflow-x: hidden; }
 .central-viva [data-cv-main] .grid:not([class*="grid-cols"]) { grid-template-columns: minmax(0, 1fr); }
-.central-viva [data-cv-main] :is(.grid, .flex) > * { min-width: 0; }
+.central-viva [data-cv-main] :is(.grid, .flex) > :not(.dk-col) { min-width: 0; }
 .central-viva [data-cv-main] :is(img, video, iframe, canvas) { max-width: 100%; }
 .central-viva [data-cv-main] :is(h1, h2, h3, p, li, dd, td, label, summary) { overflow-wrap: anywhere; }
 .central-viva [data-cv-main] table { max-width: 100%; }

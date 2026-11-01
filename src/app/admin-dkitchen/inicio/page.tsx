@@ -96,11 +96,12 @@ export default async function CentralHoy() {
   const maxE = Math.max(1, ...embudo.map((e) => e[1]));
 
   // (d) Servicios en marcha
-  const vivos = proyectos.filter((p) => !['descartado', 'cerrado', 'cerrada', 'mantenimiento'].includes(p.fase));
+  // Hoy es la vista de negocio: los proyectos de PRUEBA no cuentan (mismo criterio que los clientes).
+  const vivos = proyectos.filter((p) => !(p.negocio ?? '').startsWith('PRUEBA') && !['descartado', 'cerrado', 'cerrada', 'mantenimiento'].includes(p.fase));
   const proxEvento = eventos.filter((e) => new Date(e.fecha).getTime() > Date.now()).sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
   const medidores = [
     { t: 'Carta QR', a: saludes.filter((x) => x.c.activo && x.c.platos === 0).length, b: saludes.filter((x) => x.s === 'bien').length, an: 'por montar', bn: 'en marcha', href: '/admin-dkitchen/servicios/qr', clave: null as string | null },
-    { t: 'Signature', a: vivos.filter((p) => p.producto === 'signature' && ['solicitud', 'pagado', 'contrato_enviado', 'contrato_firmado', 'datos_recibidos'].includes(p.fase)).length, b: vivos.filter((p) => p.producto === 'signature' && ['en_construccion', 'primera_version', 'publicado'].includes(p.fase)).length, an: 'por arrancar', bn: 'en producción', href: '/admin-dkitchen/servicios/signature', clave: vivos.filter((p) => p.producto === 'signature' && p.siguiente_fecha).sort((a, b) => a.siguiente_fecha!.localeCompare(b.siguiente_fecha!))[0]?.siguiente_fecha ?? null },
+    { t: 'Signature', a: vivos.filter((p) => p.producto === 'signature' && ['solicitud', 'pagado', 'contrato_enviado', 'contrato_firmado'].includes(p.fase)).length, b: vivos.filter((p) => p.producto === 'signature' && ['datos_recibidos', 'en_construccion', 'primera_version'].includes(p.fase)).length, an: 'por arrancar', bn: 'en producción', href: '/admin-dkitchen/servicios/signature', clave: vivos.filter((p) => p.producto === 'signature' && p.siguiente_fecha).sort((a, b) => a.siguiente_fecha!.localeCompare(b.siguiente_fecha!))[0]?.siguiente_fecha ?? null },
     { t: 'Experience', a: vivos.filter((p) => p.producto === 'experience' && ['solicitud', 'llamada', 'contrato_pago', 'concepto'].includes(p.fase)).length, b: eventos.filter((e) => e.estado === 'venta').length, an: 'preparando', bn: 'en venta', href: '/admin-dkitchen/servicios/experience', clave: proxEvento?.fecha?.slice(0, 10) ?? null },
   ];
   const hora = Number(new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: 'numeric', hour12: false }));
