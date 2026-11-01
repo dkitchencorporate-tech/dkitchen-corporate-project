@@ -173,3 +173,27 @@ export interface Calor {
 export async function leerCalor(jwt: string, dias: number): Promise<Calor> {
   return comoCliente(jwt, async (c) => (await c.query<{ j: Calor }>('SELECT dk.admin_mapa_calor($1) AS j', [dias])).rows[0].j);
 }
+
+/* ── E4 (9703bd13, 0115): el embudo de pago (0032) y el seguimiento del panel (0078) como capas del mapa ── */
+export interface CapaPago { url: string; nombre: string; visitas: number; interes: number; checkout: number; salidas: number; pagados: number; segundos: number }
+export interface CapaPanel { pantalla: string; url: string; sesiones: number; locales: number; vistas: number; clics: number; errores: number; salidas: number; ms_medio: number; top: string | null; ultimo_error: string | null; ultimo: string | null }
+export interface Capas { pago: CapaPago[]; panel: CapaPanel[] }
+
+/** Datos de las capas Pago y Panel en los últimos `dias`. Si una falla, esa capa sale vacía (el mapa sigue). */
+export async function leerCapas(jwt: string, dias: number): Promise<Capas> {
+  const { PRODUCTOS_PAGO } = await import('@/lib/productos-pago');
+  const nombres: Record<string, [string, string]> = { qr: ['/qr', 'Carta QR'], fundador: ['/fundador', 'Fundador'] };
+  for (const p of Object.values(PRODUCTOS_PAGO)) nombres[p.id] = [`/pagar/${p.id}`, p.nombre];
+  const [pago, panel] = await Promise.all([
+    comoCliente(jwt, async (c) => (await c.query<{ producto: string; visitas: string; interes: string; checkout: string; salidas: string; pagados: string; segundos_medios: number }>(
+      'SELECT * FROM dk.admin_embudo($1)', [dias])).rows).catch(() => []),
+    comoCliente(jwt, async (c) => (await c.query<{ m: Omit<CapaPanel, 'url'>[] }>('SELECT dk.admin_seguimiento_mapa($1) AS m', [dias])).rows[0].m).catch(() => []),
+  ]);
+  return {
+    pago: pago.filter((f) => nombres[f.producto]).map((f) => ({
+      url: nombres[f.producto][0], nombre: nombres[f.producto][1], visitas: Number(f.visitas), interes: Number(f.interes),
+      checkout: Number(f.checkout), salidas: Number(f.salidas), pagados: Number(f.pagados), segundos: f.segundos_medios ?? 0,
+    })),
+    panel: panel.map((p) => ({ ...p, url: p.pantalla === 'inicio' ? '/panel' : `/panel/${p.pantalla}` })),
+  };
+}

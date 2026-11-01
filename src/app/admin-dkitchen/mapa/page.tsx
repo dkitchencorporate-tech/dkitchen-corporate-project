@@ -1,5 +1,5 @@
 import { exigirAdmin } from '@/lib/guard-admin';
-import { leerCalor, leerMapa } from '@/lib/mapa-web';
+import { leerCalor, leerMapa, leerCapas } from '@/lib/mapa-web';
 import GuiaZona from '@/components/admin/GuiaZona';
 import MapaWeb from '@/components/admin/MapaWeb';
 import CalorWeb from '@/components/admin/CalorWeb';
@@ -19,7 +19,8 @@ export default async function Mapa({ searchParams }: { searchParams: Promise<Rec
   const r = sp.r;
   const dias = [7, 30, 90].includes(Number(sp.d)) ? Number(sp.d) : 30;
   const id = r && /^[0-9a-f-]{36}$/i.test(r) ? r : null;
-  const [mapa, calor] = await Promise.all([leerMapa(jwt, id), leerCalor(jwt, dias)]);
+  // E4 (9703bd13): embudo de pago y seguimiento del panel como capas del mismo plano.
+  const [mapa, calor, capas] = await Promise.all([leerMapa(jwt, id), leerCalor(jwt, dias), leerCapas(jwt, dias)]);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-10">
@@ -32,7 +33,7 @@ export default async function Mapa({ searchParams }: { searchParams: Promise<Rec
         que="Una foto de la web tal como la ve un visitante: cada página, sus salidas y entradas, y los avisos."
         pasos={['Pulsa «Recorrer ahora» tras cada cambio grande de la web (tarda 1–4 minutos).', 'Pulsa una página para ver de dónde se llega y adónde se puede ir.', 'Usa «Solo callejones» y «Solo rotos» para la lista de arreglos; el objetivo es dejarlos en 0.']}
         ojo={['Callejón = página sin ningún botón o enlace propio: solo el menú y el pie.', 'Los botones que navegan solo con JavaScript no salen en el plano: el bloque Calor (abajo) sí los cuenta, con los clics reales de quien acepta las cookies.']} />
-      <MapaWeb mapa={mapa} />
+      <MapaWeb mapa={mapa} capas={capas} dias={dias} />
       <CalorWeb calor={calor} dias={dias} recorrido={id} />
     </div>
   );

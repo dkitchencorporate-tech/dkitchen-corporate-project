@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Mapa, NodoMapa, ZonaMapa } from '@/lib/mapa-web';
+import type { Mapa, NodoMapa, ZonaMapa, Capas, CapaPago, CapaPanel } from '@/lib/mapa-web';
 import { recorrerMapaAction } from '@/app/admin-dkitchen/mapa/actions';
 
 /**
@@ -32,16 +32,44 @@ function tono(n: NodoMapa) {
   return 'border-white/15 bg-white/[0.07] text-white/85';
 }
 
-export default function MapaWeb({ mapa }: { mapa: Mapa }) {
+/* E4 (9703bd13): capas sobre el mismo plano. Pago = embudo de las páginas de pago (0032); Panel = seguimiento
+   de los pilotos dentro del panel (0078/0115), con una parcela por pantalla aunque el recorrido no entre en /panel. */
+type Capa = 'estructura' | 'pago' | 'panel';
+const pctDe = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 100) : 0);
+function tonoPago(p: CapaPago) {
+  if (!p.visitas) return 'border-white/15 bg-white/[0.04] text-white/55';
+  const c = pctDe(p.pagados, p.visitas);
+  return c >= 5 ? 'border-[#5FD3A4] bg-[#5FD3A4]/20 text-[#D7FBEA]' : p.checkout > 0 ? 'border-oro bg-oro/20 text-[#FBE7B0]' : 'border-[#E0607E] bg-[#E0607E]/20 text-[#FFD3DC]';
+}
+function tonoPanel(p: CapaPanel, max: number) {
+  if (p.errores > 0) return 'border-[#E0607E] bg-[#E0607E]/20 text-[#FFD3DC]';
+  const f = (p.clics + p.vistas) / Math.max(1, max);
+  return f > 0.5 ? 'border-oro bg-oro/30 text-[#FBE7B0]' : f > 0.15 ? 'border-oro/60 bg-oro/15 text-[#FBE7B0]' : 'border-white/15 bg-white/[0.07] text-white/85';
+}
+
+export default function MapaWeb({ mapa, capas, dias = 30 }: { mapa: Mapa; capas?: Capas; dias?: number }) {
   const router = useRouter();
+  const [capa, setCapa] = useState<Capa>('estructura');
   const [filtro, setFiltro] = useState<Filtro>('todo');
   const [buscar, setBuscar] = useState('');
   const [sel, setSel] = useState<string | null>(null);
   const [recorriendo, iniciar] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
+  const pagoPorUrl = useMemo(() => new Map((capas?.pago ?? []).map((p) => [p.url, p])), [capas]);
+  const panelPorUrl = useMemo(() => new Map((capas?.panel ?? []).map((p) => [p.url, p])), [capas]);
+  const maxPanel = Math.max(1, ...(capas?.panel ?? []).map((p) => p.clics + p.vistas));
+  // Parcelas que el recorrido no ve (pantallas del panel con sesión, páginas de pago sin enlace) se añaden en su capa.
+  const nodos = useMemo<NodoMapa[]>(() => {
+    const hay = new Set(mapa.nodos.map((n) => n.url));
+    const extra = (url: string, zona: ZonaMapa, titulo: string): NodoMapa => ({ url, zona, titulo, estado_http: null, ms: null, callejon: false, roto: false, externo: false });
+    if (capa === 'pago') return [...mapa.nodos, ...(capas?.pago ?? []).filter((p) => !hay.has(p.url)).map((p) => extra(p.url, 'pago', p.nombre))];
+    if (capa === 'panel') return [...mapa.nodos, ...(capas?.panel ?? []).filter((p) => !hay.has(p.url)).map((p) => extra(p.url, 'panel', `Panel · ${p.pantalla}`))];
+    return mapa.nodos;
+  }, [mapa, capas, capa]);
+
   const { porUrl, entradas, salidas, compra } = useMemo(() => {
-    const porUrl = new Map(mapa.nodos.map((n) => [n.url, n]));
+    const porUrl = new Map(nodos.map((n) => [n.url, n]));
     const entradas = new Map<string, typeof mapa.aristas>();
     const salidas = new Map<string, typeof mapa.aristas>();
     for (const a of mapa.aristas) {
@@ -56,7 +84,20 @@ export default function MapaWeb({ mapa }: { mapa: Mapa }) {
       for (const a of entradas.get(u) ?? []) if (!a.g && !compra.has(a.o)) { compra.add(a.o); cola.push(a.o); }
     }
     return { porUrl, entradas, salidas, compra };
-  }, [mapa]);
+  }, [mapa, nodos]);
+  const enCapa = (n: NodoMapa) => capa === 'estructura' || (capa === 'pago' ? pagoPorUrl.has(n.url) : panelPorUrl.has(n.url));
+  const tonoNodo = (n: NodoMapa) => {
+    if (capa === 'pago' && pagoPorUrl.has(n.url)) return tonoPago(pagoPorUrl.get(n.url)!);
+    if (capa === 'panel' && panelPorUrl.has(n.url)) return tonoPanel(panelPorUrl.get(n.url)!, maxPanel);
+    return tono(n);
+  };
+  const cifra = (n: NodoMapa) => {
+    const p = capa === 'pago' ? pagoPorUrl.get(n.url) : undefined;
+    if (p) return ` · ${p.visitas}→${p.pagados}`;
+    const q = capa === 'panel' ? panelPorUrl.get(n.url) : undefined;
+    if (q) return ` · ${q.clics} clics${q.errores ? ` · ${q.errores} ⚠` : ''}`;
+    return '';
+  };
 
   const visible = (n: NodoMapa) =>
     (filtro === 'todo' || (filtro === 'callejones' && n.callejon) || (filtro === 'rotos' && n.roto) || (filtro === 'compra' && compra.has(n.url)))
@@ -93,6 +134,18 @@ export default function MapaWeb({ mapa }: { mapa: Mapa }) {
       </div>
       {error && <p role="alert" className="rounded-xl bg-red-500/10 p-3 text-sm text-red-700">{error}</p>}
 
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Capa del mapa" data-testid="capas-mapa">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-niebla">Capa</span>
+        <div className="flex rounded-full bg-noche p-1">
+          {([['estructura', 'Estructura'], ['pago', `Pago · ${capas?.pago.reduce((a, p) => a + p.pagados, 0) ?? 0} pagos`], ['panel', `Panel · ${capas?.panel.length ?? 0} pantallas`]] as [Capa, string][]).map(([c, t]) => (
+            <button key={c} onClick={() => { setCapa(c); setSel(null); }} aria-pressed={capa === c}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition duration-300 ${capa === c ? 'bg-oro text-noche shadow-[0_6px_18px_-8px_rgba(217,178,92,.8)]' : 'text-white/70 hover:text-white'}`}>{t}</button>
+          ))}
+        </div>
+        <span className="text-[11px] text-niebla">Últimos {dias} días{capa === 'pago' ? ' · detalle en ' : capa === 'panel' ? ' · por local en la ficha (Seguimiento)' : ''}
+          {capa === 'pago' && <a href={`/admin-dkitchen/embudo?dias=${dias}`} className="font-semibold text-vino underline">Embudo</a>}</span>
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         {([['todo', 'Todo'], ['callejones', 'Solo callejones'], ['rotos', 'Solo rotos'], ['compra', 'Solo flujo de compra']] as [Filtro, string][]).map(([f, t]) => (
           <button key={f} onClick={() => setFiltro(f)} aria-pressed={filtro === f}
@@ -120,7 +173,7 @@ export default function MapaWeb({ mapa }: { mapa: Mapa }) {
             style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px)', backgroundSize: '28px 28px' }}>
             <div className="grid gap-4 lg:grid-cols-4">
               {ZONAS.map((z) => {
-                const todas = mapa.nodos.filter((n) => n.zona === z.id);
+                const todas = nodos.filter((n) => n.zona === z.id);
                 const ns = todas.filter(visible);
                 if (!todas.length) return null;
                 const avisos = todas.filter((n) => n.callejon || n.roto).length;
@@ -134,8 +187,8 @@ export default function MapaWeb({ mapa }: { mapa: Mapa }) {
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {ns.map((n) => (
                         <button key={n.url} onClick={() => setSel(n.url)} title={n.titulo ?? n.url}
-                          className={`max-w-full truncate rounded-lg border px-2 py-1 text-left font-mono text-[11px] transition hover:brightness-125 ${tono(n)} ${sel === n.url ? 'ring-2 ring-oro' : ''}`}>
-                          {n.externo ? n.url.replace(/^www\./, '') : n.url}
+                          className={`max-w-full truncate rounded-lg border px-2 py-1 text-left font-mono text-[11px] transition duration-300 hover:brightness-125 ${tonoNodo(n)} ${enCapa(n) ? '' : 'opacity-25'} ${sel === n.url ? 'ring-2 ring-oro' : ''}`}>
+                          {n.externo ? n.url.replace(/^www\./, '') : n.url}{cifra(n) && <b className="font-sans font-bold">{cifra(n)}</b>}
                         </button>
                       ))}
                       {!ns.length && <p className="text-xs text-white/35">Nada con este filtro.</p>}
@@ -144,7 +197,22 @@ export default function MapaWeb({ mapa }: { mapa: Mapa }) {
                 );
               })}
             </div>
-            <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-white/60">
+            {capa === 'pago' && (
+              <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-white/60">
+                <span>Cifra = entran → pagan.</span>
+                <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm border border-[#5FD3A4] bg-[#5FD3A4]/30" />Convierte (≥ 5 %)</span>
+                <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm border border-oro bg-oro/30" />Van a pagar, pocos pagan</span>
+                <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm border border-[#E0607E] bg-[#E0607E]/30" />Entran y nadie va a pagar</span>
+              </div>
+            )}
+            {capa === 'panel' && (
+              <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-white/60">
+                <span>{capas?.panel.length ? 'Pantallas del panel que usan los pilotos en seguimiento.' : 'Sin actividad de pilotos en seguimiento en este periodo.'}</span>
+                <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm border border-oro bg-oro/30" />Más uso</span>
+                <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm border border-[#E0607E] bg-[#E0607E]/30" />Con errores</span>
+              </div>
+            )}
+            <div className={`mt-4 flex flex-wrap gap-3 text-[11px] text-white/60 ${capa === 'estructura' ? '' : 'hidden'}`}>
               <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm border border-oro bg-oro/30" />Callejón</span>
               <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm border border-[#E0607E] bg-[#E0607E]/30" />Roto</span>
               <span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm border border-dashed border-white/40" />Enlazada, no recorrida</span>
@@ -156,10 +224,54 @@ export default function MapaWeb({ mapa }: { mapa: Mapa }) {
           <aside className="rounded-[28px] border border-linea bg-white p-5 lg:sticky lg:top-20 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
             {!nodo ? (
               <p className="text-sm text-niebla">Pulsa una página del plano para ver de dónde se llega a ella, adónde lleva y sus avisos.</p>
-            ) : <Detalle nodo={nodo} entradas={entradas.get(nodo.url) ?? []} salidas={salidas.get(nodo.url) ?? []} enCompra={compra.has(nodo.url)} ir={setSel} />}
+            ) : (
+              <>
+                {capa === 'pago' && pagoPorUrl.has(nodo.url) && <DetallePago p={pagoPorUrl.get(nodo.url)!} dias={dias} />}
+                {capa === 'panel' && panelPorUrl.has(nodo.url) && <DetallePanel p={panelPorUrl.get(nodo.url)!} />}
+                <Detalle nodo={nodo} entradas={entradas.get(nodo.url) ?? []} salidas={salidas.get(nodo.url) ?? []} enCompra={compra.has(nodo.url)} ir={setSel} />
+              </>
+            )}
           </aside>
         </div>
       )}
+    </div>
+  );
+}
+
+function DetallePago({ p, dias }: { p: CapaPago; dias: number }) {
+  const pasos: [string, number][] = [['Entran', p.visitas], ['Rellenan', p.interes], ['Van a pagar', p.checkout], ['Pagan', p.pagados]];
+  return (
+    <div className="mb-5 rounded-2xl bg-noche p-4 text-white" data-testid="detalle-pago">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-oro">Capa Pago · {dias} días</p>
+      <p className="font-display mt-1 text-lg font-semibold">{p.nombre}</p>
+      <ul className="mt-3 space-y-1.5">
+        {pasos.map(([t, n]) => (
+          <li key={t}>
+            <p className="flex justify-between text-xs"><span>{t}</span><b className="tabular-nums">{n}{t !== 'Entran' && p.visitas ? <span className="font-normal text-white/50"> · {pctDe(n, p.visitas)} %</span> : null}</b></p>
+            <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-white/10"><span className="block h-full rounded-full bg-oro transition-[width] duration-500" style={{ width: `${Math.max(2, pctDe(n, Math.max(1, p.visitas)))}%` }} /></div>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-[11px] text-white/55">{p.salidas} se fueron sin pagar · {p.segundos} s de media en la página</p>
+    </div>
+  );
+}
+
+function DetallePanel({ p }: { p: CapaPanel }) {
+  return (
+    <div className="mb-5 rounded-2xl bg-noche p-4 text-white" data-testid="detalle-panel">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-oro">Capa Panel · pilotos en seguimiento</p>
+      <p className="font-display mt-1 text-lg font-semibold">Pantalla «{p.pantalla}»</p>
+      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+        {([['Vistas', p.vistas], ['Clics', p.clics], ['Errores', p.errores], ['Sesiones', p.sesiones], ['Locales', p.locales], ['Salidas', p.salidas]] as [string, number][]).map(([t, n]) => (
+          <div key={t} className={`rounded-xl px-1 py-2 ${t === 'Errores' && n > 0 ? 'bg-[#E0607E]/25' : 'bg-white/[0.06]'}`}><b className="font-display block text-xl tabular-nums">{n}</b><span className="text-[10px] text-white/55">{t}</span></div>
+        ))}
+      </div>
+      <ul className="mt-3 space-y-1 text-xs text-white/75">
+        {p.ms_medio > 0 && <li>Tiempo medio: <b>{Math.round(p.ms_medio / 1000)} s</b></li>}
+        {p.top && <li>Lo más pulsado: <b>{p.top}</b></li>}
+        {p.ultimo_error && <li className="text-[#FFD3DC]">Último error: {p.ultimo_error}</li>}
+      </ul>
     </div>
   );
 }

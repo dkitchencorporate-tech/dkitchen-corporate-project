@@ -42,7 +42,7 @@ export default async function Embudo({ searchParams }: { searchParams: Promise<{
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Embudo de pago</h1>
-          <p className="text-sm text-niebla">/qr, /fundador y páginas /pagar: quién entra, quién abre el formulario, quién va a pagar y quién paga. Anónimo, datos reales (la medición de /qr empieza el 08/10).</p>
+          <p className="text-sm text-niebla">/qr, /fundador y páginas /pagar: quién entra, quién abre el formulario, quién va a pagar y quién paga. Anónimo, datos reales (la medición de /qr empieza el 08/10). <Link href="/admin-dkitchen/mapa" className="font-semibold text-vino underline">Verlo sobre el mapa de la web (capa Pago) →</Link></p>
         </div>
         <div className="flex gap-1 rounded-full bg-white p-1 ring-1 ring-linea">
           {RANGOS.map((r) => <Link key={r} href={`?dias=${r}`} className={`rounded-full px-4 py-1.5 text-sm font-semibold ${r === dias ? 'bg-tinta text-white' : 'text-niebla'}`}>{r} días</Link>)}
