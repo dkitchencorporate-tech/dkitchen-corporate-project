@@ -6,7 +6,7 @@ const COLUMNAS: [string, [string, string][]][] = [
   ['Productos', [['/qr', 'Carta digital QR'], ['/signature', 'DKitchen Signature'], ['/experience', 'Experience'], ['/dark-kitchen', 'Dark Kitchen'], ['/marcas', 'Marcas'], ['/auditoria', 'Auditoría'], ['/precios', 'Precios']]],
   ['Aprende', [['/carta-digital', 'Carta digital por ciudad'], ['/blog', 'Blog'], ['/casos-de-exito', 'Casos de éxito'], ['/faq', 'Preguntas frecuentes']]],
   ['Cuenta', [['/panel/iniciar-sesion', 'Entrar en mi panel'], ['/qr#planes', 'Empezar por 1 €']]],
-  ['Legal', [['/privacy', 'Privacidad'], ['/terms', 'Términos']]],
+  ['Legal', [['/aviso-legal', 'Aviso legal'], ['/privacy', 'Privacidad'], ['/terms', 'Términos']]],
 ];
 
 /** Perfiles oficiales; los mismos que el `sameAs` del JSON-LD de layout.tsx. */

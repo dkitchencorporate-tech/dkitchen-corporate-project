@@ -1,4 +1,5 @@
 import { BASE_OPERATIVA, FUNDADOR } from '@/lib/pricing-config';
+import { titular, CORREO_TITULAR } from '@/lib/titular';
 
 /**
  * Contratos de DKitchen (01/11/2026, tareas 3fc6a2df y 27835609). Cuerpo FIJO y VERSIONADO
@@ -9,7 +10,7 @@ import { BASE_OPERATIVA, FUNDADOR } from '@/lib/pricing-config';
  */
 export type Clausula = { n: string; titulo: string; texto: string[] };
 export type Contrato = {
-  id: 'comercial' | 'signature';
+  id: 'comercial' | 'signature' | 'encargado';
   tipo: string;
   titulo: string;
   version: string;
@@ -29,7 +30,8 @@ const [T1, T2, T3] = M.tramos;
 const LICENCIA_PERPETUA = BASE_OPERATIVA.licenciaPerpetua;
 
 /** Titular: Elisabet (autónoma) hasta que exista la empresa de Alex. Sus datos llegan con la tarea 279b7668. */
-const TITULAR = 'Dña. [[Elisabet · nombre completo]], con NIF [[NIF]] y domicilio fiscal en [[dirección fiscal]], que actúa con el nombre comercial DKitchen (dkitchencorporate.es) y el correo dkitchen@dkitchencorporate.es (en adelante, «DKitchen»)';
+const T = titular();
+const TITULAR = `${T ? T.nombre : '[[Elisabet · nombre completo]]'}, con NIF ${T ? T.nif : '[[NIF]]'} y domicilio fiscal en ${T ? T.domicilio : '[[dirección fiscal]]'}, que actúa con el nombre comercial DKitchen (dkitchencorporate.es) y el correo ${CORREO_TITULAR} (en adelante, «DKitchen»)`;
 
 export const CONTRATOS: Contrato[] = [
   {
@@ -189,6 +191,62 @@ export const CONTRATOS: Contrato[] = [
       { campo: 'Versión del texto', valor: 'v0.2 · 01/11/2026' },
     ],
     firmas: ['Por DKitchen', 'El Cliente'],
+  },
+  {
+    id: 'encargado',
+    tipo: 'Contrato de encargado del tratamiento (art. 28 RGPD)',
+    titulo: 'Contrato de encargado del tratamiento',
+    version: 'v0.1',
+    fecha: '01/11/2026',
+    estado: 'borrador',
+    resumen: 'Lo firma cada local que contrata Carta QR, Signature o Experience: el local es responsable de los datos de sus comensales y DKitchen solo los trata por su cuenta, con las garantías del RGPD. Se acepta junto con el servicio.',
+    partes: [
+      'El local [[razón social o nombre del titular]], con NIF/CIF [[NIF]] y domicilio en [[dirección]] (en adelante, «el Responsable»)',
+      TITULAR.replace('(en adelante, «DKitchen»)', '(en adelante, «el Encargado» o «DKitchen»)'),
+    ],
+    clausulas: [
+      { n: '1', titulo: 'Objeto', texto: [
+        'DKitchen trata, por cuenta del Responsable, los datos personales necesarios para prestar los servicios contratados (Carta QR, Signature y/o Experience), solo para esa finalidad y siguiendo las instrucciones documentadas del Responsable, que son este contrato y la configuración que el Responsable hace en su panel.',
+      ] },
+      { n: '2', titulo: 'Datos y personas afectadas', texto: [
+        'Personas: comensales y clientes del local (reservas, pedidos, entradas, fidelización y mensajes) y personal del local con acceso al panel.',
+        'Datos: identificativos y de contacto (nombre, teléfono, correo), detalle de reservas, pedidos y entradas, puntos de fidelización y las notas que escriba el propio comensal. DKitchen no trata datos de tarjetas: el cobro lo hace la pasarela del Responsable.',
+        'Operaciones: recogida, registro, conservación, consulta, comunicación al Responsable y supresión.',
+      ] },
+      { n: '3', titulo: 'Duración', texto: [
+        'Mientras el Responsable tenga contratado algún servicio. Al terminar, DKitchen pone los datos a disposición del Responsable durante 60 días para que los exporte y después los suprime, salvo que una ley obligue a conservarlos (en ese caso, bloqueados).',
+      ] },
+      { n: '4', titulo: 'Obligaciones de DKitchen', texto: [
+        'Tratar los datos solo según las instrucciones del Responsable y avisarle si alguna instrucción le parece contraria a la ley.',
+        'Garantizar que las personas autorizadas a tratar los datos se han comprometido a la confidencialidad.',
+        'Aplicar medidas de seguridad adecuadas (artículo 32 del RGPD): cifrado en tránsito, acceso con contraseña y segundo factor para el personal interno, permisos en la base de datos por local, copias de seguridad y registro de accesos.',
+        'Ayudar al Responsable a atender los derechos de los interesados (acceso, rectificación, supresión, oposición, limitación y portabilidad) y en las evaluaciones de impacto o consultas a la autoridad, cuando proceda.',
+        'Notificar al Responsable cualquier violación de seguridad que afecte a sus datos sin dilación indebida y, en todo caso, en un máximo de 48 horas desde que la conozca, con la información disponible para que pueda notificarla a la autoridad si corresponde.',
+        'Poner a disposición del Responsable la información necesaria para demostrar el cumplimiento y permitir auditorías razonables, avisadas con 30 días.',
+      ] },
+      { n: '5', titulo: 'Subencargados', texto: [
+        'El Responsable autoriza a DKitchen a usar estos subencargados: Vercel Inc. (alojamiento), Neon (base de datos en Fráncfort, Alemania) y Arsys Internet S.L.U. (correo, España). Las transferencias fuera del Espacio Económico Europeo se amparan en el Marco de Privacidad de Datos UE-EE. UU. o en cláusulas contractuales tipo.',
+        'DKitchen avisará con 30 días de antelación de cualquier cambio de subencargado; el Responsable puede oponerse y, si no hay acuerdo, terminar el servicio sin penalización. Cada subencargado queda obligado a las mismas garantías que este contrato.',
+      ] },
+      { n: '6', titulo: 'Obligaciones del Responsable', texto: [
+        'Informar a sus comensales del tratamiento (su propio aviso de privacidad), contar con base legal para los datos que recoge y para las comunicaciones comerciales que envíe, y usar el servicio conforme a la ley.',
+      ] },
+      { n: '7', titulo: 'Responsabilidad', texto: [
+        'Cada parte responde de sus propios incumplimientos del RGPD. Si DKitchen trata los datos para fines propios, pasa a ser considerado responsable de ese tratamiento.',
+      ] },
+      { n: '8', titulo: 'Ley y aceptación', texto: [
+        'Se aplica el Reglamento (UE) 2016/679, la Ley Orgánica 3/2018 y la ley española. Este contrato forma parte de las condiciones del servicio y se acepta electrónicamente al contratar; DKitchen guarda la fecha, la IP y la versión aceptada.',
+      ] },
+    ],
+    anexo: [
+      { campo: 'Responsable (local, NIF, domicilio)', valor: '[[desde la ficha del cliente]]' },
+      { campo: 'Servicios contratados', valor: '[[Carta QR / Signature / Experience, desde la ficha]]' },
+      { campo: 'Subencargados vigentes', valor: 'Vercel · Neon (Fráncfort) · Arsys' },
+      { campo: 'Contacto de privacidad de DKitchen', valor: 'dkitchen@dkitchencorporate.es' },
+      { campo: 'Fecha de aceptación', valor: '[[desde el registro de aceptación al pagar]]' },
+      { campo: 'Versión del texto', valor: 'v0.1 · 01/11/2026' },
+    ],
+    firmas: ['El Responsable (local)', 'Por DKitchen (Encargado)'],
   },
 ];
 
