@@ -30,7 +30,7 @@ const CSP = [
   // Fotos y logos que suben los clientes desde su panel (Vercel Blob, 0019).
   // Stripe y Link: iconos de tarjetas y monederos del checkout (/pago, 08/10/2026).
   // Google Analytics 4 (08/10/2026): solo se carga si el visitante acepta las cookies de medición.
-  "img-src 'self' data: blob: https://images.unsplash.com https://*.public.blob.vercel-storage.com https://*.stripe.com https://*.link.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.basemaps.cartocdn.com",
+  "img-src 'self' data: blob: https://images.unsplash.com https://*.public.blob.vercel-storage.com https://*.stripe.com https://*.link.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://tile.openstreetmap.org",
 
   // La aplicación no llama a ningún tercero salvo Stripe (el Payment Element
   // de /pago habla con su API y con Link; docs.stripe.com/security/guide, CSP).

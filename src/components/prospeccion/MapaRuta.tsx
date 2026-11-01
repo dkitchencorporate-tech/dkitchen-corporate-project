@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 /**
  * 0114 · Mapa de la ruta del día y de la cartera (decisión 12: Prospección = mapa + tablero).
- * Mosaico estático de teselas CARTO (claras, datos de OpenStreetMap) encuadrado a los puntos, con los pines
+ * Mosaico estático de teselas de OpenStreetMap (aclaradas a la paleta; CARTO pide clave desde 2026) encuadrado a los puntos, con los pines
  * de la marca encima: numerados en vino para la ruta (con su línea) o puntos del color del estado para la
  * cartera. Sin librerías ni JavaScript en el móvil: se pinta en el servidor. Navegar = «Abrir en Google Maps».
  */
@@ -50,8 +50,8 @@ export default function MapaRuta({ puntos, base, ruta = false, etiqueta }: { pun
         {teselas.map((t) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img key={`${t.x}-${t.y}`} alt="" loading="lazy" decoding="async" draggable={false}
-            src={`https://a.basemaps.cartocdn.com/light_all/${z}/${((t.x % max) + max) % max}/${t.y}@2x.png`}
-            className="pointer-events-none absolute select-none [filter:saturate(.55)_sepia(.12)]"
+            src={`https://tile.openstreetmap.org/${z}/${((t.x % max) + max) % max}/${t.y}.png`}
+            className="pointer-events-none absolute select-none [filter:grayscale(.75)_sepia(.18)_brightness(1.06)_contrast(.9)]"
             style={{ left: pct(t.x * T - ox, W), top: pct(t.y * T - oy, H), width: pct(T, W), height: pct(T, H) }} />
         ))}
         <span aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(10,8,12,.18))]" />
@@ -75,7 +75,7 @@ export default function MapaRuta({ puntos, base, ruta = false, etiqueta }: { pun
       </div>
       <figcaption className="mt-1.5 flex justify-between gap-2 text-[10px] text-ceniza">
         <span>{ok.length} {ok.length === 1 ? 'local' : 'locales'} en el mapa</span>
-        <span>© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline">OpenStreetMap</a> · © <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer" className="underline">CARTO</a></span>
+        <span>© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline">colaboradores de OpenStreetMap</a></span>
       </figcaption>
     </figure>
   );
