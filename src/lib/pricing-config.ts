@@ -246,6 +246,11 @@ export const BASE_OPERATIVA = {
   },
   /** Re-anclado aquí como bono de bienvenida, nunca como compensación por ausencia de garantía. */
   packArranque: { valorDeclarado: 1150, incluido: true },
+  /**
+   * Licencia perpetua del motor al salir (Alex, 01/11; contrato Signature cl. 7): 6 cuotas del
+   * tramo vigente, solo desde el mes 12, sin actualizaciones ni soporte; parches de seguridad opcionales.
+   */
+  licenciaPerpetua: { cuotas: 6, desdeMes: 12, parchesMes: 29 },
 } as const;
 
 // ─────────────────────────────────────────────────────────────

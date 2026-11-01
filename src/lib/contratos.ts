@@ -25,6 +25,8 @@ export type Contrato = {
 const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' €';
 const M = BASE_OPERATIVA.mantenimiento;
 const [T1, T2, T3] = M.tramos;
+/** Licencia perpetua del motor (Alex, 01/11): ver pricing-config. */
+const LICENCIA_PERPETUA = BASE_OPERATIVA.licenciaPerpetua;
 
 /** Titular: Elisabet (autónoma) hasta que exista la empresa de Alex. Sus datos llegan con la tarea 279b7668. */
 const TITULAR = 'Dña. [[Elisabet · nombre completo]], con NIF [[NIF]] y domicilio fiscal en [[dirección fiscal]], que actúa con el nombre comercial DKitchen (dkitchencorporate.es) y el correo dkitchen@dkitchencorporate.es (en adelante, «DKitchen»)';
@@ -34,7 +36,7 @@ export const CONTRATOS: Contrato[] = [
     id: 'comercial',
     tipo: 'Contrato de agencia comercial',
     titulo: 'Contrato de agente comercial independiente',
-    version: 'v0.1',
+    version: 'v0.2',
     fecha: '01/11/2026',
     estado: 'borrador',
     resumen: 'Para los comerciales externos de Alex. Promueven y presentan clientes, pero no cierran altas ni cobran: el alta y el pago siempre pasan por Central y Stripe. Comisión sobre lo cobrado, con el % en blanco.',
@@ -64,8 +66,8 @@ export const CONTRATOS: Contrato[] = [
         'Supera la formación básica de la Academia antes de visitar en nombre de DKitchen y se presenta siempre como agente independiente de DKitchen.',
       ] },
       { n: '6', titulo: 'Comisión', texto: [
-        'El Agente cobra una comisión del [[ % ]] sobre los importes efectivamente cobrados por DKitchen (sin IVA) a los clientes que el Agente haya presentado y que consten asignados a su cartera en Central.',
-        'Se comisionan: el primer pago del cliente y [[las cuotas recurrentes de los primeros N meses / ninguna cuota recurrente]]. No generan comisión los impuestos, los reembolsos, los cargos devueltos ni las campañas de publicidad que paga el propio cliente.',
+        'El Agente cobra la comisión fijada en el Anexo A sobre los importes efectivamente cobrados por DKitchen (sin IVA) a los clientes que el Agente haya presentado y que consten asignados a su cartera en Central.',
+        'Se comisionan: el primer pago del cliente y sus cuotas recurrentes de los 12 meses siguientes al alta (con el % de cuotas del Anexo A). No generan comisión los impuestos, los reembolsos, los cargos devueltos ni las campañas de publicidad que paga el propio cliente.',
         'Si un cobro comisionado se devuelve o se reembolsa, su comisión se descuenta de la siguiente liquidación.',
       ] },
       { n: '7', titulo: 'Liquidación y pago', texto: [
@@ -95,10 +97,10 @@ export const CONTRATOS: Contrato[] = [
       { campo: 'Agente (nombre, NIF y domicilio)', valor: '[[desde Central → Comerciales]]' },
       { campo: 'Zona', valor: '[[zona]]' },
       { campo: 'Comisión sobre el primer pago', valor: '[[ % ]] (lo decide Alex)' },
-      { campo: 'Comisión sobre cuotas recurrentes', valor: '[[ % durante N meses, o ninguna ]] (lo decide Alex)' },
+      { campo: 'Comisión sobre las cuotas de los 12 primeros meses', valor: '[[ % ]] (lo decide Alex)' },
       { campo: 'Fecha de inicio', valor: '[[fecha de firma]]' },
       { campo: 'Formación Academia', valor: 'Superada el [[fecha]] (Central → Comerciales)' },
-      { campo: 'Versión del texto', valor: 'v0.1 · 01/11/2026' },
+      { campo: 'Versión del texto', valor: 'v0.2 · 01/11/2026' },
     ],
     firmas: ['Por DKitchen', 'El Agente'],
   },
@@ -106,7 +108,7 @@ export const CONTRATOS: Contrato[] = [
     id: 'signature',
     tipo: 'Contrato de servicio',
     titulo: 'Contrato DKitchen Signature',
-    version: 'v0.1',
+    version: 'v0.2',
     fecha: '01/11/2026',
     estado: 'borrador',
     resumen: `App propia con la marca del local sobre el motor de DKitchen. Entrada ${eur(BASE_OPERATIVA.pagoUnico)} + IVA, ${M.mesesGratis} meses gratis y cuota por tramos desde ${eur(T1.cuota)}/mes. La app es del cliente; el motor sigue siendo de DKitchen.`,
@@ -121,14 +123,14 @@ export const CONTRATOS: Contrato[] = [
       ] },
       { n: '2', titulo: 'Puesta en marcha y entrega', texto: [
         `La entrada (${eur(BASE_OPERATIVA.pagoUnico)} + IVA, o ${BASE_OPERATIVA.fraccionado.cuotas} pagos de ${eur(BASE_OPERATIVA.fraccionado.importeCuota)} + IVA con ${BASE_OPERATIVA.fraccionado.diasEntreCuotas} días entre ellos) incluye la puesta en marcha y el pack de arranque (valor declarado ${eur(BASE_OPERATIVA.packArranque.valorDeclarado)}).`,
-        'DKitchen entrega la App en [[N]] días hábiles desde que el Cliente aporta su marca, su carta y sus fotos. Al entregarla firma con el Cliente un acta de entrega. Si en 10 días hábiles el Cliente no comunica fallos concretos, la App se entiende aceptada.',
+        'DKitchen entrega la App en 15 días hábiles desde que el Cliente aporta su marca, su carta y sus fotos. Al entregarla firma con el Cliente un acta de entrega. Si en 10 días hábiles el Cliente no comunica fallos concretos, la App se entiende aceptada.',
       ] },
       { n: '3', titulo: 'Cuota de mantenimiento por tramos', texto: [
         `Los ${M.mesesGratis} primeros meses son gratis. Desde el mes ${M.empiezaEnMes}, el Cliente paga una cuota mensual según su volumen, medido por ventas cobradas por la App (sin IVA) o por pedidos al mes, lo que se alcance antes:`,
         `${T1.nombre}: hasta ${eur(T1.hastaVentas)} o ${T1.hastaPedidos} pedidos → ${eur(T1.cuota)}/mes (${T1.usuarios} usuarios, ${T1.productos} productos) · ${T2.nombre}: hasta ${eur(T2.hastaVentas)} o ${T2.hastaPedidos.toLocaleString('es-ES')} pedidos → ${eur(T2.cuota)}/mes (${T2.usuarios} usuarios, ${T2.productos} productos) · ${T3.nombre}: hasta ${eur(T3.hastaVentas)} o ${T3.hastaPedidos.toLocaleString('es-ES')} pedidos → ${eur(T3.cuota)}/mes (${T3.usuarios} usuarios, ${T3.productos.toLocaleString('es-ES')} productos) · A medida: más de ${eur(T3.hastaVentas)}, más de ${T3.hastaPedidos.toLocaleString('es-ES')} pedidos o 2 o más locales → desde ${eur(M.aMedida.desde)} + ${eur(M.aMedida.porLocalAdicional)} por local adicional. Todos los importes, más IVA.`,
         'Medición: con los datos del propio sistema, visibles para el Cliente en su panel en tiempo real.',
         'Subida: solo si supera su tramo 2 meses naturales seguidos; DKitchen avisa por escrito y la nueva cuota se aplica 30 días después, como máximo un tramo por trimestre. Bajada: si queda por debajo 3 meses naturales seguidos, baja de tramo sola desde el siguiente cobro.',
-        'A medida: al cumplir cualquiera de sus condiciones, DKitchen propone condiciones particulares con 60 días de aviso. Si el Cliente no las acepta, puede comprar la licencia perpetua del Motor (cláusula 7) o terminar el contrato con la exportación completa de sus datos.',
+        'A medida: al cumplir cualquiera de sus condiciones, DKitchen propone condiciones particulares con 60 días de aviso. Si el Cliente no las acepta, puede comprar la licencia perpetua del Motor (cláusula 7, aunque no haya cumplido el mes 12) o terminar el contrato con la exportación completa de sus datos.',
         'Los límites de usuarios y productos no cortan el servicio: superarlos solo abre la revisión de tramo.',
       ] },
       { n: '4', titulo: 'Sin comisión e IPC', texto: [
@@ -146,7 +148,7 @@ export const CONTRATOS: Contrato[] = [
       { n: '7', titulo: 'Licencia del Motor', texto: [
         'El Motor (lógica de pedidos, pagos, cocina, comandero, fidelización, funciones de la base de datos y conexiones fiscales) es de DKitchen. Mientras el contrato esté vigente, el Cliente tiene una licencia de uso no exclusiva e intransferible, solo para sus locales.',
         'El Cliente no puede copiar, revender, sublicenciar ni aplicar ingeniería inversa al Motor, ni usarlo para terceros.',
-        `Al terminar el contrato, el Cliente puede seguir usando su App comprando una licencia perpetua del Motor por [[precio]] (sin actualizaciones salvo pacto), o migrarla a otro sistema con sus datos.`,
+        `Al terminar el contrato, y siempre que hayan pasado al menos ${LICENCIA_PERPETUA.desdeMes} meses desde el alta, el Cliente puede seguir usando su App comprando una licencia perpetua del Motor por ${LICENCIA_PERPETUA.cuotas} cuotas de su tramo vigente (${M.tramos.map((t) => `${t.nombre} ${eur(t.cuota * LICENCIA_PERPETUA.cuotas)}`).join(" · ")}, más IVA). La licencia no incluye actualizaciones ni soporte y el alojamiento corre de su cuenta; puede contratar los parches de seguridad por ${eur(LICENCIA_PERPETUA.parchesMes)}/mes + IVA. También puede migrar su App a otro sistema con sus datos.`,
       ] },
       { n: '8', titulo: 'Datos de los comensales', texto: [
         'El Cliente es el responsable de los datos de sus comensales; DKitchen los trata como encargado (artículo 28 del RGPD) según el contrato de encargado del tratamiento que se firma junto a este. Los datos se alojan en la Unión Europea y el Cliente puede exportarlos siempre.',
@@ -158,7 +160,7 @@ export const CONTRATOS: Contrato[] = [
         'La emisión de facturas o tiques a los comensales y el cumplimiento de VeriFactu corresponden al Cliente, a través de su TPV o del proveedor homologado que elija. La App puede conectarse a ese sistema; DKitchen no emite facturas en nombre del Cliente.',
       ] },
       { n: '11', titulo: 'Servicio y soporte', texto: [
-        'DKitchen mantiene la App en funcionamiento, aplica las actualizaciones del Motor y da soporte desde el panel y por correo. Objetivo de disponibilidad: [[99,5 %]] mensual. Respuesta a incidencias que impidan vender: [[4 horas laborables]]; resto: [[2 días laborables]].',
+        'DKitchen mantiene la App en funcionamiento, aplica las actualizaciones del Motor y da soporte desde el panel y por correo. Objetivo de disponibilidad: 99,5 % mensual. Respuesta a incidencias que impidan vender: 4 horas laborables; resto: 2 días laborables.',
       ] },
       { n: '12', titulo: 'Responsabilidad', texto: [
         'DKitchen responde de prestar el servicio con diligencia profesional. Salvo dolo o culpa grave, su responsabilidad total se limita a lo pagado por el Cliente en los 12 meses anteriores al hecho. Ninguna parte responde del lucro cesante ni de fallos de terceros ajenos a su control (proveedores de internet, pasarelas o fuerza mayor).',
@@ -182,9 +184,9 @@ export const CONTRATOS: Contrato[] = [
       { campo: 'Fundador (si aplica)', valor: `Entrada ${eur(FUNDADOR.signature.entrada)} + IVA en pago único y ${eur(FUNDADOR.signature.mensual)}/mes durante ${FUNDADOR.signature.meses} meses; después, la cuota de su tramo` },
       { campo: 'Meses gratis', valor: `${M.mesesGratis} (la cuota empieza en el mes ${M.empiezaEnMes})` },
       { campo: 'Tramo inicial', valor: `${T1.nombre} · ${eur(T1.cuota)}/mes + IVA` },
-      { campo: 'Plazo de entrega', valor: '[[N]] días hábiles desde recibir marca, carta y fotos' },
+      { campo: 'Plazo de entrega', valor: '15 días hábiles desde recibir marca, carta y fotos' },
       { campo: 'Fecha de pago y de firma', valor: '[[desde Stripe y el registro de aceptación]]' },
-      { campo: 'Versión del texto', valor: 'v0.1 · 01/11/2026' },
+      { campo: 'Versión del texto', valor: 'v0.2 · 01/11/2026' },
     ],
     firmas: ['Por DKitchen', 'El Cliente'],
   },
