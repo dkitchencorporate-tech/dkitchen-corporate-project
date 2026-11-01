@@ -32,8 +32,9 @@ export default async function ClientesQr({
 
   const reales = todos.filter((c) => !['demo', 'bajas', 'archivados'].includes(pestanaDe(c, hoy)));
   const aparte = `${de('demo').length} demos y ${de('bajas').length} bajas aparte`;
-  const ingreso = todos.reduce((s, c) => s + c.cuota, 0);
-  const pagan = todos.filter((c) => c.cuota > 0).length;
+  // 02/11: solo clientes reales (demos y PRUEBA aparte), igual que Hoy.
+  const ingreso = reales.reduce((s, c) => s + c.cuota, 0);
+  const pagan = reales.filter((c) => c.cuota > 0).length;
   const pendientes = todos.reduce((s, c) => s + c.ticketsAbiertos + c.solicitudesQrPendientes, 0);
 
   // Si es comercial, no ve ingresos totales (karc0: decisión 31/10)

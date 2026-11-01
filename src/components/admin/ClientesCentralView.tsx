@@ -299,7 +299,7 @@ export default function ClientesCentralView({
       </div>
 
       {/* Barra de búsqueda y selectores secundarios */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-linea bg-white p-3.5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="grid gap-3 rounded-2xl border border-linea bg-white p-3.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div className="relative flex-1">
           <input
             type="text"
@@ -333,7 +333,7 @@ export default function ClientesCentralView({
             <select
               value={comercialFiltro}
               onChange={(e) => setComercialFiltro(e.target.value)}
-              className="rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-medium text-carbon outline-none focus:border-vino"
+              className="min-h-[40px] max-w-full rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-medium text-carbon outline-none focus:border-vino sm:max-w-[240px]"
             >
               <option value="">Todos los comerciales</option>
               {miembrosEquipo.map((m) => (
@@ -349,7 +349,7 @@ export default function ClientesCentralView({
             <select
               value={ciudadFiltro}
               onChange={(e) => setCiudadFiltro(e.target.value)}
-              className="rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-medium text-carbon outline-none focus:border-vino"
+              className="min-h-[40px] max-w-full rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-medium text-carbon outline-none focus:border-vino sm:max-w-[240px]"
             >
               <option value="">Todas las ciudades</option>
               {listaCiudades.map((ciu) => (
@@ -364,7 +364,7 @@ export default function ClientesCentralView({
           <select
             value={estadoFiltro}
             onChange={(e) => setEstadoFiltro(e.target.value)}
-            className="rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-medium text-carbon outline-none focus:border-vino"
+            className="min-h-[40px] max-w-full rounded-xl border border-linea bg-papel px-3 py-2 text-xs font-medium text-carbon outline-none focus:border-vino sm:max-w-[240px]"
           >
             <option value="todos">Clientes reales</option>
             <option value="completo">Todo (con demos y bajas)</option>

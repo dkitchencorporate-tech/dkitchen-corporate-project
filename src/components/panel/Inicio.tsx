@@ -106,13 +106,13 @@ export default function Inicio({ restaurante, qrPedido = false, escaneosMes, esc
         </div>
       )}
 
-      <div className="grid gap-3 lg:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         <motion.button {...entra(0)} onClick={() => ir('escaneos')} className={`${tarjeta} lg:col-span-2`}>
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-vino">Escaneos de tu carta</p>
             <p className="text-xs text-niebla">{semana} en 7 días</p>
           </div>
-          <p className="font-display mt-1 text-5xl font-semibold tabular-nums"><Contador hasta={escaneosMes} /> <span className="text-base font-normal text-niebla">este mes</span></p>
+          <p className="font-display mt-1 text-5xl font-semibold tabular-nums"><Contador hasta={escaneosMes} /> <span className="font-sans text-base font-normal tracking-normal text-niebla">este mes</span></p>
           <Grafica serie={serie} />
         </motion.button>
         <motion.button {...entra(1)} onClick={() => ir('reservas')} className={tarjeta}>
