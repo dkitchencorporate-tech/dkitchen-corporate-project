@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
 import { listarClientesQr, type ClienteQr } from '@/lib/admin-clientes';
-import { listaProspectos, FUENTES, ESTADOS, type Prospecto } from '@/lib/prospeccion';
+import { listaProspectos, embudoProspeccion, ESTADOS, CANALES, NIVELES, PALANCAS, MATERIALES, type Prospecto, type Embudo } from '@/lib/prospeccion';
 import { decidirPalancaAction, habilitarAction } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -25,17 +25,21 @@ export default async function Comerciales({ searchParams }: { searchParams: Prom
   const q = await searchParams;
   const esDir = await comoCliente(jwt, async (c) => (await c.query<{ d: boolean }>('SELECT dk.es_direccion() AS d')).rows[0]?.d === true).catch(() => false);
   if (!esDir) return <div className="p-10 text-center text-sm text-niebla">La zona de comerciales es de dirección.</div>;
-  const [equipo, solicitudes, clientes, prospectos] = await Promise.all([
+  const [equipo, solicitudes, clientes, prospectos, embudo] = await Promise.all([
     comoCliente(jwt, async (c) => (await c.query<{ j: Miembro[] }>('SELECT dk.admin_academia_equipo() AS j')).rows[0].j).catch(() => [] as Miembro[]),
     comoCliente(jwt, async (c) => (await c.query<{ j: Solicitud[] }>('SELECT dk.palancas_ver() AS j')).rows[0].j).catch(() => [] as Solicitud[]),
     listarClientesQr(jwt).catch(() => [] as ClienteQr[]),
     listaProspectos(jwt, null, null).catch(() => [] as Prospecto[]),
+    // 0114: embudo real por canal (contactos registrados en 3 toques), por comercial, objeción y palanca
+    embudoProspeccion(jwt, null).catch(() => null as Embudo | null),
   ]);
   const pendientes = solicitudes.filter((s) => s.estado === 'pendiente');
   const reales = clientes.filter((c) => !c.demoInterna && !c.archivadoEn && !c.nombre.startsWith('PRUEBA'));
   const hace30 = Date.now() - 30 * 864e5;
-  const canales = Object.keys(FUENTES) as (keyof typeof FUENTES)[];
-  const maxCanal = Math.max(1, ...canales.map((k) => prospectos.filter((p) => p.fuente === k).length));
+  const filas = embudo?.canales ?? [];
+  const maxCanal = Math.max(1, ...filas.map((k) => k.locales));
+  const pctDe = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
+  const PASOS = [['locales', 'Contactados'], ['hablo', 'Hablaron'], ['demo', 'Demo'], ['propuesta', 'Propuesta'], ['cerrado', 'Cerrados']] as const;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 text-tinta sm:p-6 lg:p-10">
@@ -137,20 +141,62 @@ export default async function Comerciales({ searchParams }: { searchParams: Prom
         </section>
 
         {/* Embudo por canal */}
-        <section className="dk-carta rounded-[22px] border border-linea bg-white p-5">
-          <h2 className="font-display text-xl font-bold">Por canal</h2>
-          <ul className="mt-3 space-y-3">
-            {canales.map((k) => {
-              const del = prospectos.filter((p) => p.fuente === k);
-              const cerrados = del.filter((p) => p.estado === 'cliente').length;
-              return (
-                <li key={k}>
-                  <p className="flex justify-between text-sm"><span className="font-semibold">{FUENTES[k]}</span><span><b>{del.length}</b> · {cerrados} cliente{cerrados === 1 ? '' : 's'}{del.length ? ` (${Math.round((cerrados / del.length) * 100)} %)` : ''}</span></p>
-                  <div className="dk-barra-prog mt-1 h-2.5 overflow-hidden rounded-full bg-papel"><span style={{ width: `${Math.max(2, (del.length / maxCanal) * 100)}%` }} /></div>
+        <section className="dk-carta rounded-[22px] border border-linea bg-white p-5" data-testid="embudo-canal">
+          <h2 className="font-display text-xl font-bold">Embudo por canal</h2>
+          <p className="text-xs text-niebla">Locales distintos por canal, de los contactos registrados en Prospección.</p>
+          {!filas.length ? (
+            <p className="mt-3 rounded-2xl bg-papel px-4 py-5 text-center text-sm text-niebla">Aún no hay contactos registrados. Se llenará con cada registro en 3 toques.</p>
+          ) : (
+            <ul className="mt-3 space-y-4">
+              {filas.map((k) => (
+                <li key={k.canal}>
+                  <p className="flex justify-between text-sm"><span className="font-semibold">{CANALES[k.canal]}</span>
+                    <span><b>{k.cerrado}</b> de {k.locales} cerrados <span className="text-niebla">({pctDe(k.cerrado, k.locales)} %)</span></span></p>
+                  <div className="mt-1.5 flex h-7 items-stretch gap-0.5 overflow-hidden rounded-full bg-papel" style={{ width: `${Math.max(18, (k.locales / maxCanal) * 100)}%` }}>
+                    {PASOS.map(([c, t], i) => (
+                      <span key={c} title={`${t}: ${k[c]}`} className="flex items-center justify-center text-[10px] font-bold text-white"
+                        style={{ flexGrow: Math.max(k[c], 0.15), background: ['#9A9EA6', '#6366F1', '#8B5CF6', '#EA8A3C', '#2F8F6B'][i] }}>{k[c] || ''}</span>
+                    ))}
+                  </div>
                 </li>
-              );
-            })}
-          </ul>
+              ))}
+              <li className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-niebla">
+                {PASOS.map(([c, t], i) => <span key={c} className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full" style={{ background: ['#9A9EA6', '#6366F1', '#8B5CF6', '#EA8A3C', '#2F8F6B'][i] }} />{t}</span>)}
+              </li>
+            </ul>
+          )}
+          {embudo && (embudo.objeciones.length > 0 || embudo.palancas.length > 0) && (
+            <div className="mt-5 grid gap-4 border-t border-linea pt-4 sm:grid-cols-2">
+              <div>
+                <h3 className="text-sm font-bold">Objeción por nivel</h3>
+                <ul className="mt-2 space-y-1.5 text-sm">
+                  {embudo.objeciones.map((o) => (
+                    <li key={o.nivel} className="flex justify-between"><span>{NIVELES[o.nivel]}</span><span><b>{o.n}</b> · {o.cerrado} cerradas · {o.perdido} perdidas</span></li>
+                  ))}
+                </ul>
+                {embudo.frenan.length > 0 && <p className="mt-2 text-xs text-niebla">Lo que más frena: {embudo.frenan.map((x) => `«${x.objecion}» (${x.n})`).join(', ')}</p>}
+              </div>
+              <div>
+                <h3 className="text-sm font-bold">Qué palanca cierra</h3>
+                <ul className="mt-2 space-y-1.5 text-sm">
+                  {embudo.palancas.map((p) => (
+                    <li key={p.palanca} className="flex justify-between"><span>{PALANCAS[p.palanca]}</span><span><b>{p.cerrado}</b> de {p.n} ({pctDe(p.cerrado, p.n)} %)</span></li>
+                  ))}
+                </ul>
+                {embudo.material.length > 0 && <p className="mt-2 text-xs text-niebla">Material: {embudo.material.map((m) => `${MATERIALES[m.material]} ${m.cerrado}/${m.n}`).join(' · ')}</p>}
+              </div>
+              {embudo.comerciales.length > 0 && (
+                <div className="sm:col-span-2">
+                  <h3 className="text-sm font-bold">Por comercial</h3>
+                  <ul className="mt-2 space-y-1.5 text-sm">
+                    {embudo.comerciales.map((c) => (
+                      <li key={c.comercial} className="flex justify-between gap-2"><span className="truncate">{c.comercial}</span><span className="shrink-0">{c.locales} locales · {c.demo} demos · <b>{c.cerrado}</b> cerrados</span></li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
           <Link href="/admin-dkitchen/prospeccion" className="mt-4 inline-block text-sm font-semibold text-vino">Ir a Prospección →</Link>
         </section>
       </div>

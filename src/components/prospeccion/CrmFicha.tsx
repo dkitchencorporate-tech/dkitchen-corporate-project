@@ -8,6 +8,11 @@ import {
 } from '@/lib/prospeccion-acciones';
 import { EtiquetaEstado } from './CrmLista';
 import CopiarEnlace from './CopiarEnlace';
+import RegistroRapido from './RegistroRapido';
+import AntesDeEntrar from './AntesDeEntrar';
+import EstoyAqui from './EstoyAqui';
+import MapaRuta from './MapaRuta';
+import { CANALES, RESULTADOS, NIVELES, PRODUCTOS, PALANCAS, MATERIALES } from '@/lib/prospeccion-catalogo';
 
 /** Ficha de un local del CRM (0058): contacto rápido, apunte + siguiente paso, estado, propuesta y ficha completa. */
 const SITIO = process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es';
@@ -18,9 +23,12 @@ const chip = 'inline-flex items-center rounded-full bg-papel px-4 py-2.5 text-sm
 const AVISOS: Record<string, string> = {
   permiso: 'No tienes permiso para eso.', datos: 'Revisa los datos: algún campo no es válido.',
   slug: 'No encuentro ese local dado de alta (o no es de tu cartera).', motivo: 'Para descartar, elige el motivo.', error: 'No se pudo guardar.',
+  consentimiento: 'Email solo con consentimiento o relación previa (LSSI): marca una de las dos.', nocontactar: 'Este local pidió que no le contactemos.',
+  reintento: 'Para «perdido», pon la fecha de reintento.', fecha: 'La fecha no es válida (de hoy a un año).',
 };
 const OKS: Record<string, string> = {
   guardado: 'Guardado.', estado: 'Estado cambiado.', anotado: 'Contacto apuntado.', propuesta: 'Enlace de la propuesta listo.', reasignado: 'Reasignado.',
+  registrado: 'Contacto registrado.', situado: 'Local situado en el mapa.',
 };
 const momento = (s: string) => new Date(s).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const EVENTO: Record<string, string> = { ...CONTACTOS, alta: 'Alta', estado: 'Estado', propuesta_vista: 'Abrió la propuesta', reasignado: 'Reasignado a' };
@@ -72,18 +80,46 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
         <a href={maps} target="_blank" rel="noopener noreferrer" className={chip}>Cómo llegar</a>
       </div>
 
-      <section className={tarjeta}>
-        <h2 className="text-sm font-semibold">Apuntar contacto y siguiente paso</h2>
-        {f.siguiente_accion && <p className="mt-1 text-sm text-niebla">Ahora: <span className="font-medium text-carbon">{f.siguiente_accion}</span>{f.siguiente_fecha ? ` · ${fechaCorta(f.siguiente_fecha)}` : ''}</p>}
+      {f.siguiente_accion && <p className="text-sm text-niebla">Siguiente paso: <span className="font-medium text-carbon">{f.siguiente_accion}</span>{f.siguiente_fecha ? ` · ${fechaCorta(f.siguiente_fecha)}` : ''}</p>}
+      {!f.no_contactar && <RegistroRapido base={base} id={f.id} canalInicial={f.canal} consentimiento={f.consentimiento || f.relacion_previa} />}
+      <AntesDeEntrar p={f} />
+      <div className="flex flex-wrap items-center gap-3">
+        <EstoyAqui base={base} id={f.id} situado={f.lat != null} />
+        <span className="text-xs text-niebla">{f.lat != null ? `En el mapa (${f.geo_fuente === 'osm' ? 'OpenStreetMap' : f.geo_fuente === 'gps' ? 'GPS en la puerta' : 'a mano'})` : 'Aún sin situar en el mapa'}{f.consentimiento || f.relacion_previa ? ' · ✓ permiso para email' : ''}</span>
+      </div>
+      {f.lat != null && f.lng != null && <MapaRuta base={base} etiqueta={`Situación de ${f.nombre}`} puntos={[{ id: f.id, nombre: f.nombre, lat: Number(f.lat), lng: Number(f.lng) }]} />}
+
+      {f.contactos.length > 0 && (
+        <section className={tarjeta}>
+          <h2 className="text-sm font-semibold">Contactos registrados · {f.contactos.length}</h2>
+          <ul className="mt-3 space-y-3">
+            {f.contactos.map((k, i) => (
+              <li key={i} className="border-l-2 border-vino/40 pl-3 text-sm">
+                <p><span className="font-semibold">{RESULTADOS[k.resultado]}</span> · {CANALES[k.canal]}{k.plantilla ? ` · ${k.plantilla}` : ''}</p>
+                <p className="text-xs text-grafito">
+                  {[k.objecion_nivel && `Objeción ${NIVELES[k.objecion_nivel].toLowerCase()}${k.objecion ? `: «${k.objecion}»` : ''}`,
+                    k.producto && PRODUCTOS[k.producto], k.palanca && k.palanca !== 'ninguna' && `Palanca: ${PALANCAS[k.palanca]}`,
+                    k.material.length > 0 && `Material: ${k.material.map((m) => MATERIALES[m]).join(', ')}${k.flyer_codigo ? ` (${k.flyer_codigo})` : ''}`,
+                    k.texto].filter(Boolean).join(' · ')}
+                </p>
+                <p className="text-xs text-ceniza">{momento(k.creado_en)} · {k.quien}{k.siguiente ? ` · siguiente: ${k.siguiente}${k.siguiente_fecha ? ` (${fechaCorta(k.siguiente_fecha)})` : ''}` : ''}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <details className={tarjeta}>
+        <summary className="cursor-pointer text-sm font-semibold">Solo apuntar una nota o cambiar el siguiente paso</summary>
         <form action={anotarContactoAction} className="mt-3 grid gap-3 sm:grid-cols-2">
           {oculto}{idOculto}
-          <select name="tipo" defaultValue="visita" className={campo}>{Object.entries(CONTACTOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+          <select name="tipo" defaultValue="nota" className={campo}>{Object.entries(CONTACTOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
           <input name="texto" maxLength={1000} placeholder="Qué pasó / qué dijo" className={campo} />
           <input name="siguiente" maxLength={200} placeholder="Siguiente acción (volver con tablet, llamar…)" className={campo} />
           <input name="fecha" type="date" aria-label="Fecha de la siguiente acción" className={campo} />
           <button className={`${boton} bg-vino sm:col-span-2 sm:justify-self-start`}>Apuntar</button>
         </form>
-      </section>
+      </details>
 
       <section className={tarjeta}>
         <h2 className="text-sm font-semibold">Estado</h2>
@@ -155,6 +191,20 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
           <Campo n="apertura_prevista" l="Apertura prevista" v={f.apertura_prevista} tipo="date" />
           <Campo n="referido_por" l="Referido por" v={f.referido_por} max={120} />
           <Campo n="place_id" l="Google place_id" v={f.place_id} max={300} />
+          <label className="text-xs text-niebla">Canal principal
+            <select name="canal" defaultValue={f.canal ?? ''} className={`${campo} mt-1 text-carbon`}>
+              <option value="">Sin canal</option>
+              {Object.entries(CANALES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </label>
+          <div className="flex flex-col justify-end gap-1 text-xs text-niebla">
+            <input type="hidden" name="consentimiento_campo" value="1" />
+            <label className="flex items-center gap-2"><input type="checkbox" name="consentimiento" defaultChecked={f.consentimiento} className="h-5 w-5" /> Consentimiento para escribirle (email)</label>
+            <label className="flex items-center gap-2"><input type="checkbox" name="relacion_previa" defaultChecked={f.relacion_previa} className="h-5 w-5" /> Relación previa</label>
+          </div>
+          <label className="text-xs text-niebla sm:col-span-2">Preparación antes de entrar (turistas, reseñas, carta actual, quién decide…)
+            <textarea name="preparacion" maxLength={1000} rows={2} defaultValue={f.preparacion ?? ''} className={`${campo} mt-1 text-carbon`} />
+          </label>
           <label className="text-xs text-niebla sm:col-span-2">Notas
             <textarea name="notas" maxLength={2000} rows={4} defaultValue={f.notas ?? ''} className={`${campo} mt-1 text-carbon`} />
           </label>

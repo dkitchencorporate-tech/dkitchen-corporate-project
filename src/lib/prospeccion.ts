@@ -26,11 +26,25 @@ export const TIPOS = {
   bar: 'Bar de tapas', cafeteria: 'Cafetería', heladeria: 'Heladería', panaderia: 'Panadería', otro: 'Otro',
 } as const;
 export const FUENTES = { visita: 'Visita', digital: 'Digital (redes)', red_socio: 'Red del socio', referido: 'Referido', script: 'Lote (Claude)' } as const;
-export const MOTIVOS = { precio: 'Precio', ya_tiene: 'Ya tiene sistema', no_interesa: 'No le interesa', cerrado: 'Cerrado', otro: 'Otro' } as const;
 export const OFERTAS = { qr_1: 'Carta QR · 1 € el primer mes', fundador: 'Fundador (si está abierto)', signature: 'Signature', experience: 'Experience', dark_kitchen: 'Dark Kitchen' } as const;
 export const CONTACTOS = { visita: 'Visita', llamada: 'Llamada', whatsapp: 'WhatsApp', dm: 'DM (Instagram)', correo: 'Correo', nota: 'Nota' } as const;
 
-export const RUTAS_CRM = ['/admin-dkitchen/prospeccion', '/socio/prospeccion'] as const;
+export * from './prospeccion-catalogo';
+import type { Canal, Resultado, Nivel, Producto, Palanca, Material } from './prospeccion-catalogo';
+
+export type FilaEmbudo = { canal: Canal; contactos: number; locales: number; hablo: number; demo: number; propuesta: number; cerrado: number; descartado: number };
+export type Embudo = {
+  canales: FilaEmbudo[];
+  comerciales: { comercial: string; contactos: number; locales: number; demo: number; cerrado: number }[];
+  objeciones: { nivel: Nivel; n: number; cerrado: number; perdido: number }[];
+  frenan: { objecion: string; n: number }[];
+  palancas: { palanca: Palanca; n: number; cerrado: number }[];
+  material: { material: Material; n: number; cerrado: number }[];
+};
+export const embudoProspeccion = (jwt: string, desde: string | null) =>
+  comoCliente(jwt, async (c) => (await c.query<{ e: Embudo }>('SELECT dk.admin_prosp_embudo($1) AS e', [desde])).rows[0].e);
+
+export const RUTAS_CRM =['/admin-dkitchen/prospeccion', '/socio/prospeccion'] as const;
 export type BaseCrm = (typeof RUTAS_CRM)[number];
 export const esBaseCrm = (b: unknown): b is BaseCrm => typeof b === 'string' && (RUTAS_CRM as readonly string[]).includes(b);
 
@@ -41,14 +55,25 @@ export type Prospecto = {
   fuente: keyof typeof FUENTES; muestra: boolean; propuesta_vistas: number; no_contactar: boolean;
   ruta_fecha: string | null; ruta_orden: number | null; comercial_id: string; mio: boolean; comercial: string;
   nota_guia: boolean; actualizado_en: string;
+  // 0114: canal, último resultado y posición en el mapa
+  canal: Canal | null; ultimo_resultado: Resultado | null; lat: number | null; lng: number | null;
+  consentimiento: boolean; instagram: string | null; plataformas: string | null;
 };
 
-export type Ficha = Omit<Prospecto, 'muestra' | 'nota_guia'> & {
+export type Contacto = {
+  canal: Canal; resultado: Resultado; motivo: string | null; objecion_nivel: Nivel | null; objecion: string | null;
+  producto: Producto | null; palanca: Palanca | null; material: Material[]; flyer_codigo: string | null; plantilla: string | null;
+  texto: string | null; siguiente: string | null; siguiente_fecha: string | null; creado_en: string; quien: string;
+};
+
+export type Ficha = Omit<Prospecto, 'muestra' | 'nota_guia' | 'instagram' | 'plataformas'> & {
   instagram: string | null; web: string | null; contacto: string | null; plataformas: string | null;
   ticket_medio: number | null; mesas: number | null; competidores: string | null; notas: string | null;
   referido_por: string | null; place_id: string | null; muestra_url: string | null; oferta: keyof typeof OFERTAS;
   propuesta_texto: string | null; propuesta_token: string | null; propuesta_vista_en: string | null;
   nota_guia: string | null; rol: 'admin' | 'socio'; cliente_slug: string | null;
+  relacion_previa: boolean; consentimiento_en: string | null; preparacion: string | null; geo_fuente: 'osm' | 'gps' | 'manual' | null;
+  contactos: Contacto[];
   eventos: { tipo: string; texto: string | null; creado_en: string; quien: string }[];
   duplicados: { id: string | null; nombre: string; zona: string; estado: Estado; comercial: string }[];
 };

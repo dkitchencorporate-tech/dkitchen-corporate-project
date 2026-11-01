@@ -3,7 +3,11 @@ import {
   ESTADOS, TIPOS, FUENTES, enlacesRuta, fechaCorta, hoyMadrid,
   type BaseCrm, type Estado, type Prospecto, type Metrica,
 } from '@/lib/prospeccion';
-import { guardarProspectoAction, guardarRutaAction, guardarMiContactoAction } from '@/lib/prospeccion-acciones';
+import { guardarProspectoAction, guardarRutaAction, guardarMiContactoAction, proponerRutaAction } from '@/lib/prospeccion-acciones';
+import { CANALES, RESULTADOS, esBaza, esDigital, type Canal } from '@/lib/prospeccion-catalogo';
+import MapaRuta from './MapaRuta';
+import AntesDeEntrar from './AntesDeEntrar';
+import RegistroRapido from './RegistroRapido';
 
 /**
  * Lista del CRM de prospección (0058), móvil primero: ruta de hoy con Google
@@ -19,8 +23,13 @@ const COLOR: Record<Estado, string> = {
 };
 const AVISOS: Record<string, string> = {
   permiso: 'No tienes permiso para eso.', datos: 'Revisa los datos: algún campo no es válido.', error: 'No se pudo guardar. Prueba otra vez.',
+  consentimiento: 'Email solo con consentimiento o relación previa (LSSI): marca una de las dos.', nocontactar: 'Ese local pidió que no le contactemos.',
+  reintento: 'Para «perdido», pon la fecha de reintento.', fecha: 'La fecha no es válida.',
 };
-const OKS: Record<string, string> = { ruta: 'Ruta de hoy guardada.', contacto: 'Tus datos de contacto están guardados.' };
+const OKS: Record<string, string> = {
+  ruta: 'Ruta de hoy guardada.', contacto: 'Tus datos de contacto están guardados.', registrado: 'Contacto registrado.',
+  sinruta: 'No hay locales pendientes situados en el mapa para proponer una ruta.',
+};
 
 export function EtiquetaEstado({ e }: { e: Estado }) {
   return <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${COLOR[e]}`}>{ESTADOS[e]}</span>;
@@ -111,6 +120,8 @@ function Tarjeta({ p, base, central, demo }: { p: Prospecto; base: BaseCrm; cent
           {p.propuesta_vistas > 0 && <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">👁 Vista {p.propuesta_vistas}×</span>}
           {p.puntuacion != null && <span className="rounded-full bg-papel px-2 py-0.5 text-grafito">{p.puntuacion}/100</span>}
           {p.no_contactar && <span className="rounded-full bg-red-50 px-2 py-0.5 font-semibold text-red-700">No contactar</span>}
+          {p.canal && <span className="rounded-full bg-papel px-2 py-0.5 text-grafito">{CANALES[p.canal]}{p.ultimo_resultado ? ` · ${RESULTADOS[p.ultimo_resultado]}` : ''}</span>}
+          {esDigital(p.canal) && p.siguiente_accion === 'Seguimiento a 48 h' && <span className="rounded-full bg-oro/25 px-2 py-0.5 font-semibold text-tinta">48 h</span>}
           {demo && (
             <a href={`/m/${demo.slug}`} target="_blank" rel="noopener noreferrer"
               className="relative z-10 ml-auto rounded-full bg-noche px-3 py-1 text-[11px] font-semibold text-white hover:bg-vino">Ver demo ↗</a>
@@ -132,7 +143,10 @@ export default function CrmLista({ base, lista, estado, aviso, ok, contacto, cen
   const tocaHoy = lista.filter((p) => p.siguiente_fecha && p.siguiente_fecha <= hoy && !['cliente', 'descartado'].includes(p.estado));
   const cuenta = (e: Estado) => lista.filter((p) => p.estado === e).length;
   const filtrada = estado ? lista.filter((p) => p.estado === estado) : lista.filter((p) => p.estado !== 'descartado');
-  const planificables = mios.filter((p) => !['cliente', 'descartado'].includes(p.estado) && !p.no_contactar);
+  // Baza y comarca primero; dentro, los que ya están en el mapa.
+  const planificables = mios.filter((p) => !['cliente', 'descartado'].includes(p.estado) && !p.no_contactar)
+    .sort((a, b) => Number(esBaza(b.zona)) - Number(esBaza(a.zona)) || Number(b.lat != null) - Number(a.lat != null));
+  const enMapa = (central ? lista : mios).filter((p) => p.lat != null && p.lng != null && p.estado !== 'descartado');
   const tramos = enlacesRuta(ruta);
   const conDemo = lista.filter((p) => demos[p.id] && p.estado !== 'descartado').length;
   const vistas = lista.filter((p) => p.propuesta_vistas > 0).length;
@@ -193,21 +207,46 @@ export default function CrmLista({ base, lista, estado, aviso, ok, contacto, cen
 
       <section id="ruta" className={tarjeta}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-sm font-semibold">Ruta de hoy · {ruta.length} paradas</h2>
-          <span className="text-xs text-ceniza">{fechaCorta(hoy)}</span>
+          <h2 className="font-display text-xl font-semibold">Ruta de hoy · {ruta.length} {ruta.length === 1 ? 'parada' : 'paradas'}</h2>
+          <span className="text-xs text-ceniza">{fechaCorta(hoy)} · Baza y comarca primero</span>
         </div>
+        <div className="mt-3">
+          <MapaRuta base={base} ruta={ruta.length > 0} etiqueta={ruta.length ? 'Mapa de la ruta de hoy' : 'Mapa de la cartera'}
+            puntos={(ruta.length ? ruta : enMapa).filter((p) => p.lat != null && p.lng != null).map((p, i) => ({
+              id: p.id, nombre: p.nombre, lat: Number(p.lat), lng: Number(p.lng), orden: ruta.length ? i + 1 : undefined,
+              tono: BARRA[p.estado], detalle: ESTADOS[p.estado],
+            }))} />
+        </div>
+        {ruta.length > 0 && ruta.some((p) => p.lat == null) && (
+          <p className="mt-2 text-xs text-niebla">{ruta.filter((p) => p.lat == null).length} parada(s) sin posición todavía: se sitúan solas al registrar la visita.</p>
+        )}
         {ruta.length === 0 ? (
-          <p className="mt-2 text-sm text-niebla">Sin ruta para hoy. Planifícala abajo: numera los locales en el orden de la visita.</p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <p className="flex-1 text-sm text-niebla">Sin ruta para hoy. Que la proponga DKitchen (los pendientes más cercanos de Baza y comarca) o planifícala abajo a mano.</p>
+            <form action={proponerRutaAction}><input type="hidden" name="base" value={base} />
+              <button className="w-full rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white sm:w-auto">Proponer ruta de hoy</button>
+            </form>
+          </div>
         ) : (
           <>
-            <ol className="mt-3 space-y-2">
+            <ol className="mt-4 space-y-2.5">
               {ruta.map((p, i) => (
-                <li key={p.id} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-vino text-xs font-semibold text-white">{i + 1}</span>
-                  <Link href={`${base}/${p.id}`} className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">{p.nombre}</span>
-                    <span className="block truncate text-xs text-niebla">{p.direccion || 'Sin dirección'} · {ESTADOS[p.estado]}</span>
-                  </Link>
+                <li key={p.id} className="rounded-2xl border border-linea">
+                  <details className="group">
+                    <summary className="flex cursor-pointer list-none items-center gap-3 p-3 [&::-webkit-details-marker]:hidden">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino text-sm font-bold text-white">{i + 1}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[15px] font-semibold">{p.nombre}</span>
+                        <span className="block truncate text-xs text-niebla">{TIPOS[p.tipo]} · {p.barrio || p.zona} · {ESTADOS[p.estado]}</span>
+                      </span>
+                      <span className="shrink-0 rounded-full bg-tinta px-4 py-2 text-xs font-semibold text-white group-open:bg-oro group-open:text-noche">Registrar</span>
+                    </summary>
+                    <div className="space-y-3 border-t border-linea p-3">
+                      <AntesDeEntrar p={p} demo={demos[p.id]?.slug} />
+                      <RegistroRapido base={base} id={p.id} canalInicial="fisico" volver="ruta" compacto />
+                      <Link href={`${base}/${p.id}`} className="inline-block text-xs font-semibold text-vino">Abrir la ficha completa →</Link>
+                    </div>
+                  </details>
                 </li>
               ))}
             </ol>
@@ -286,6 +325,14 @@ export default function CrmLista({ base, lista, estado, aviso, ok, contacto, cen
           <input name="nombre" required minLength={2} maxLength={120} placeholder="Nombre del local *" className={`${campo} sm:col-span-2`} />
           <select name="tipo" defaultValue="restaurante" className={campo}>{Object.entries(TIPOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
           <select name="fuente" defaultValue="visita" className={campo}>{Object.entries(FUENTES).filter(([k]) => k !== 'script').map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+          <label className="text-xs text-niebla">Canal del primer contacto
+            <select name="canal" defaultValue="fisico" className={`${campo} mt-1 text-carbon`}>{(Object.keys(CANALES) as Canal[]).map((k) => <option key={k} value={k}>{CANALES[k]}{k === 'email' ? ' (solo con permiso)' : ''}</option>)}</select>
+          </label>
+          <div className="flex flex-col justify-end gap-1 text-xs text-niebla">
+            <input type="hidden" name="consentimiento_campo" value="1" />
+            <label className="flex items-center gap-2"><input type="checkbox" name="consentimiento" className="h-5 w-5" /> Nos da su consentimiento para escribirle</label>
+            <label className="flex items-center gap-2"><input type="checkbox" name="relacion_previa" className="h-5 w-5" /> Ya hay relación previa</label>
+          </div>
           <input name="zona" defaultValue="Baza" maxLength={60} placeholder="Zona (pueblo/ciudad)" className={campo} />
           <input name="barrio" maxLength={60} placeholder="Barrio o calle principal" className={campo} />
           <input name="direccion" maxLength={200} placeholder="Dirección" className={`${campo} sm:col-span-2`} />

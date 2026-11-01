@@ -4,7 +4,10 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { comoCliente } from '@/lib/db';
 import { obtenerJwtDeSesion } from '@/lib/sesion';
-import { esBaseCrm, esEstado, hoyMadrid, type BaseCrm } from '@/lib/prospeccion';
+import {
+  esBaseCrm, esEstado, hoyMadrid, esCanal, esResultado, proponerRuta, listaProspectos,
+  NIVELES, PRODUCTOS, PALANCAS, MATERIALES, MOTIVOS, type BaseCrm,
+} from '@/lib/prospeccion';
 
 /**
  * Acciones del CRM de prospección (0058), compartidas por Central y /socio.
@@ -36,6 +39,10 @@ const idDe = (f: FormData, k = 'id') => {
 /** Mensaje corto para el usuario a partir del error de Postgres (sin detalles internos). */
 function aviso(e: unknown) {
   const m = (e as Error).message || '';
+  if (/sin consentimiento/.test(m)) return 'consentimiento';
+  if (/no contactar/.test(m)) return 'nocontactar';
+  if (/reintento/.test(m)) return 'reintento';
+  if (/fecha no válida/.test(m)) return 'fecha';
   if (/no autorizado/.test(m)) return 'permiso';
   if (/check constraint|invalid input|out of range|violates/.test(m)) return 'datos';
   if (/no encontrado/.test(m)) return 'slug';
@@ -57,9 +64,18 @@ export async function guardarProspectoAction(f: FormData) {
     datos[k] = v;
   }
   if (f.has('no_contactar_campo')) datos.no_contactar = f.get('no_contactar') === 'on';
+  // 0114: canal, consentimiento / relación previa (LSSI) y preparación van por dk.prosp_canal.
+  const canal: Record<string, string | boolean> = {};
+  if (f.has('canal')) { const v = String(f.get('canal') ?? ''); if (v === '' || esCanal(v)) canal.canal = v; }
+  if (f.has('consentimiento_campo')) { canal.consentimiento = f.get('consentimiento') === 'on'; canal.relacion_previa = f.get('relacion_previa') === 'on'; }
+  if (f.has('preparacion')) canal.preparacion = String(f.get('preparacion') ?? '').slice(0, 1000);
   let nuevo: string;
   try {
-    nuevo = await comoCliente(jwt, async (c) => (await c.query<{ id: string }>('SELECT dk.prosp_guardar($1, $2) AS id', [id, datos])).rows[0].id);
+    nuevo = await comoCliente(jwt, async (c) => {
+      const pid = (await c.query<{ id: string }>('SELECT dk.prosp_guardar($1, $2) AS id', [id, datos])).rows[0].id;
+      if (Object.keys(canal).length) await c.query('SELECT dk.prosp_canal($1, $2)', [pid, canal]);
+      return pid;
+    });
   } catch (e) {
     redirect(`${base}${id ? '/' + id : ''}?e=${aviso(e)}`);
   }
@@ -115,6 +131,78 @@ export async function guardarRutaAction(f: FormData) {
   }
   revalidatePath(base);
   redirect(`${base}?ok=ruta#ruta`);
+}
+
+/**
+ * 0114 · Registro de un contacto en 3 toques (canal → resultado → Guardar). El comercial lo pone la base
+ * (identidad de la sesión); la regla del correo (consentimiento o relación previa) también la impone la base.
+ * `volver` = 'ruta' vuelve a la ruta del día; si no, a la ficha.
+ */
+export async function registrarContactoAction(f: FormData) {
+  const { jwt, base } = await contexto(f);
+  const id = idDe(f);
+  const enRuta = f.get('volver') === 'ruta';
+  const atras = (q: string) => (enRuta ? `${base}?${q}#ruta` : `${base}/${id}?${q}#registro`);
+  const canal = String(f.get('canal') ?? '');
+  const resultado = String(f.get('resultado') ?? '');
+  if (!esCanal(canal) || !esResultado(resultado)) redirect(atras('e=datos'));
+  const elegir = <T extends object>(k: string, dic: T) => { const v = String(f.get(k) ?? ''); return v in dic ? v : null; };
+  const fecha = String(f.get('siguiente_fecha') ?? '');
+  const num = (k: string) => { const v = Number(String(f.get(k) ?? '')); return String(f.get(k) ?? '') !== '' && Number.isFinite(v) ? v : null; };
+  const flyer = String(f.get('flyer_codigo') ?? '').trim().toLowerCase();
+  const datos = {
+    canal, resultado,
+    motivo: resultado === 'descartado' ? elegir('motivo', MOTIVOS) : null,
+    objecion_nivel: elegir('objecion_nivel', NIVELES), objecion: String(f.get('objecion') ?? '').slice(0, 300),
+    producto: elegir('producto', PRODUCTOS), palanca: elegir('palanca', PALANCAS),
+    material: f.getAll('material').map(String).filter((m) => m in MATERIALES),
+    flyer_codigo: /^[a-z0-9-]{2,40}$/.test(flyer) ? flyer : null,
+    plantilla: canal !== 'fisico' ? String(f.get('plantilla') ?? '').slice(0, 80) : null,
+    texto: String(f.get('texto') ?? '').slice(0, 1000), siguiente: String(f.get('siguiente') ?? '').slice(0, 200),
+    siguiente_fecha: FECHA.test(fecha) ? fecha : null,
+    consentimiento: f.get('consentimiento') === 'on', relacion_previa: f.get('relacion_previa') === 'on',
+    lat: num('lat'), lng: num('lng'),
+  };
+  try {
+    await comoCliente(jwt, (c) => c.query('SELECT dk.prosp_registrar($1, $2)', [id, datos]));
+  } catch (e) {
+    redirect(atras(`e=${aviso(e)}`));
+  }
+  revalidatePath(base);
+  revalidatePath(`${base}/${id}`);
+  redirect(atras('ok=registrado'));
+}
+
+/** 0114 · «Estoy aquí»: sitúa el local con el GPS del móvil (o a mano). */
+export async function situarAction(f: FormData) {
+  const { jwt, base } = await contexto(f);
+  const id = idDe(f);
+  const lat = Number(f.get('lat')); const lng = Number(f.get('lng'));
+  try {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error('invalid input');
+    await comoCliente(jwt, (c) => c.query('SELECT dk.prosp_situar($1, $2, $3, $4)', [id, lat, lng, f.get('fuente') === 'manual' ? 'manual' : 'gps']));
+  } catch (e) {
+    redirect(`${base}/${id}?e=${aviso(e)}`);
+  }
+  revalidatePath(base);
+  redirect(`${base}/${id}?ok=situado`);
+}
+
+/** 0114 · Ruta de hoy propuesta: hasta 8 locales pendientes, Baza y comarca primero, por cercanía. */
+export async function proponerRutaAction(f: FormData) {
+  const { jwt, base } = await contexto(f);
+  let n = 0;
+  try {
+    const lista = await listaProspectos(jwt, null, null);
+    const pendientes = lista.filter((p) => p.mio && !p.no_contactar && ['por_revisar', 'por_visitar', 'muestra'].includes(p.estado));
+    const ruta = proponerRuta(pendientes, 8);
+    n = ruta.length;
+    if (n) await comoCliente(jwt, (c) => c.query('SELECT dk.prosp_ruta($1, $2::uuid[])', [hoyMadrid(), ruta.map((p) => p.id)]));
+  } catch (e) {
+    redirect(`${base}?e=${aviso(e)}#ruta`);
+  }
+  revalidatePath(base);
+  redirect(`${base}?ok=${n ? 'ruta' : 'sinruta'}#ruta`);
 }
 
 export async function crearPropuestaAction(f: FormData) {

@@ -104,3 +104,8 @@ a.hover\:bg-vino-hondo:hover, button.hover\:bg-vino-hondo:hover { background-ima
 /* ── Foco visible en toda la web (revisión de diseño de Experience, 06/10/2026; WCAG 2.4.7) ── */
 :where(a, button, summary, select, input, textarea):focus-visible { outline: 2px solid #6E0C2B; outline-offset: 3px; }
 [class*="bg-noche"] :where(a, button, summary, select, input, textarea):focus-visible { outline-color: #D9B25C; }
+
+/* ── 0114 · Ruta del día en el mapa de Prospección: la línea avanza (rápido y sutil; nada si se reduce el movimiento) ── */
+@keyframes dk-ruta { to { stroke-dashoffset: -90; } }
+.dk-ruta-linea { animation: dk-ruta 3.2s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .dk-ruta-linea { animation: none; } }
