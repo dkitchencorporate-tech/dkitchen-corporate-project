@@ -178,7 +178,7 @@ export default function MapaWeb({ mapa, capas, dias = 30 }: { mapa: Mapa; capas?
                 if (!todas.length) return null;
                 const avisos = todas.filter((n) => n.callejon || n.roto).length;
                 return (
-                  <section key={z.id} aria-label={`Zona ${z.nombre}`} className={`rounded-[22px] border border-white/10 bg-white/[0.03] p-4 backdrop-blur-[1px] ${z.area}`}>
+                  <section key={z.id} aria-label={`Zona ${z.nombre}`} className={`rounded-[22px] border border-white/10 bg-white/[0.03] p-4 backdrop-blur-[1px] transition-all duration-500 ${(capa === 'panel' && z.id === 'panel') || (capa === 'pago' && z.id === 'pago') ? 'order-first border-oro/40 lg:col-span-4' : z.area}`}>
                     <div className="flex items-baseline justify-between gap-2">
                       <h3 className="font-display text-lg font-semibold text-crema">{z.nombre}</h3>
                       <span className="text-[11px] tabular-nums text-white/50">{todas.length}{avisos ? <span className="ml-1.5 font-bold text-oro">· {avisos} ⚑</span> : null}</span>
