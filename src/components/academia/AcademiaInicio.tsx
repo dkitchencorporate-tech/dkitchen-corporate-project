@@ -121,7 +121,7 @@ export default function AcademiaInicio({ estado, modulos, perfiles, lecciones, d
         {!testsAbiertos && <p className="rounded-2xl bg-oro/15 p-3 text-sm">Los tests se abren al completar las 8 lecciones. Llevas {lecHechas}.</p>}
         <div className="grid gap-3 sm:grid-cols-3">
           {tests.map(({ n, x }) => (
-            <button key={n} type="button" disabled={!testsAbiertos} onClick={() => setLanzar({ tipo: 'test', nivel: n, titulo: `Test ${n}` })} className="dk-carta flex items-center gap-3 rounded-[22px] border border-linea bg-white p-4 text-left transition hover:border-vino disabled:cursor-not-allowed disabled:opacity-50">
+            <button key={n} type="button" data-testid={`test-${n}`} disabled={!testsAbiertos} onClick={() => setLanzar({ tipo: 'test', nivel: n, titulo: `Test ${n}` })} className="dk-carta flex items-center gap-3 rounded-[22px] border border-linea bg-white p-4 text-left transition hover:border-vino disabled:cursor-not-allowed disabled:opacity-50">
               <Mini n={x ? x.mejor : null} ok={(x?.mejor ?? 0) >= 90} />
               <span><b className="block font-display text-lg">{n} · {n === 'N1' ? 'Producto y reglas' : n === 'N2' ? 'Calle, digital y ley' : 'Cierre y casos complejos'}</b><span className="text-xs text-niebla">{n === 'N3' ? '12' : '15'} preguntas al azar · aprobado 90 %{x ? ` · mejor ${x.mejor} %` : ''}</span></span>
             </button>
@@ -146,7 +146,7 @@ export default function AcademiaInicio({ estado, modulos, perfiles, lecciones, d
                 {(['pie', 'digital'] as const).map((v) => {
                   const x = b(`${e}:${v}`);
                   return (
-                    <button key={v} type="button" disabled={!testsAbiertos} onClick={() => setLanzar({ tipo: 'esc', id: e, version: v, titulo: `${t} · ${v === 'pie' ? 'a pie' : 'digital'}` })} className="flex min-h-[52px] items-center gap-2 rounded-2xl bg-papel px-3 py-2 text-left text-sm font-semibold hover:ring-1 hover:ring-vino disabled:opacity-50">
+                    <button key={v} type="button" data-testid={`esc-${e}-${v}`} disabled={!testsAbiertos} onClick={() => setLanzar({ tipo: 'esc', id: e, version: v, titulo: `${t} · ${v === 'pie' ? 'a pie' : 'digital'}` })} className="flex min-h-[52px] items-center gap-2 rounded-2xl bg-papel px-3 py-2 text-left text-sm font-semibold hover:ring-1 hover:ring-vino disabled:opacity-50">
                       <Mini n={x ? x.mejor : null} ok={!!x?.aprobado} />{v === 'pie' ? 'A pie' : 'Digital'}
                     </button>
                   );
