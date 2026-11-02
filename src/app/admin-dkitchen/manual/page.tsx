@@ -159,6 +159,12 @@ const ZONAS: Zona[] = [
     pasos: ['Añade un competidor con su nombre, su web y dónde lo viste.', 'Claude lo audita al empezar su sesión.', 'Si cambia algo, deja una nota y pulsa «Guardar y volver a auditar».'],
     ojo: ['Solo datos públicos de empresas.'],
   },
+  {
+    id: 'comprobacion', titulo: 'Comprobación', ruta: '/admin-dkitchen/comprobacion',
+    que: 'El remapeo final: un checklist por servicio (Carta, Local, Sala, Fundador, Signature, Experience, Auditoría, extras, QR físicos, comerciales) con escenarios reales desde cero. Cada punto está en OK, Falla, Pendiente o No iniciado, con nota y evidencia.',
+    pasos: ['Elige un servicio.', 'Cambia el estado de un punto y deja la nota; se guarda al pulsar el estado.', 'La «Ruta priorizada» junta todos los fallos: es lo primero que se arregla.'],
+    ojo: ['Claude rellena los puntos con las pruebas automáticas; si tú cambias uno, queda tu nombre y la fecha.'],
+  },
 ];
 
 export default async function ManualCentral() {
