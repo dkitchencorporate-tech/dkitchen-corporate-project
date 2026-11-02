@@ -8,6 +8,7 @@ import { comoCliente } from '@/lib/db';
 import { crearCuentaCliente, enviarEnlaceDeContrasena, ErrorNeonAuth } from '@/lib/neon-auth';
 import { altaAdministrador, cambiarRolAdministrador, retirarAdministrador } from '@/lib/buzon';
 import { enviarCorreoInterno, escaparHtml } from '@/lib/email';
+import { enviarBienvenidaEquipo } from '@/lib/bienvenida-equipo';
 
 const CORREO = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -56,6 +57,8 @@ export async function altaAdminAction(formulario: FormData) {
 
   let correo = true;
   if (cuentaNueva) await enviarEnlaceDeContrasena(email).catch((e) => { correo = false; console.error('Alta de admin: no se pudo enviar el enlace', e); });
+  // 02/11 (Alex): un correo aparte explica qué cuenta es, para qué es la contraseña y los pasos siguientes.
+  await enviarBienvenidaEquipo(email, nombre, rolValido).catch((e) => console.error('Alta de admin: no se pudo enviar la bienvenida', e));
   const yo = await identidadActual().catch(() => null);
   await enviarCorreoInterno(`NUEVO ADMINISTRADOR en Central: ${email}`,
     `<p><strong>${escaparHtml(yo?.email ?? 'Un administrador')}</strong> ha dado acceso a <strong>${escaparHtml(nombre)}</strong> (${escaparHtml(email)}) con rol <strong>${rolValido}</strong>.</p><p>Tendrá que configurar el segundo factor la primera vez que entre.</p>`).catch(() => {});
@@ -98,4 +101,18 @@ export async function retirarAdminAction(formulario: FormData) {
     `<p><strong>${escaparHtml(yo?.email ?? 'Un administrador')}</strong> ha retirado el acceso de administrador a <strong>${escaparHtml(email)}</strong>.</p>`).catch(() => {});
   revalidatePath('/admin-dkitchen/administradores');
   volver('ok=retirado');
+}
+
+/** Reenviar bienvenida + enlace de contraseña (02/11): para quien no entendió el correo o le caducó el enlace. Solo dirección. */
+export async function reenviarBienvenidaAction(formulario: FormData) {
+  const jwt = await exigirAdmin();
+  await exigirRolDireccion(jwt);
+  const email = String(formulario.get('email') ?? '').trim().toLowerCase();
+  const nombre = String(formulario.get('nombre') ?? '').trim().slice(0, 80) || email;
+  const rol = formulario.get('rol') === 'direccion' ? 'direccion' : 'comercial';
+  if (!CORREO.test(email)) volver('e=correo');
+  let ok = true;
+  await enviarEnlaceDeContrasena(email).catch((e) => { ok = false; console.error('Reenviar: enlace', e); });
+  await enviarBienvenidaEquipo(email, nombre, rol).catch((e) => { ok = false; console.error('Reenviar: bienvenida', e); });
+  volver(ok ? 'ok=bienvenida' : 'e=base&m=' + encodeURIComponent('no se pudo enviar el correo'));
 }

@@ -55,7 +55,7 @@ const TEXTOS_ENLACE: Record<string, { asunto: string; titulo: string; texto: str
   'forget-password': {
     asunto: 'Crea tu contraseña de DKitchen',
     titulo: 'Elige tu contraseña',
-    texto: 'Pulsa el botón para elegir la contraseña con la que entrarás en tu panel de DKitchen. Si ya tenías una, esta la sustituye.',
+    texto: 'Pulsa el botón para elegir la contraseña de tu cuenta de DKitchen (la de este correo). La usarás para entrar en tu panel si tienes un local, o en Central y la Academia si eres del equipo de DKitchen; en ese caso te llega aparte un correo de bienvenida con los pasos siguientes. Si ya tenías una contraseña, esta la sustituye.',
     boton: 'Elegir mi contraseña',
   },
   'email-verification': {

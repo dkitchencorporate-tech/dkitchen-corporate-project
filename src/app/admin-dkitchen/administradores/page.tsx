@@ -2,7 +2,7 @@
 import { administradores } from '@/lib/buzon';
 import GuiaZona from '@/components/admin/GuiaZona';
 import RolEquipo from '@/components/admin/RolEquipo';
-import { altaAdminAction, cambiarRolAdminAction, retirarAdminAction } from './actions';
+import { altaAdminAction, cambiarRolAdminAction, retirarAdminAction, reenviarBienvenidaAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +22,8 @@ export default async function Administradores({ searchParams }: { searchParams: 
   const aviso = sp.ok === 'alta'
     ? `Administrador añadido. ${sp.cuenta === 'nueva' ? (sp.correo === 'si' ? 'Le hemos enviado «Crea tu contraseña de DKitchen».' : 'No se pudo enviar el correo de la contraseña: que use «¿Olvidaste tu contraseña?».') : 'Ya tenía cuenta: entra con su contraseña de siempre.'} La primera vez, Central le pedirá configurar el segundo factor.`
     : sp.ok === 'retirado' ? 'Acceso retirado. Ya no puede entrar en Central.'
-    : sp.ok === 'rol_actualizado' ? 'Rol de administración actualizado en el servidor.' : null;
+    : sp.ok === 'rol_actualizado' ? 'Rol de administración actualizado en el servidor.'
+    : sp.ok === 'bienvenida' ? 'Enviados la bienvenida (qué es la cuenta y los pasos) y un enlace nuevo para crear la contraseña.' : null;
   const error = sp.e ? `${ERRORES[sp.e] ?? 'No se pudo hacer.'}${sp.m ? ` (${sp.m})` : ''}` : null;
 
   return (
@@ -62,6 +63,14 @@ export default async function Administradores({ searchParams }: { searchParams: 
               <div className="flex items-center gap-3">
                 {!a.yo && (
                   <RolEquipo id={a.id} rol={a.rolAdmin ?? 'comercial'} accion={cambiarRolAdminAction} />
+                )}
+                {!a.yo && (
+                  <form action={reenviarBienvenidaAction}>
+                    <input type="hidden" name="email" value={a.email} />
+                    <input type="hidden" name="nombre" value={a.nombre} />
+                    <input type="hidden" name="rol" value={a.rolAdmin === 'direccion' ? 'direccion' : 'comercial'} />
+                    <button className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-linea px-3.5 py-1.5 text-xs font-semibold hover:border-vino" data-testid={`reenviar-${a.email}`}>Reenviar bienvenida y contraseña</button>
+                  </form>
                 )}
                 {!a.yo && (
                   <form action={retirarAdminAction} className="flex items-center gap-2 text-xs">
