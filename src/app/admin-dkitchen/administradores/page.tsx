@@ -1,6 +1,7 @@
 ﻿import { exigirAdmin } from '@/lib/guard-admin';
 import { administradores } from '@/lib/buzon';
 import GuiaZona from '@/components/admin/GuiaZona';
+import RolEquipo from '@/components/admin/RolEquipo';
 import { altaAdminAction, cambiarRolAdminAction, retirarAdminAction } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -60,18 +61,7 @@ export default async function Administradores({ searchParams }: { searchParams: 
               </div>
               <div className="flex items-center gap-3">
                 {!a.yo && (
-                  <form action={cambiarRolAdminAction} className="inline-flex items-center gap-1.5">
-                    <input type="hidden" name="id" value={a.id} />
-                    <select
-                      name="nuevo_rol"
-                      defaultValue={a.rolAdmin ?? 'comercial'}
-                      onChange={(e) => e.currentTarget.form?.requestSubmit()}
-                      className="rounded-lg border border-linea px-2 py-1 text-xs font-semibold outline-none focus:border-vino bg-papel text-carbon"
-                    >
-                      <option value="comercial">Comercial</option>
-                      <option value="direccion">Dirección</option>
-                    </select>
-                  </form>
+                  <RolEquipo id={a.id} rol={a.rolAdmin ?? 'comercial'} accion={cambiarRolAdminAction} />
                 )}
                 {!a.yo && (
                   <form action={retirarAdminAction} className="flex items-center gap-2 text-xs">
