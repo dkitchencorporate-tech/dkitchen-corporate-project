@@ -1,6 +1,14 @@
 import 'server-only';
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
-import { PREGUNTAS, ESCENARIOS, MIN_PREGUNTAS, APROBADO_TEST, APROBADO_ESCENARIO, type Nivel, type Dimension } from './banco';
+import { PREGUNTAS as BASE, ESCENARIOS as ESC_BASE, APROBADO_TEST, APROBADO_ESCENARIO, type Nivel, type Dimension, type Opcion } from './banco';
+import { PREGUNTAS_EXTRA, MIN_PREGUNTAS_NUEVO as MIN_PREGUNTAS } from './banco-extra';
+import { ESCENARIOS_EXTRA } from './escenarios-extra';
+
+/** 0116: banco ampliado y escenarios ramificados (cada opción puede decir a qué nodo va; un nodo «fin» termina). */
+const PREGUNTAS = [...BASE, ...PREGUNTAS_EXTRA];
+type NodoM = { id: string; situacion: string; opciones: (Opcion & { sig?: string })[]; fin?: boolean };
+type EscM = { id: string; titulo: string; ficha: string; objetivo: string; nodos: { pie: NodoM[]; digital: NodoM[] } };
+const ESCENARIOS: EscM[] = [...ESC_BASE, ...ESCENARIOS_EXTRA];
 
 /**
  * Motor de la Academia (01/11): el navegador nunca ve las respuestas correctas ni puede fabricar una nota.
@@ -24,6 +32,8 @@ export function verificar<T>(token: string): T | null {
     return o.exp > Date.now() ? o : null;
   } catch { return null; }
 }
+/** La mejor opción de un nodo (en los de recuperación vale menos de 10: recuperarse puntúa menos). */
+const mejorDe = (n: NodoM) => n.opciones.reduce((a, b) => (b.puntos > a.puntos ? b : a));
 const barajar = <T,>(a: T[]) => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = randomInt(i + 1); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 
 // ── Tests ──
@@ -69,15 +79,16 @@ export function corregirTest(token: string, respuestas: Record<string, number>):
 
 // ── Escenarios ──
 export type NodoVista = { id: string; situacion: string; opciones: string[] };
-type EstadoEsc = { k: 'esc'; e: string; v: 'pie' | 'digital'; i: number; orden: number[][]; puntos: number; regla: boolean; elec: number[]; exp: number };
+type EstadoEsc = { k: 'esc'; e: string; v: 'pie' | 'digital'; i: number; orden: number[][]; puntos: number; regla: boolean; elec: number[]; vis?: number[]; exp: number };
 
 export function empezarEscenario(id: string, version: 'pie' | 'digital') {
   const esc = ESCENARIOS.find((x) => x.id === id);
   if (!esc) return null;
   const nodos = esc.nodos[version];
   const orden = nodos.map((n) => barajar(n.opciones.map((_, i) => i)));
-  const estado: EstadoEsc = { k: 'esc', e: id, v: version, i: 0, orden, puntos: 0, regla: false, elec: [], exp: Date.now() + 60 * 60_000 };
-  return { token: firmar(estado), titulo: esc.titulo, ficha: esc.ficha, objetivo: esc.objetivo, total: nodos.length, nodo: vistaNodo(esc.id, version, 0, orden[0]) };
+  const estado: EstadoEsc = { k: 'esc', e: id, v: version, i: 0, orden, puntos: 0, regla: false, elec: [], vis: [], exp: Date.now() + 60 * 60_000 };
+  const total = nodos.some((n) => n.fin) ? nodos.filter((n) => !/fin|f$/.test(n.id)).length : nodos.length;
+  return { token: firmar(estado), titulo: esc.titulo, ficha: esc.ficha, objetivo: esc.objetivo, total, nodo: vistaNodo(esc.id, version, 0, orden[0]) };
 }
 function vistaNodo(id: string, v: 'pie' | 'digital', i: number, orden: number[]): NodoVista {
   const n = ESCENARIOS.find((x) => x.id === id)!.nodos[v][i];
@@ -93,19 +104,24 @@ export function responderEscenario(token: string, opcionVista: number) {
   const real = e.orden[e.i][opcionVista];
   if (real === undefined) return null;
   const op = n.opciones[real];
-  const mejor = n.opciones.find((o) => o.puntos === 10)!;
-  const sig: EstadoEsc = { ...e, i: e.i + 1, puntos: e.puntos + op.puntos, regla: e.regla || !!op.regla, elec: [...e.elec, real] };
-  const terminado = sig.i >= nodos.length;
-  const retro = { puntos: op.puntos, feedback: op.feedback, regla: !!op.regla, mejor: op.puntos === 10 ? null : mejor.texto };
+  const mejor = mejorDe(n);
+  // Rama: la opción dice a qué nodo va; un nodo «fin» termina; sin indicación, el siguiente (escenarios lineales).
+  const siguiente = op.sig ? nodos.findIndex((x) => x.id === op.sig) : n.fin ? -1 : e.i + 1;
+  const vis = [...(e.vis ?? e.elec.map((_, k) => k)), e.i];
+  const sig: EstadoEsc = { ...e, i: siguiente, puntos: e.puntos + op.puntos, regla: e.regla || !!op.regla, elec: [...e.elec, real], vis };
+  const terminado = siguiente < 0 || siguiente >= nodos.length;
+  const retro = { puntos: op.puntos, feedback: op.feedback, regla: !!op.regla, mejor: op === mejor ? null : mejor.texto };
   if (!terminado) return { ...retro, terminado: false as const, token: firmar(sig), nodo: vistaNodo(e.e, e.v, sig.i, e.orden[sig.i]) };
-  const nota = Math.max(0, Math.round((sig.puntos / (nodos.length * 10)) * 100));
+  const nota = Math.max(0, Math.round((sig.puntos / (vis.length * 10)) * 100));
   const aprobado = !sig.regla && nota >= APROBADO_ESCENARIO;
   const porDim: Record<string, [number, number]> = {};
   const fallos: Fallo[] = [];
-  nodos.forEach((nd, k) => {
+  vis.forEach((idx, k) => {
+    const nd = nodos[idx];
     const o = nd.opciones[sig.elec[k]];
     porDim[o.dim] = [(porDim[o.dim]?.[0] ?? 0) + Math.max(0, o.puntos), (porDim[o.dim]?.[1] ?? 0) + 10];
-    if (o.puntos < 10) fallos.push({ donde: nd.situacion, elegiste: o.texto, correcta: nd.opciones.find((x) => x.puntos === 10)!.texto, porque: o.feedback, mejora: nd.opciones.find((x) => x.puntos === 10)!.feedback, dim: o.dim });
+    const mj = mejorDe(nd);
+    if (o !== mj) fallos.push({ donde: nd.situacion, elegiste: o.texto, correcta: mj.texto, porque: o.feedback, mejora: mj.feedback, dim: o.dim });
   });
   const dims = Object.fromEntries(Object.entries(porDim).map(([d, [b, t]]) => [d, Math.round((b / t) * 100)]));
   dims[e.v === 'pie' ? 'fisico' : 'digital'] = nota;

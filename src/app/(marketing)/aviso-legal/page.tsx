@@ -17,7 +17,7 @@ export default function AvisoLegal() {
   const t = titular();
   const SECCIONES: [string, React.ReactNode][] = [
     ['Titular de la web', t
-      ? <>Nombre: <strong>{t.nombre}</strong><br />NIF: <strong>{t.nif}</strong><br />Domicilio: <strong>{t.domicilio}</strong><br />Nombre comercial: DKitchen<br />Correo: <a href={`mailto:${CORREO_TITULAR}`} className="underline">{CORREO_TITULAR}</a></>
+      ? <>Nombre: <strong>{t.nombre}</strong><br />NIF: <strong>{t.nif}</strong><br />Domicilio: {t.domicilio ? <strong>{t.domicilio}</strong> : <>se facilita a petición en <a href={`mailto:${CORREO_TITULAR}`} className="underline">{CORREO_TITULAR}</a></>}<br />Nombre comercial: DKitchen<br />Correo: <a href={`mailto:${CORREO_TITULAR}`} className="underline">{CORREO_TITULAR}</a></>
       : <>{quienEs()}. Correo: <a href={`mailto:${CORREO_TITULAR}`} className="underline">{CORREO_TITULAR}</a>.</>],
     ['Actividad', <>Software y servicios digitales para hostelería: carta digital QR, apps de pedidos con marca propia (Signature), eventos con venta de entradas (Experience) y auditorías de canales. Actividad en toda España.</>],
     ['Uso de la web', <>Esta web informa de nuestros servicios y permite contratarlos. Quien la usa se compromete a hacerlo de buena fe, sin dañarla ni intentar acceder a zonas o datos que no le corresponden.</>],

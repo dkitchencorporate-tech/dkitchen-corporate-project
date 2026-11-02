@@ -33,6 +33,9 @@ export default async function Comerciales({ searchParams }: { searchParams: Prom
     // 0114: embudo real por canal (contactos registrados en 3 toques), por comercial, objeción y palanca
     embudoProspeccion(jwt, null).catch(() => null as Embudo | null),
   ]);
+  // 0116: contratos de agente firmados (casilla en Academia), con su PDF regenerado desde lo firmado.
+  type Firmado = { id: string; email: string; nombre: string; version: string; simulacion: boolean; firmado_en: string };
+  const contratos = await comoCliente(jwt, async (c) => (await c.query<{ j: Firmado[] }>('SELECT dk.admin_contratos_comerciales() AS j')).rows[0].j).catch(() => [] as Firmado[]);
   const pendientes = solicitudes.filter((s) => s.estado === 'pendiente');
   const reales = clientes.filter((c) => !c.demoInterna && !c.archivadoEn && !c.nombre.startsWith('PRUEBA'));
   const hace30 = Date.now() - 30 * 864e5;
@@ -200,6 +203,29 @@ export default async function Comerciales({ searchParams }: { searchParams: Prom
           <Link href="/admin-dkitchen/prospeccion" className="mt-4 inline-block text-sm font-semibold text-vino">Ir a Prospección →</Link>
         </section>
       </div>
+
+      <section className="dk-carta rounded-[22px] border border-linea bg-white p-5" data-testid="contratos-agente">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="text-sm font-semibold">Contratos de agente firmados</p>
+            <p className="text-xs text-niebla">Comisión: 20 % de lo cobrado durante 12 meses por cliente. Se firman con una casilla al entrar en Academia, antes de la formación.</p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs font-semibold">
+            <a href="/academia?vista=contrato" className="rounded-full border border-linea px-3 py-2 hover:border-vino">Ver la pantalla de firma</a>
+            <a href="/admin-dkitchen/comerciales/contrato/muestra" className="rounded-full border border-linea px-3 py-2 hover:border-vino">PDF de muestra</a>
+          </div>
+        </div>
+        {contratos.length === 0 ? <p className="mt-3 text-sm text-niebla">Aún no ha firmado ningún comercial.</p> : (
+          <ul className="mt-3 divide-y divide-linea">
+            {contratos.map((k) => (
+              <li key={k.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
+                <span className="min-w-0"><b>{k.nombre}</b> <span className="text-niebla">· {k.email} · {k.version} · {new Date(k.firmado_en).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', dateStyle: 'medium', timeStyle: 'short' })}</span>{k.simulacion && <span className="ml-2 rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white">Simulación</span>}</span>
+                <a href={`/admin-dkitchen/comerciales/contrato/${k.id}`} className="rounded-full bg-vino px-3 py-1.5 text-xs font-semibold text-white">PDF firmado</a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

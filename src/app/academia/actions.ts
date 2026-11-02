@@ -5,6 +5,7 @@ import { exigirAcademia } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
 import { empezarTest, corregirTest, empezarEscenario, responderEscenario, nivelDe } from '@/lib/academia/motor';
 import type { Nivel } from '@/lib/academia/banco';
+import { corregirPaso, leccionSuperada } from '@/lib/academia/lecciones';
 
 /** Academia (0112): la nota la calcula el servidor; la base la guarda y aplica la espera de 24 h y los permisos. */
 const esAlex = (jwt: string) => comoCliente(jwt, async (c) => (await c.query<{ a: boolean }>('SELECT dk.es_alex() AS a')).rows[0]?.a === true).catch(() => false);
@@ -67,4 +68,28 @@ export async function bitacoraAction(f: FormData) {
   if (!datos.objecion && !datos.resultado) return;
   await comoCliente(jwt, (c) => c.query('SELECT dk.academia_bitacora_guardar($1::jsonb)', [JSON.stringify(datos)]));
   revalidatePath('/admin-dkitchen/entrenamiento');
+}
+
+/** Lecciones (0116): cada pregunta u «ordenar» se corrige aquí (el navegador no tiene las respuestas). */
+export async function comprobarPasoAction(leccion: string, paso: number, respuesta: unknown) {
+  await exigirAcademia();
+  const r = corregirPaso(String(leccion).slice(0, 4), Number(paso), respuesta);
+  return r ?? { ok: false, porque: 'Paso no válido.' };
+}
+
+/** Completar una lección: el servidor vuelve a corregir TODO y solo entonces la registra (L1–L8 · leccion). */
+export async function completarLeccionAction(leccion: string, respuestas: Record<string, unknown>) {
+  const jwt = await exigirAcademia();
+  const id = String(leccion).slice(0, 4);
+  if (!/^L[1-8]$/.test(id)) return { error: 'Lección no válida.' };
+  if (!leccionSuperada(id, respuestas ?? {})) return { error: 'Te falta acertar alguna pregunta de la lección.' };
+  try {
+    await registrar(jwt, id, 'leccion', 100, true, {}, { completada: new Date().toISOString() });
+  } catch (e) {
+    const m = String((e as Error)?.message ?? '');
+    return { error: /firma primero/.test(m) ? 'Firma primero tu contrato de agente.' : 'No se pudo guardar. Inténtalo de nuevo.' };
+  }
+  revalidatePath('/academia');
+  revalidatePath('/admin-dkitchen/comerciales');
+  return { ok: true };
 }

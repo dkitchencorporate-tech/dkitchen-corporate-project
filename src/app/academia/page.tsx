@@ -4,6 +4,11 @@ import { exigirAcademia } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
 import { PRECIOS_TEXTO as P } from '@/lib/academia/banco';
 import AcademiaInicio, { type EstadoAcademia, type Tarjeta } from '@/components/academia/AcademiaInicio';
+import FirmaContrato from '@/components/academia/FirmaContrato';
+import { firmarContratoAction } from './contrato-actions';
+import { contratoDe } from '@/lib/contratos';
+import { leccionesVista, DATOS_CALCULADORAS } from '@/lib/academia/lecciones';
+import type { ContratoFirmado } from '@/lib/contrato-comercial';
 import '../admin-dkitchen/central-viva.css';
 
 export const dynamic = 'force-dynamic';
@@ -33,9 +38,17 @@ const PERFILES: Tarjeta[] = [
   ['Hotel con restaurante', 'Sala, Signature o Experience', '«Carta en 3 idiomas en habitaciones y terraza»', 'decide otra persona: pide al decisor'],
 ].map(([t, prod, frase, senales]) => ({ titulo: t, frente: prod, dorso: [`Señales: ${senales}`, `Entrada: ${frase}`] }));
 
-export default async function Academia() {
+export default async function Academia({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAcademia();
-  const estado = await comoCliente(jwt, async (c) => (await c.query<{ j: EstadoAcademia }>('SELECT dk.academia_mi_estado() AS j')).rows[0].j);
+  const sp = await searchParams;
+  const [estado, contrato] = await Promise.all([
+    comoCliente(jwt, async (c) => (await c.query<{ j: EstadoAcademia }>('SELECT dk.academia_mi_estado() AS j')).rows[0].j),
+    comoCliente(jwt, async (c) => (await c.query<{ j: ContratoFirmado }>('SELECT dk.comercial_mi_contrato() AS j')).rows[0].j).catch(() => null),
+  ]);
+  const dir = estado.rol === 'direccion';
+  // 0116: el comercial firma su contrato ANTES de formarse. Dirección puede ver la pantalla con ?vista=contrato.
+  const firmar = (!dir && contrato && !contrato.firmado) || (dir && sp.vista === 'contrato');
+  const c = contratoDe('comercial');
   return (
     <main className="central-viva min-h-screen bg-crema px-4 py-8 text-tinta sm:px-6 lg:px-10">
       <div className="mx-auto max-w-5xl space-y-6">
@@ -46,7 +59,11 @@ export default async function Academia() {
           </div>
           {estado.rol !== 'en_formacion' && <Link href="/admin-dkitchen/inicio" className="text-sm font-semibold text-vino">Volver a Central →</Link>}
         </header>
-        <AcademiaInicio estado={estado} modulos={MODULOS} perfiles={PERFILES} />
+        {sp.firmado && <p className="rounded-2xl bg-exito/10 p-4 text-sm text-exito" role="status">Contrato firmado.{sp.correo === 'no' ? ' No se pudo enviar el PDF por correo: descárgalo con el botón de tu ruta.' : ' Te hemos enviado el PDF a tu correo.'} Empieza por la lección L1.</p>}
+        {firmar
+          ? <FirmaContrato contrato={{ titulo: c.titulo, version: c.version, fecha: c.fecha, partes: c.partes, clausulas: c.clausulas, anexo: c.anexo }} nombre={contrato?.nombre ?? ''} simulacion={!!contrato?.simulacion} error={sp.e} accion={firmarContratoAction} vistaPrevia={dir} />
+          : <AcademiaInicio estado={estado} modulos={MODULOS} perfiles={PERFILES} lecciones={leccionesVista()} datos={DATOS_CALCULADORAS}
+              contrato={contrato ? { firmado: !!contrato.firmado, simulacion: !!contrato.simulacion, fecha: contrato.firmado_en ?? null } : null} />}
       </div>
     </main>
   );

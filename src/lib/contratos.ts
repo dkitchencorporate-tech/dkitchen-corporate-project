@@ -32,17 +32,17 @@ const LICENCIA_PERPETUA = BASE_OPERATIVA.licenciaPerpetua;
 
 /** Titular: Elisabet (autónoma) hasta que exista la empresa de Alex. Sus datos llegan con la tarea 279b7668. */
 const T = titular();
-const TITULAR = `${T ? T.nombre : '[[Elisabet · nombre completo]]'}, con NIF ${T ? T.nif : '[[NIF del titular]]'} y domicilio fiscal en ${T ? T.domicilio : '[[dirección fiscal]]'}, que actúa con el nombre comercial DKitchen (dkitchencorporate.es) y el correo ${CORREO_TITULAR} (en adelante, «DKitchen»)`;
+const TITULAR = `${T ? T.nombre : '[[Elisabet · nombre completo]]'}, con NIF ${T ? T.nif : '[[NIF del titular]]'} ${T ? (T.domicilio ? `y domicilio fiscal en ${T.domicilio}` : `(domicilio fiscal a petición en ${CORREO_TITULAR})`) : 'y domicilio fiscal en [[dirección fiscal]]'}, que actúa con el nombre comercial DKitchen (dkitchencorporate.es) y el correo ${CORREO_TITULAR} (en adelante, «DKitchen»)`;
 
 export const CONTRATOS: Contrato[] = [
   {
     id: 'comercial',
     tipo: 'Contrato de agencia comercial',
     titulo: 'Contrato de agente comercial independiente',
-    version: 'v0.2',
-    fecha: '01/11/2026',
-    estado: 'borrador',
-    resumen: 'Para los comerciales externos de Alex. Promueven y presentan clientes, pero no cierran altas ni cobran: el alta y el pago siempre pasan por Central y Stripe. Comisión sobre lo cobrado, con el % en blanco.',
+    version: 'v0.3',
+    fecha: '02/11/2026',
+    estado: 'vigente',
+    resumen: 'Para los comerciales externos de Alex. Promueven y presentan clientes, pero no cierran altas ni cobran: el alta y el pago siempre pasan por Central y Stripe. Comisión: 20 % de lo cobrado durante los 12 primeros meses de cada cliente (Alex, 02/11). Se firma con una casilla al entrar en Academia.',
     partes: [
       TITULAR,
       'D./Dña. [[nombre del agente]], con NIF [[NIF]] y domicilio en [[dirección]], dado de alta como trabajador autónomo en el epígrafe que corresponde a su actividad (en adelante, «el Agente»)',
@@ -93,17 +93,17 @@ export const CONTRATOS: Contrato[] = [
         'Se aplica la ley española. Para cualquier controversia son competentes los juzgados del domicilio del Agente, tal como establece la Ley 12/1992.',
       ] },
       { n: '12', titulo: 'Firma', texto: [
-        'Las partes firman de forma electrónica. DKitchen guarda la versión firmada con la fecha, la IP y la versión del texto.',
+        'El Agente firma de forma electrónica marcando la casilla «He leído el contrato y lo acepto» en la Academia de DKitchen, con su cuenta personal y su segundo factor. DKitchen guarda la versión firmada con la fecha, la hora, la IP, el navegador y la huella del texto, y envía al Agente una copia en PDF. DKitchen acepta el contrato con el alta del Agente en Central.',
       ] },
     ],
     anexo: [
-      { campo: 'Agente (nombre, NIF y domicilio)', valor: '[[desde Central → Comerciales]]' },
+      { campo: 'Agente', valor: '[[nombre del agente]] · NIF [[NIF]] · [[dirección]]' },
       { campo: 'Zona', valor: '[[zona]]' },
-      { campo: 'Comisión sobre el primer pago', valor: '[[ % ]] (lo decide Alex)' },
-      { campo: 'Comisión sobre las cuotas de los 12 primeros meses', valor: '[[ % ]] (lo decide Alex)' },
+      { campo: 'Comisión sobre el primer pago', valor: '20 % de lo cobrado (sin IVA)' },
+      { campo: 'Comisión sobre las cuotas de los 12 primeros meses', valor: '20 % de lo cobrado (sin IVA)' },
       { campo: 'Fecha de inicio', valor: '[[fecha de firma]]' },
-      { campo: 'Formación Academia', valor: 'Superada el [[fecha]] (Central → Comerciales)' },
-      { campo: 'Versión del texto', valor: 'v0.2 · 01/11/2026' },
+      { campo: 'Formación Academia', valor: 'Se registra en Central → Comerciales al aprobarla; hasta entonces el Agente no visita en nombre de DKitchen' },
+      { campo: 'Versión del texto', valor: 'v0.3 · 02/11/2026' },
     ],
     firmas: ['Por DKitchen', 'El Agente'],
   },

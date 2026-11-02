@@ -113,6 +113,8 @@ export interface OpcionesCorreo {
   marca?: { nombre: string; logoUrl?: string | null; color?: string | null };
   /** Cabeceras extra (0081: List-Unsubscribe en los correos a la lista de exclientes). */
   cabeceras?: Record<string, string>;
+  /** Adjuntos (0116: el PDF del contrato firmado del comercial). */
+  adjuntos?: { filename: string; content: Buffer; contentType: string }[];
 }
 
 const C = { fondo: '#F6F5F3', tarjeta: '#FFFFFF', borde: '#E7E3DE', texto: '#1A1714', suave: '#6B6560', acento: '#6E0C2B' };
@@ -227,6 +229,7 @@ export async function enviarCorreoInterno(asunto: string, html: string, opciones
   await crearTransporte().sendMail({
     from: REMITENTE(),
     to: BUZON_INTERNO(),
+    ...(opciones?.adjuntos?.length ? { attachments: opciones.adjuntos } : {}),
     subject: asunto.replace(/[\r\n]/g, ' ').slice(0, 120),
     html: cuerpo,
     text: textoPlano(cuerpo),
@@ -245,5 +248,6 @@ export async function enviarCorreoCliente(destinatario: string, asunto: string, 
     html: cuerpo,
     text: textoPlano(cuerpo),
     ...(opciones?.cabeceras ? { headers: opciones.cabeceras } : {}),
+    ...(opciones?.adjuntos?.length ? { attachments: opciones.adjuntos } : {}),
   });
 }
