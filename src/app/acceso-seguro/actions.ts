@@ -22,6 +22,10 @@ export async function verificarSegundoFactorAction(formulario: FormData) {
     return rows[0]?.r;
   }).catch(() => 'error');
 
-  if (resultado === 'ok') redirect((await estadoInterno(jwt)).tipo === 'socio' ? '/socio' : '/admin-dkitchen/qr');
+  if (resultado === 'ok') {
+    const i = await estadoInterno(jwt);
+    // 02/11: en formación → Academia directamente (Central le diría «pendiente» y volvería aquí).
+    redirect(i.tipo === 'socio' ? '/socio' : i.estado === 'ok' ? '/admin-dkitchen/qr' : '/academia');
+  }
   redirect(`/acceso-seguro?e=${resultado === 'bloqueado' ? 'bloqueado' : 'codigo'}`);
 }

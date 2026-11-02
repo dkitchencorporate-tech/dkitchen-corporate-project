@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import QRCode from 'qrcode';
 import { comoCliente } from '@/lib/db';
 import { obtenerJwtDeSesion, identidadActual } from '@/lib/sesion';
-import { estadoInterno } from '@/lib/guard-admin';
+import { estadoInterno, esAdminAcademia } from '@/lib/guard-admin';
 import { verificarSegundoFactorAction } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -38,6 +38,8 @@ export default async function AccesoSeguro({ searchParams }: { searchParams: Pro
   const { tipo, estado } = await estadoInterno(jwt);
   const destino = tipo === 'socio' ? '/socio' : '/admin-dkitchen/qr';
   if (estado === 'ok') redirect(destino);
+  // 02/11: comercial en formación con el 2FA ya hecho en esta sesión → su sitio es la Academia (antes: bucle).
+  if (estado === 'pendiente' && tipo === 'admin' && (await esAdminAcademia(jwt))) redirect('/academia');
   if (estado === 'no_admin' || !tipo) redirect('/panel');
 
   const { e } = await searchParams;

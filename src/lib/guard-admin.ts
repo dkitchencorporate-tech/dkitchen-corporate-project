@@ -47,9 +47,10 @@ export async function exigirAdmin(): Promise<string> {
 
   const estado = await estadoAdmin(jwt);
   if (estado === 'ok') return jwt;
-  if (estado === 'pendiente' || estado === 'sin_configurar') redirect('/acceso-seguro');
-  // 0112: un comercial «en formación» solo tiene la Academia.
+  // 0112: un comercial «en formación» solo tiene la Academia. Va ANTES que «pendiente»: con el 2FA ya hecho la base
+  // le dice «pendiente» (no puede entrar en Central) y antes se le devolvía a /acceso-seguro en bucle (02/11, Elisabet).
   if (await esAdminAcademia(jwt)) redirect('/academia');
+  if (estado === 'pendiente' || estado === 'sin_configurar') redirect('/acceso-seguro');
   redirect('/panel');
 }
 
