@@ -4,7 +4,7 @@ export type EstadoBuzon = 'nuevo' | 'leido' | 'hecho' | 'descartado';
 export const TIPOS_BUZON: Record<TipoBuzon, string> = { encargo: 'Encargo', idea: 'Idea', fallo: 'Fallo', pregunta: 'Pregunta' };
 export const ESTADOS_BUZON: Record<EstadoBuzon, [string, string]> = {
   nuevo: ['Sin leer', 'bg-vino/10 text-vino'],
-  leido: ['Leído por Claude', 'bg-amber-500/15 text-amber-700'],
+  leido: ['Leído por Agentes IA', 'bg-amber-500/15 text-amber-700'],
   hecho: ['Hecho', 'bg-exito/15 text-exito'],
   descartado: ['Descartado', 'bg-papel text-niebla'],
 };

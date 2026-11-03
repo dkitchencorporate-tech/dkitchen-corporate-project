@@ -823,7 +823,7 @@ async function generarImagenIaAction_(d: { modo: 'plato' | 'banner' | 'portada' 
   const modo = (['banner', 'portada', 'logo'] as const).find((m) => m === d?.modo) ?? 'plato';
   const { jwt, restaurante } = await requerirSesionYRestaurante();
   // La foto base solo puede ser del propio almacén del restaurante.
-  const base = typeof d.imagenBase === 'string' && FOTO_PROPIA.test(d.imagenBase) && d.imagenBase.includes(`/restaurantes/${restaurante.id}/`) ? d.imagenBase : null;
+  const base = typeof d.imagenBase === 'string' && ((FOTO_PROPIA.test(d.imagenBase) && d.imagenBase.includes(`/restaurantes/${restaurante.id}/`)) || /^https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/(demos|prospeccion)\//.test(d.imagenBase) || /^https:\/\/dkitchencorporate\.es\/images\/demo\/[\w.-]+\.(png|jpe?g|webp)$/i.test(d.imagenBase)) ? d.imagenBase : (typeof d.imagenBase === 'string' && /^\/images\/demo\/[\w.-]+\.(png|jpe?g|webp)$/i.test(d.imagenBase) ? `https://dkitchencorporate.es${d.imagenBase}` : null);
   const estilo = `${restaurante.nombre}; estilo de carta ${restaurante.plantilla || 'clásico'}, color de marca ${restaurante.colorMarca || 'neutro'}`;
   let contexto = estilo;
   if (modo === 'logo' || modo === 'portada') {
@@ -944,7 +944,7 @@ async function preguntarAlAgente(jwt: string, restaurante: Awaited<ReturnType<ty
 async function mejorarTextoAction_(tipo: TipoTexto, texto: string, contexto?: string) {
   if (!['corregir', 'titulo', 'descripcion', 'instruccion'].includes(tipo)) throw new Error('Tipo no válido.');
   const { restaurante } = await requerirSesionYRestaurante();
-  if (await limiteSuperado(claveDeLimite('texto-ia', restaurante.id), 80, 24 * 60 * 60)) throw new Error('Has usado mucho el asistente de textos hoy. Mañana podrás seguir.');
+  if (!restaurante.soporte && await limiteSuperado(claveDeLimite('texto-ia', restaurante.id), 80, 24 * 60 * 60)) throw new Error('Has usado mucho el asistente de textos hoy. Mañana podrás seguir.');
   const ctx = [restaurante.nombre, typeof contexto === 'string' ? contexto.replace(/[\u0000-\u001f]/g, ' ').slice(0, 150) : ''].filter(Boolean).join(' · ');
   return { texto: await dbMejorarTexto(tipo, String(texto ?? ''), ctx) };
 }
@@ -952,7 +952,7 @@ export async function mejorarTextoAction(...a: Parameters<typeof mejorarTextoAct
 
 async function guardarPortadaAction_(url: string | null, conNombre = false) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();
-  const valida = url === null || (typeof url === 'string' && FOTO_PROPIA.test(url) && url.includes(`/restaurantes/${restaurante.id}/`));
+  const valida = url === null || (typeof url === 'string' && ((FOTO_PROPIA.test(url) && url.includes(`/restaurantes/${restaurante.id}/`)) || /^https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/(demos|prospeccion)\//.test(url) || /^https:\/\/dkitchencorporate\.es\/images\/demo\/[\w.-]+\.(png|jpe?g|webp)$/i.test(url)));
   if (!valida) throw new Error('La imagen no es válida. Súbela de nuevo.');
   await dbGuardarPortada(jwt, restaurante.id, url, !!conNombre);
   revalidatePath('/panel');
@@ -1204,7 +1204,7 @@ export async function pedirLlamadaSignatureAction(telefono?: string): Promise<{ 
 
 // ---------------------------------------------------------------- landing del local (0076)
 const URL_FOTO_LOCAL = (url: unknown, restauranteId: string) =>
-  typeof url === 'string' && FOTO_PROPIA.test(url) && url.includes(`/restaurantes/${restauranteId}/`);
+  typeof url === 'string' && ((FOTO_PROPIA.test(url) && url.includes(`/restaurantes/${restauranteId}/`)) || /^https:\/\/[\w.-]+\.public\.blob\.vercel-storage\.com\/(demos|prospeccion)\//.test(url));
 
 async function guardarLandingAction_(l: Landing) {
   const { jwt, restaurante } = await requerirSesionYRestaurante();

@@ -7,7 +7,7 @@ import { listarProyectos, type ProyectoFila } from '@/lib/proyectos';
 import { listaProspectos } from '@/lib/prospeccion';
 import { recordatoriosPendientes } from '@/lib/comunicaciones';
 import { dineroReal, objetivoMensual, guardarObjetivoMensual } from '@/lib/hoy-central';
-import { esComercialActual } from '@/lib/rol-central';
+import { miConfigComercial } from '@/lib/rol-central';
 import NuevoCliente from '@/components/admin/NuevoCliente';
 
 export const dynamic = 'force-dynamic';
@@ -68,15 +68,16 @@ function Grafica({ dias }: { dias: { dia: string; euros: number }[] }) {
 
 export default async function CentralHoy() {
   const jwt = await exigirAdmin();
-  const [clientes, proyectos, prospectos, recordatorios, dinero, objetivo, eventos, esComercial] = await Promise.all([
+  const configComercial = await miConfigComercial(jwt);
+  const esComercial = configComercial.esComercial;
+  const [clientes, proyectos, prospectos, recordatorios, dinero, objetivo, eventos] = await Promise.all([
     listarClientesQr(jwt).catch(() => [] as ClienteQr[]),
     listarProyectos(jwt, {}).catch(() => [] as ProyectoFila[]),
-    listaProspectos(jwt, null, null).catch(() => [] as { estado: string }[]),
-    recordatoriosPendientes(jwt).catch(() => []),
-    dineroReal(),
-    objetivoMensual(),
+    listaProspectos(jwt, null, null).catch(() => [] as { estado: string; siguiente_fecha?: string | null }[]),
+    esComercial ? Promise.resolve([]) : recordatoriosPendientes(jwt).catch(() => []),
+    esComercial ? Promise.resolve({ mesCobrado: 0, pendiente: 0, nPendientes: 0, dias: [] as { dia: string; euros: number }[], ok: true }) : dineroReal(),
+    esComercial ? Promise.resolve(3000) : objetivoMensual(),
     comoCliente(jwt, async (c) => (await c.query<{ id: string; titulo: string; fecha: string; vendidas: number; aforo: number; estado: string }>('SELECT id, titulo, fecha, vendidas, aforo, estado FROM dk.admin_eventos() WHERE NOT muestra')).rows.map((e) => ({ ...e, fecha: new Date(e.fecha as unknown as string).toISOString() }))).catch(() => []),
-    esComercialActual(jwt),
   ]);
   const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
   const reales = clientes.filter((c) => !c.demoInterna && !c.archivadoEn && !c.nombre.startsWith('PRUEBA'));
@@ -85,6 +86,8 @@ export default async function CentralHoy() {
 
   // (b) Embudo
   const pros = (prospectos as { estado: string }[]).filter((p) => p.estado !== 'descartado' && p.estado !== 'cliente').length;
+  const prosHoy = (prospectos as { estado: string; siguiente_fecha?: string | null }[]).filter((p) => p.estado !== 'descartado' && p.estado !== 'cliente' && p.siguiente_fecha && p.siguiente_fecha <= hoy).length;
+  const demosEnCurso = (prospectos as { estado: string }[]).filter((p) => p.estado === 'demo').length;
   const enlace = saludes.filter((x) => x.s === 'espera').length;
   const hace30 = Date.now() - 30 * 864e5;
   const pagados = reales.filter((c) => c.activo && new Date(c.creadoEn).getTime() > hace30).length;
@@ -99,11 +102,14 @@ export default async function CentralHoy() {
   // Hoy es la vista de negocio: los proyectos de PRUEBA no cuentan (mismo criterio que los clientes).
   const vivos = proyectos.filter((p) => !(p.negocio ?? '').startsWith('PRUEBA') && !['descartado', 'cerrado', 'cerrada', 'mantenimiento'].includes(p.fase));
   const proxEvento = eventos.filter((e) => new Date(e.fecha).getTime() > Date.now()).sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
-  const medidores = [
-    { t: 'Carta QR', a: saludes.filter((x) => x.c.activo && x.c.platos === 0).length, b: saludes.filter((x) => x.s === 'bien').length, an: 'por montar', bn: 'en marcha', href: '/admin-dkitchen/servicios/qr', clave: null as string | null },
-    { t: 'Signature', a: vivos.filter((p) => p.producto === 'signature' && ['solicitud', 'pagado', 'contrato_enviado', 'contrato_firmado'].includes(p.fase)).length, b: vivos.filter((p) => p.producto === 'signature' && ['datos_recibidos', 'en_construccion', 'primera_version'].includes(p.fase)).length, an: 'por arrancar', bn: 'en producción', href: '/admin-dkitchen/servicios/signature', clave: vivos.filter((p) => p.producto === 'signature' && p.siguiente_fecha).sort((a, b) => a.siguiente_fecha!.localeCompare(b.siguiente_fecha!))[0]?.siguiente_fecha ?? null },
-    { t: 'Experience', a: vivos.filter((p) => p.producto === 'experience' && ['solicitud', 'llamada', 'contrato_pago', 'concepto'].includes(p.fase)).length, b: eventos.filter((e) => e.estado === 'venta').length, an: 'preparando', bn: 'en venta', href: '/admin-dkitchen/servicios/experience', clave: proxEvento?.fecha?.slice(0, 10) ?? null },
+  const todosMedidores = [
+    { id: 'qr', t: 'Carta QR', a: saludes.filter((x) => x.c.activo && x.c.platos === 0).length, b: saludes.filter((x) => x.s === 'bien').length, an: 'por montar', bn: 'en marcha', href: '/admin-dkitchen/servicios/qr', clave: null as string | null },
+    { id: 'signature', t: 'Signature', a: vivos.filter((p) => p.producto === 'signature' && ['solicitud', 'pagado', 'contrato_enviado', 'contrato_firmado'].includes(p.fase)).length, b: vivos.filter((p) => p.producto === 'signature' && ['datos_recibidos', 'en_construccion', 'primera_version'].includes(p.fase)).length, an: 'por arrancar', bn: 'en producción', href: '/admin-dkitchen/servicios/signature', clave: vivos.filter((p) => p.producto === 'signature' && p.siguiente_fecha).sort((a, b) => a.siguiente_fecha!.localeCompare(b.siguiente_fecha!))[0]?.siguiente_fecha ?? null },
+    { id: 'experience', t: 'Experience', a: vivos.filter((p) => p.producto === 'experience' && ['solicitud', 'llamada', 'contrato_pago', 'concepto'].includes(p.fase)).length, b: eventos.filter((e) => e.estado === 'venta').length, an: 'preparando', bn: 'en venta', href: '/admin-dkitchen/servicios/experience', clave: proxEvento?.fecha?.slice(0, 10) ?? null },
   ];
+  const medidores = esComercial
+    ? todosMedidores.filter((m) => configComercial.servicios.includes(m.id as any))
+    : todosMedidores;
   const hora = Number(new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: 'numeric', hour12: false }));
   const saludo = hora < 13 ? 'Buenos días' : hora < 20 ? 'Buenas tardes' : 'Buenas noches';
   const fechaHoy = new Date().toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', weekday: 'long', day: 'numeric', month: 'long' });
@@ -118,36 +124,65 @@ export default async function CentralHoy() {
           <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">Hoy</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {recordatorios.length > 0 && <Link href="/admin-dkitchen/tareas" className="inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 border-oro bg-white px-4 text-sm font-bold"><span className="h-2 w-2 animate-pulse rounded-full bg-oro" />{recordatorios.length} recordatorio{recordatorios.length > 1 ? 's' : ''}</Link>}
+          {!esComercial && recordatorios.length > 0 && <Link href="/admin-dkitchen/tareas" className="inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 border-oro bg-white px-4 text-sm font-bold"><span className="h-2 w-2 animate-pulse rounded-full bg-oro" />{recordatorios.length} recordatorio{recordatorios.length > 1 ? 's' : ''}</Link>}
           <NuevoCliente esComercial={esComercial} />
         </div>
       </header>
 
       <div className="grid gap-4 lg:grid-cols-5">
-        {/* (a) Ingresos en vivo */}
-        <section className="dk-carta overflow-hidden rounded-[26px] bg-noche p-5 text-white lg:col-span-3" data-testid="hoy-ingresos">
-          <div className="flex flex-wrap items-center gap-5">
-            <Link href="/admin-dkitchen/qr" className="relative grid place-items-center" aria-label="Ver clientes que pagan">
-              <Anillo seguro={delMes} pendiente={dinero.pendiente} objetivo={objetivo} />
-              <span className="absolute text-center"><b className="cv-cifra block font-display text-2xl">{Math.round((delMes / objetivo) * 100)} %</b><span className="text-[10px] uppercase tracking-[0.18em] text-white/60">del objetivo</span></span>
-            </Link>
-            <div className="min-w-0 flex-1 space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-oro">Ingresos de {new Date().toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', month: 'long' })}</p>
-              <p className="font-display text-4xl font-bold"><span className="cv-cifra">{eur(delMes)}</span> <span className="text-base font-normal text-white/50">/ {eur(objetivo)}</span></p>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                <span><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-oro" />Cuotas {eur(mrr)}/mes · cobrado {eur(dinero.mesCobrado)}</span>
-                <span className="text-white/70"><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-oro/35" />Pendiente {eur(dinero.pendiente)} en {dinero.nPendientes} enlace{dinero.nPendientes === 1 ? '' : 's'}</span>
+        {/* (a) Ingresos en vivo (Dirección) o Mi resumen comercial (Comercial) */}
+        {!esComercial ? (
+          <section className="dk-carta overflow-hidden rounded-[26px] bg-noche p-5 text-white lg:col-span-3" data-testid="hoy-ingresos">
+            <div className="flex flex-wrap items-center gap-5">
+              <Link href="/admin-dkitchen/qr" className="relative grid place-items-center" aria-label="Ver clientes que pagan">
+                <Anillo seguro={delMes} pendiente={dinero.pendiente} objetivo={objetivo} />
+                <span className="absolute text-center"><b className="cv-cifra block font-display text-2xl">{Math.round((delMes / objetivo) * 100)} %</b><span className="text-[10px] uppercase tracking-[0.18em] text-white/60">del objetivo</span></span>
+              </Link>
+              <div className="min-w-0 flex-1 space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-oro">Ingresos de {new Date().toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', month: 'long' })}</p>
+                <p className="font-display text-4xl font-bold"><span className="cv-cifra">{eur(delMes)}</span> <span className="text-base font-normal text-white/50">/ {eur(objetivo)}</span></p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                  <span><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-oro" />Cuotas {eur(mrr)}/mes · cobrado {eur(dinero.mesCobrado)}</span>
+                  <span className="text-white/70"><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-oro/35" />Pendiente {eur(dinero.pendiente)} en {dinero.nPendientes} enlace{dinero.nPendientes === 1 ? '' : 's'}</span>
+                </div>
+                <details className="text-xs text-white/50"><summary className="cursor-pointer">Cambiar objetivo</summary>
+                  <form action={objetivoAction} className="mt-2 flex gap-2"><input name="euros" inputMode="numeric" defaultValue={objetivo} className="w-28 rounded-full bg-white/10 px-3 py-2 text-white" /><button className="rounded-full bg-oro px-4 py-2 font-bold text-noche">Guardar</button></form>
+                </details>
               </div>
-              <details className="text-xs text-white/50"><summary className="cursor-pointer">Cambiar objetivo</summary>
-                <form action={objetivoAction} className="mt-2 flex gap-2"><input name="euros" inputMode="numeric" defaultValue={objetivo} className="w-28 rounded-full bg-white/10 px-3 py-2 text-white" /><button className="rounded-full bg-oro px-4 py-2 font-bold text-noche">Guardar</button></form>
-              </details>
             </div>
-          </div>
-          <div className="mt-4">
-            <Grafica dias={dinero.dias} />
-            <p className="mt-1 flex justify-between text-[11px] text-white/45"><span>hace 30 días</span><span>{dinero.ok ? 'cobrado por Stripe, día a día' : 'Stripe no respondió: reintenta en un momento'}</span><span>hoy</span></p>
-          </div>
-        </section>
+            <div className="mt-4">
+              <Grafica dias={dinero.dias} />
+              <p className="mt-1 flex justify-between text-[11px] text-white/45"><span>hace 30 días</span><span>{dinero.ok ? 'cobrado por Stripe, día a día' : 'Stripe no respondió: reintenta en un momento'}</span><span>hoy</span></p>
+            </div>
+          </section>
+        ) : (
+          <section className="dk-carta overflow-hidden rounded-[26px] bg-noche p-6 text-white lg:col-span-3" data-testid="hoy-comercial">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-oro">Mi resumen comercial</p>
+            <h2 className="font-display mt-1 text-2xl font-bold sm:text-3xl">Tu cartera y actividad de hoy</h2>
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Link href="/admin-dkitchen/prospeccion?f=hoy" className="rounded-2xl bg-white/[0.06] p-4 transition hover:bg-white/[0.1]">
+                <b className="cv-cifra block font-display text-3xl text-oro">{prosHoy}</b>
+                <span className="mt-1 block text-xs text-white/70">Para contactar hoy</span>
+              </Link>
+              <Link href="/admin-dkitchen/prospeccion?f=demo" className="rounded-2xl bg-white/[0.06] p-4 transition hover:bg-white/[0.1]">
+                <b className="cv-cifra block font-display text-3xl text-white">{demosEnCurso}</b>
+                <span className="mt-1 block text-xs text-white/70">Demos activas</span>
+              </Link>
+              <Link href="/admin-dkitchen/qr" className="rounded-2xl bg-white/[0.06] p-4 transition hover:bg-white/[0.1]">
+                <b className="cv-cifra block font-display text-3xl text-white">{activos}</b>
+                <span className="mt-1 block text-xs text-white/70">Clientes activos</span>
+              </Link>
+              <Link href="/admin-dkitchen/qr" className="rounded-2xl bg-white/[0.06] p-4 transition hover:bg-white/[0.1]">
+                <b className="cv-cifra block font-display text-3xl text-oro">{eur(mrr)}</b>
+                <span className="mt-1 block text-xs text-white/70">Tu cartera mensual</span>
+              </Link>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2 text-xs">
+              <Link href="/admin-dkitchen/prospeccion" className="rounded-full bg-oro px-4 py-2 font-bold text-noche">Ir a Prospección →</Link>
+              <Link href="/academia" className="rounded-full bg-white/10 px-4 py-2 font-semibold text-white hover:bg-white/15">Academia comercial →</Link>
+            </div>
+          </section>
+        )}
 
         {/* (b) Embudo */}
         <section className="dk-carta rounded-[26px] bg-white p-5 shadow-[0_20px_60px_-40px_rgba(62,5,21,.5)] lg:col-span-2" style={{ ['--i' as string]: 1 }} data-testid="hoy-embudo">

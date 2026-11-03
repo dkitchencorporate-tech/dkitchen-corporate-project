@@ -84,7 +84,7 @@ export async function obtenerMiRestaurante(jwt: string): Promise<MiRestaurante |
               (propietario IS DISTINCT FROM dk.identidad_actual() AND coalesce(dk.es_admin(), false)) AS soporte
          FROM restaurantes
         WHERE propietario = dk.identidad_actual()
-           OR (id = $1 AND ((socio_id = dk.identidad_actual() AND dk.gestiona(id)) OR coalesce(dk.es_admin(), false)))
+           OR (id = $1 AND dk.gestiona(id))
         ORDER BY (id = $1) DESC NULLS LAST, (propietario = dk.identidad_actual()) DESC NULLS LAST
         LIMIT 1`,
       [idPuesta]

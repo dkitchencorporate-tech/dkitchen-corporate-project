@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -51,10 +51,59 @@ function Aviso({ n, claro }: { n: number; claro?: boolean }) {
 const activoEn = (ruta: string, href: string) => ruta === href || ruta.startsWith(href + '/');
 export const zonaDe = (ruta: string) => ZONAS.find((z) => z.items.some((i) => activoEn(ruta, i.href))) ?? null;
 
+function filtrarZonas(esCom: boolean, zonasPermitidas?: string[], serviciosPermitidos?: string[]): Zona[] {
+  if (!esCom) return ZONAS;
+  const zSet = new Set(zonasPermitidas?.length ? zonasPermitidas : ['inicio', 'clientes', 'servicios', 'prospeccion', 'oportunidades', 'propuestas', 'academia', 'soporte', 'buzon']);
+  const sSet = new Set(serviciosPermitidos?.length ? serviciosPermitidos : ['qr', 'signature', 'experience', 'auditoria']);
+  const out: Zona[] = [];
+  for (const z of ZONAS) {
+    if (z.id === 'lanzamiento' || z.id === 'conocimiento') continue;
+    let items: Item[] = [];
+    if (z.id === 'inicio') {
+      items = z.items.filter((i) => i.href === '/admin-dkitchen/inicio');
+    } else if (z.id === 'clientes') {
+      if (zSet.has('clientes')) items = z.items.filter((i) => i.href === '/admin-dkitchen/qr');
+    } else if (z.id === 'servicios') {
+      if (zSet.has('servicios')) {
+        items = z.items.filter((i) => {
+          const code = i.href.split('/').pop() ?? '';
+          return sSet.has(code);
+        });
+      }
+    } else if (z.id === 'ventas') {
+      items = z.items.filter((i) => {
+        if (i.href === '/admin-dkitchen/prospeccion') return zSet.has('prospeccion');
+        if (i.href === '/admin-dkitchen/oportunidades') return zSet.has('oportunidades');
+        if (i.href === '/admin-dkitchen/ofertas') return zSet.has('propuestas');
+        return false;
+      });
+    } else if (z.id === 'soporte') {
+      items = z.items.filter((i) => {
+        if (i.href === '/admin-dkitchen/soporte') return zSet.has('soporte');
+        if (i.href === '/admin-dkitchen/buzon') return zSet.has('buzon');
+        return false;
+      });
+    }
+    if (items.length > 0) out.push({ ...z, items });
+  }
+  return out;
+}
+
 /** Pestañas de la zona actual, arriba del contenido (solo si la zona tiene más de una). */
-export function SubmenuZona({ avisos = {} }: { avisos?: Avisos }) {
+export function SubmenuZona({
+  avisos = {},
+  esComercial = false,
+  zonasPermitidas,
+  serviciosPermitidos,
+}: {
+  avisos?: Avisos;
+  esComercial?: boolean;
+  zonasPermitidas?: string[];
+  serviciosPermitidos?: string[];
+}) {
   const ruta = usePathname();
-  const z = zonaDe(ruta);
+  const lista = filtrarZonas(esComercial, zonasPermitidas, serviciosPermitidos);
+  const z = lista.find((zn) => zn.items.some((i) => activoEn(ruta, i.href))) ?? null;
   if (!z || z.items.length < 2) return null;
   return (
     <nav aria-label={`Zona ${z.nombre}`} className="sticky top-0 z-30 border-b border-linea bg-crema/90 px-4 py-2.5 backdrop-blur sm:px-6 lg:px-10">
@@ -74,17 +123,22 @@ export default function AdminSidebar({
   cuenta,
   avisos = {},
   esComercial = false,
+  zonasPermitidas,
+  serviciosPermitidos,
 }: {
   cuenta: Cuenta;
   avisos?: Avisos;
   esComercial?: boolean;
+  zonasPermitidas?: string[];
+  serviciosPermitidos?: string[];
 }) {
   const [mas, setMas] = useState(false);
   const ruta = usePathname();
   const actual = zonaDe(ruta)?.id;
   const esCom = esComercial || (cuenta as any)?.rol === 'comercial';
-  const zonasDisponibles = ZONAS.filter((z) => !(esCom && (z.id === 'lanzamiento' || z.id === 'conocimiento')));
+  const zonasDisponibles = filtrarZonas(esCom, zonasPermitidas, serviciosPermitidos);
   const enMovil = zonasDisponibles.filter((z) => !['lanzamiento', 'conocimiento'].includes(z.id));
+  const tieneAcademia = !esCom || !zonasPermitidas || zonasPermitidas.includes('academia');
 
   return (
     <>
@@ -104,7 +158,13 @@ export default function AdminSidebar({
             );
           })}
         </nav>
-        <MenuCuenta cuenta={cuenta} />
+        {esCom && tieneAcademia && (
+          <Link href="/academia" className="mb-3 flex w-[72px] flex-col items-center gap-1 rounded-2xl py-2 text-[10px] font-medium text-oro/85 hover:bg-white/[0.06] hover:text-oro" title="Academia comercial">
+            <Icono n="negocio" />
+            <span>Academia</span>
+          </Link>
+        )}
+        <MenuCuenta cuenta={cuenta} esComercial={esCom} />
       </aside>
 
       <nav aria-label="Central" className="fixed inset-x-3 bottom-3 z-40 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
@@ -133,10 +193,10 @@ export default function AdminSidebar({
           <button aria-label="Cerrar" onClick={() => setMas(false)} className="absolute inset-0 bg-black/50" />
           <div className="absolute bottom-3 left-3 right-3 max-h-[calc(100dvh-24px)] overflow-y-auto rounded-[28px] bg-white p-5 shadow-2xl">
             <p className="text-xs text-niebla">Tu cuenta</p>
-            <div className="mt-3"><OpcionesCuenta cuenta={cuenta} alElegir={() => setMas(false)} /></div>
-            <hr className="my-4 border-linea" />
-            {!esComercial && (
+            <div className="mt-3"><OpcionesCuenta cuenta={cuenta} alElegir={() => setMas(false)} esComercial={esCom} /></div>
+            {!esCom ? (
               <>
+                <hr className="my-4 border-linea" />
                 <p className="text-xs text-niebla">Lanzamiento</p>
                 <ul className="mt-3 mb-4 grid gap-1.5">
                   {ZONAS.find((z) => z.id === 'lanzamiento')?.items.map((m) => (
@@ -144,14 +204,22 @@ export default function AdminSidebar({
                   ))}
                 </ul>
                 <hr className="my-4 border-linea" />
+                <p className="text-xs text-niebla">Conocimiento</p>
+                <ul className="mt-3 grid gap-1.5">
+                  {ZONAS.find((z) => z.id === 'conocimiento')!.items.map((m) => (
+                    <li key={m.href}><Link href={m.href} onClick={() => setMas(false)} className={`block rounded-2xl px-4 py-3 text-sm font-medium ${activoEn(ruta, m.href) ? 'bg-tinta text-white' : 'bg-papel text-carbon'}`}>{m.nombre}</Link></li>
+                  ))}
+                </ul>
+              </>
+            ) : tieneAcademia && (
+              <>
+                <hr className="my-4 border-linea" />
+                <p className="text-xs text-niebla">Formación</p>
+                <ul className="mt-3 grid gap-1.5">
+                  <li><Link href="/academia" onClick={() => setMas(false)} className="block rounded-2xl bg-papel px-4 py-3 text-sm font-medium text-carbon">Academia</Link></li>
+                </ul>
               </>
             )}
-            <p className="text-xs text-niebla">Conocimiento</p>
-            <ul className="mt-3 grid gap-1.5">
-              {ZONAS.find((z) => z.id === 'conocimiento')!.items.map((m) => (
-                <li key={m.href}><Link href={m.href} onClick={() => setMas(false)} className={`block rounded-2xl px-4 py-3 text-sm font-medium ${activoEn(ruta, m.href) ? 'bg-tinta text-white' : 'bg-papel text-carbon'}`}>{m.nombre}</Link></li>
-              ))}
-            </ul>
           </div>
         </div>
       )}

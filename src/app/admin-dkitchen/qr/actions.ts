@@ -1,4 +1,4 @@
-﻿'use server';
+'use server';
 
 import { PLANTILLAS, limpiarFirma } from '@/lib/composiciones';
 import { randomUUID } from 'node:crypto';
@@ -455,6 +455,48 @@ export type ResultadoAlta4Pasos = {
   error?: string;
 };
 
+export type ProspectoResumenAlta = {
+  id: string;
+  nombre: string;
+  zona: string;
+  contacto: string | null;
+  telefono: string | null;
+  tieneDemo: boolean;
+};
+
+/** 0117: Contexto para abrir AltaUnicaModal (servicios habilitados del comercial + prospectos activos para traer datos y reutilizar su demo). */
+export async function contextoAltaAction(): Promise<{
+  serviciosPermitidos: string[];
+  prospectos: ProspectoResumenAlta[];
+}> {
+  const jwt = await exigirAdmin();
+  return comoCliente(jwt, async (c) => {
+    const ctx = (
+      await c.query<{ x: { rol_admin: string; servicios_permitidos?: string[] } }>('SELECT dk.admin_alta_contexto() AS x')
+    ).rows[0]?.x;
+    const serviciosPermitidos = Array.isArray(ctx?.servicios_permitidos) && ctx.servicios_permitidos.length > 0
+      ? ctx.servicios_permitidos
+      : ['qr', 'signature', 'experience', 'auditoria'];
+    const lista = (
+      await c.query<{ l: { id: string; nombre: string; zona: string; contacto?: string | null; telefono: string | null; estado: string; restaurante_id?: string | null }[] }>(
+        'SELECT dk.prosp_lista(NULL, NULL) AS l'
+      )
+    ).rows[0]?.l ?? [];
+    const prospectos: ProspectoResumenAlta[] = lista
+      .filter((p) => !['cliente', 'descartado'].includes(p.estado))
+      .slice(0, 80)
+      .map((p) => ({
+        id: p.id,
+        nombre: p.nombre,
+        zona: p.zona,
+        contacto: p.contacto ?? null,
+        telefono: p.telefono ?? null,
+        tieneDemo: Boolean(p.restaurante_id),
+      }));
+    return { serviciosPermitidos, prospectos };
+  }).catch(() => ({ serviciosPermitidos: ['qr', 'signature', 'experience', 'auditoria'], prospectos: [] }));
+}
+
 /** modo «previa»: valida y calcula en el servidor SIN crear nada (paso 4 «Revisa y envía» del boceto). */
 export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' | 'crear' = 'crear'): Promise<ResultadoAlta4Pasos> {
   const jwt = await exigirAdmin();
@@ -466,10 +508,11 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
   const ciudad = String(d.ciudad ?? '').trim().slice(0, 80) || 'España';
   const direccion = String(d.direccion ?? '').trim().slice(0, 200);
   const telefono = String(d.telefono ?? '').trim().replace(/\s+/g, '');
+  const prospectoId = d.prospectoId && UUID.test(d.prospectoId) ? d.prospectoId : null;
 
   // Comprobar rol de quien ejecuta en identidades
   // Rol y cupo desde la base con el JWT del admin (falla cerrado: sin contexto no hay alta).
-  let ctxAlta: { rol_admin: string; cupo: number; usados: number };
+  let ctxAlta: { rol_admin: string; cupo: number; usados: number; servicios_permitidos?: string[] };
   try {
     ctxAlta = await comoCliente(jwt, async (c) => (await c.query('SELECT dk.admin_alta_contexto() AS x')).rows[0].x);
     if (!ctxAlta || !Number.isFinite(Number(ctxAlta.cupo)) || !Number.isFinite(Number(ctxAlta.usados))) throw new Error('contexto');
@@ -507,6 +550,7 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
     estadoFundador: ef,
     cupoMontajesGratis: cupoInfo,
     aprobaciones: { descuentoMax: val(apDesc, 'pct'), montaje: !!apMont, pilotoPct: val(apPil, 'pct'), cuotas: val(apSig, 'cuotas') },
+    serviciosPermitidos: Array.isArray(ctxAlta.servicios_permitidos) ? ctxAlta.servicios_permitidos : undefined,
   });
 
   if (!calc.ok) {
@@ -548,18 +592,31 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
     return { ok: false, error: 'Ese correo ya tiene cuenta o Neon Auth no respondió. No se ha creado nada: usa otro correo o asigna el local desde su ficha.' };
   }
 
-  // 4. Aprovisionamiento del cliente / restaurante
+  // 4. Aprovisionamiento del cliente / restaurante (0117: si viene de Prospección con demo creada, reutiliza esa misma demo y su carta/fotos)
   const ref = 'alta-' + randomUUID();
   const planElegido = d.servicios.includes('qr') && esPlanQr(d.planQr) ? d.planQr : 'ampliado';
   const slug = slugBase(local);
 
-  const { rows } = await comoAprovisionamiento((c) =>
-    c.query<{ restaurante_id: string }>(
-      'SELECT * FROM dk.aprovisionar_cliente_qr($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-      [ref, identidadId, email, contacto, planElegido, local, slug, ref, ref]
-    )
-  );
-  const restauranteId = rows[0]?.restaurante_id;
+  let restauranteId: string | undefined;
+  if (prospectoId) {
+    restauranteId = await comoCliente(jwt, async (c) => {
+      const r = await c.query<{ id: string | null }>(
+        'SELECT dk.admin_reutilizar_demo_prospecto($1, $2, $3, $4, $5, $6) AS id',
+        [prospectoId, identidadId, email, contacto, planElegido, local],
+      );
+      return r.rows[0]?.id ?? undefined;
+    }).catch(() => undefined);
+  }
+
+  if (!restauranteId) {
+    const { rows } = await comoAprovisionamiento((c) =>
+      c.query<{ restaurante_id: string }>(
+        'SELECT * FROM dk.aprovisionar_cliente_qr($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+        [ref, identidadId, email, contacto, planElegido, local, slug, ref, ref]
+      )
+    );
+    restauranteId = rows[0]?.restaurante_id;
+  }
   if (!restauranteId) return { ok: false, error: 'No se pudo crear el cliente en la base de datos.' };
   // Las aprobaciones usadas quedan consumidas (una vez) y registradas para el embudo de dirección.
   const usadas: [Sol | undefined, boolean][] = [[apDesc, descCom > 5], [apMont, !!d.montajeGratis], [apPil, Number(d.pilotoPct) > 0], [apSig, Number(d.cuotasSignature) >= 2]];
@@ -570,8 +627,8 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
   // Falla cerrado: si el cupo está completo o algo falla, no se genera enlace de pago ni se regala nada.
   try {
     await comoCliente(jwt, (c) =>
-      c.query('SELECT dk.admin_alta_completar($1, $2, $3, $4, $5)', [
-        restauranteId, ciudad, direccion || null, !!d.montajeGratis, d.origenMontaje ?? 'flyer',
+      c.query('SELECT dk.admin_alta_completar($1, $2, $3, $4, $5, $6)', [
+        restauranteId, ciudad, direccion || null, !!d.montajeGratis, d.origenMontaje ?? 'flyer', prospectoId,
       ])
     );
   } catch (e) {

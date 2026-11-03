@@ -1,10 +1,12 @@
-﻿'use client';
+'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   altaUnica4PasosAction,
+  contextoAltaAction,
   type DatosAlta4Pasos,
+  type ProspectoResumenAlta,
   type ResultadoAlta4Pasos,
 } from '@/app/admin-dkitchen/qr/actions';
 import { solicitarPalancaAction } from '@/app/admin-dkitchen/comerciales/actions';
@@ -20,13 +22,13 @@ import {
 } from '@/lib/pricing-config';
 
 /**
- * Alta única en 4 pasos (rediseño 01/11, decisiones 3 y 11 de karc0):
- * 1 ¿Qué local es? (a mano, 5 datos) · 2 ¿Qué contrata? · 3 ¿Cómo empieza? · 4 Revisa y envía.
+ * Alta única en 4 pasos (rediseño 01/11, decisiones 3 y 11 de karc0 + 0117 Prospección/Demos):
+ * 1 ¿Qué local es? (a mano o importado desde Prospección reutilizando su demo) · 2 ¿Qué contrata? · 3 ¿Cómo empieza? · 4 Revisa y envía.
  * Con `servicio`, el alta llega con ese servicio marcado y solo sus preguntas («+ Nuevo» de cada tablero).
  * Todos los importes salen de pricing-config y los recalcula el servidor.
  */
 export type ServicioAlta = 'qr' | 'signature' | 'experience' | 'auditoria';
-export type PrefijoAlta = { local?: string; ciudad?: string; contacto?: string; telefono?: string; email?: string };
+export type PrefijoAlta = { prospectoId?: string; local?: string; ciudad?: string; contacto?: string; telefono?: string; email?: string };
 type Modalidad = DatosAlta4Pasos['modalidadTarifa'];
 
 const NOMBRES: Record<ServicioAlta, string> = { qr: 'Carta QR', signature: 'Signature', experience: 'Experience', auditoria: 'Auditoría' };
@@ -55,7 +57,10 @@ export default function AltaUnicaModal({
   const [enviarCorreo, setEnviarCorreo] = useState(true);
   const [copiado, setCopiado] = useState(false);
 
-  // Paso 1: a mano y corto (decisión 11).
+  // Paso 1: a mano o importado de Prospección (0117).
+  const [prospectoId, setProspectoId] = useState(prefijo?.prospectoId ?? '');
+  const [prospectosLista, setProspectosLista] = useState<ProspectoResumenAlta[]>([]);
+  const [serviciosPermitidos, setServiciosPermitidos] = useState<ServicioAlta[]>(['qr', 'signature', 'experience', 'auditoria']);
   const [local, setLocal] = useState(prefijo?.local ?? '');
   const [ciudad, setCiudad] = useState(prefijo?.ciudad ?? '');
   const [contacto, setContacto] = useState(prefijo?.contacto ?? '');
@@ -65,6 +70,36 @@ export default function AltaUnicaModal({
   // Paso 2
   const [servicios, setServicios] = useState<ServicioAlta[]>([servicio ?? 'qr']);
   const [planQr, setPlanQr] = useState<'basico' | 'ampliado' | 'sala'>('ampliado');
+
+  useEffect(() => {
+    if (!abierto) return;
+    let cancelado = false;
+    contextoAltaAction().then((ctx) => {
+      if (cancelado) return;
+      const permitidos = (ctx.serviciosPermitidos.filter((s) =>
+        ['qr', 'signature', 'experience', 'auditoria'].includes(s)
+      ) as ServicioAlta[]);
+      if (permitidos.length > 0) {
+        setServiciosPermitidos(permitidos);
+        setServicios((prev) => {
+          const validos = prev.filter((s) => permitidos.includes(s));
+          return validos.length > 0 ? validos : [permitidos[0]];
+        });
+      }
+      setProspectosLista(ctx.prospectos ?? []);
+    }).catch(() => {});
+    return () => { cancelado = true; };
+  }, [abierto]);
+
+  const elegirProspecto = (id: string) => {
+    setProspectoId(id);
+    const p = prospectosLista.find((x) => x.id === id);
+    if (!p) return;
+    setLocal(p.nombre || '');
+    if (p.zona) setCiudad(p.zona);
+    if (p.contacto) setContacto(p.contacto);
+    if (p.telefono) setTelefono(p.telefono);
+  };
 
   // Paso 3
   const [modoInicio, setModoInicio] = useState<'pago' | 'gratis' | 'demo'>('pago');
@@ -123,6 +158,7 @@ export default function AltaUnicaModal({
     setError(null);
     iniciar(async () => {
       const payload: DatosAlta4Pasos = {
+        prospectoId: prospectoId || undefined,
         local: local.trim(), ciudad: ciudad.trim() || undefined, contacto: contacto.trim(),
         telefono: telefono.trim() || undefined, email: email.trim(), servicios, planQr,
         modoInicio: prueba ? 'pago' : modoInicio, modalidadTarifa: modalidad, diasPrueba,
@@ -180,8 +216,25 @@ export default function AltaUnicaModal({
             <div key="p1" className="dk-paso mt-5 space-y-4">
               <div>
                 <h3 className="font-display text-2xl font-bold">¿Qué local es?</h3>
-                <p className="text-sm text-niebla">Cinco datos y listo. El resto se completa después en su ficha.</p>
+                <p className="text-sm text-niebla">Cinco datos y listo (o tráelos de Prospección para conservar su demo, platos y fotos).</p>
               </div>
+              {prospectosLista.length > 0 && (
+                <label className="block rounded-2xl border border-vino/25 bg-white p-3.5 text-xs font-semibold text-vino">
+                  📋 Traer datos de un local de Prospección (y reutilizar su demo si ya tiene una)
+                  <select
+                    value={prospectoId}
+                    onChange={(e) => elegirProspecto(e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-linea bg-papel/50 px-3 py-2.5 text-sm font-medium text-tinta focus:border-vino focus:outline-none"
+                  >
+                    <option value="">— Escribir datos a mano (nuevo local) —</option>
+                    {prospectosLista.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.nombre} ({p.zona}){p.tieneDemo ? ' · ★ Con demo lista para reutilizar' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <label className="block text-sm font-semibold">Nombre del local
                 <input data-testid="alta-local" autoFocus value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Taberna La Parra" className={campo} />
               </label>
@@ -230,7 +283,9 @@ export default function AltaUnicaModal({
               <div className="space-y-2">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-vino">{servicio ? '¿Añade algo más?' : 'Servicios'}</p>
                 <div className="grid gap-2.5 sm:grid-cols-2">
-                  {(['qr', 'signature', 'experience', 'auditoria'] as ServicioAlta[]).map((s) => (
+                  {(['qr', 'signature', 'experience', 'auditoria'] as ServicioAlta[])
+                    .filter((s) => esDireccion || serviciosPermitidos.includes(s))
+                    .map((s) => (
                     <button key={s} type="button" data-testid={`alta-servicio-${s}`} onClick={() => alternar(s)} className={tarjeta(tiene(s))} aria-pressed={tiene(s)}>
                       <b className="block font-display text-lg">{NOMBRES[s]}</b>
                       <span className="text-sm text-niebla">

@@ -1,13 +1,17 @@
 import Link from 'next/link';
 import {
-  ESTADOS, TIPOS, FUENTES, enlacesRuta, fechaCorta, hoyMadrid,
+  ESTADOS, TIPOS, FUENTES, enlacesRuta, enlaceWhatsapp, fechaCorta, hoyMadrid,
   type BaseCrm, type Estado, type Prospecto, type Metrica,
 } from '@/lib/prospeccion';
-import { guardarProspectoAction, guardarRutaAction, guardarMiContactoAction, proponerRutaAction } from '@/lib/prospeccion-acciones';
+import {
+  guardarProspectoAction, guardarRutaAction, guardarMiContactoAction, proponerRutaAction,
+  crearDemoProspectoAction, abrirEditorDemoAction,
+} from '@/lib/prospeccion-acciones';
 import { CANALES, RESULTADOS, esBaza, esDigital, type Canal } from '@/lib/prospeccion-catalogo';
 import MapaRuta from './MapaRuta';
 import AntesDeEntrar from './AntesDeEntrar';
 import RegistroRapido from './RegistroRapido';
+import LotesProspeccion from './LotesProspeccion';
 
 /**
  * Lista del CRM de prospección (0058), móvil primero: ruta de hoy con Google
@@ -29,6 +33,8 @@ const AVISOS: Record<string, string> = {
 const OKS: Record<string, string> = {
   ruta: 'Ruta de hoy guardada.', contacto: 'Tus datos de contacto están guardados.', registrado: 'Contacto registrado.',
   sinruta: 'No hay locales pendientes situados en el mapa para proponer una ruta.',
+  lote: 'Lote de prospectos reasignado con éxito (ya está en la cartera del comercial seleccionado).',
+  demo: 'Demo completa de Autor creada con carta, platos de muestra, mesas y créditos IA.',
 };
 
 export function EtiquetaEstado({ e }: { e: Estado }) {
@@ -117,45 +123,80 @@ function Tarjeta({ p, base, central, demo }: { p: Prospecto; base: BaseCrm; cent
         )}
         <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3 text-[11px]">
           {demo && <span className="rounded-full bg-papel px-2 py-0.5 font-medium text-grafito">{COMPOSICION[demo.plantilla] ?? 'Carta'} · {demo.platos} platos</span>}
-          {p.propuesta_vistas > 0 && <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">👁 Vista {p.propuesta_vistas}×</span>}
+          {(p.demo_vistas ?? 0) > 0 && <span className="rounded-full bg-violet-50 px-2 py-0.5 font-semibold text-violet-800">👁 Demo {p.demo_vistas}×</span>}
+          {p.propuesta_vistas > 0 && <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">👁 Propuesta {p.propuesta_vistas}×</span>}
           {p.puntuacion != null && <span className="rounded-full bg-papel px-2 py-0.5 text-grafito">{p.puntuacion}/100</span>}
           {p.no_contactar && <span className="rounded-full bg-red-50 px-2 py-0.5 font-semibold text-red-700">No contactar</span>}
           {p.canal && <span className="rounded-full bg-papel px-2 py-0.5 text-grafito">{CANALES[p.canal]}{p.ultimo_resultado ? ` · ${RESULTADOS[p.ultimo_resultado]}` : ''}</span>}
           {esDigital(p.canal) && p.siguiente_accion === 'Seguimiento a 48 h' && <span className="rounded-full bg-oro/25 px-2 py-0.5 font-semibold text-tinta">48 h</span>}
-          {demo && (
-            <a href={`/m/${demo.slug}`} target="_blank" rel="noopener noreferrer"
-              className="relative z-10 ml-auto rounded-full bg-noche px-3 py-1 text-[11px] font-semibold text-white hover:bg-vino">Ver demo ↗</a>
-          )}
+          <div className="relative z-10 ml-auto flex flex-wrap items-center gap-1.5">
+            {demo ? (
+              <>
+                <a href={`/m/${demo.slug}`} target="_blank" rel="noopener noreferrer"
+                  className="rounded-full bg-noche px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-vino">Ver carta ↗</a>
+                <a href={`/demo/panel?local=${demo.slug}`} target="_blank" rel="noopener noreferrer"
+                  className="rounded-full border border-linea bg-white px-2.5 py-1 text-[11px] font-semibold text-carbon hover:border-vino">Panel ↗</a>
+                {p.restaurante_id && (
+                  <form action={abrirEditorDemoAction} className="inline">
+                    <input type="hidden" name="base" value={base} />
+                    <input type="hidden" name="restaurante_id" value={p.restaurante_id} />
+                    <input type="hidden" name="pestana" value="carta" />
+                    <button className="rounded-full bg-vino/10 px-2.5 py-1 text-[11px] font-semibold text-vino hover:bg-vino hover:text-white">
+                      ✏️ Fotos / Editar
+                    </button>
+                  </form>
+                )}
+              </>
+            ) : !['cliente', 'descartado'].includes(p.estado) ? (
+              <form action={crearDemoProspectoAction} className="inline">
+                <input type="hidden" name="base" value={base} />
+                <input type="hidden" name="id" value={p.id} />
+                <input type="hidden" name="volver" value="lista" />
+                <button className="rounded-full bg-vino px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-tinta">
+                  ⚡ Crear demo
+                </button>
+              </form>
+            ) : null}
+          </div>
         </div>
       </div>
     </li>
   );
 }
 
-export default function CrmLista({ base, lista, estado, aviso, ok, contacto, central, comerciales, comercial, metricas, demos = {}, vista = 'tarjetas' }: {
+export default function CrmLista({ base, lista, estado, aviso, ok, contacto, central, comerciales, comercial, modo = 'todos', metricas, demos = {}, vista = 'tarjetas' }: {
   base: BaseCrm; lista: Prospecto[]; estado: string | null; aviso?: string; ok?: string; demos?: Record<string, DemoProspecto>; vista?: 'tarjetas' | 'tablero';
   contacto: { nombre_publico: string; telefono: string | null } | null;
-  central?: boolean; comerciales?: { id: string; nombre: string }[]; comercial?: string | null; metricas?: Metrica[] | null;
+  central?: boolean; comerciales?: { id: string; nombre: string }[]; comercial?: string | null; modo?: 'todos' | 'pie' | 'digital'; metricas?: Metrica[] | null;
 }) {
   const hoy = hoyMadrid();
+  const esProspectoDigital = (p: Prospecto) => esDigital(p.canal) || p.fuente === 'digital' || Boolean(p.instagram && p.canal !== 'fisico');
+  const listaPorModo = modo === 'digital'
+    ? lista.filter((p) => esProspectoDigital(p))
+    : modo === 'pie'
+      ? lista.filter((p) => !esProspectoDigital(p) || p.canal === 'fisico')
+      : lista;
+  const digitalesTotal = lista.filter((p) => p.estado !== 'descartado' && esProspectoDigital(p)).length;
+  const aPieTotal = lista.filter((p) => p.estado !== 'descartado' && (!esProspectoDigital(p) || p.canal === 'fisico')).length;
   const mios = lista.filter((p) => p.mio);
   const ruta = mios.filter((p) => p.ruta_fecha === hoy).sort((a, b) => (a.ruta_orden ?? 0) - (b.ruta_orden ?? 0));
-  const tocaHoy = lista.filter((p) => p.siguiente_fecha && p.siguiente_fecha <= hoy && !['cliente', 'descartado'].includes(p.estado));
-  const cuenta = (e: Estado) => lista.filter((p) => p.estado === e).length;
-  const filtrada = estado ? lista.filter((p) => p.estado === estado) : lista.filter((p) => p.estado !== 'descartado');
+  const tocaHoy = listaPorModo.filter((p) => p.siguiente_fecha && p.siguiente_fecha <= hoy && !['cliente', 'descartado'].includes(p.estado));
+  const cuenta = (e: Estado) => listaPorModo.filter((p) => p.estado === e).length;
+  const filtrada = estado ? listaPorModo.filter((p) => p.estado === estado) : listaPorModo.filter((p) => p.estado !== 'descartado');
   // Baza y comarca primero; dentro, los que ya están en el mapa.
   const planificables = mios.filter((p) => !['cliente', 'descartado'].includes(p.estado) && !p.no_contactar)
     .sort((a, b) => Number(esBaza(b.zona)) - Number(esBaza(a.zona)) || Number(b.lat != null) - Number(a.lat != null));
-  const enMapa = (central ? lista : mios).filter((p) => p.lat != null && p.lng != null && p.estado !== 'descartado');
+  const enMapa = (central ? listaPorModo : mios).filter((p) => p.lat != null && p.lng != null && p.estado !== 'descartado');
   const tramos = enlacesRuta(ruta);
-  const conDemo = lista.filter((p) => demos[p.id] && p.estado !== 'descartado').length;
-  const vistas = lista.filter((p) => p.propuesta_vistas > 0).length;
-  const activos = lista.length - cuenta('descartado');
+  const conDemo = listaPorModo.filter((p) => demos[p.id] && p.estado !== 'descartado').length;
+  const vistas = listaPorModo.filter((p) => p.propuesta_vistas > 0 || (p.demo_vistas ?? 0) > 0).length;
+  const activos = listaPorModo.length - cuenta('descartado');
   const embudo = (Object.keys(ESTADOS) as Estado[]).filter((e) => e !== 'descartado');
-  const q = (e: string | null, v: string = vista) => {
+  const q = (e: string | null, v: string = vista, m: string = modo, com: string | null | undefined = comercial) => {
     const s = new URLSearchParams();
     if (e) s.set('estado', e);
-    if (comercial) s.set('comercial', comercial);
+    if (com) s.set('comercial', com);
+    if (m !== 'todos') s.set('modo', m);
     if (v !== 'tarjetas') s.set('vista', v);
     const t = s.toString();
     return t ? `${base}?${t}` : base;
@@ -195,14 +236,153 @@ export default function CrmLista({ base, lista, estado, aviso, ok, contacto, cen
       {ok && OKS[ok] && <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{OKS[ok]}</p>}
 
       {central && comerciales && (
-        <form className="flex flex-col gap-2 sm:flex-row" action={base}>
-          <select name="comercial" defaultValue={comercial ?? ''} className={campo}>
-            <option value="">Todas las carteras</option>
-            {comerciales.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-          </select>
-          {estado && <input type="hidden" name="estado" value={estado} />}
-          <button className="rounded-full bg-tinta px-5 py-3 text-sm font-semibold text-white">Filtrar</button>
-        </form>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2 rounded-[22px] border border-linea bg-white p-3">
+            <span className="px-2 text-xs font-semibold uppercase tracking-[0.14em] text-niebla">Cartera activa:</span>
+            {comerciales.map((c, idx) => {
+              const activa = comercial === c.id || (!comercial && idx === 0);
+              return (
+                <Link
+                  key={c.id}
+                  href={q(estado, vista, modo, c.id)}
+                  className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
+                    activa ? 'bg-vino text-white shadow-sm' : 'bg-papel text-carbon hover:bg-vino/10'
+                  }`}
+                >
+                  {idx === 0 ? `👤 Mi cartera (${c.nombre})` : `👤 ${c.nombre}`}
+                </Link>
+              );
+            })}
+            <Link
+              href={q(estado, vista, modo, 'todas')}
+              className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
+                comercial === 'todas' ? 'bg-tinta text-white shadow-sm' : 'bg-white text-grafito ring-1 ring-linea hover:bg-papel'
+              }`}
+            >
+              🌐 Todas las carteras
+            </Link>
+          </div>
+          <LotesProspeccion base={base} prospectos={lista} comerciales={comerciales} demosIds={Object.keys(demos)} />
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-[22px] border border-linea bg-white p-3">
+        <span className="px-2 text-xs font-semibold uppercase tracking-[0.14em] text-niebla">Modo de prospección:</span>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={q(estado, vista, 'todos')}
+            className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
+              modo === 'todos' ? 'bg-tinta text-white' : 'bg-papel text-carbon hover:bg-tinta/10'
+            }`}
+          >
+            Todos ({lista.filter((p) => p.estado !== 'descartado').length})
+          </Link>
+          <Link
+            href={q(estado, vista, 'pie')}
+            className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
+              modo === 'pie' ? 'bg-vino text-white' : 'bg-papel text-carbon hover:bg-vino/10'
+            }`}
+          >
+            🚶 A pie y Ruta ({aPieTotal})
+          </Link>
+          <Link
+            href={q(estado, vista, 'digital')}
+            className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
+              modo === 'digital' ? 'bg-indigo-900 text-white' : 'bg-indigo-50 text-indigo-950 hover:bg-indigo-100'
+            }`}
+          >
+            📱 Zona de Prospección Digital ({digitalesTotal})
+          </Link>
+        </div>
+      </div>
+
+      {modo === 'digital' && (
+        <section id="digital" className="rounded-[24px] border border-indigo-200 bg-gradient-to-br from-indigo-950 via-noche to-noche p-5 text-white sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-oro">Zona de Prospección Digital · Demos y Propuestas</p>
+              <h2 className="font-display mt-1 text-2xl font-semibold">Trabajo remoto por Instagram, WhatsApp y Teléfono</h2>
+              <p className="mt-1 max-w-2xl text-xs text-white/75">
+                Crea la demo interactiva de Autor en 1 clic, abre el editor para subir fotos de sus platos al momento y envíales su propuesta personalizada con el link de su demo incluido.
+              </p>
+            </div>
+            <a href="#alta" className="rounded-full bg-oro px-4 py-2 text-xs font-bold text-noche hover:brightness-110">
+              + Nuevo prospecto digital
+            </a>
+          </div>
+          {filtrada.length > 0 && (
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {filtrada.slice(0, 8).map((p) => {
+                const d = demos[p.id];
+                const wa = enlaceWhatsapp(p.telefono);
+                return (
+                  <div key={p.id} className="flex flex-col justify-between rounded-2xl border border-white/15 bg-white/10 p-3.5 backdrop-blur-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <Link href={`${base}/${p.id}`} className="truncate font-display text-base font-semibold text-white hover:text-oro">
+                          {p.nombre}
+                        </Link>
+                        <p className="truncate text-xs text-white/65">
+                          {TIPOS[p.tipo]} · {p.barrio || p.zona} {p.canal ? `· ${CANALES[p.canal]}` : ''}
+                        </p>
+                      </div>
+                      <EtiquetaEstado e={p.estado} />
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px]">
+                      {p.instagram && (
+                        <a href={`https://instagram.com/${p.instagram}`} target="_blank" rel="noopener noreferrer"
+                          className="rounded-full bg-white/15 px-2.5 py-1 font-semibold text-white hover:bg-white/25">
+                          @{p.instagram} ↗
+                        </a>
+                      )}
+                      {wa && (
+                        <a href={wa} target="_blank" rel="noopener noreferrer"
+                          className="rounded-full bg-emerald-500/25 px-2.5 py-1 font-semibold text-emerald-200 hover:bg-emerald-500/40">
+                          WhatsApp ↗
+                        </a>
+                      )}
+                      {d ? (
+                        <>
+                          <a href={`/m/${d.slug}`} target="_blank" rel="noopener noreferrer"
+                            className="rounded-full bg-oro px-2.5 py-1 font-bold text-noche hover:brightness-110">
+                            Ver carta ↗
+                          </a>
+                          <a href={`/demo/panel?local=${d.slug}`} target="_blank" rel="noopener noreferrer"
+                            className="rounded-full bg-white/15 px-2.5 py-1 font-semibold text-white hover:bg-white/25">
+                            Panel demo ↗
+                          </a>
+                          {p.restaurante_id && (
+                            <form action={abrirEditorDemoAction} className="inline">
+                              <input type="hidden" name="base" value={base} />
+                              <input type="hidden" name="restaurante_id" value={p.restaurante_id} />
+                              <input type="hidden" name="pestana" value="carta" />
+                              <button className="rounded-full bg-white px-2.5 py-1 font-bold text-noche hover:bg-oro">
+                                ✏️ Subir fotos / Editar
+                              </button>
+                            </form>
+                          )}
+                        </>
+                      ) : (
+                        <form action={crearDemoProspectoAction} className="inline">
+                          <input type="hidden" name="base" value={base} />
+                          <input type="hidden" name="id" value={p.id} />
+                          <input type="hidden" name="abrir_editor" value="1" />
+                          <button className="rounded-full bg-oro px-3 py-1 font-bold text-noche hover:brightness-110">
+                            ⚡ Crear demo y subir fotos →
+                          </button>
+                        </form>
+                      )}
+                      <Link href={`${base}/${p.id}#propuesta`}
+                        className="ml-auto rounded-full border border-white/25 px-2.5 py-1 font-semibold text-white hover:bg-white/15">
+                        Propuesta →
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
       )}
 
       <section id="ruta" className={tarjeta}>

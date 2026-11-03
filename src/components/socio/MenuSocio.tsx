@@ -27,7 +27,7 @@ export default function MenuSocio({ cuenta }: { cuenta: { nombre: string; email:
             <p className="truncate text-sm font-semibold">{cuenta.nombre}</p>
             <p className="truncate text-xs text-niebla">{cuenta.email}</p>
             <ul className="mt-4 grid gap-1.5">
-              <li><Link href="/socio/buzon" onClick={() => setAbierto(false)} className="block rounded-2xl bg-papel px-4 py-3 text-sm font-medium">Buzón para Claude</Link></li>
+              <li><Link href="/socio/buzon" onClick={() => setAbierto(false)} className="block rounded-2xl bg-papel px-4 py-3 text-sm font-medium">Buzón Agentes IA</Link></li>
               <li><button onClick={salir} disabled={saliendo} className="w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-vino hover:bg-vino/5 disabled:opacity-50">{saliendo ? 'Cerrando sesión…' : 'Cerrar sesión'}</button></li>
             </ul>
           </div>

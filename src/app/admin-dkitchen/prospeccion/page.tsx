@@ -8,23 +8,32 @@ export const dynamic = 'force-dynamic';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Central → Prospección (0058): la cartera de karc0 y las de cada socio, con filtro, métricas y reasignación. */
-export default async function ProspeccionCentral({ searchParams }: { searchParams: Promise<{ estado?: string; comercial?: string; e?: string; ok?: string; vista?: string }> }) {
+/** Central → Prospección (0058/0117): por defecto muestra «Mi cartera» en Dirección; pestañas 1 clic por comercial y Zona de Prospección Digital. */
+export default async function ProspeccionCentral({ searchParams }: { searchParams: Promise<{ estado?: string; comercial?: string; modo?: string; e?: string; ok?: string; vista?: string }> }) {
   const jwt = await exigirAdmin();
   const sp = await searchParams;
-  const comercial = sp.comercial && UUID.test(sp.comercial) ? sp.comercial : null;
-  const [lista, contacto, comerciales, metricas, demos] = await Promise.all([
-    listaProspectos(jwt, null, comercial), miContacto(jwt), comercialesCentral(jwt), metricasCentral(jwt).catch(() => null),
+  const comerciales = await comercialesCentral(jwt).catch(() => null);
+  const miCarteraId = comerciales?.[0]?.id ?? null;
+  const comercialFiltro = sp.comercial === 'todas'
+    ? null
+    : sp.comercial && UUID.test(sp.comercial)
+      ? sp.comercial
+      : miCarteraId;
+  const [lista, contacto, metricas, demos] = await Promise.all([
+    listaProspectos(jwt, null, comercialFiltro), miContacto(jwt), metricasCentral(jwt).catch(() => null),
     // 0097: la demo ligada a cada local (miniatura en la tarjeta). Si falla, las tarjetas salen sin demo.
     comoCliente(jwt, async (c) => (await c.query<{ d: Record<string, DemoProspecto> }>('SELECT dk.admin_prosp_demos() AS d')).rows[0].d).catch(() => ({} as Record<string, DemoProspecto>)),
   ]);
+  const modo = sp.modo === 'digital' ? 'digital' : sp.modo === 'pie' ? 'pie' : 'todos';
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 text-carbon sm:px-6 lg:px-10">
       <GuiaZona titulo="Prospección" ancla="prospeccion"
-        que="Los locales a los que queremos vender (tuyos y de cada socio) y en qué punto está cada uno."
-        pasos={['Filtra por estado o por comercial.', 'Abre un prospecto para ver sus datos y apuntar cada contacto y el siguiente paso.', 'Cuando diga que sí: Clientes → Nuevo cliente (o un enlace de pago desde su ficha).']} />
+        que="Los locales a los que queremos vender (tu cartera separada de la de cada comercial), con Zona de Prospección Digital, generador de demos y reparto por lotes."
+        pasos={['Usa las pestañas de cartera o el repartidor por lotes (6 o 12) para pasar locales a un comercial (a pie o digital).', 'Crea o edita la demo real del local en 1 clic (subiendo fotos de platos al momento) y genera su propuesta con plantilla.', 'Cuando diga que sí: conviértelo en cliente reutilizando su misma demo.']} />
       <CrmLista base="/admin-dkitchen/prospeccion" lista={lista} estado={esEstado(sp.estado) ? sp.estado : null} aviso={sp.e} ok={sp.ok}
-        contacto={contacto} central comerciales={comerciales} comercial={comercial} metricas={metricas} demos={demos} vista={sp.vista === 'tablero' ? 'tablero' : 'tarjetas'} />
+        contacto={contacto} central={Boolean(comerciales && comerciales.length > 0)} comerciales={comerciales ?? undefined}
+        comercial={sp.comercial === 'todas' ? 'todas' : comercialFiltro} modo={modo} metricas={metricas} demos={demos}
+        vista={sp.vista === 'tablero' ? 'tablero' : 'tarjetas'} />
     </div>
   );
 }

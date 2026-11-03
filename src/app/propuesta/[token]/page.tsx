@@ -80,7 +80,16 @@ export default async function PropuestaPublica({ params }: { params: Promise<{ t
                 ? 'Escanea el código o pulsa el botón: así la verán tus clientes en el móvil, con tus platos y tus colores.'
                 : 'Escanea el código para activarla. La montamos contigo y la cambias desde el móvil cuando quieras.'}
             </p>
-            {muestra && <a href={muestra} className="mt-3 inline-flex rounded-full bg-tinta px-5 py-3 text-sm font-semibold text-white print:hidden">Ver mi carta</a>}
+            {muestra && (
+              <div className="mt-3 flex flex-wrap gap-2 print:hidden">
+                <a href={muestra} className="inline-flex rounded-full bg-tinta px-5 py-3 text-sm font-semibold text-white">Ver mi carta</a>
+                {p.demo_slug && (
+                  <a href={`${SITIO}/demo/panel?local=${p.demo_slug}`} className="inline-flex rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white">
+                    Probar mi panel y comandas
+                  </a>
+                )}
+              </div>
+            )}
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={qr} alt="Código QR" width={140} height={140} className="justify-self-center" />

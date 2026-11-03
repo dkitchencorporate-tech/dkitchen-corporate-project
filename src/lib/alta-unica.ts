@@ -48,6 +48,8 @@ export type DatosAlta4Pasos = {
   pilotoPct?: number;
   /** Signature por hitos o financiado (§0.5): nº de pagos sobre la entrada normal (OK de dirección; nunca Fundador). */
   cuotasSignature?: number;
+  /** 0117: ID del prospecto en CRM para reutilizar su demo y pasarlo a estado 'cliente'. */
+  prospectoId?: string;
 };
 
 export type LineaDesglose = { concepto: string; importeEuros: number };
@@ -58,6 +60,8 @@ export type ContextoValidacionAlta = {
   cupoMontajesGratis?: { usados: number; cupo: number };
   /** Palancas aprobadas por dirección para este comercial y este local (0112). */
   aprobaciones?: { descuentoMax?: number; montaje?: boolean; pilotoPct?: number; cuotas?: number };
+  /** 0117: Servicios habilitados por Dirección para este comercial ('qr', 'signature', 'experience', 'auditoria'). */
+  serviciosPermitidos?: string[];
 };
 
 export type ResultadoCalculoAlta = {
@@ -97,6 +101,14 @@ export function validarYCalcularAlta(
   }
 
   const rolAdmin = ctx.rolAdmin ?? 'comercial';
+
+  // 0117: Comprobar que el comercial solo seleccione servicios habilitados en su perfil
+  if (rolAdmin !== 'direccion' && ctx.serviciosPermitidos && ctx.serviciosPermitidos.length > 0) {
+    const noPermitido = d.servicios.find((s) => !ctx.serviciosPermitidos!.includes(s));
+    if (noPermitido) {
+      return { ok: false, error: `Tu perfil comercial no tiene habilitada la contratación de ${noPermitido.toUpperCase()}.` };
+    }
+  }
 
   // Regla B2.7: Modos demo y cortesía/gratis SOLO para dirección
   if ((d.modoInicio === 'demo' || d.modoInicio === 'gratis') && rolAdmin !== 'direccion') {

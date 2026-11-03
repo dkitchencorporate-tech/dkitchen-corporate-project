@@ -3,7 +3,8 @@ import { exigirAdmin } from '@/lib/guard-admin';
 import { comoCliente } from '@/lib/db';
 import { listarClientesQr, type ClienteQr } from '@/lib/admin-clientes';
 import { listaProspectos, embudoProspeccion, ESTADOS, CANALES, NIVELES, PALANCAS, MATERIALES, type Prospecto, type Embudo } from '@/lib/prospeccion';
-import { decidirPalancaAction, habilitarAction } from './actions';
+import PerfilComercialControl, { type ConfigComercialUI } from '@/components/admin/PerfilComercialControl';
+import { decidirPalancaAction, habilitarAction, cambiarRolComercialAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,15 @@ export const dynamic = 'force-dynamic';
  * Academia, cartera, embudo por comercial y por canal, ventas (comisión cuando el contrato fije el %) y las
  * solicitudes de OK pendientes, que dirección aprueba con un botón también desde el móvil.
  */
-type Miembro = { id: string; email: string; nombre: string | null; rol: string; cumple: boolean; bloques: Record<string, { mejor: number; aprobado: boolean }> };
+type Miembro = {
+  id: string;
+  email: string;
+  nombre: string | null;
+  rol: string;
+  cumple: boolean;
+  bloques: Record<string, { mejor: number; aprobado: boolean }>;
+  config_comercial?: ConfigComercialUI | null;
+};
 type Solicitud = { id: string; tipo: string; local: string; detalle: Record<string, unknown>; estado: string; creado_en: string; comercial: string; comercial_nombre: string | null; comercial_email: string };
 
 const TIPO: Record<string, string> = { descuento: 'Descuento 6–10 %', montaje_gratis: 'Montaje gratis (cupo)', experience_piloto: 'Experience piloto', signature_fraccionado: 'Signature por hitos', signature_financiado: 'Signature financiado' };
@@ -110,9 +119,33 @@ export default async function Comerciales({ searchParams }: { searchParams: Prom
                   <span className="rounded-xl bg-papel py-2"><b className="block font-display text-lg">{pros.length}</b><span className="text-[11px] text-niebla">prospectos</span></span>
                 </div>
                 <p className="text-xs text-niebla">Altas en 30 días: <b className="text-tinta">{mios.filter((c) => new Date(c.creadoEn).getTime() > hace30).length}</b> · Comisión: se calcula al fijar el % en su contrato.</p>
+                {m.rol !== 'direccion' && (
+                  <>
+                    <div className="flex flex-wrap gap-1 text-[11px]">
+                      {(m.config_comercial?.servicios ?? ['qr', 'signature', 'experience', 'auditoria']).map((s) => (
+                        <span key={s} className="rounded-full bg-papel px-2.5 py-0.5 font-semibold text-tinta">
+                          {s === 'qr' ? 'Carta QR' : s === 'signature' ? 'Signature' : s === 'experience' ? 'Experience' : 'Auditoría'}
+                        </span>
+                      ))}
+                    </div>
+                    <PerfilComercialControl
+                      identidadId={m.id}
+                      nombre={m.nombre ?? m.email}
+                      configInicial={m.config_comercial}
+                    />
+                  </>
+                )}
                 {m.rol === 'en_formacion' && (
-                  <form action={habilitarAction}><input type="hidden" name="id" value={m.id} />
-                    <button disabled={!m.cumple} className="dk-btn min-h-[44px] w-full rounded-full bg-exito text-sm font-bold text-white disabled:bg-linea disabled:text-niebla">{m.cumple ? 'Habilitar para vender' : 'Aún no cumple la Academia'}</button></form>
+                  <div className="space-y-1.5">
+                    <form action={habilitarAction}><input type="hidden" name="id" value={m.id} />
+                      <button disabled={!m.cumple} className="dk-btn min-h-[44px] w-full rounded-full bg-exito text-sm font-bold text-white disabled:bg-linea disabled:text-niebla">{m.cumple ? 'Habilitar para vender (Academia 11/11)' : 'Aún no cumple la Academia'}</button></form>
+                    <form action={cambiarRolComercialAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="rol" value="comercial" />
+                      <button className="min-h-[38px] w-full rounded-full border border-vino/40 bg-white text-xs font-bold text-vino hover:bg-vino/5">Habilitar manualmente (Dirección)</button></form>
+                  </div>
+                )}
+                {m.rol === 'comercial' && (
+                  <form action={cambiarRolComercialAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="rol" value="en_formacion" />
+                    <button className="min-h-[36px] w-full rounded-full border border-linea bg-white text-xs font-medium text-niebla hover:text-tinta">Pasar a «En formación»</button></form>
                 )}
               </article>
             );

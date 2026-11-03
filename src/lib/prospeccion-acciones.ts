@@ -1,12 +1,24 @@
 'use server';
 
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { randomUUID } from 'node:crypto';
+import { put } from '@vercel/blob';
 import { comoCliente } from '@/lib/db';
 import { obtenerJwtDeSesion } from '@/lib/sesion';
+import { COOKIE_PUESTA } from '@/lib/socio-codigo';
+import { claveDeLimite, limiteSuperado } from '@/lib/limite-frecuencia';
+import {
+  ejecutarAgenteDemoPropuesta,
+  consultarAgenteProspeccion,
+  type OpcionesAgenteDemoPropuesta,
+  type ResultadoAgenteDemoPropuesta,
+  type ModoConsultaAgenteProsp,
+} from '@/lib/agente-prospeccion-ia';
 import {
   esBaseCrm, esEstado, hoyMadrid, esCanal, esResultado, proponerRuta, listaProspectos,
-  NIVELES, PRODUCTOS, PALANCAS, MATERIALES, MOTIVOS, type BaseCrm,
+  NIVELES, PRODUCTOS, PALANCAS, MATERIALES, MOTIVOS, OFERTAS, type BaseCrm,
 } from '@/lib/prospeccion';
 
 /**
@@ -44,6 +56,7 @@ function aviso(e: unknown) {
   if (/reintento/.test(m)) return 'reintento';
   if (/fecha no válida/.test(m)) return 'fecha';
   if (/no autorizado/.test(m)) return 'permiso';
+  if (/tope_demos_comercial/.test(m)) return 'tope_demos';
   if (/check constraint|invalid input|out of range|violates/.test(m)) return 'datos';
   if (/no encontrado/.test(m)) return 'slug';
   if (/motivo/.test(m)) return 'motivo';
@@ -239,4 +252,204 @@ export async function reasignarAction(f: FormData) {
   }
   revalidatePath(base);
   redirect(`${base}/${id}?ok=reasignado`);
+}
+
+/**
+ * 0117 · Reasignación por lote desde Central (6, 12 o selección manual) hacia un comercial,
+ * fijando si van A pie (y opcionalmente ya en su ruta de hoy) o a su Zona de Prospección Digital.
+ */
+export async function reasignarLoteAction(f: FormData) {
+  const { jwt, base } = await contexto(f);
+  const comercial = idDe(f, 'comercial');
+  const ids = f.getAll('ids').map(String).filter((id) => UUID.test(id));
+  if (!ids.length) redirect(`${base}?e=datos`);
+  const canalRaw = String(f.get('canal') ?? '');
+  const canal = esCanal(canalRaw) ? canalRaw : null;
+  const enRuta = f.get('en_ruta') === 'on' && (!canal || canal === 'fisico');
+  try {
+    await comoCliente(jwt, (c) =>
+      c.query('SELECT dk.admin_prosp_reasignar_lote($1::uuid[], $2, $3, $4)', [ids, comercial, canal, enRuta]),
+    );
+  } catch (e) {
+    redirect(`${base}?e=${aviso(e)}`);
+  }
+  revalidatePath(base);
+  redirect(`${base}?ok=lote`);
+}
+
+/**
+ * 0117 · Crea o actualiza la demo completa del prospecto (Carta de Autor + Panel + Comandas + 15 créditos IA).
+ * Si `abrir_editor` = '1', activa modo soporte (`COOKIE_PUESTA`) y redirige directo a `/panel?pestana=carta`
+ * para que el comercial o Dirección pueda subir fotos de los platos al momento.
+ */
+export async function crearDemoProspectoAction(f: FormData) {
+  const { jwt, base } = await contexto(f);
+  const id = idDe(f);
+  const plantilla = String(f.get('plantilla') ?? 'taberna');
+  const color = String(f.get('color') ?? '#b08d57');
+  const fondo = String(f.get('fondo') ?? 'papel');
+  const abrirEditor = f.get('abrir_editor') === '1';
+  const volverLista = f.get('volver') === 'lista';
+  let res: { restaurante_id: string; slug: string } | null = null;
+  try {
+    res = await comoCliente(jwt, async (c) => {
+      const r = await c.query<{ d: { restaurante_id: string; slug: string } }>(
+        'SELECT dk.prosp_crear_demo($1, $2, $3, $4) AS d',
+        [id, plantilla, color, fondo],
+      );
+      return r.rows[0]?.d ?? null;
+    });
+  } catch (e) {
+    redirect(volverLista ? `${base}?e=${aviso(e)}` : `${base}/${id}?e=${aviso(e)}`);
+  }
+  revalidatePath(base);
+  revalidatePath(`${base}/${id}`);
+  if (abrirEditor && res?.restaurante_id && UUID.test(res.restaurante_id)) {
+    (await cookies()).set(COOKIE_PUESTA, res.restaurante_id, {
+      httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 14400,
+    });
+    redirect('/panel?pestana=carta');
+  }
+  redirect(volverLista ? `${base}?ok=demo` : `${base}/${id}?ok=demo#demo`);
+}
+
+/**
+ * 0117 · Abre el editor completo (`/panel`) sobre el restaurante demo del prospecto
+ * para subir fotos reales de los platos al momento, usar IA o ajustar la carta y mesas.
+ */
+export async function abrirEditorDemoAction(f: FormData) {
+  const { jwt, base } = await contexto(f);
+  const restauranteId = idDe(f, 'restaurante_id');
+  const pestanaRaw = String(f.get('pestana') ?? 'carta');
+  const pestana = ['carta', 'sala', 'promociones', 'ajustes'].includes(pestanaRaw) ? pestanaRaw : 'carta';
+  const ok = await comoCliente(jwt, async (c) => {
+    const r = await c.query<{ ok: boolean }>('SELECT dk.gestiona($1) AS ok', [restauranteId]);
+    return Boolean(r.rows[0]?.ok);
+  }).catch(() => false);
+  if (!ok) redirect(`${base}?e=permiso`);
+  (await cookies()).set(COOKIE_PUESTA, restauranteId, {
+    httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 14400,
+  });
+  redirect(`/panel?pestana=${pestana}`);
+}
+
+/**
+ * 0117 · Guarda la propuesta automatizada con plantilla, oferta e inclusión automática del link de la demo,
+ * y genera el token de `/propuesta/[token]` en un solo paso.
+ */
+export async function guardarPropuestaPlantillaAction(f: FormData) {
+  const { jwt, base } = await contexto(f);
+  const id = idDe(f);
+  const texto = String(f.get('propuesta_texto') ?? '').trim();
+  const ofertaRaw = String(f.get('oferta') ?? 'qr_1');
+  const oferta = ofertaRaw in OFERTAS ? ofertaRaw : 'qr_1';
+  const muestraUrl = String(f.get('muestra_url') ?? '').trim() || null;
+  try {
+    await comoCliente(jwt, (c) =>
+      c.query('SELECT dk.prosp_guardar_propuesta_completa($1, $2, $3, $4)', [id, texto, oferta, muestraUrl]),
+    );
+  } catch (e) {
+    redirect(`${base}/${id}?e=${aviso(e)}#propuesta`);
+  }
+  revalidatePath(`${base}/${id}`);
+  redirect(`${base}/${id}?ok=propuesta#propuesta`);
+}
+
+const TIPOS_IMAGEN_CARTA = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+/**
+ * Sube una foto de la carta física o pantalla del prospecto a Vercel Blob para que el Agente IA
+ * extraiga automáticamente sus secciones, platos, precios y alérgenos.
+ */
+export async function subirFotoCartaProspectoAction(
+  formulario: FormData
+): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  try {
+    const jwt = await obtenerJwtDeSesion().catch(() => null);
+    if (!jwt) return { ok: false, error: 'Sesión caducada. Vuelve a iniciar sesión.' };
+    const prospectoId = String(formulario.get('prospecto_id') ?? '');
+    if (!UUID.test(prospectoId)) return { ok: false, error: 'Prospecto no válido.' };
+    const archivo = formulario.get('archivo');
+    if (!(archivo instanceof File)) return { ok: false, error: 'No se recibió ninguna foto.' };
+    if (!TIPOS_IMAGEN_CARTA.has(archivo.type)) return { ok: false, error: 'Formato no admitido (usa JPG, PNG o WebP).' };
+    if (archivo.size > 1_500_000) return { ok: false, error: 'La foto supera el tamaño máximo (1,5 MB).' };
+
+    await comoCliente(jwt, (c) => c.query('SELECT dk.prosp_exigir($1)', [prospectoId]));
+
+    const ext = archivo.type === 'image/png' ? 'png' : archivo.type === 'image/webp' ? 'webp' : 'jpg';
+    const { url } = await put(`prospeccion/cartas/${prospectoId}/${randomUUID()}.${ext}`, archivo, {
+      access: 'public',
+      contentType: archivo.type,
+    });
+    return { ok: true, url };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'No se pudo subir la foto de la carta.' };
+  }
+}
+
+/**
+ * Ejecuta el Agente IA Unificado (Prospecto -> Foto de Carta -> Demo con Logo + Banner + 5-6 fotos IA -> Propuesta lista).
+ */
+export async function ejecutarAgenteDemoPropuestaAction(
+  op: OpcionesAgenteDemoPropuesta & { base?: string }
+): Promise<({ ok: true } & ResultadoAgenteDemoPropuesta) | { ok: false; error: string }> {
+  try {
+    const jwt = await obtenerJwtDeSesion().catch(() => null);
+    if (!jwt) return { ok: false, error: 'Sesión caducada. Vuelve a iniciar sesión.' };
+    if (!UUID.test(op?.prospectoId ?? '')) return { ok: false, error: 'Prospecto no válido.' };
+
+    const res = await ejecutarAgenteDemoPropuesta(jwt, op);
+
+    const base = esBaseCrm(op.base) ? op.base : '/admin-dkitchen/prospeccion';
+    revalidatePath(base);
+    revalidatePath(`${base}/${op.prospectoId}`);
+    revalidatePath(`/m/${res.slug}`);
+    return { ok: true, ...res };
+  } catch (e) {
+    const m = e instanceof Error ? e.message : '';
+    if (/tope_demos_comercial/.test(m)) {
+      return {
+        ok: false,
+        error: 'Has alcanzado tu cupo máximo de 10 demos comerciales. Pide a Dirección ampliar tu cupo o reutiliza una demo existente.',
+      };
+    }
+    if (/creacion de demos desactivada/.test(m)) {
+      return { ok: false, error: 'La creación de demos está desactivada en tu perfil comercial.' };
+    }
+    return { ok: false, error: m || 'No se pudo completar el flujo del Agente IA.' };
+  }
+}
+
+/**
+ * Asistente y Chat IA comercial dentro de Prospección / Propuestas:
+ * Dirección sin límite; Comerciales hasta 80 consultas/día.
+ */
+export async function consultarAgenteProspeccionAction(d: {
+  prospectoId: string;
+  modo: ModoConsultaAgenteProsp;
+  texto: string;
+  demoSlug?: string | null;
+  propuestaToken?: string | null;
+}): Promise<{ ok: true; respuesta: string } | { ok: false; error: string }> {
+  try {
+    const jwt = await obtenerJwtDeSesion().catch(() => null);
+    if (!jwt) return { ok: false, error: 'Sesión caducada.' };
+    if (!UUID.test(d?.prospectoId ?? '')) return { ok: false, error: 'Prospecto no válido.' };
+
+    const cuota = await comoCliente(jwt, async (c) => {
+      const r = await c.query<{ c: { sin_limite?: boolean } }>('SELECT dk.prosp_cuota_ia() AS c');
+      return r.rows[0]?.c;
+    }).catch(() => ({ sin_limite: false }));
+
+    if (!cuota?.sin_limite) {
+      if (await limiteSuperado(claveDeLimite('prosp-ia-chat', d.prospectoId), 80, 24 * 60 * 60)) {
+        return { ok: false, error: 'Has usado mucho el asistente de IA hoy en este prospecto. Mañana podrás seguir.' };
+      }
+    }
+
+    const r = await consultarAgenteProspeccion(jwt, d);
+    return { ok: true, respuesta: r.respuesta };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'El asistente IA no ha respondido.' };
+  }
 }

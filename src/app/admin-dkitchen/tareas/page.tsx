@@ -1,4 +1,6 @@
+import { redirect } from 'next/navigation';
 import { exigirAdmin } from '@/lib/guard-admin';
+import { esComercialActual } from '@/lib/rol-central';
 import { verTareas, BLOQUES, RESPONSABLES, URGENCIAS, ESTADOS_COMUNICACION, RESULTADOS_CLAUDE, type Tarea } from '@/lib/tareas';
 import { verRevisiones, ESTADOS_REVISION, ESTADOS_CLAUDE, type Revision } from '@/lib/revisiones';
 import { verDecisiones } from '@/lib/decisiones';
@@ -21,7 +23,7 @@ const OK: Record<string, string> = {
   implementar: 'En cola: Claude la tiene la primera en su arranque y está en Hoy · De Claude. Cuando la termine, te llega para aprobar.',
   aprobar: 'Aprobada: la comunicación pasa a Resueltas.', reabrir: 'Reabierta: Claude la verá al empezar su sesión.',
   revision: 'Enviada: la tiene Claude y está aquí, en «Enviadas a Claude», hasta que responda. Tus comentarios anteriores se conservan en el hilo.', aprobada: 'Aprobada: está en «Aprobadas».',
-  material: 'Enviado al Buzón para Claude. Lo leerá al empezar su próxima sesión.',
+  material: 'Enviado al Buzón Agentes IA. Se leerá al empezar la próxima sesión.',
 };
 const ERR: Record<string, string> = { datos: 'Datos no válidos.', base: 'No se pudo guardar. Inténtalo de nuevo.', corto: 'Escribe al menos unas palabras (o añade una imagen).', muchos: 'Demasiados mensajes en una hora.' };
 const urgente = (t: Tarea, hoy: string) => t.estado !== 'hecha' && esMia(t) && (!!t.paraCuando && t.paraCuando <= hoy);
@@ -34,6 +36,7 @@ const urgente = (t: Tarea, hoy: string) => t.estado !== 'hecha' && esMia(t) && (
  */
 export default async function MisTareas({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAdmin();
+  if (await esComercialActual(jwt)) redirect('/admin-dkitchen/inicio');
   const sp = await searchParams;
   const [tareas, revisionesTodas, decisiones] = await Promise.all([verTareas(jwt).catch(() => null), verRevisiones(jwt).catch(() => null), verDecisiones(jwt).catch(() => null)]);
   // 30/10 (karc0): lo de Venezuela y pasarelas descartadas sale de aquí y vive en Lanzamiento → Planificación.
@@ -176,7 +179,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
           <section id="material" className="rounded-[28px] border border-oro/40 bg-papel p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Buzón privado</p>
             <h2 className="font-display mt-1 text-2xl font-semibold">Te dejo material</h2>
-            <p className="mt-1 text-sm text-niebla">Dime dónde has dejado algo (carpeta del escritorio, archivo, ID, texto) y para qué es. Llega al Buzón para Claude.</p>
+            <p className="mt-1 text-sm text-niebla">Dime dónde has dejado algo (carpeta del escritorio, archivo, ID, texto) y para qué es. Llega al Buzón Agentes IA.</p>
             <form action={materialAction} className="mt-4 space-y-3">
               <label className="block text-sm">Ruta o dónde está (opcional)
                 <input name="ruta" maxLength={280} placeholder="p. ej. Escritorio\fotos rincon  ·  ID píxel 1234567890" className="mt-1 w-full rounded-xl border border-acero bg-white px-3.5 py-2.5 text-sm outline-none focus:border-tinta" />

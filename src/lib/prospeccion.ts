@@ -58,6 +58,8 @@ export type Prospecto = {
   // 0114: canal, último resultado y posición en el mapa
   canal: Canal | null; ultimo_resultado: Resultado | null; lat: number | null; lng: number | null;
   consentimiento: boolean; instagram: string | null; plataformas: string | null;
+  // 0117: enlace con demo de restaurante y contador de aperturas
+  contacto?: string | null; restaurante_id?: string | null; demo_vistas?: number;
 };
 
 export type Contacto = {
@@ -72,6 +74,10 @@ export type Ficha = Omit<Prospecto, 'muestra' | 'nota_guia' | 'instagram' | 'pla
   referido_por: string | null; place_id: string | null; muestra_url: string | null; oferta: keyof typeof OFERTAS;
   propuesta_texto: string | null; propuesta_token: string | null; propuesta_vista_en: string | null;
   nota_guia: string | null; rol: 'admin' | 'socio'; cliente_slug: string | null;
+  restaurante_id?: string | null; demo_interna?: boolean | null; demo_color?: string | null;
+  demo_plantilla?: string | null; demo_fondo?: string | null; demo_vistas?: number;
+  demo_logo?: string | null; demo_portada?: string | null;
+  cuota_ia?: { rol: string; sin_limite: boolean; demos_usadas: number; demos_tope: number; imagenes_tope_demo: number } | null;
   relacion_previa: boolean; consentimiento_en: string | null; preparacion: string | null; geo_fuente: 'osm' | 'gps' | 'manual' | null;
   contactos: Contacto[];
   eventos: { tipo: string; texto: string | null; creado_en: string; quien: string }[];

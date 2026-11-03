@@ -14,8 +14,8 @@ export default async function BuzonSocio({ searchParams }: { searchParams: Promi
     <div className="space-y-6">
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Socio · Cuenta</p>
-        <h1 className="font-display mt-2 text-3xl font-semibold">Buzón para Claude</h1>
-        <p className="mt-1 text-sm text-niebla">Ideas para vender mejor, fallos que encuentres o preguntas. Lo lee Claude al empezar cada sesión y también lo ve DKitchen.</p>
+        <h1 className="font-display mt-2 text-3xl font-semibold">Buzón Agentes IA</h1>
+        <p className="mt-1 text-sm text-niebla">Ideas para vender mejor, fallos que encuentres o preguntas. Lo leen los Agentes IA al empezar cada sesión y también lo ve DKitchen.</p>
       </header>
       <BuzonVista mensajes={mensajes} esAdmin={false} escribir={escribirBuzonSocioAction} ok={sp.ok === '1'} error={sp.e} />
     </div>

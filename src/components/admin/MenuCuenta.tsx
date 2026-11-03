@@ -8,8 +8,8 @@ import { abrirAvisoFallo } from '@/components/admin/AvisarFallo';
 
 export type Cuenta = { nombre: string; email: string };
 
-/** Opciones de la cuenta en Central (0065): administradores, buzón para Claude y cerrar sesión. */
-export function OpcionesCuenta({ cuenta, alElegir }: { cuenta: Cuenta; alElegir?: () => void }) {
+/** Opciones de la cuenta en Central (0065): administradores y tareas solo para Dirección; Buzón Agentes IA y cerrar sesión para todos. */
+export function OpcionesCuenta({ cuenta, alElegir, esComercial = false }: { cuenta: Cuenta; alElegir?: () => void; esComercial?: boolean }) {
   const [saliendo, setSaliendo] = useState(false);
   const salir = async () => {
     setSaliendo(true);
@@ -26,9 +26,13 @@ export function OpcionesCuenta({ cuenta, alElegir }: { cuenta: Cuenta; alElegir?
         </div>
       </div>
       <ul className="mt-4 grid gap-1.5">
-        <li><Link href="/admin-dkitchen/administradores" onClick={alElegir} className="block rounded-2xl bg-papel px-4 py-3 text-sm font-medium">Administradores</Link></li>
-        <li><Link href="/admin-dkitchen/tareas" onClick={alElegir} className="block rounded-2xl bg-tinta px-4 py-3 text-sm font-semibold text-white">Mis tareas</Link></li>
-        <li><Link href="/admin-dkitchen/buzon" onClick={alElegir} className="block rounded-2xl bg-papel px-4 py-3 text-sm font-medium">Buzón para Claude</Link></li>
+        {!esComercial && (
+          <>
+            <li><Link href="/admin-dkitchen/administradores" onClick={alElegir} className="block rounded-2xl bg-papel px-4 py-3 text-sm font-medium">Administradores</Link></li>
+            <li><Link href="/admin-dkitchen/tareas" onClick={alElegir} className="block rounded-2xl bg-tinta px-4 py-3 text-sm font-semibold text-white">Mis tareas</Link></li>
+          </>
+        )}
+        <li><Link href="/admin-dkitchen/buzon" onClick={alElegir} className="block rounded-2xl bg-papel px-4 py-3 text-sm font-medium">Buzón Agentes IA</Link></li>
         <li><button onClick={() => { alElegir?.(); abrirAvisoFallo(); }} className="block w-full rounded-2xl bg-papel px-4 py-3 text-left text-sm font-medium text-carbon">Avisar de un fallo</button></li>
         <li>
           <button onClick={salir} disabled={saliendo} className="flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-left text-sm font-semibold text-vino hover:bg-vino/5 disabled:opacity-50">
@@ -43,7 +47,7 @@ export function OpcionesCuenta({ cuenta, alElegir }: { cuenta: Cuenta; alElegir?
 export const inicial = (c: Cuenta) => (c.nombre || c.email).trim().slice(0, 1).toUpperCase();
 
 /** Botón redondo con la inicial al pie del raíl de escritorio; abre las opciones encima. */
-export default function MenuCuenta({ cuenta }: { cuenta: Cuenta }) {
+export default function MenuCuenta({ cuenta, esComercial = false }: { cuenta: Cuenta; esComercial?: boolean }) {
   const [abierto, setAbierto] = useState(false);
   return (
     <>
@@ -56,7 +60,7 @@ export default function MenuCuenta({ cuenta }: { cuenta: Cuenta }) {
         <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Tu cuenta">
           <button aria-label="Cerrar" onClick={() => setAbierto(false)} className="absolute inset-0 bg-black/40" />
           <div className="absolute bottom-6 left-[100px] w-80 rounded-[28px] bg-white p-5 text-carbon shadow-2xl">
-            <OpcionesCuenta cuenta={cuenta} alElegir={() => setAbierto(false)} />
+            <OpcionesCuenta cuenta={cuenta} alElegir={() => setAbierto(false)} esComercial={esComercial} />
           </div>
         </div>
       )}

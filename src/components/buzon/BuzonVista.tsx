@@ -26,8 +26,8 @@ export default function BuzonVista({ mensajes, esAdmin, escribir, cambiarEstado,
   return (
     <div className="space-y-6">
       <section className="rounded-[22px] border border-linea bg-white p-5">
-        <p className="text-sm font-semibold">Escribir a Claude</p>
-        <p className="mt-1 text-xs text-niebla">Claude lo lee al empezar cada sesión de trabajo. No es para urgencias de clientes: para eso, Soporte o WhatsApp.</p>
+        <p className="text-sm font-semibold">Escribir a Agentes IA</p>
+        <p className="mt-1 text-xs text-niebla">Los Agentes IA lo leen al empezar cada sesión de trabajo. No es para urgencias de clientes: para eso, Soporte o WhatsApp.</p>
         {ok && <p className="mt-3 rounded-2xl bg-exito/10 p-3 text-sm text-exito">Mensaje guardado. Lo verás abajo con su estado y la respuesta.</p>}
         {error && <p className="mt-3 rounded-2xl bg-red-50 p-3 text-sm text-red-700">{ERRORES[error] ?? 'No se pudo guardar.'}</p>}
         <form action={escribir} className="mt-3 space-y-3">
@@ -49,7 +49,7 @@ export default function BuzonVista({ mensajes, esAdmin, escribir, cambiarEstado,
           <label className="block text-sm">Pantalla o cliente (opcional)
             <input name="pantalla" maxLength={300} placeholder="p. ej. Clientes → El Rincón del Flores" className="mt-1 w-full rounded-xl border border-acero bg-white px-3.5 py-2.5 text-sm outline-none focus:border-tinta" />
           </label>
-          <button className="rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white">Enviar a Claude</button>
+          <button className="rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white">Enviar a Agentes IA</button>
         </form>
       </section>
 
@@ -73,7 +73,7 @@ export default function BuzonVista({ mensajes, esAdmin, escribir, cambiarEstado,
               <p className="mt-2 whitespace-pre-wrap text-sm">{m.mensaje}</p>
               {m.respuesta && (
                 <div className="mt-3 rounded-2xl border-l-[3px] border-vino bg-papel px-4 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-vino">Respuesta de Claude{m.respondidoEn ? ` · ${fechaHora.format(new Date(m.respondidoEn))}` : ''}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-vino">Respuesta de Agentes IA{m.respondidoEn ? ` · ${fechaHora.format(new Date(m.respondidoEn))}` : ''}</p>
                   <p className="mt-1 whitespace-pre-wrap text-sm">{m.respuesta}</p>
                 </div>
               )}

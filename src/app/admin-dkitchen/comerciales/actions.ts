@@ -37,6 +37,46 @@ export async function habilitarAction(f: FormData) {
   volver('ok=habilitado');
 }
 
+/** Panel de Control Manual del Comercial (0117, petición de Alex en Buzón Agentes IA): servicios, zonas y demos. */
+export async function guardarConfigComercialAction(
+  identidadId: string,
+  config: { servicios: string[]; zonas: string[]; puede_crear_demos: boolean; tope_demos?: number; tope_imagenes_demo?: number },
+): Promise<{ ok?: true; error?: string }> {
+  const jwt = await exigirAdmin();
+  if (!UUID.test(identidadId)) return { error: 'Comercial no válido.' };
+  try {
+    await comoCliente(jwt, (c) =>
+      c.query('SELECT dk.admin_config_comercial_guardar($1, $2::jsonb)', [
+        identidadId,
+        JSON.stringify({
+          servicios: Array.isArray(config.servicios) ? config.servicios : [],
+          zonas: Array.isArray(config.zonas) ? config.zonas : [],
+          puede_crear_demos: Boolean(config.puede_crear_demos),
+          tope_demos: Number.isFinite(config.tope_demos) ? config.tope_demos : 10,
+          tope_imagenes_demo: Number.isFinite(config.tope_imagenes_demo) ? config.tope_imagenes_demo : 10,
+        }),
+      ]),
+    );
+  } catch (e) {
+    return { error: decodeURIComponent(msg(e)) || 'No se pudo guardar el perfil del comercial.' };
+  }
+  revalidatePath('/admin-dkitchen/comerciales');
+  revalidatePath('/admin-dkitchen/inicio');
+  return { ok: true };
+}
+
+export async function cambiarRolComercialAction(f: FormData) {
+  const jwt = await exigirAdmin();
+  const id = String(f.get('id') ?? '');
+  const rol = String(f.get('rol') ?? '');
+  if (!UUID.test(id) || !['comercial', 'en_formacion'].includes(rol)) volver('e=datos');
+  try {
+    await comoCliente(jwt, (c) => c.query('SELECT dk.admin_cambiar_rol_equipo($1, $2)', [id, rol]));
+  } catch (e) { volver(`e=base&m=${msg(e)}`); }
+  revalidatePath('/admin-dkitchen/comerciales');
+  volver('ok=perfil');
+}
+
 /** Pedir el OK de una palanca (desde el alta o la ficha). Dirección recibe un aviso al momento. */
 export async function solicitarPalancaAction(tipo: string, local: string, detalle: Record<string, unknown>): Promise<{ ok?: true; error?: string }> {
   const jwt = await exigirAdmin();

@@ -2,29 +2,38 @@ import BarraDemo from '@/components/BarraDemo';
 import type { Metadata } from 'next';
 import PanelShell from '@/components/panel/PanelShell';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
+import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
 import { SERVICIOS_QR } from '@/lib/pricing-config';
 import type { EstadoServicios } from '@/lib/servicios';
+import { comoVisitante } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 
 /**
- * Demo pública del panel del cliente (29/09/2026): el panel real con datos de
- * ejemplo. Sirve para enseñarlo en ventas y para revisarlo sin sesión. No toca
- * la base de datos: cualquier intento de guardar lo rechaza el servidor porque
- * no hay sesión.
+ * Demo pública del panel del cliente (29/09/2026 + 0117):
+ * - Sin parámetros: enseña Casa Brasa.
+ * - Con `?local=[slug]`: carga la demo de Autor creada para ese prospecto (con sus platos y fotos reales)
+ *   y contabiliza la visita en `prospectos.demo_vistas`.
  */
 export const metadata: Metadata = { title: 'Demo del panel · DKitchen', robots: { index: false, follow: false } };
 
 const hoy = new Date();
 const dia = (n: number) => { const d = new Date(hoy); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 
-const restaurante: MiRestaurante = {
+const restauranteBase: MiRestaurante = {
   id: 'demo', slug: 'demo', nombre: 'Casa Brasa', logoUrl: null, plan: 'ampliado', activo: true, colorMarca: '#E8592A', estadoAcceso: 'activo',
   descripcion: 'Cocina de mercado y brasa', telefono: '+34 600 000 000', direccion: 'Calle Mayor 1, Madrid', horario: 'Martes a domingo, 13:00–16:00 y 20:00–23:30',
   instagram: 'casabrasa', urlResenas: null, plantilla: 'editorial', nivelDiseno: 'esencial', idiomas: ['en'], whatsapp: '+34600000000',
   creadoEn: new Date(hoy.getTime() - 40 * 864e5).toISOString(), estiloFondo: 'papel', estiloLetra: 'serif', firma: { lema: 'Cocina de mercado desde 1987', adorno: 'rombo' },
 };
 
-const secciones = [{ id: 's1', nombre: 'Para compartir', orden: 1 }, { id: 's2', nombre: 'Principales', orden: 2 }, { id: 's3', nombre: 'Postres', orden: 3 }];
-const platos = [
+const seccionesBase: SeccionPropia[] = [
+  { id: 's1', nombre: 'Para compartir', orden: 1 },
+  { id: 's2', nombre: 'Principales', orden: 2 },
+  { id: 's3', nombre: 'Postres', orden: 3 },
+];
+
+const platosBase: PlatoPropio[] = [
   ['s1', 'Croquetas de jamón', 'Cremosas, seis unidades', '9.50', '/images/demo/s5.png', ['GL', 'LE', 'HU']],
   ['s1', 'Tartar de atún', 'Con aguacate y sésamo', '16.00', '/images/demo/s1.png', ['PE', 'SE']],
   ['s1', 'Patatas bravas', 'Brava ahumada y alioli', '6.50', null, ['HU']],
@@ -50,11 +59,13 @@ const servicios: EstadoServicios = {
     { servicio: 'bono_ia', nombre: 'Bono de 50 fotos con IA', tipo: 'unico', precioCentimos: SERVICIOS_QR.bonoIa * 100, precioAnclaCentimos: null, requiereAmpliado: false },
     { servicio: 'idioma_extra', nombre: 'Idioma extra', tipo: 'unico', precioCentimos: SERVICIOS_QR.idiomaExtra * 100, precioAnclaCentimos: null, requiereAmpliado: false },
   ],
-  // Muestra de oferta por fecha (0105) para que la demo enseñe cómo se ve en Mejoras.
   ofertasFecha: [{ id: '00000000-0000-0000-0000-000000000105', tema: 'navidad', titulo: 'Pack Navidad', descripcion: 'Menús de Navidad, Nochebuena y Nochevieja en tu carta, listos para coger reservas de grupos.',
     incluye: ['Portada y banner de Navidad en tu carta', 'Tus menús de Navidad y Nochevieja montados', '10 fotos con IA de temporada', 'Cartel con tu QR para reservar'],
     precio_centimos: 2900, precio_ancla_centimos: null, hasta: `${hoy.getFullYear() + (hoy.getMonth() === 0 ? 0 : 1)}-01-06`, solicitada: null }],
-  contratados: [{ servicio: 'idiomas', estado: 'activo', origen: 'pago', contratadoEn: new Date(hoy.getTime() - 20 * 864e5).toISOString(), checklist: {} }],
+  contratados: [
+    { servicio: 'idiomas', estado: 'activo', origen: 'pago', contratadoEn: new Date(hoy.getTime() - 20 * 864e5).toISOString(), checklist: {} },
+    { servicio: 'pack_sala', estado: 'activo', origen: 'pago', contratadoEn: new Date(hoy.getTime() - 20 * 864e5).toISOString(), checklist: {} },
+  ],
   plazasExperto: 12, oferta: { oferta: 'setup_experto', motivo: 'demo' }, credito: null,
   signature: { mostrar: true, motivo: 'escaneos', escaneos: 812, reservas: 46, llamadas: 210 },
 };
@@ -66,13 +77,34 @@ const reservas = [
   notas: null, estado: estado as 'pendiente' | 'confirmada', creadaEn: hoy.toISOString(), avisadoEn: null,
 }));
 
-export default function DemoPanel() {
+type DatosDemoSql = {
+  restaurante: MiRestaurante;
+  secciones: SeccionPropia[];
+  platos: PlatoPropio[];
+};
+
+export default async function DemoPanel({ searchParams }: { searchParams?: Promise<{ local?: string }> }) {
+  const sp = searchParams ? await searchParams : {};
+  const slug = typeof sp.local === 'string' && /^[a-z0-9-]{2,80}$/.test(sp.local) ? sp.local : null;
+
+  const datosLocal = slug
+    ? await comoVisitante(async (c) => (await c.query<{ d: DatosDemoSql | null }>('SELECT dk.demo_panel_datos($1) AS d', [slug])).rows[0]?.d ?? null).catch(() => null)
+    : null;
+
+  const restaurante = datosLocal?.restaurante ?? restauranteBase;
+  const secciones = datosLocal?.secciones?.length ? datosLocal.secciones : seccionesBase;
+  const platos = datosLocal?.platos?.length ? datosLocal.platos : platosBase;
+
   return (
     <>
-      <BarraDemo texto="Demostración con datos de ejemplo · ¿Quieres este panel para tu local?" />
+      <BarraDemo
+        texto={`Panel en vivo de ${restaurante.nombre} · Prueba cómo entran las comandas y cómo editas tu carta`}
+        localSlug={datosLocal ? restaurante.slug : undefined}
+        simulador
+      />
       <div>
         <PanelShell
-          identidad={{ id: 'demo', nombre: 'Alex', email: 'alex@casabrasa.es' }}
+          identidad={{ id: 'demo', nombre: restaurante.nombre, email: `hola@${restaurante.slug}.es` }}
           restaurante={restaurante}
           codigoQr="demo2026"
           carta={{ secciones, platos }}
