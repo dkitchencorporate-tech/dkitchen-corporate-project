@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { exigirAdmin, rolAdminActual } from '@/lib/guard-admin';
+import { exigirAdmin } from '@/lib/guard-admin';
+import { esComercialActual } from '@/lib/rol-central';
 import { bandejaSoporte, solicitudesQrAdmin } from '@/lib/admin-clientes';
 import { responderTicketAction } from '../qr/actions';
 import { guardarModoIaAction, n2IaAction } from './actions';
@@ -31,7 +32,7 @@ const ERRORES: Record<string, string> = {
 export default async function SoporteQr({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAdmin();
   const q = await searchParams;
-  const [tickets, solicitudes, metricas, modo, rol] = await Promise.all([bandejaSoporte(jwt), solicitudesQrAdmin(jwt), metricasSoporte(jwt), modoSoporte(jwt), rolAdminActual(jwt)]);
+  const [tickets, solicitudes, metricas, modo, esComercial] = await Promise.all([bandejaSoporte(jwt), solicitudesQrAdmin(jwt), metricasSoporte(jwt), modoSoporte(jwt), esComercialActual(jwt)]);
   const abiertos = tickets.filter((t) => t.estado === 'abierto').length;
   // N2 (0055): diagnóstico por reglas de los tickets sin cerrar (máx. 15 por carga)
   const vivos = tickets.filter((t) => t.estado !== 'cerrado').slice(0, 15);
@@ -130,7 +131,7 @@ export default async function SoporteQr({ searchParams }: { searchParams: Promis
         </section>
       </div>
 
-      {rol === 'direccion' && (
+      {!esComercial && (
         <details className="rounded-[22px] border border-linea bg-white p-4 text-sm">
           <summary className="cursor-pointer font-semibold">IA de soporte y métricas</summary>
           <div className="mt-4 space-y-4">
