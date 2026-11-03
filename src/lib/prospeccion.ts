@@ -8,29 +8,8 @@ import { comoCliente } from '@/lib/db';
  * PROSPECCION_200_LEADS_2026-10-07.md.
  */
 
-export const ESTADOS = {
-  por_revisar: 'Por revisar',
-  por_visitar: 'Por visitar',
-  muestra: 'Muestra hecha',
-  visitado: 'Visitado',
-  demo: 'Demo hecha',
-  interesado: 'Interesado',
-  cliente: 'Cliente',
-  descartado: 'Descartado',
-} as const;
-export type Estado = keyof typeof ESTADOS;
-export const esEstado = (e: unknown): e is Estado => typeof e === 'string' && e in ESTADOS;
-
-export const TIPOS = {
-  pizzeria: 'Pizzería', asador: 'Asador', restaurante: 'Restaurante', hamburgueseria: 'Hamburguesería', kebab: 'Kebab',
-  bar: 'Bar de tapas', cafeteria: 'Cafetería', heladeria: 'Heladería', panaderia: 'Panadería', otro: 'Otro',
-} as const;
-export const FUENTES = { visita: 'Visita', digital: 'Digital (redes)', red_socio: 'Red del socio', referido: 'Referido', script: 'Lote (Claude)' } as const;
-export const OFERTAS = { qr_1: 'Carta QR · 1 € el primer mes', fundador: 'Fundador (si está abierto)', signature: 'Signature', experience: 'Experience', dark_kitchen: 'Dark Kitchen' } as const;
-export const CONTACTOS = { visita: 'Visita', llamada: 'Llamada', whatsapp: 'WhatsApp', dm: 'DM (Instagram)', correo: 'Correo', nota: 'Nota' } as const;
-
 export * from './prospeccion-catalogo';
-import type { Canal, Resultado, Nivel, Producto, Palanca, Material } from './prospeccion-catalogo';
+import type { Estado, TIPOS, FUENTES, OFERTAS, Canal, Resultado, Nivel, Producto, Palanca, Material } from './prospeccion-catalogo';
 
 export type FilaEmbudo = { canal: Canal; contactos: number; locales: number; hablo: number; demo: number; propuesta: number; cerrado: number; descartado: number };
 export type Embudo = {

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ESTADOS, TIPOS, type BaseCrm, type Prospecto } from '@/lib/prospeccion';
-import { CANALES } from '@/lib/prospeccion-catalogo';
+import type { BaseCrm, Prospecto } from '@/lib/prospeccion';
+import { CANALES, ESTADOS, TIPOS } from '@/lib/prospeccion-catalogo';
 import { reasignarLoteAction } from '@/lib/prospeccion-acciones';
 
 const campo = 'w-full rounded-2xl border border-linea bg-white px-3.5 py-2.5 text-sm focus:border-vino focus:outline-none';

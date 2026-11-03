@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { OFERTAS, type BaseCrm } from '@/lib/prospeccion';
-import { PLANTILLAS_PROPUESTA, construirTextoPropuesta } from '@/lib/prospeccion-catalogo';
+import type { BaseCrm } from '@/lib/prospeccion';
+import { OFERTAS, PLANTILLAS_PROPUESTA, construirTextoPropuesta } from '@/lib/prospeccion-catalogo';
 import { guardarPropuestaPlantillaAction, consultarAgenteProspeccionAction } from '@/lib/prospeccion-acciones';
 
 const campo = 'w-full rounded-2xl border border-linea bg-white px-4 py-3 text-[15px] focus:border-vino focus:outline-none';

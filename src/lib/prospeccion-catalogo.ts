@@ -2,6 +2,27 @@
  * 0114 · Catálogos de la prospección física + canales (spec B / P7 7.1), sin dependencias de servidor:
  * los usan el registro en 3 toques (cliente) y el servidor. Etiquetas, nunca precios (los precios: pricing-config).
  */
+export const ESTADOS = {
+  por_revisar: 'Por revisar',
+  por_visitar: 'Por visitar',
+  muestra: 'Muestra hecha',
+  visitado: 'Visitado',
+  demo: 'Demo hecha',
+  interesado: 'Interesado',
+  cliente: 'Cliente',
+  descartado: 'Descartado',
+} as const;
+export type Estado = keyof typeof ESTADOS;
+export const esEstado = (e: unknown): e is Estado => typeof e === 'string' && e in ESTADOS;
+
+export const TIPOS = {
+  pizzeria: 'Pizzería', asador: 'Asador', restaurante: 'Restaurante', hamburgueseria: 'Hamburguesería', kebab: 'Kebab',
+  bar: 'Bar de tapas', cafeteria: 'Cafetería', heladeria: 'Heladería', panaderia: 'Panadería', otro: 'Otro',
+} as const;
+export const FUENTES = { visita: 'Visita', digital: 'Digital (redes)', red_socio: 'Red del socio', referido: 'Referido', script: 'Lote (Claude)' } as const;
+export const OFERTAS = { qr_1: 'Carta QR · 1 € el primer mes', fundador: 'Fundador (si está abierto)', signature: 'Signature', experience: 'Experience', dark_kitchen: 'Dark Kitchen' } as const;
+export const CONTACTOS = { visita: 'Visita', llamada: 'Llamada', whatsapp: 'WhatsApp', dm: 'DM (Instagram)', correo: 'Correo', nota: 'Nota' } as const;
+
 export const MOTIVOS = { precio: 'Precio', ya_tiene: 'Ya tiene sistema', no_interesa: 'No le interesa', cerrado: 'Cerrado', otro: 'Otro' } as const;
 export const CANALES = {
   fisico: 'A pie', telefono: 'Teléfono', instagram: 'Instagram', facebook: 'Facebook', tiktok: 'TikTok', whatsapp: 'WhatsApp', email: 'Email',
