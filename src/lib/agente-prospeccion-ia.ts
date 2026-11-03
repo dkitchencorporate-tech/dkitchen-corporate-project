@@ -94,7 +94,7 @@ export interface ResultadoAgenteDemoPropuesta {
  * Selecciona los platos principales / destacados de la carta para generar sus 5 o 6 imágenes con IA
  * y ponerlas en primera línea de impacto comercial.
  */
-function elegirPlatosPrincipales<T extends { id: string; seccionId: string | null; nombre: string; descripcion: string | null; precio: number }>(
+function elegirPlatosPrincipales<T extends { id: string; seccionId: string | null; nombre: string; descripcion: string | null; precio: string | number }>(
   secciones: { id: string; nombre: string }[],
   platos: T[],
   cantidad: number
@@ -275,9 +275,19 @@ export async function ejecutarAgenteDemoPropuesta(
       if (promos.length === 0) {
         await crearPromocion(jwt, restauranteId, {
           titulo: `Especialidades de ${prosp.nombre}`,
-          descripcion: 'Descubre nuestros platos recomendados recién hechos para ti.',
-          etiqueta: 'Recomendado',
+          texto: 'Descubre nuestros platos recomendados recién hechos para ti.',
           imagenUrl: rBanner.url,
+          botonTexto: null,
+          botonSeccion: null,
+          botonDestino: 'ninguno',
+          botonPlato: null,
+          inicio: null,
+          fin: null,
+          dias: null,
+          horaInicio: null,
+          horaFin: null,
+          prioridad: 1,
+          activa: true,
         }).catch(() => {});
       }
       bannerGenerado = true;
@@ -304,8 +314,10 @@ export async function ejecutarAgenteDemoPropuesta(
         );
         await editarPlato(jwt, plato.id, {
           fotoUrl: rPlato.url,
-          etiqueta: 'estrella',
         });
+        await comoCliente(jwt, (c) =>
+          c.query("UPDATE public.menu_items SET etiqueta = 'estrella' WHERE id = $1", [plato.id])
+        ).catch(() => {});
         platosConFotoIa++;
       } catch (e) {
         avisos.push(`Foto IA «${plato.nombre}»: ${e instanceof Error ? e.message : 'límite alcanzado'}`);
