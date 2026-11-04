@@ -128,7 +128,7 @@ export default function PerfilComercialControl({
       <div className="mt-3 space-y-3 border-t border-linea pt-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-vino">Presets en 1 clic para {nombre}</p>
-          <div className="mt-1.5 grid gap-1.5 sm:grid-cols-3">
+          <div className="mt-1.5 grid gap-1.5 grid-cols-1">
             {PRESETS.map((p) => (
               <button
                 key={p.id}

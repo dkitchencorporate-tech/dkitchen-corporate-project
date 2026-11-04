@@ -154,7 +154,7 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
         </form>
       </section>
 
-      <section id="demo" className="rounded-[24px] border border-vino/30 bg-gradient-to-br from-white via-papel/60 to-white p-5 shadow-sm">
+      <section id="demo" className="rounded-[24px] border border-vino/30 bg-gradient-to-br from-white via-papel/60 to-white p-3 sm:p-5 shadow-sm">
         <AgenteDemoPropuestaIa
           base={base}
           prospectoId={f.id}
@@ -185,7 +185,7 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
         </div>
 
         {f.cliente_slug && (
-          <div className="mt-4 space-y-3 rounded-2xl border border-linea bg-white p-4">
+          <div className="mt-4 space-y-3 rounded-2xl border border-linea bg-white p-3 sm:p-4">
             <div className="flex flex-wrap items-center gap-2">
               <a
                 href={`/m/${f.cliente_slug}`}
