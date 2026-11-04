@@ -1,14 +1,16 @@
+'use client';
+
 import React, { useState } from 'react';
 import Link from 'next/link';
+import type { BaseCrm, Estado, Prospecto, Metrica } from '@/lib/prospeccion';
 import {
-  ESTADOS, TIPOS, FUENTES, enlacesRuta, enlaceWhatsapp, fechaCorta, hoyMadrid,
-  type BaseCrm, type Estado, type Prospecto, type Metrica,
-} from '@/lib/prospeccion';
+  ESTADOS, TIPOS, FUENTES, CANALES, RESULTADOS, esBaza, esDigital, type Canal,
+  enlacesRuta, enlaceWhatsapp, fechaCorta, hoyMadrid,
+} from '@/lib/prospeccion-catalogo';
 import {
   guardarProspectoAction, guardarRutaAction, guardarMiContactoAction, proponerRutaAction,
   crearDemoProspectoAction, abrirEditorDemoAction, loteAccionProspectosAction,
 } from '@/lib/prospeccion-acciones';
-import { CANALES, RESULTADOS, esBaza, esDigital, type Canal } from '@/lib/prospeccion-catalogo';
 import MapaRuta from './MapaRuta';
 import AntesDeEntrar from './AntesDeEntrar';
 import RegistroRapido from './RegistroRapido';

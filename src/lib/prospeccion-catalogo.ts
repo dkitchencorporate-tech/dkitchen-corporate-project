@@ -189,3 +189,26 @@ export function proponerRuta<T extends { lat: number | string | null; lng: numbe
   return ruta;
 }
 
+/**
+ * Enlaces de Google Maps con varias paradas (formato /dir/, que abre la app en
+ * el móvil). Origen vacío = «tu ubicación». Tramos de 9 paradas.
+ */
+export function enlacesRuta(paradas: { nombre: string; direccion: string | null; zona: string }[]): string[] {
+  const destinos = paradas.map((p) => encodeURIComponent(`${p.direccion || p.nombre}, ${p.zona}`));
+  const tramos: string[] = [];
+  for (let i = 0; i < destinos.length; i += 9) tramos.push(`https://www.google.com/maps/dir//${destinos.slice(i, i + 9).join('/')}`);
+  return tramos;
+}
+
+export const soloDigitos = (t: string | null) => (t || '').replace(/\D/g, '');
+/** wa.me necesita prefijo de país: un móvil español de 9 cifras lleva 34 delante. */
+export const enlaceWhatsapp = (t: string | null) => {
+  const d = soloDigitos(t);
+  if (!d) return null;
+  return `https://wa.me/${d.length === 9 ? '34' + d : d}`;
+};
+export const fechaCorta = (s: string | null) => (s ? new Date(s.length === 10 ? s + 'T12:00:00' : s).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'Europe/Madrid' }) : '');
+/** Hoy en Madrid (AAAA-MM-DD): la ruta y «toca hoy» van por el día de aquí, no por UTC. */
+export const hoyMadrid = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+
+
