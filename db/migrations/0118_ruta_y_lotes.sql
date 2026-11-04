@@ -139,7 +139,7 @@ BEGIN
       WHEN 'archivar' THEN
         UPDATE public.prospectos
            SET estado = 'descartado',
-               motivo_descarte = coalesce(p_valor, 'archivado_lote'),
+               motivo_descarte = CASE WHEN p_valor IN ('precio', 'ya_tiene', 'no_interesa', 'cerrado', 'otro') THEN p_valor ELSE 'otro' END,
                actualizado_en = clock_timestamp()
          WHERE id = ANY(p_ids);
         GET DIAGNOSTICS v_afectados = ROW_COUNT;
