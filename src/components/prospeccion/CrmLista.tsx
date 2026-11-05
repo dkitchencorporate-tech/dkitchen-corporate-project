@@ -15,7 +15,7 @@ import MapaRuta from './MapaRuta';
 import AntesDeEntrar from './AntesDeEntrar';
 import RegistroRapido from './RegistroRapido';
 import LotesProspeccion from './LotesProspeccion';
-import BarraLote from '@/components/admin/BarraLote';
+import BarraLote, { comprobarLote } from '@/components/admin/BarraLote';
 
 /**
  * Lista del CRM de prospección (0058), móvil primero: ruta de hoy con Google
@@ -213,7 +213,8 @@ export default function CrmLista({
   // 04/11 (Bloque B): Exclusión de demos de script/Claude por defecto en cartera
   const [verScript, setVerScript] = useState(verScriptInicial);
   const demosScriptTotal = lista.filter((p) => p.fuente === 'script').length;
-  const listaBase = verScript ? lista : lista.filter((p) => p.fuente !== 'script');
+  // 05/11: el filtro de script solo aplica en Central; el comercial ve siempre todo lo que se le asigna.
+  const listaBase = verScript || !central ? lista : lista.filter((p) => p.fuente !== 'script');
 
   // Selección unitaria y múltiple para acciones en lote (0118)
   const [seleccionados, setSeleccionados] = useState<string[]>([]);
@@ -253,7 +254,7 @@ export default function CrmLista({
   const handleMoverLote = async (nuevoEstado: string) => {
     setCargandoLote(true);
     try {
-      await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'mover_estado', valor: nuevoEstado });
+      comprobarLote(await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'mover_estado', valor: nuevoEstado }), seleccionados.length, 'mover_estado');
       setSeleccionados([]);
     } finally {
       setCargandoLote(false);
@@ -263,7 +264,7 @@ export default function CrmLista({
   const handleReasignarLote = async (comercialId: string) => {
     setCargandoLote(true);
     try {
-      await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'reasignar', valor: comercialId });
+      comprobarLote(await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'reasignar', valor: comercialId }), seleccionados.length, 'reasignar');
       setSeleccionados([]);
     } finally {
       setCargandoLote(false);
@@ -273,7 +274,7 @@ export default function CrmLista({
   const handleArchivarLote = async () => {
     setCargandoLote(true);
     try {
-      await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'archivar' });
+      comprobarLote(await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'archivar' }), seleccionados.length, 'archivar');
       setSeleccionados([]);
     } finally {
       setCargandoLote(false);
@@ -283,7 +284,7 @@ export default function CrmLista({
   const handleDesarchivarLote = async () => {
     setCargandoLote(true);
     try {
-      await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'desarchivar' });
+      comprobarLote(await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'desarchivar' }), seleccionados.length, 'desarchivar');
       setSeleccionados([]);
     } finally {
       setCargandoLote(false);
@@ -293,7 +294,7 @@ export default function CrmLista({
   const handleBorrarLote = async () => {
     setCargandoLote(true);
     try {
-      await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'borrar' });
+      comprobarLote(await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'borrar' }), seleccionados.length, 'borrar');
       setSeleccionados([]);
     } finally {
       setCargandoLote(false);
@@ -629,7 +630,7 @@ export default function CrmLista({
                 base={base}
                 central={!!central}
                 seleccionado={seleccionados.includes(p.id)}
-                onToggleSeleccion={toggleSeleccion}
+                onToggleSeleccion={central ? toggleSeleccion : undefined}
               />
             ))}
           </ul>
@@ -658,7 +659,7 @@ export default function CrmLista({
               <section key={e} className="w-[300px] shrink-0 snap-start rounded-[22px] bg-papel/70 p-3">
                 <h2 className="mb-3 flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-[0.14em] text-grafito"><i className={`h-2.5 w-2.5 rounded-full ${BARRA[e]}`} />{ESTADOS[e]}<span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[11px]">{col.length}</span></h2>
                 {col.length === 0 ? <p className="rounded-2xl border border-dashed border-linea p-4 text-center text-xs text-ceniza">Vacío</p>
-                  : <ul className="space-y-3">{col.map((p) => <Tarjeta key={p.id} p={p} base={base} central={!!central} demo={demos[p.id]} seleccionado={seleccionados.includes(p.id)} onToggleSeleccion={toggleSeleccion} />)}</ul>}
+                  : <ul className="space-y-3">{col.map((p) => <Tarjeta key={p.id} p={p} base={base} central={!!central} demo={demos[p.id]} seleccionado={seleccionados.includes(p.id)} onToggleSeleccion={central ? toggleSeleccion : undefined} />)}</ul>}
               </section>
             );
           })}
@@ -673,13 +674,14 @@ export default function CrmLista({
               central={!!central}
               demo={demos[p.id]}
               seleccionado={seleccionados.includes(p.id)}
-              onToggleSeleccion={toggleSeleccion}
+              onToggleSeleccion={central ? toggleSeleccion : undefined}
             />
           ))}
         </ul>
       )}
 
-      {/* Barra flotante de acciones por lote para CRM / Prospección (0118) */}
+      {/* Barra flotante de acciones por lote (0118): solo Dirección en Central; la base lo exige igualmente */}
+      {central && (
       <BarraLote
         seleccionados={seleccionados}
         totalVisibles={filtrada.length}
@@ -703,6 +705,7 @@ export default function CrmLista({
         onBorrar={central ? handleBorrarLote : undefined}
         cargando={cargandoLote}
       />
+      )}
 
       <details className={tarjeta} open={!contacto}>
         <summary className="cursor-pointer text-sm font-semibold">Mis datos para la propuesta{contacto ? ` · ${contacto.nombre_publico}` : ' (pendiente)'}</summary>

@@ -2,6 +2,19 @@
 
 import React, { useState } from 'react';
 
+/**
+ * 05/11: las acciones en lote devuelven { ok, afectados, error } en vez de lanzar. Esto lo convierte en un
+ * error para que la barra lo enseñe y no limpie la selección como si hubiera ido bien. En «borrar» avisa
+ * también si el blindaje ha dejado fuera parte de lo seleccionado.
+ */
+export function comprobarLote(r: { ok: boolean; afectados: number; error?: string }, pedidos: number, accion: string) {
+  if (!r.ok) throw new Error(r.error || 'No se ha podido aplicar la acción.');
+  if (accion === 'borrar' && r.afectados < pedidos) {
+    throw new Error(`Borrados ${r.afectados} de ${pedidos}. El resto está protegido (cliente con pago, o no es demo, prueba ni archivado).`);
+  }
+  return r.afectados;
+}
+
 export interface OpcionEstado {
   valor: string;
   etiqueta: string;

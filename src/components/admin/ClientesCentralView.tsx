@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { nombrePlan } from '@/lib/pricing-config';
 import type { ClienteQr, Pestana } from '@/lib/admin-clientes';
 import { asignarComercialAction, loteAccionClientesAction } from '@/app/admin-dkitchen/qr/actions';
-import BarraLote, { type OpcionEstado } from '@/components/admin/BarraLote';
+import BarraLote, { comprobarLote, type OpcionEstado } from '@/components/admin/BarraLote';
 
 export function pestanaDe(c: ClienteQr, hoy = new Date().toISOString().slice(0, 10)): Pestana {
   if (c.archivadoEn) return 'archivados';
@@ -185,7 +185,7 @@ export default function ClientesCentralView({
   const handleMoverLote = async (nuevoEstado: string) => {
     setCargandoLote(true);
     try {
-      await loteAccionClientesAction({ ids: seleccionados, accion: 'mover_estado', valor: nuevoEstado });
+      comprobarLote(await loteAccionClientesAction({ ids: seleccionados, accion: 'mover_estado', valor: nuevoEstado }), seleccionados.length, 'mover_estado');
       setSeleccionados([]);
     } finally {
       setCargandoLote(false);
@@ -195,7 +195,7 @@ export default function ClientesCentralView({
   const handleReasignarLote = async (comercialId: string) => {
     setCargandoLote(true);
     try {
-      await loteAccionClientesAction({ ids: seleccionados, accion: 'reasignar', valor: comercialId });
+      comprobarLote(await loteAccionClientesAction({ ids: seleccionados, accion: 'reasignar', valor: comercialId }), seleccionados.length, 'reasignar');
       setSeleccionados([]);
     } finally {
       setCargandoLote(false);
@@ -205,7 +205,7 @@ export default function ClientesCentralView({
   const handleArchivarLote = async () => {
     setCargandoLote(true);
     try {
-      await loteAccionClientesAction({ ids: seleccionados, accion: 'archivar' });
+      comprobarLote(await loteAccionClientesAction({ ids: seleccionados, accion: 'archivar' }), seleccionados.length, 'archivar');
       setSeleccionados([]);
     } finally {
       setCargandoLote(false);
@@ -215,7 +215,7 @@ export default function ClientesCentralView({
   const handleDesarchivarLote = async () => {
     setCargandoLote(true);
     try {
-      await loteAccionClientesAction({ ids: seleccionados, accion: 'desarchivar' });
+      comprobarLote(await loteAccionClientesAction({ ids: seleccionados, accion: 'desarchivar' }), seleccionados.length, 'desarchivar');
       setSeleccionados([]);
     } finally {
       setCargandoLote(false);
@@ -225,7 +225,7 @@ export default function ClientesCentralView({
   const handleBorrarLote = async () => {
     setCargandoLote(true);
     try {
-      await loteAccionClientesAction({ ids: seleccionados, accion: 'borrar' });
+      comprobarLote(await loteAccionClientesAction({ ids: seleccionados, accion: 'borrar' }), seleccionados.length, 'borrar');
       setSeleccionados([]);
     } finally {
       setCargandoLote(false);

@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { put } from '@vercel/blob';
 import { comoCliente } from '@/lib/db';
 import { obtenerJwtDeSesion } from '@/lib/sesion';
+import { exigirAdmin } from '@/lib/guard-admin';
 import { COOKIE_PUESTA } from '@/lib/socio-codigo';
 import { claveDeLimite, limiteSuperado } from '@/lib/limite-frecuencia';
 import {
@@ -456,8 +457,8 @@ export async function consultarAgenteProspeccionAction(d: {
 
 /** 0118: Acciones en lote para prospectos (dk.admin_lote_accion). */
 export async function loteAccionProspectosAction(datos: { base: string; ids: string[]; accion: string; valor?: string }) {
-  const jwt = await obtenerJwtDeSesion().catch(() => null);
-  if (!jwt) redirect('/panel/iniciar-sesion');
+  // 05/11: doble cerrojo (sesión de Central + dk.exigir_direccion() en la base)
+  const jwt = await exigirAdmin();
   if (!Array.isArray(datos.ids) || datos.ids.length === 0) {
     return { ok: false, afectados: 0, error: 'No hay prospectos seleccionados.' };
   }
