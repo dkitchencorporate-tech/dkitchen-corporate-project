@@ -477,6 +477,7 @@ export default function ClientesCentralView({
             <option value="riesgo">En riesgo</option>
             <option value="bajas">Bajas</option>
             <option value="demo">Demo interna</option>
+            <option value="sistema">Pruebas sistema (Claude)</option>
             <option value="archivados">Archivados</option>
           </select>
         </div>
@@ -487,13 +488,24 @@ export default function ClientesCentralView({
         <div className="rounded-2xl border border-linea bg-white p-12 text-center">
           <p className="font-display text-lg font-semibold text-carbon">{!hayFiltrosActivos && conteo.todos === 0 ? 'Todavía no hay clientes reales' : 'Ningún cliente coincide con los filtros'}</p>
           <p className="mt-1 text-sm text-niebla">{!hayFiltrosActivos && conteo.todos === 0 ? `Crea el primero con «+ Nuevo cliente». Las ${conteo.demo} demos y ${conteo.bajas} bajas están en sus propios filtros.` : 'Prueba a cambiar los términos de búsqueda o a limpiar los filtros.'}</p>
-          <button
-            type="button"
-            onClick={limpiarFiltros}
-            className="mt-4 inline-flex items-center rounded-full bg-vino px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-hondo"
-          >
-            Ver todos los clientes
-          </button>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={limpiarFiltros}
+              className="inline-flex items-center rounded-full bg-vino px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-hondo"
+            >
+              Ver todos los clientes
+            </button>
+            {conteo.demo > 0 && (
+              <button
+                type="button"
+                onClick={() => cambiarPestana('demo')}
+                className="inline-flex items-center rounded-full border border-vino bg-vino/5 px-4 py-2 text-xs font-semibold text-vino hover:bg-vino hover:text-white transition"
+              >
+                Ver demos ({conteo.demo})
+              </button>
+            )}
+          </div>
         </div>
       ) : (
         <>

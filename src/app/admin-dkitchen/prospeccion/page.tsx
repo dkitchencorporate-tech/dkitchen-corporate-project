@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Central → Prospección (0058/0117/0118): por defecto muestra «Mi cartera» en Dirección; pestañas 1 clic por comercial, exclusión de script por defecto y selección en lote. */
-export default async function ProspeccionCentral({ searchParams }: { searchParams: Promise<{ estado?: string; comercial?: string; modo?: string; e?: string; ok?: string; vista?: string; script?: string }> }) {
+export default async function ProspeccionCentral({ searchParams }: { searchParams: Promise<{ estado?: string; comercial?: string; modo?: string; e?: string; ok?: string; vista?: string }> }) {
   const jwt = await exigirAdmin();
   const sp = await searchParams;
   const comerciales = await comercialesCentral(jwt).catch(() => null);
@@ -25,7 +25,6 @@ export default async function ProspeccionCentral({ searchParams }: { searchParam
     comoCliente(jwt, async (c) => (await c.query<{ d: Record<string, DemoProspecto> }>('SELECT dk.admin_prosp_demos() AS d')).rows[0].d).catch(() => ({} as Record<string, DemoProspecto>)),
   ]);
   const modo = sp.modo === 'digital' ? 'digital' : sp.modo === 'pie' ? 'pie' : 'todos';
-  const verScript = sp.script === '1';
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 text-carbon sm:px-6 lg:px-10">
       <GuiaZona titulo="Prospección" ancla="prospeccion"
@@ -34,7 +33,7 @@ export default async function ProspeccionCentral({ searchParams }: { searchParam
       <CrmLista base="/admin-dkitchen/prospeccion" lista={lista} estado={esEstado(sp.estado) ? sp.estado : null} aviso={sp.e} ok={sp.ok}
         contacto={contacto} central={Boolean(comerciales && comerciales.length > 0)} comerciales={comerciales ?? undefined}
         comercial={sp.comercial === 'todas' ? 'todas' : comercialFiltro} modo={modo} metricas={metricas} demos={demos}
-        vista={sp.vista === 'tablero' ? 'tablero' : 'tarjetas'} verScriptInicial={verScript} />
+        vista={sp.vista === 'tablero' ? 'tablero' : 'tarjetas'} />
     </div>
   );
 }
