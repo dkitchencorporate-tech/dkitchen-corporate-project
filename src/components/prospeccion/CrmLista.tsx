@@ -202,19 +202,15 @@ function Tarjeta({
   );
 }
 export default function CrmLista({
-  base, lista, estado, aviso, ok, contacto, central, comerciales, comercial, modo = 'todos', metricas, demos = {}, vista = 'tarjetas', verScriptInicial = false,
+  base, lista, estado, aviso, ok, contacto, central, comerciales, comercial, modo = 'todos', metricas, demos = {}, vista = 'tarjetas',
 }: {
   base: BaseCrm; lista: Prospecto[]; estado: string | null; aviso?: string; ok?: string; demos?: Record<string, DemoProspecto>; vista?: 'tarjetas' | 'tablero';
   contacto: { nombre_publico: string; telefono: string | null } | null;
   central?: boolean; comerciales?: { id: string; nombre: string }[]; comercial?: string | null; modo?: 'todos' | 'pie' | 'digital'; metricas?: Metrica[] | null;
-  verScriptInicial?: boolean;
-}) {
+  }) {
   const hoy = hoyMadrid();
-  // 04/11 (Bloque B): Exclusión de demos de script/Claude por defecto en cartera
-  const [verScript, setVerScript] = useState(verScriptInicial);
-  const demosScriptTotal = lista.filter((p) => p.fuente === 'script').length;
-  // 05/11: el filtro de script solo aplica en Central; el comercial ve siempre todo lo que se le asigna.
-  const listaBase = verScript || !central ? lista : lista.filter((p) => p.fuente !== 'script');
+  // Todos los prospectos son reales (importados o creados); se muestran en cartera completa
+  const listaBase = lista;
 
   // Selección unitaria y múltiple para acciones en lote (0118)
   const [seleccionados, setSeleccionados] = useState<string[]>([]);
@@ -307,7 +303,6 @@ export default function CrmLista({
     if (com) s.set('comercial', com);
     if (m !== 'todos') s.set('modo', m);
     if (v !== 'tarjetas') s.set('vista', v);
-    if (verScript) s.set('script', '1');
     const t = s.toString();
     return t ? `${base}?${t}` : base;
   };
@@ -371,19 +366,7 @@ export default function CrmLista({
             >
               🌐 Todas las carteras
             </Link>
-            {demosScriptTotal > 0 && (
-              <button
-                type="button"
-                onClick={() => setVerScript(!verScript)}
-                className={`ml-auto rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
-                  verScript
-                    ? 'bg-amber-600 text-white shadow-sm'
-                    : 'border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'
-                }`}
-              >
-                {verScript ? 'Ocultar demos de script' : `Mostrar demos de script (${demosScriptTotal})`}
-              </button>
-            )}
+
           </div>
           <LotesProspeccion base={base} prospectos={lista} comerciales={comerciales} demosIds={Object.keys(demos)} />
         </div>
