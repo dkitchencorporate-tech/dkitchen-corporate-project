@@ -93,7 +93,7 @@ export default function LotesProspeccion({
           )}
         </div>
 
-        <div className="grid gap-3 rounded-2xl bg-papel/70 p-3.5 sm:grid-cols-3">
+        <div className="grid gap-3 rounded-2xl bg-papel/70 p-3.5 sm:grid-cols-2 lg:grid-cols-3">
           <label className="text-xs font-semibold text-grafito">
             1. Pasar a la cartera de:
             <select name="comercial" value={comercialDestino} onChange={(e) => setComercialDestino(e.target.value)} className={`${campo} mt-1`}>
@@ -138,7 +138,7 @@ export default function LotesProspeccion({
             const marcado = seleccionados.includes(p.id);
             const tieneDemo = setDemo.has(p.id);
             return (
-              <label key={p.id} className={`flex cursor-pointer items-center gap-3 px-3.5 py-2.5 text-sm transition ${marcado ? 'bg-vino/5' : 'hover:bg-papel/50'}`}>
+              <label key={p.id} className={`flex cursor-pointer items-center gap-3 px-3.5 py-2.5 min-h-[44px] text-sm transition ${marcado ? 'bg-vino/5' : 'hover:bg-papel/50'}`}>
                 <input
                   type="checkbox"
                   checked={marcado}

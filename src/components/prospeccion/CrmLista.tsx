@@ -1,17 +1,21 @@
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
+import type { BaseCrm, Estado, Prospecto, Metrica } from '@/lib/prospeccion';
 import {
-  ESTADOS, TIPOS, FUENTES, enlacesRuta, enlaceWhatsapp, fechaCorta, hoyMadrid,
-  type BaseCrm, type Estado, type Prospecto, type Metrica,
-} from '@/lib/prospeccion';
+  ESTADOS, TIPOS, FUENTES, CANALES, RESULTADOS, esBaza, esDigital, type Canal,
+  enlacesRuta, enlaceWhatsapp, fechaCorta, hoyMadrid,
+} from '@/lib/prospeccion-catalogo';
 import {
   guardarProspectoAction, guardarRutaAction, guardarMiContactoAction, proponerRutaAction,
-  crearDemoProspectoAction, abrirEditorDemoAction,
+  crearDemoProspectoAction, abrirEditorDemoAction, loteAccionProspectosAction,
 } from '@/lib/prospeccion-acciones';
-import { CANALES, RESULTADOS, esBaza, esDigital, type Canal } from '@/lib/prospeccion-catalogo';
 import MapaRuta from './MapaRuta';
 import AntesDeEntrar from './AntesDeEntrar';
 import RegistroRapido from './RegistroRapido';
 import LotesProspeccion from './LotesProspeccion';
+import BarraLote, { comprobarLote } from '@/components/admin/BarraLote';
 
 /**
  * Lista del CRM de prospección (0058), móvil primero: ruta de hoy con Google
@@ -41,12 +45,26 @@ export function EtiquetaEstado({ e }: { e: Estado }) {
   return <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${COLOR[e]}`}>{ESTADOS[e]}</span>;
 }
 
-function Fila({ p, base, central }: { p: Prospecto; base: BaseCrm; central: boolean }) {
+function Fila({
+  p, base, central, seleccionado, onToggleSeleccion,
+}: {
+  p: Prospecto; base: BaseCrm; central: boolean; seleccionado?: boolean; onToggleSeleccion?: (id: string) => void;
+}) {
   const hoy = hoyMadrid();
   const vence = p.siguiente_fecha && p.siguiente_fecha <= hoy;
   return (
-    <li>
-      <Link href={`${base}/${p.id}`} className="block px-4 py-3.5 hover:bg-papel/60 sm:px-5">
+    <li className={`flex items-center gap-2 transition hover:bg-papel/60 ${seleccionado ? 'bg-vino/[0.04]' : ''}`}>
+      {onToggleSeleccion && (
+        <label className="flex items-center justify-center min-h-[44px] pl-4 pr-1 cursor-pointer shrink-0" aria-label={`Seleccionar ${p.nombre}`}>
+          <input
+            type="checkbox"
+            checked={Boolean(seleccionado)}
+            onChange={() => onToggleSeleccion(p.id)}
+            className="h-5 w-5 rounded border-linea text-vino focus:ring-vino"
+          />
+        </label>
+      )}
+      <Link href={`${base}/${p.id}`} className="block flex-1 min-w-0 px-4 py-3.5 sm:px-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate font-semibold">{p.nombre}</p>
@@ -99,86 +117,122 @@ function MiniCarta({ d, nombre }: { d: DemoProspecto; nombre: string }) {
   );
 }
 
-function Tarjeta({ p, base, central, demo }: { p: Prospecto; base: BaseCrm; central: boolean; demo?: DemoProspecto }) {
+function Tarjeta({
+  p, base, central, demo, seleccionado, onToggleSeleccion,
+}: {
+  p: Prospecto; base: BaseCrm; central: boolean; demo?: DemoProspecto; seleccionado?: boolean; onToggleSeleccion?: (id: string) => void;
+}) {
   const hoy = hoyMadrid();
   const vence = p.siguiente_fecha && p.siguiente_fecha <= hoy && !['cliente', 'descartado'].includes(p.estado);
   return (
-    <li className={`group relative flex gap-4 overflow-hidden rounded-[22px] border bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(20,16,12,.45)] ${vence ? 'border-vino/40' : 'border-linea'}`}>
+    <li className={`group relative flex flex-col justify-between overflow-hidden rounded-[22px] border bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(20,16,12,.45)] ${seleccionado ? 'border-vino ring-1 ring-vino/30 bg-vino/[0.02]' : vence ? 'border-vino/40' : 'border-linea'}`}>
       <span className={`absolute inset-y-0 left-0 w-1 ${BARRA[p.estado]}`} />
-      {demo ? <MiniCarta d={demo} nombre={p.nombre} /> : (
-        <div aria-hidden className="flex h-[118px] w-[66px] shrink-0 items-center justify-center rounded-[14px] border-2 border-dashed border-linea text-center text-[10px] leading-tight text-ceniza">Sin<br />demo</div>
-      )}
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-start justify-between gap-2">
-          <Link href={`${base}/${p.id}`} className="min-w-0 after:absolute after:inset-0 after:content-['']">
-            <p className="truncate font-display text-lg font-semibold leading-tight group-hover:text-vino">{p.nombre}</p>
-            <p className="truncate text-xs text-niebla">{TIPOS[p.tipo]} · {p.barrio || p.zona}{central && !p.mio ? ` · ${p.comercial}` : ''}</p>
-          </Link>
-          <EtiquetaEstado e={p.estado} />
+      <div className="flex gap-3 sm:gap-4">
+        <div className="flex items-start gap-2 shrink-0">
+          {onToggleSeleccion && (
+            <label className="flex items-center justify-center min-h-[44px] -ml-1 pr-1 cursor-pointer shrink-0" aria-label={`Seleccionar ${p.nombre}`}>
+              <input
+                type="checkbox"
+                checked={Boolean(seleccionado)}
+                onChange={() => onToggleSeleccion(p.id)}
+                className="h-5 w-5 rounded border-linea text-vino focus:ring-vino"
+              />
+            </label>
+          )}
+          {demo ? <MiniCarta d={demo} nombre={p.nombre} /> : (
+            <div aria-hidden className="flex h-[118px] w-[66px] shrink-0 items-center justify-center rounded-[14px] border-2 border-dashed border-linea text-center text-[10px] leading-tight text-ceniza">Sin<br />demo</div>
+          )}
         </div>
-        {(p.siguiente_accion || p.siguiente_fecha) && (
-          <p className={`mt-2 line-clamp-2 text-xs ${vence ? 'font-semibold text-vino' : 'text-grafito'}`}>
-            {vence ? '⏰ ' : ''}{p.siguiente_fecha ? `${fechaCorta(p.siguiente_fecha)} · ` : ''}{p.siguiente_accion || ''}
-          </p>
-        )}
-        <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3 text-[11px]">
-          {demo && <span className="rounded-full bg-papel px-2 py-0.5 font-medium text-grafito">{COMPOSICION[demo.plantilla] ?? 'Carta'} · {demo.platos} platos</span>}
-          {(p.demo_vistas ?? 0) > 0 && <span className="rounded-full bg-violet-50 px-2 py-0.5 font-semibold text-violet-800">👁 Demo {p.demo_vistas}×</span>}
-          {p.propuesta_vistas > 0 && <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">👁 Propuesta {p.propuesta_vistas}×</span>}
-          {p.puntuacion != null && <span className="rounded-full bg-papel px-2 py-0.5 text-grafito">{p.puntuacion}/100</span>}
-          {p.no_contactar && <span className="rounded-full bg-red-50 px-2 py-0.5 font-semibold text-red-700">No contactar</span>}
-          {p.canal && <span className="rounded-full bg-papel px-2 py-0.5 text-grafito">{CANALES[p.canal]}{p.ultimo_resultado ? ` · ${RESULTADOS[p.ultimo_resultado]}` : ''}</span>}
-          {esDigital(p.canal) && p.siguiente_accion === 'Seguimiento a 48 h' && <span className="rounded-full bg-oro/25 px-2 py-0.5 font-semibold text-tinta">48 h</span>}
-          <div className="relative z-10 ml-auto flex flex-wrap items-center gap-1.5">
-            {demo ? (
-              <>
-                <a href={`/m/${demo.slug}`} target="_blank" rel="noopener noreferrer"
-                  className="rounded-full bg-noche px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-vino">Ver carta ↗</a>
-                <a href={`/demo/panel?local=${demo.slug}`} target="_blank" rel="noopener noreferrer"
-                  className="rounded-full border border-linea bg-white px-2.5 py-1 text-[11px] font-semibold text-carbon hover:border-vino">Panel ↗</a>
-                {p.restaurante_id && (
-                  <form action={abrirEditorDemoAction} className="inline">
-                    <input type="hidden" name="base" value={base} />
-                    <input type="hidden" name="restaurante_id" value={p.restaurante_id} />
-                    <input type="hidden" name="pestana" value="carta" />
-                    <button className="rounded-full bg-vino/10 px-2.5 py-1 text-[11px] font-semibold text-vino hover:bg-vino hover:text-white">
-                      ✏️ Fotos / Editar
-                    </button>
-                  </form>
-                )}
-              </>
-            ) : !['cliente', 'descartado'].includes(p.estado) ? (
-              <form action={crearDemoProspectoAction} className="inline">
-                <input type="hidden" name="base" value={base} />
-                <input type="hidden" name="id" value={p.id} />
-                <input type="hidden" name="volver" value="lista" />
-                <button className="rounded-full bg-vino px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-tinta">
-                  ⚡ Crear demo
-                </button>
-              </form>
-            ) : null}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex items-start justify-between gap-2">
+            <Link href={`${base}/${p.id}`} className="min-w-0 after:absolute after:inset-0 after:content-['']">
+              <p className="truncate font-display text-lg font-semibold leading-tight group-hover:text-vino">{p.nombre}</p>
+              <p className="truncate text-xs text-niebla">{TIPOS[p.tipo]} · {p.barrio || p.zona}{central && !p.mio ? ` · ${p.comercial}` : ''}</p>
+            </Link>
+            <EtiquetaEstado e={p.estado} />
+          </div>
+          {(p.siguiente_accion || p.siguiente_fecha) && (
+            <p className={`mt-2 line-clamp-2 text-xs ${vence ? 'font-semibold text-vino' : 'text-grafito'}`}>
+              {vence ? '⏰ ' : ''}{p.siguiente_fecha ? `${fechaCorta(p.siguiente_fecha)} · ` : ''}{p.siguiente_accion || ''}
+            </p>
+          )}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+            {demo && <span className="rounded-full bg-papel px-2 py-0.5 font-medium text-grafito">{COMPOSICION[demo.plantilla] ?? 'Carta'} · {demo.platos} platos</span>}
+            {(p.demo_vistas ?? 0) > 0 && <span className="rounded-full bg-violet-50 px-2 py-0.5 font-semibold text-violet-800">👁 Demo {p.demo_vistas}×</span>}
+            {p.propuesta_vistas > 0 && <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">👁 Propuesta {p.propuesta_vistas}×</span>}
+            {p.puntuacion != null && <span className="rounded-full bg-papel px-2 py-0.5 text-grafito">{p.puntuacion}/100</span>}
+            {p.no_contactar && <span className="rounded-full bg-red-50 px-2 py-0.5 font-semibold text-red-700">No contactar</span>}
+            {p.canal && <span className="rounded-full bg-papel px-2 py-0.5 text-grafito">{CANALES[p.canal]}{p.ultimo_resultado ? ` · ${RESULTADOS[p.ultimo_resultado]}` : ''}</span>}
+            {esDigital(p.canal) && p.siguiente_accion === 'Seguimiento a 48 h' && <span className="rounded-full bg-oro/25 px-2 py-0.5 font-semibold text-tinta">48 h</span>}
           </div>
         </div>
+      </div>
+
+      {/* Fila dedicada de botones de acción sobre la tarjeta con z-20 para aislamiento táctil en móvil */}
+      <div className="relative z-20 mt-3 pt-2.5 border-t border-linea/60 flex flex-wrap items-center justify-end gap-2 min-h-[44px]">
+        {demo ? (
+          <>
+            <a href={`/m/${demo.slug}`} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center min-h-[36px] rounded-full bg-noche px-3 py-1.5 text-xs font-semibold text-white hover:bg-vino transition">Ver carta ↗</a>
+            <a href={`/demo/panel?local=${demo.slug}`} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center min-h-[36px] rounded-full border border-linea bg-white px-3 py-1.5 text-xs font-semibold text-carbon hover:border-vino transition">Panel ↗</a>
+            {p.restaurante_id && (
+              <form action={abrirEditorDemoAction} className="inline">
+                <input type="hidden" name="base" value={base} />
+                <input type="hidden" name="restaurante_id" value={p.restaurante_id} />
+                <input type="hidden" name="pestana" value="carta" />
+                <button className="inline-flex items-center min-h-[36px] rounded-full bg-vino/10 px-3 py-1.5 text-xs font-semibold text-vino hover:bg-vino hover:text-white transition">
+                  ✏️ Fotos / Editar
+                </button>
+              </form>
+            )}
+          </>
+        ) : !['cliente', 'descartado'].includes(p.estado) ? (
+          <form action={crearDemoProspectoAction} className="inline">
+            <input type="hidden" name="base" value={base} />
+            <input type="hidden" name="id" value={p.id} />
+            <input type="hidden" name="volver" value="lista" />
+            <button className="inline-flex items-center min-h-[36px] rounded-full bg-vino px-3 py-1.5 text-xs font-semibold text-white hover:bg-tinta transition">
+              ⚡ Crear demo
+            </button>
+          </form>
+        ) : null}
       </div>
     </li>
   );
 }
-
-export default function CrmLista({ base, lista, estado, aviso, ok, contacto, central, comerciales, comercial, modo = 'todos', metricas, demos = {}, vista = 'tarjetas' }: {
+export default function CrmLista({
+  base, lista, estado, aviso, ok, contacto, central, comerciales, comercial, modo = 'todos', metricas, demos = {}, vista = 'tarjetas', verScriptInicial = false,
+}: {
   base: BaseCrm; lista: Prospecto[]; estado: string | null; aviso?: string; ok?: string; demos?: Record<string, DemoProspecto>; vista?: 'tarjetas' | 'tablero';
   contacto: { nombre_publico: string; telefono: string | null } | null;
   central?: boolean; comerciales?: { id: string; nombre: string }[]; comercial?: string | null; modo?: 'todos' | 'pie' | 'digital'; metricas?: Metrica[] | null;
+  verScriptInicial?: boolean;
 }) {
   const hoy = hoyMadrid();
+  // 04/11 (Bloque B): Exclusión de demos de script/Claude por defecto en cartera
+  const [verScript, setVerScript] = useState(verScriptInicial);
+  const demosScriptTotal = lista.filter((p) => p.fuente === 'script').length;
+  // 05/11: el filtro de script solo aplica en Central; el comercial ve siempre todo lo que se le asigna.
+  const listaBase = verScript || !central ? lista : lista.filter((p) => p.fuente !== 'script');
+
+  // Selección unitaria y múltiple para acciones en lote (0118)
+  const [seleccionados, setSeleccionados] = useState<string[]>([]);
+  const [cargandoLote, setCargandoLote] = useState(false);
+
+  const toggleSeleccion = (id: string) => {
+    setSeleccionados((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
   const esProspectoDigital = (p: Prospecto) => esDigital(p.canal) || p.fuente === 'digital' || Boolean(p.instagram && p.canal !== 'fisico');
   const listaPorModo = modo === 'digital'
-    ? lista.filter((p) => esProspectoDigital(p))
+    ? listaBase.filter((p) => esProspectoDigital(p))
     : modo === 'pie'
-      ? lista.filter((p) => !esProspectoDigital(p) || p.canal === 'fisico')
-      : lista;
-  const digitalesTotal = lista.filter((p) => p.estado !== 'descartado' && esProspectoDigital(p)).length;
-  const aPieTotal = lista.filter((p) => p.estado !== 'descartado' && (!esProspectoDigital(p) || p.canal === 'fisico')).length;
-  const mios = lista.filter((p) => p.mio);
+      ? listaBase.filter((p) => !esProspectoDigital(p) || p.canal === 'fisico')
+      : listaBase;
+  const digitalesTotal = listaBase.filter((p) => p.estado !== 'descartado' && esProspectoDigital(p)).length;
+  const aPieTotal = listaBase.filter((p) => p.estado !== 'descartado' && (!esProspectoDigital(p) || p.canal === 'fisico')).length;
+  const mios = listaBase.filter((p) => p.mio);
   const ruta = mios.filter((p) => p.ruta_fecha === hoy).sort((a, b) => (a.ruta_orden ?? 0) - (b.ruta_orden ?? 0));
   const tocaHoy = listaPorModo.filter((p) => p.siguiente_fecha && p.siguiente_fecha <= hoy && !['cliente', 'descartado'].includes(p.estado));
   const cuenta = (e: Estado) => listaPorModo.filter((p) => p.estado === e).length;
@@ -192,12 +246,68 @@ export default function CrmLista({ base, lista, estado, aviso, ok, contacto, cen
   const vistas = listaPorModo.filter((p) => p.propuesta_vistas > 0 || (p.demo_vistas ?? 0) > 0).length;
   const activos = listaPorModo.length - cuenta('descartado');
   const embudo = (Object.keys(ESTADOS) as Estado[]).filter((e) => e !== 'descartado');
+
+  const seleccionarTodosVisibles = () => {
+    setSeleccionados(filtrada.map((p) => p.id));
+  };
+
+  const handleMoverLote = async (nuevoEstado: string) => {
+    setCargandoLote(true);
+    try {
+      comprobarLote(await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'mover_estado', valor: nuevoEstado }), seleccionados.length, 'mover_estado');
+      setSeleccionados([]);
+    } finally {
+      setCargandoLote(false);
+    }
+  };
+
+  const handleReasignarLote = async (comercialId: string) => {
+    setCargandoLote(true);
+    try {
+      comprobarLote(await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'reasignar', valor: comercialId }), seleccionados.length, 'reasignar');
+      setSeleccionados([]);
+    } finally {
+      setCargandoLote(false);
+    }
+  };
+
+  const handleArchivarLote = async () => {
+    setCargandoLote(true);
+    try {
+      comprobarLote(await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'archivar' }), seleccionados.length, 'archivar');
+      setSeleccionados([]);
+    } finally {
+      setCargandoLote(false);
+    }
+  };
+
+  const handleDesarchivarLote = async () => {
+    setCargandoLote(true);
+    try {
+      comprobarLote(await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'desarchivar' }), seleccionados.length, 'desarchivar');
+      setSeleccionados([]);
+    } finally {
+      setCargandoLote(false);
+    }
+  };
+
+  const handleBorrarLote = async () => {
+    setCargandoLote(true);
+    try {
+      comprobarLote(await loteAccionProspectosAction({ base, ids: seleccionados, accion: 'borrar' }), seleccionados.length, 'borrar');
+      setSeleccionados([]);
+    } finally {
+      setCargandoLote(false);
+    }
+  };
+
   const q = (e: string | null, v: string = vista, m: string = modo, com: string | null | undefined = comercial) => {
     const s = new URLSearchParams();
     if (e) s.set('estado', e);
     if (com) s.set('comercial', com);
     if (m !== 'todos') s.set('modo', m);
     if (v !== 'tarjetas') s.set('vista', v);
+    if (verScript) s.set('script', '1');
     const t = s.toString();
     return t ? `${base}?${t}` : base;
   };
@@ -261,6 +371,19 @@ export default function CrmLista({ base, lista, estado, aviso, ok, contacto, cen
             >
               🌐 Todas las carteras
             </Link>
+            {demosScriptTotal > 0 && (
+              <button
+                type="button"
+                onClick={() => setVerScript(!verScript)}
+                className={`ml-auto rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+                  verScript
+                    ? 'bg-amber-600 text-white shadow-sm'
+                    : 'border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'
+                }`}
+              >
+                {verScript ? 'Ocultar demos de script' : `Mostrar demos de script (${demosScriptTotal})`}
+              </button>
+            )}
           </div>
           <LotesProspeccion base={base} prospectos={lista} comerciales={comerciales} demosIds={Object.keys(demos)} />
         </div>
@@ -499,7 +622,18 @@ export default function CrmLista({ base, lista, estado, aviso, ok, contacto, cen
       {tocaHoy.length > 0 && (
         <section className={`${tarjeta} p-0`}>
           <h2 className="px-5 pt-4 text-sm font-semibold text-vino">Toca hoy o va con retraso · {tocaHoy.length}</h2>
-          <ul className="mt-2 divide-y divide-linea">{tocaHoy.map((p) => <Fila key={p.id} p={p} base={base} central={!!central} />)}</ul>
+          <ul className="mt-2 divide-y divide-linea">
+            {tocaHoy.map((p) => (
+              <Fila
+                key={p.id}
+                p={p}
+                base={base}
+                central={!!central}
+                seleccionado={seleccionados.includes(p.id)}
+                onToggleSeleccion={central ? toggleSeleccion : undefined}
+              />
+            ))}
+          </ul>
         </section>
       )}
 
@@ -520,18 +654,57 @@ export default function CrmLista({ base, lista, estado, aviso, ok, contacto, cen
       {vista === 'tablero' && !estado ? (
         <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0">
           {embudo.map((e) => {
-            const col = lista.filter((p) => p.estado === e);
+            const col = listaBase.filter((p) => p.estado === e);
             return (
               <section key={e} className="w-[300px] shrink-0 snap-start rounded-[22px] bg-papel/70 p-3">
                 <h2 className="mb-3 flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-[0.14em] text-grafito"><i className={`h-2.5 w-2.5 rounded-full ${BARRA[e]}`} />{ESTADOS[e]}<span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[11px]">{col.length}</span></h2>
                 {col.length === 0 ? <p className="rounded-2xl border border-dashed border-linea p-4 text-center text-xs text-ceniza">Vacío</p>
-                  : <ul className="space-y-3">{col.map((p) => <Tarjeta key={p.id} p={p} base={base} central={!!central} demo={demos[p.id]} />)}</ul>}
+                  : <ul className="space-y-3">{col.map((p) => <Tarjeta key={p.id} p={p} base={base} central={!!central} demo={demos[p.id]} seleccionado={seleccionados.includes(p.id)} onToggleSeleccion={central ? toggleSeleccion : undefined} />)}</ul>}
               </section>
             );
           })}
         </div>
       ) : filtrada.length === 0 ? <p className={`${tarjeta} text-sm text-niebla`}>Nada en esta lista todavía.</p> : (
-        <ul className="grid gap-3 md:grid-cols-2">{filtrada.map((p) => <Tarjeta key={p.id} p={p} base={base} central={!!central} demo={demos[p.id]} />)}</ul>
+        <ul className="grid gap-3 md:grid-cols-2">
+          {filtrada.map((p) => (
+            <Tarjeta
+              key={p.id}
+              p={p}
+              base={base}
+              central={!!central}
+              demo={demos[p.id]}
+              seleccionado={seleccionados.includes(p.id)}
+              onToggleSeleccion={central ? toggleSeleccion : undefined}
+            />
+          ))}
+        </ul>
+      )}
+
+      {/* Barra flotante de acciones por lote (0118): solo Dirección en Central; la base lo exige igualmente */}
+      {central && (
+      <BarraLote
+        seleccionados={seleccionados}
+        totalVisibles={filtrada.length}
+        onSeleccionarTodos={seleccionarTodosVisibles}
+        onLimpiar={() => setSeleccionados([])}
+        opcionesEstado={[
+          { valor: 'por_revisar', etiqueta: 'Por revisar' },
+          { valor: 'por_visitar', etiqueta: 'Por visitar' },
+          { valor: 'muestra', etiqueta: 'Muestra' },
+          { valor: 'visitado', etiqueta: 'Visitado' },
+          { valor: 'demo', etiqueta: 'Demo' },
+          { valor: 'interesado', etiqueta: 'Interesado' },
+          { valor: 'cliente', etiqueta: 'Cliente' },
+          { valor: 'descartado', etiqueta: 'Descartado' },
+        ]}
+        onMoverEstado={handleMoverLote}
+        comerciales={comerciales}
+        onReasignar={central && comerciales && comerciales.length > 0 ? handleReasignarLote : undefined}
+        onArchivar={handleArchivarLote}
+        onDesarchivar={handleDesarchivarLote}
+        onBorrar={central ? handleBorrarLote : undefined}
+        cargando={cargandoLote}
+      />
       )}
 
       <details className={tarjeta} open={!contacto}>

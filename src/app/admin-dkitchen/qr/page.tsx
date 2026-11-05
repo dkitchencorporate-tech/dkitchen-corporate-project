@@ -30,8 +30,9 @@ export default async function ClientesQr({
   const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' });
   const de = (id: string) => todos.filter((c) => pestanaDe(c, hoy) === id);
 
-  const reales = todos.filter((c) => !['demo', 'bajas', 'archivados'].includes(pestanaDe(c, hoy)));
-  const aparte = `${de('demo').length} demos y ${de('bajas').length} bajas aparte`;
+  // 05/11 (0118): las cuentas «PRUEBA · …» van a la pestaña 'sistema' y tampoco cuentan como reales.
+  const reales = todos.filter((c) => !['demo', 'sistema', 'bajas', 'archivados'].includes(pestanaDe(c, hoy)));
+  const aparte = `${de('demo').length} demos, ${de('sistema').length} pruebas y ${de('bajas').length} bajas aparte`;
   // 02/11: solo clientes reales (demos y PRUEBA aparte), igual que Hoy.
   const ingreso = reales.reduce((s, c) => s + c.cuota, 0);
   const pagan = reales.filter((c) => c.cuota > 0).length;

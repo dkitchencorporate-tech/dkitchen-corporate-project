@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { put } from '@vercel/blob';
 import { comoCliente } from '@/lib/db';
 import { obtenerJwtDeSesion } from '@/lib/sesion';
+import { exigirAdmin } from '@/lib/guard-admin';
 import { COOKIE_PUESTA } from '@/lib/socio-codigo';
 import { claveDeLimite, limiteSuperado } from '@/lib/limite-frecuencia';
 import {
@@ -451,5 +452,31 @@ export async function consultarAgenteProspeccionAction(d: {
     return { ok: true, respuesta: r.respuesta };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'El asistente IA no ha respondido.' };
+  }
+}
+
+/** 0118: Acciones en lote para prospectos (dk.admin_lote_accion). */
+export async function loteAccionProspectosAction(datos: { base: string; ids: string[]; accion: string; valor?: string }) {
+  // 05/11: doble cerrojo (sesión de Central + dk.exigir_direccion() en la base)
+  const jwt = await exigirAdmin();
+  if (!Array.isArray(datos.ids) || datos.ids.length === 0) {
+    return { ok: false, afectados: 0, error: 'No hay prospectos seleccionados.' };
+  }
+  const idsValidos = datos.ids.filter((id) => UUID.test(id));
+  if (idsValidos.length === 0) {
+    return { ok: false, afectados: 0, error: 'Identificadores no válidos.' };
+  }
+  try {
+    const afectados = await comoCliente(jwt, async (c) => {
+      const res = await c.query<{ n: number }>(
+        'SELECT dk.admin_lote_accion($1, $2, $3, $4) AS n',
+        ['prospectos', idsValidos, datos.accion, datos.valor ?? null]
+      );
+      return res.rows[0]?.n ?? 0;
+    });
+    revalidatePath(datos.base || '/admin-dkitchen/prospeccion');
+    return { ok: true, afectados };
+  } catch (err: any) {
+    return { ok: false, afectados: 0, error: err.message || 'Error al ejecutar la acción en lote.' };
   }
 }

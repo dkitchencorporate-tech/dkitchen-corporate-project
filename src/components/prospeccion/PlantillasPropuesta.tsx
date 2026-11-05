@@ -164,7 +164,7 @@ export default function PlantillasPropuesta({
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" className="rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white hover:bg-tinta">
+        <button type="submit" className="w-full sm:w-auto rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white hover:bg-tinta text-center">
           Guardar propuesta y generar enlace listo para enviar →
         </button>
         {demoSlug && (

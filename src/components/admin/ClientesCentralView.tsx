@@ -4,13 +4,14 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { nombrePlan } from '@/lib/pricing-config';
 import type { ClienteQr, Pestana } from '@/lib/admin-clientes';
-import { asignarComercialAction } from '@/app/admin-dkitchen/qr/actions';
+import { asignarComercialAction, loteAccionClientesAction } from '@/app/admin-dkitchen/qr/actions';
+import BarraLote, { comprobarLote, type OpcionEstado } from '@/components/admin/BarraLote';
 
 export function pestanaDe(c: ClienteQr, hoy = new Date().toISOString().slice(0, 10)): Pestana {
   if (c.archivadoEn) return 'archivados';
+  // 04/11: pruebas automáticas de Claude / script / Playwright separadas en 'sistema'
+  if (/^PRUEBA\s*·/i.test(c.nombre) || (c.slug && /^prueba-claude-/i.test(c.slug))) return 'sistema';
   if (c.demoInterna) return 'demo';
-  // 02/11: los clientes «PRUEBA · …» del entorno de pruebas van con las demos, nunca entre los reales.
-  if (/^PRUEBA\s*·/i.test(c.nombre)) return 'demo';
   if (c.estadoAcceso === 'suspendido') return 'bajas';
   if (c.bajaProgramadaEn || c.estadoAcceso === 'gracia' || c.estadoAcceso === 'solo_lectura') return 'riesgo';
   if (c.pruebaHasta && c.pruebaHasta >= hoy) return 'prueba';
@@ -86,11 +87,13 @@ export default function ClientesCentralView({
   // Contadores para las píldoras de acceso rápido
   const conteo = useMemo(() => {
     const sit = (c: ClienteQr) => pestanaDe(c, hoy);
-    const todos = clientesIniciales.filter((c) => !['demo', 'bajas', 'archivados'].includes(sit(c))).length;
+    const todos = clientesIniciales.filter((c) => !['demo', 'sistema', 'bajas', 'archivados'].includes(sit(c))).length;
     const demo = clientesIniciales.filter((c) => sit(c) === 'demo').length;
+    const sistema = clientesIniciales.filter((c) => sit(c) === 'sistema').length;
     const bajas = clientesIniciales.filter((c) => sit(c) === 'bajas').length;
-    // Los contadores por servicio cuentan solo clientes reales (las demos y bajas van aparte).
-    const base = clientesIniciales.filter((c) => !['demo', 'bajas', 'archivados'].includes(sit(c)));
+    const archivados = clientesIniciales.filter((c) => sit(c) === 'archivados').length;
+    // Los contadores por servicio cuentan solo clientes reales (las demos, sistema y bajas van aparte).
+    const base = clientesIniciales.filter((c) => !['demo', 'sistema', 'bajas', 'archivados'].includes(sit(c)));
     const qr = base.filter((c) => !c.soloProyecto).length;
     const sig = base.filter((c) => c.tieneSignature).length;
     const exp = base.filter((c) => c.tieneExperience).length;
@@ -98,8 +101,32 @@ export default function ClientesCentralView({
     const riesgo = clientesIniciales.filter((c) => pestanaDe(c, hoy) === 'riesgo').length;
     // Comparación estricta por UUID de identidad asignada
     const mis = miId ? clientesIniciales.filter((c) => c.comercialId === miId).length : 0;
-    return { todos, qr, sig, exp, prueba, riesgo, mis, demo, bajas };
+    return { todos, qr, sig, exp, prueba, riesgo, mis, demo, sistema, bajas, archivados };
   }, [clientesIniciales, hoy, miId]);
+
+  // Selección unitaria y múltiple para acciones en lote (0118)
+  const [seleccionados, setSeleccionados] = useState<string[]>([]);
+  const [cargandoLote, setCargandoLote] = useState(false);
+
+  const cambiarPestana = (p: string) => {
+    setEstadoFiltro(p);
+    setSeleccionados([]);
+  };
+
+  const toggleSeleccion = (id: string) => {
+    setSeleccionados((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const seleccionarPruebasSistema = () => {
+    const idsSistema = clientesIniciales
+      .filter((c) => pestanaDe(c, hoy) === 'sistema')
+      .map((c) => c.restauranteId);
+    setEstadoFiltro('sistema');
+    setSoloMisClientes(false);
+    setSeleccionados(idsSistema);
+  };
 
   // Filtrado reactivo en tiempo real
   const clientesFiltrados = useMemo(() => {
@@ -126,10 +153,10 @@ export default function ClientesCentralView({
       if (servicioFiltro === 'experience' && !c.tieneExperience) return false;
 
       // 5. Filtro por estado / situación
-      // «todos» = clientes reales: las demos, bajas y archivados tienen su propio filtro.
+      // «todos» = clientes reales: demos, sistema, bajas y archivados tienen su propio filtro.
       const situacion = pestanaDe(c, hoy);
       if (estadoFiltro === 'todos') {
-        if (situacion === 'demo' || situacion === 'bajas' || situacion === 'archivados') return false;
+        if (situacion === 'demo' || situacion === 'sistema' || situacion === 'bajas' || situacion === 'archivados') return false;
       } else if (estadoFiltro !== 'completo' && situacion !== estadoFiltro) return false;
 
       // 6. Buscador de texto libre
@@ -151,6 +178,60 @@ export default function ClientesCentralView({
     });
   }, [clientesIniciales, soloMisClientes, comercialFiltro, ciudadFiltro, servicioFiltro, estadoFiltro, busqueda, miId, hoy]);
 
+  const seleccionarTodosVisibles = () => {
+    setSeleccionados(clientesFiltrados.map((c) => c.restauranteId));
+  };
+
+  const handleMoverLote = async (nuevoEstado: string) => {
+    setCargandoLote(true);
+    try {
+      comprobarLote(await loteAccionClientesAction({ ids: seleccionados, accion: 'mover_estado', valor: nuevoEstado }), seleccionados.length, 'mover_estado');
+      setSeleccionados([]);
+    } finally {
+      setCargandoLote(false);
+    }
+  };
+
+  const handleReasignarLote = async (comercialId: string) => {
+    setCargandoLote(true);
+    try {
+      comprobarLote(await loteAccionClientesAction({ ids: seleccionados, accion: 'reasignar', valor: comercialId }), seleccionados.length, 'reasignar');
+      setSeleccionados([]);
+    } finally {
+      setCargandoLote(false);
+    }
+  };
+
+  const handleArchivarLote = async () => {
+    setCargandoLote(true);
+    try {
+      comprobarLote(await loteAccionClientesAction({ ids: seleccionados, accion: 'archivar' }), seleccionados.length, 'archivar');
+      setSeleccionados([]);
+    } finally {
+      setCargandoLote(false);
+    }
+  };
+
+  const handleDesarchivarLote = async () => {
+    setCargandoLote(true);
+    try {
+      comprobarLote(await loteAccionClientesAction({ ids: seleccionados, accion: 'desarchivar' }), seleccionados.length, 'desarchivar');
+      setSeleccionados([]);
+    } finally {
+      setCargandoLote(false);
+    }
+  };
+
+  const handleBorrarLote = async () => {
+    setCargandoLote(true);
+    try {
+      comprobarLote(await loteAccionClientesAction({ ids: seleccionados, accion: 'borrar' }), seleccionados.length, 'borrar');
+      setSeleccionados([]);
+    } finally {
+      setCargandoLote(false);
+    }
+  };
+
   // Limpiar todos los filtros
   const limpiarFiltros = () => {
     setBusqueda('');
@@ -159,6 +240,7 @@ export default function ClientesCentralView({
     setComercialFiltro('');
     setCiudadFiltro('');
     setSoloMisClientes(false);
+    setSeleccionados([]);
   };
 
   const hayFiltrosActivos = busqueda || servicioFiltro !== 'todos' || estadoFiltro !== 'todos' || comercialFiltro || ciudadFiltro || soloMisClientes;
@@ -258,18 +340,40 @@ export default function ClientesCentralView({
           En riesgo <span className="ml-1 opacity-75 tabular-nums">{conteo.riesgo}</span>
         </button>
 
-        {(['demo', 'bajas'] as const).map((k) => (
+        {(['demo', 'sistema', 'bajas', 'archivados'] as const).map((k) => (
           <button
             key={k}
             type="button"
-            onClick={() => { setEstadoFiltro(estadoFiltro === k ? 'todos' : k); setSoloMisClientes(false); }}
+            onClick={() => {
+              cambiarPestana(estadoFiltro === k ? 'todos' : k);
+              setSoloMisClientes(false);
+            }}
             className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-              estadoFiltro === k ? 'bg-tinta text-white ring-2 ring-tinta/20' : 'border border-dashed border-linea bg-transparent text-niebla hover:bg-white'
+              estadoFiltro === k
+                ? k === 'sistema'
+                  ? 'bg-red-700 text-white ring-2 ring-red-700/30'
+                  : 'bg-tinta text-white ring-2 ring-tinta/20'
+                : k === 'sistema'
+                  ? 'border border-dashed border-red-300 bg-red-50/50 text-red-700 hover:bg-red-50'
+                  : 'border border-dashed border-linea bg-transparent text-niebla hover:bg-white'
             }`}
           >
-            {k === 'demo' ? 'Demos' : 'Bajas'} <span className="ml-1 opacity-75 tabular-nums">{k === 'demo' ? conteo.demo : conteo.bajas}</span>
+            {k === 'demo' ? 'Demos' : k === 'sistema' ? 'Pruebas sistema' : k === 'bajas' ? 'Bajas' : 'Archivados'}{' '}
+            <span className="ml-1 opacity-75 tabular-nums">
+              {k === 'demo' ? conteo.demo : k === 'sistema' ? conteo.sistema : k === 'bajas' ? conteo.bajas : conteo.archivados}
+            </span>
           </button>
         ))}
+
+        {conteo.sistema > 0 && (
+          <button
+            type="button"
+            onClick={seleccionarPruebasSistema}
+            className="shrink-0 rounded-full border border-red-300 bg-red-50 px-3.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors shadow-sm"
+          >
+            ⚡ Seleccionar {conteo.sistema} de pruebas de Claude
+          </button>
+        )}
 
         {!esComercial && miId && (
           <button
@@ -402,16 +506,26 @@ export default function ClientesCentralView({
 
               return (
                 <li key={c.restauranteId}>
-                  <div className="rounded-2xl border border-linea bg-white p-4 shadow-sm">
+                  <div className={`rounded-2xl border bg-white p-4 shadow-sm transition ${seleccionados.includes(c.restauranteId) ? 'border-vino ring-1 ring-vino/30 bg-vino/[0.02]' : 'border-linea'}`}>
                     <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <Link href={urlFicha} className="truncate font-display font-semibold text-carbon hover:text-vino">
-                          {c.nombre}
-                        </Link>
-                        <p className="truncate text-xs text-niebla">
-                          {c.ciudad || 'España'}
-                          {c.comercialNombre ? ` · comercial ${c.comercialNombre}` : c.contacto ? ` · ${c.contacto}` : ''}
-                        </p>
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <label className="flex items-center justify-center min-h-[44px] -ml-1 pr-1 cursor-pointer shrink-0" aria-label={`Seleccionar ${c.nombre}`}>
+                          <input
+                            type="checkbox"
+                            checked={seleccionados.includes(c.restauranteId)}
+                            onChange={() => toggleSeleccion(c.restauranteId)}
+                            className="h-5 w-5 rounded border-linea text-vino focus:ring-vino"
+                          />
+                        </label>
+                        <div className="min-w-0">
+                          <Link href={urlFicha} className="truncate font-display font-semibold text-carbon hover:text-vino block">
+                            {c.nombre}
+                          </Link>
+                          <p className="truncate text-xs text-niebla">
+                            {c.ciudad || 'España'}
+                            {c.comercialNombre ? ` · comercial ${c.comercialNombre}` : c.contacto ? ` · ${c.contacto}` : ''}
+                          </p>
+                        </div>
                       </div>
                       <EstadoBadge c={c} />
                     </div>
@@ -510,6 +624,22 @@ export default function ClientesCentralView({
             <table className="w-full text-sm">
               <thead className="border-b border-linea bg-papel text-left text-xs uppercase tracking-wider text-niebla">
                 <tr>
+                  <th className="w-12 px-4 py-3.5 text-center">
+                    <label className="flex items-center justify-center min-h-[44px] cursor-pointer" aria-label="Seleccionar todos los visibles">
+                      <input
+                        type="checkbox"
+                        checked={clientesFiltrados.length > 0 && seleccionados.length === clientesFiltrados.length}
+                        onChange={() => {
+                          if (seleccionados.length === clientesFiltrados.length) {
+                            setSeleccionados([]);
+                          } else {
+                            seleccionarTodosVisibles();
+                          }
+                        }}
+                        className="h-5 w-5 rounded border-linea text-vino focus:ring-vino"
+                      />
+                    </label>
+                  </th>
                   <th className="px-5 py-3.5">Local</th>
                   <th className="px-4 py-3.5">Servicios</th>
                   <th className="px-4 py-3.5">Estado</th>
@@ -525,8 +655,20 @@ export default function ClientesCentralView({
                     ? `/admin-dkitchen/proyectos/${c.restauranteId}`
                     : `/admin-dkitchen/qr/${c.restauranteId}`;
 
+                  const estaSeleccionado = seleccionados.includes(c.restauranteId);
+
                   return (
-                    <tr key={c.restauranteId} className="transition-colors hover:bg-papel/60">
+                    <tr key={c.restauranteId} className={`transition-colors hover:bg-papel/60 ${estaSeleccionado ? 'bg-vino/[0.03]' : ''}`}>
+                      <td className="w-12 px-4 py-3.5 text-center">
+                        <label className="flex items-center justify-center min-h-[44px] cursor-pointer" aria-label={`Seleccionar ${c.nombre}`}>
+                          <input
+                            type="checkbox"
+                            checked={estaSeleccionado}
+                            onChange={() => toggleSeleccion(c.restauranteId)}
+                            className="h-5 w-5 rounded border-linea text-vino focus:ring-vino"
+                          />
+                        </label>
+                      </td>
                       <td className="px-5 py-3.5">
                         <Link href={urlFicha} className="font-display font-semibold text-carbon hover:text-vino">
                           {c.nombre}
@@ -635,6 +777,29 @@ export default function ClientesCentralView({
           </div>
         </>
       )}
+
+      {/* Barra flotante de acciones por lote (0118) */}
+      <BarraLote
+        seleccionados={seleccionados}
+        totalVisibles={clientesFiltrados.length}
+        onSeleccionarTodos={seleccionarTodosVisibles}
+        onLimpiar={() => setSeleccionados([])}
+        opcionesEstado={[
+          { valor: 'activo', etiqueta: 'Activo' },
+          { valor: 'prueba', etiqueta: 'En prueba (14 d)' },
+          { valor: 'riesgo', etiqueta: 'En riesgo (Solo lectura)' },
+          { valor: 'demo', etiqueta: 'Demo interna' },
+          { valor: 'real', etiqueta: 'Cliente real (no demo)' },
+          { valor: 'baja', etiqueta: 'Baja (suspendido)' },
+        ]}
+        onMoverEstado={handleMoverLote}
+        comerciales={miembrosEquipo.map((m) => ({ id: m.id, nombre: m.nombre }))}
+        onReasignar={handleReasignarLote}
+        onArchivar={handleArchivarLote}
+        onDesarchivar={handleDesarchivarLote}
+        onBorrar={handleBorrarLote}
+        cargando={cargandoLote}
+      />
     </div>
   );
 }

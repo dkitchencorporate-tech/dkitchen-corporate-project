@@ -247,7 +247,7 @@ export default function AgenteDemoPropuestaIa({
           </select>
         </label>
 
-        <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
           <label className="block font-medium text-neutral-700">
             Composición
             <select
@@ -405,7 +405,7 @@ export default function AgenteDemoPropuestaIa({
           type="button"
           disabled={pendienteAgente || subiendoFoto}
           onClick={lanzarAgenteUnificado}
-          className="rounded-xl bg-[#6E0C2B] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#540921] disabled:opacity-50"
+          className="w-full sm:w-auto rounded-xl bg-[#6E0C2B] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#540921] disabled:opacity-50 whitespace-normal text-center"
         >
           {pendienteAgente
             ? '⏳ Ejecutando Agente IA…'
@@ -413,15 +413,15 @@ export default function AgenteDemoPropuestaIa({
         </button>
 
         {restIdActivo && (
-          <form action={abrirEditorDemoAction} className="inline">
+          <form action={abrirEditorDemoAction} className="inline w-full sm:w-auto">
             <input type="hidden" name="base" value={base} />
             <input type="hidden" name="restaurante_id" value={restIdActivo} />
             <input type="hidden" name="pestana" value="carta" />
             <button
               type="submit"
-              className="rounded-xl border border-neutral-900 bg-white px-3.5 py-2.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-100"
+              className="w-full sm:w-auto rounded-xl border border-neutral-900 bg-white px-3.5 py-2.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-100 text-center"
             >
-              🛠️ Modo Manual: Abrir Editor (/panel) y mejorar/subir fotos
+              🛠️ Modo Manual: Abrir Editor (/panel)
             </button>
           </form>
         )}
@@ -429,9 +429,9 @@ export default function AgenteDemoPropuestaIa({
         <button
           type="button"
           onClick={() => setChatAbierto((v) => !v)}
-          className="ml-auto rounded-xl border border-[#b08d57] bg-[#f7efe0] px-3.5 py-2.5 text-xs font-semibold text-[#5a421c] hover:bg-[#efe2c8]"
+          className="w-full sm:w-auto sm:ml-auto rounded-xl border border-[#b08d57] bg-[#f7efe0] px-3.5 py-2.5 text-xs font-semibold text-[#5a421c] hover:bg-[#efe2c8] text-center"
         >
-          💬 {chatAbierto ? 'Ocultar Chat Agente IA' : 'Chat y Guiones con Agente IA'}
+          💬 {chatAbierto ? 'Ocultar Chat' : 'Chat y Guiones con Agente IA'}
         </button>
       </div>
 
@@ -529,7 +529,7 @@ export default function AgenteDemoPropuestaIa({
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               value={preguntaChat}
@@ -541,13 +541,13 @@ export default function AgenteDemoPropuestaIa({
                 }
               }}
               placeholder="Pide al Agente IA: ej. «Adáptame el mensaje para enseñarle sus arroces», «Cómo le cierro hoy el plan Sala»…"
-              className="flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-xs"
+              className="w-full flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-xs"
             />
             <button
               type="button"
               disabled={pendienteChat}
               onClick={() => consultarIa('chat_libre')}
-              className="rounded-xl bg-neutral-900 px-3.5 py-2 text-xs font-semibold text-white disabled:opacity-50"
+              className="w-full sm:w-auto rounded-xl bg-neutral-900 px-3.5 py-2 text-xs font-semibold text-white disabled:opacity-50"
             >
               {pendienteChat ? 'Pensando…' : 'Preguntar IA'}
             </button>

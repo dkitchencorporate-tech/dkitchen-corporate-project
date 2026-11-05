@@ -728,3 +728,28 @@ export async function altaUnica4PasosAction(d: DatosAlta4Pasos, modo: 'previa' |
     totalHoyEuros,
   };
 }
+
+/** 0118: Acciones en lote para clientes / demos desde Central (dk.admin_lote_accion). */
+export async function loteAccionClientesAction(datos: { ids: string[]; accion: string; valor?: string }) {
+  const jwt = await exigirAdmin();
+  if (!Array.isArray(datos.ids) || datos.ids.length === 0) {
+    return { ok: false, afectados: 0, error: 'No hay elementos seleccionados.' };
+  }
+  const idsValidos = datos.ids.filter((id) => UUID.test(id));
+  if (idsValidos.length === 0) {
+    return { ok: false, afectados: 0, error: 'Identificadores no válidos.' };
+  }
+  try {
+    const afectados = await comoCliente(jwt, async (c) => {
+      const res = await c.query<{ n: number }>(
+        'SELECT dk.admin_lote_accion($1, $2, $3, $4) AS n',
+        ['restaurantes', idsValidos, datos.accion, datos.valor ?? null]
+      );
+      return res.rows[0]?.n ?? 0;
+    });
+    revalidatePath('/admin-dkitchen/qr');
+    return { ok: true, afectados };
+  } catch (err: any) {
+    return { ok: false, afectados: 0, error: err.message || 'Error al ejecutar la acción en lote.' };
+  }
+}

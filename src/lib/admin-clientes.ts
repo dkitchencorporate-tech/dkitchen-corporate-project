@@ -42,14 +42,14 @@ export interface ClienteQr {
   soloProyecto?: boolean;
 }
 
-/** Pestaña de Clientes en la que cae cada cuenta (0061 + 0110). */
-export type Pestana = 'todos' | 'activos' | 'prueba' | 'riesgo' | 'bajas' | 'archivados' | 'demo' | 'mis_clientes';
+/** Pestaña de Clientes en la que cae cada cuenta (0061 + 0110 + 0118). */
+export type Pestana = 'todos' | 'activos' | 'prueba' | 'riesgo' | 'bajas' | 'archivados' | 'demo' | 'sistema' | 'mis_clientes';
 const dia = (v: unknown) => (v ? new Date(v as string).toISOString().slice(0, 10) : null);
 export function pestanaDe(c: ClienteQr, hoy = new Date().toISOString().slice(0, 10)): Pestana {
   if (c.archivadoEn) return 'archivados';
+  // 04/11: pruebas automáticas de Claude / script / Playwright separadas en 'sistema'
+  if (/^PRUEBA\s*·/i.test(c.nombre) || (c.slug && /^prueba-claude-/i.test(c.slug))) return 'sistema';
   if (c.demoInterna) return 'demo';
-  // 02/11: los clientes «PRUEBA · …» del entorno de pruebas van con las demos, nunca entre los reales.
-  if (/^PRUEBA\s*·/i.test(c.nombre)) return 'demo';
   if (c.estadoAcceso === 'suspendido') return 'bajas';
   if (c.bajaProgramadaEn || c.estadoAcceso === 'gracia' || c.estadoAcceso === 'solo_lectura') return 'riesgo';
   if (c.pruebaHasta && c.pruebaHasta >= hoy) return 'prueba';
