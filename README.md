@@ -1,31 +1,23 @@
-# DKitchen — architect-landing-hosteleria
+# DKitchen Corporate (`dkitchencorporate.es`)
 
-Web de producto y motor de QR de DKitchen Corporate SL, sobre Next.js 14 (App Router) y Neon Postgres.
+Plataforma comercial, motor de cartas digitales QR, eventos (Experience), app propia (Signature), panel del hostelero y **Central** (`/admin-dkitchen`), construida sobre **Next.js 16.3.5** (App Router), **React 19.3**, **Neon PostgreSQL** y **Stripe**.
 
-**Antes de tocar nada, lee esto en orden** — es el contrato con cualquier agente de IA o desarrollador que trabaje en este repo:
+## Arquitectura y estado vigente (16/11/2026)
 
-1. **`SEGURIDAD_Y_PERSISTENCIA_NEON.md`** — arquitectura de roles, RLS y hallazgos de seguridad (V-01 a V-18) sobre Neon. Sección 8 dice qué está realmente ejecutado.
-2. **`ESTADO_FRONT.md`** — ruta por ruta, qué funciona de verdad, qué está hueco y qué es deuda conocida.
-3. **`MOTOR_QR_ANALISIS_PROFESIONAL_Y_PLAN.md`** y **`VALOR_ANADIDO_QR_PERSONALIZADO_Y_CRECIMIENTO.md`** — disponibilidad del motor de QR y las piezas de valor añadido (QR personalizado, SEO programático, afiliados).
-4. **`DKITCHEN_AUDITORIA_CONVERSION_Y_DISENO.md`** — auditoría de conversión/diseño página por página que dio origen al vocabulario de bloques de la Parte 6.
+1. **Base de datos y seguridad (`Neon PostgreSQL`):**
+   - `117` archivos SQL en `db/migrations/` (hasta `0118_ruta_y_lotes.sql`).
+   - Blindaje mediante roles RLS separados (`dk_app`, `dk_anon`, `dk_auth`, `dk_webhook`); ver `SEGURIDAD_Y_PERSISTENCIA_NEON.md`.
+2. **Precios y cobros en vivo (`Stripe`):**
+   - Fuente única de precios en `src/lib/pricing-config.ts`, sincronizada con tablas `dk.*` en Neon.
+   - Pasarela **Stripe en vivo** (`src/lib/payments/cobros.ts`) con webhooks firmados (HMAC-SHA256) e idempotencia sobre cobros y correos.
+3. **Motor IA y reserva de crédito (`Vercel AI Gateway`):**
+   - `src/lib/carta-foto-ia.ts` y `src/lib/agente-prospeccion-ia.ts` utilizan `AI_GATEWAY_API_KEY` o el token OIDC automático del despliegue (`x-vercel-oidc-token` / `VERCEL_OIDC_TOKEN`).
+   - Soporte IA gobernado por `public.ia_soporte_ajustes` (`n1='apagado'`, `n2='reglas'`) para reservar el crédito OIDC gratuito a generación de fotos y demos comerciales.
+4. **Rutas y estado del front:**
+   - Ver `ESTADO_FRONT.md` para el mapa verificado de rutas públicas, checkout, demos, panel de cliente, portal de socios y Central.
 
-## Desarrollo local
+## Reglas de despliegue y desarrollo
 
-```bash
-npm install
-npm run dev
-```
-
-Necesita `DK_DATABASE_URL`, `DK_IP_HASH_PEPPER` y `GLOBAL_CONFIG` en `.env.local` — ver `SEGURIDAD_Y_PERSISTENCIA_NEON.md` para qué rol de Neon usa cada una.
-
-## Base de datos
-
-Migraciones en `db/migrations/`, aplicadas con `node db/migrate.mjs <entorno-propietario>`. Verificación de blindaje (RLS, roles, funciones) con `node db/verificar-blindaje.mjs <entorno-propietario>`.
-
-## Pagos
-
-No hay ninguna pasarela de pago conectada. El checkout se conserva, pero todo cobro termina en una solicitud de alta (`/pago/reserva`) y el aviso llega por correo.
-
-## Buenas prácticas de despliegue (Vercel)
-
-Ver `AGENTS.md`.
+- La rama de producción conectada a `https://dkitchencorporate.es` es **`claude/github-repository-access-1cf0ss`**.
+- Vercel opera en plan **Hobby** hasta superar **>= 300 €/mes** de facturación recurrente.
+- Las compilaciones se realizan exclusivamente en Vercel; ver `AGENTS.md` y `CLAUDE.md`.

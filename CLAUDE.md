@@ -1,31 +1,25 @@
-# DKitchen Corporate — instrucciones de proyecto para cualquier sesión de Claude Code
+# DKitchen Corporate — instrucciones de proyecto para agentes (actualizado 16/11/2026)
 
-Este archivo aplica a **toda sesión** que trabaje en este repositorio (local, cloud o desde la app móvil), no solo a la sesión que lo escribió. No es una preferencia — es una regla de proyecto.
+Este archivo aplica a **toda sesión** que trabaje en este repositorio (`claude/github-repository-access-1cf0ss`).
 
-## Regla no negociable: nivel de diseño
+## 1. Diseño de autor («Gran Reserva») y coherencia de precios
 
-Esta web vende los propios servicios de diseño/implementación de DKitchen a clientes de hostelería. Por tanto **no puede verse por debajo del nivel que le entregamos a un cliente pagador** — verse como una plantilla genérica o "un PDF hiper-editado" es, literalmente, la peor prueba social posible para este negocio.
+- La estética **Gran Reserva** ya está implantada en producción (`https://dkitchencorporate.es`), paneles y cartas demo `/m/[slug]`. Todo cambio nuevo debe mantener ese mismo estándar de diseño de autor, contraste AA y comportamiento responsive en móvil y escritorio.
+- Antes de tocar cualquier tarifa, copy comercial o componente de precios, consultar `src/lib/pricing-config.ts`:
+  - **Carta QR:** Carta `9 €/mes` · Local `29 €/mes` (`1 €` primer mes) · Sala `79 €/mes` · Fundador QR `49 €/mes` (`147 €/trimestre`, hasta `10/01/2027` o `100` plazas).
+  - **Signature:** Entrada `700 €` (o `2 × 375 €`) · Fundador `500 € + 69 €/mes` (12 meses); tramos `99 / 149 / 199 / 279 €/mes`.
+  - **Experience:** desde `99 €` fidelizado / `199 €` cliente QR / `299 €` primera vez; `0 %` comisión.
+  - **Auditoría:** `47 € + IVA` (ancla tachada `297 € + IVA` en `/auditoria` y checkout).
+  - **Prohibido ofrecer:** la antigua «Carta de Autor 199 €» está **CANCELADA**.
 
-Diagnóstico vigente (2026-09-22): el estado visual actual **no cumple el nivel exigido**. No es un ajuste cosmético pendiente — es un refactor de diseño de autor real, con movimiento y 3D genuinos (Parte 7 del plan), no decoración superficial sobre un layout de tarjetas estándar.
+## 2. Infraestructura, Neon, Pagos e IA (estado real 16/11/2026)
 
-**Antes de tocar cualquier página pública (Home, /qr, /experience, /auditoria, /nucleo-operativo (ruta `/base-operativa`), /dark-kitchen, /marcas, /casos-de-exito) o el dashboard, invoca a los subagentes de diseño de este repositorio:**
+- **Neon PostgreSQL:** rama principal `br-lively-bread-b2xhvsm6`, `117` archivos SQL en `db/migrations/` (hasta `0118_ruta_y_lotes.sql`), RLS activo con roles `dk_app`, `dk_anon`, `dk_auth` y `dk_webhook`. Nunca aplicar migraciones destructivas en producción sin probar primero en rama temporal.
+- **Stripe:** pasarela única **en vivo** en España (`DK_TITULAR_NOMBRE`, `DK_TITULAR_NIF` configurados en Vercel y visibles en `/aviso-legal`). Kunfupay, PayPal, LLC y DKitchen Venezuela están archivados en planificación futura. El precio se valida siempre en servidor.
+- **Vercel y AI Gateway:** Vercel permanece en plan **Hobby** hasta facturar **>= 300 €/mes**. Los endpoints de IA (`carta-foto-ia.ts`, `agente-prospeccion-ia.ts`) leen `AI_GATEWAY_API_KEY` o el token OIDC automático del despliegue (`x-vercel-oidc-token` / `VERCEL_OIDC_TOKEN`); el soporte IA permanece en `public.ia_soporte_ajustes` (`n1='apagado'`, `n2='reglas'`) para reservar el crédito OIDC gratuito a fotos y demos.
 
-- `.claude/agents/design-brand-guardian.md` — coherencia de identidad de marca, paleta (ver Parte 7, §5-bis «Gran Reserva»; la §5 está obsoleta), voz.
-- `.claude/agents/design-ui-designer.md` — sistema de componentes, jerarquía visual, accesibilidad.
-- `.claude/agents/design-ux-architect.md` — arquitectura CSS, layout, fundamentos técnicos antes de implementar.
+## 3. Ramas y compilación
 
-Esto aplica tanto para **construir lo que falta** (piezas de la Fase 5 del plan, capa de movimiento de la Parte 7) como para **elevar lo que ya existe** — ninguna sesión debe limitarse a "que funcione", el criterio de aceptación incluye que el resultado esté a la altura de lo que se le entrega a un cliente.
-
-## Contexto del proyecto — leer antes de trabajar
-
-La documentación completa de la migración de Architect.Sys a DKitchen vive en `docs/planificacion/` (14+ partes, numeradas — el número más alto gana en caso de conflicto entre partes). Antes de cualquier cambio de producto, precio, copy o arquitectura, revisa el índice (`docs/planificacion/DKITCHEN_INDICE_PARTES_1-9.md`) y las partes relevantes. No asumas que un documento anterior sigue vigente sin comprobar si una parte posterior lo corrigió.
-
-**Importante:** los documentos de planificación pueden describir como "ya construido" o "ya confirmado" algo que en la práctica no llegó a implementarse o desplegarse. Verifica siempre contra el código real y, si aplica, contra el estado real del servicio externo (Vercel, Neon), no solo contra lo que dice el documento.
-
-## Pagos
-
-**Stripe es la pasarela única y está conectada** (30/10/2026, karc0): DKitchen opera al 100 % en España; titular inicial Elisabet (autónoma). Claves solo en variables de Vercel. Kunfupay, PayPal, LLC y DKitchen Venezuela quedan en Central → Lanzamiento → Planificación. El precio se valida siempre en el servidor. Todo precio se lee de `src/lib/pricing-config.ts`: ningún componente, copy o metadata escribe un precio a mano.
-
-## Ramas y despliegue
-
-La rama de producción real (la que Vercel despliega a `dkitchencorporate.es`) es `claude/github-repository-access-1cf0ss`, y es también la rama por defecto de este repositorio. `archive/architect-sys-legacy` es un backup protegido del código anterior a la migración a DKitchen — no se toca sin autorización explícita del propietario.
+- La rama de producción conectada a `https://dkitchencorporate.es` es **`claude/github-repository-access-1cf0ss`**.
+- `archive/architect-sys-legacy` es copia histórica de respaldo y no se modifica sin orden expresa.
+- No ejecutar `npm run build` ni `tsc` en equipos locales ligeros: usar los builds automáticos de Vercel y verificar `READY` + respuestas HTTP reales en producción.

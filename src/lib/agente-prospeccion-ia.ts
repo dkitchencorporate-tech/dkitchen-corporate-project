@@ -1,4 +1,5 @@
 import 'server-only';
+import { headers } from 'next/headers';
 import { comoCliente } from '@/lib/db';
 import { generarImagen, limpiarTextoIa, saldoIa } from '@/lib/ia';
 import { leerCartaDeFotos, type SeccionLeida } from '@/lib/carta-foto-ia';
@@ -11,7 +12,7 @@ import { crearPromocion, listarPromociones } from '@/lib/promociones';
 const MODELO_AGENTE = 'google/gemini-3-flash';
 
 async function llamarTextoAgente(sistema: string, usuario: string, maxTokens = 550): Promise<string> {
-  const token = process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN;
+  const token = process.env.AI_GATEWAY_API_KEY || (await headers()).get('x-vercel-oidc-token') || process.env.VERCEL_OIDC_TOKEN;
   if (!token) throw new Error('IA no configurada');
   const res = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', {
     method: 'POST',
