@@ -3,6 +3,7 @@ import { HeroPagina, Titulo, Dolores, Faq, Cierre } from '@/components/dk/Bloque
 import { Marquesina } from '@/components/dk/Movimiento';
 import Aparecer from '@/components/qr-landing/Aparecer';
 import { InformeVivo } from '@/components/dk/PiezasProductos';
+import { AUDITORIA_CANALES } from '@/lib/pricing-config';
 
 /** Auditoría de canales — rediseño 29/09/2026. Palabra clave: auditoría ficha Google restaurante. */
 export const metadata: Metadata = {
@@ -48,8 +49,12 @@ export default function PaginaAuditoria() {
           <Aparecer className="mt-16 grid items-center gap-8 rounded-[32px] bg-noche p-8 text-white md:grid-cols-2 md:p-12">
             <div>
               <p className="etiqueta-dk text-vino">Oferta de lanzamiento</p>
-              <p className="mt-3 flex items-baseline gap-4"><span className="font-display text-7xl font-semibold">47 €</span><span className="self-end pb-3 text-lg text-white/60">+ IVA</span></p>
-              <p className="mt-2 text-white/60">Pago único · reunión 1 a 1 incluida</p>
+              <p className="mt-3 flex items-baseline gap-4">
+                <span className="font-display text-2xl text-white/45 line-through">{AUDITORIA_CANALES.precioAncla} €</span>
+                <span className="font-display text-7xl font-semibold">{AUDITORIA_CANALES.precioOferta} €</span>
+                <span className="self-end pb-3 text-lg text-white/60">+ IVA</span>
+              </p>
+              <p className="mt-2 text-white/60">Pago único (antes {AUDITORIA_CANALES.precioAncla} €) · reunión 1 a 1 incluida</p>
             </div>
             <div className="md:text-right"><a href={WA} className="inline-block rounded-full bg-vino px-8 py-4 text-[15px] font-semibold shadow-[0_10px_40px_rgba(163,24,74,.45)]">Reservar mi auditoría</a></div>
           </Aparecer>
