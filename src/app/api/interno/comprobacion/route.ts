@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   const b = (await req.json().catch(() => null)) as { filas?: unknown } | null;
   if (!Array.isArray(b?.filas) || b.filas.length > 500) return NextResponse.json({ error: 'filas' }, { status: 400 });
   try {
-    const n = await volcarPuntos(b.filas as Parameters<typeof volcarPuntos>[0], 'Claude');
+    const n = await volcarPuntos(b.filas as Parameters<typeof volcarPuntos>[0], 'Agente DK');
     return NextResponse.json({ ok: true, n });
   } catch (e) {
     return NextResponse.json({ error: String((e as Error).message) }, { status: 500 });

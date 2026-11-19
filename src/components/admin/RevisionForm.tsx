@@ -71,7 +71,7 @@ export default function RevisionForm({ id, accion, comentario }: { id: string; a
         </ul>
       )}
       <div className="flex flex-wrap gap-2">
-        <button name="estado" value="cambios" disabled={subiendo > 0} className="rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">Hay que cambiar · enviar a Claude</button>
+        <button name="estado" value="cambios" disabled={subiendo > 0} className="rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">Hay que cambiar · enviar a Agente DK</button>
         <button name="estado" value="aprobada" disabled={subiendo > 0} className="rounded-full border border-exito px-5 py-2.5 text-sm font-semibold text-exito disabled:opacity-50">✓ Aprobado</button>
       </div>
     </form>

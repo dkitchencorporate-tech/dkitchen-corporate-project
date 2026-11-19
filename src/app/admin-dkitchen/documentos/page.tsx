@@ -37,7 +37,7 @@ export default async function Documentos({ searchParams }: { searchParams: Promi
       </header>
 
       <GuiaZona titulo="Documentos" ancla="documentos"
-        que="Copia de los documentos del escritorio, por carpeta. Claude la actualiza al cerrar cada tarea. Los reportes fechados están en Reportes."
+        que="Copia de los documentos del escritorio, por carpeta. Agente DK la actualiza al cerrar cada tarea. Los reportes fechados están en Reportes."
         pasos={['Busca por título o carpeta.', 'Los bloques siguen el escritorio (01 Ventas, 02 Publicar, 05 Referencia…); dentro, cada subcarpeta.', 'Lo que ya es un reporte lleva «Es un reporte» y abre el reporte. Lo superado está en «Archivo»; los archivos técnicos de código (skills, .vercel), en «Ver también lo técnico».']} />
 
       <form className="flex flex-wrap items-center gap-3 rounded-[22px] border border-linea bg-white p-4">

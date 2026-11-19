@@ -17,7 +17,7 @@ export const BLOQUES: Record<string, string> = {
 };
 /** Quién la hace (0082). Mis tareas es también la hoja de ruta: nada vive solo en el chat. */
 // 01/11 (Alex): «karc0» es solo el nombre del PC; el dueño es Alex. dk-vzl sale de todo: como mucho, Alex y Claude.
-export const RESPONSABLES: Record<string, string> = { karc0: 'Alex', claude: 'Claude', antigravity: 'Antigravity', ambos: 'Alex + Claude' };
+export const RESPONSABLES: Record<string, string> = { karc0: 'Alex', claude: 'Agente DK', antigravity: 'Agente DK', ambos: 'Alex + Agente DK' };
 /** Urgencia (0083): ordena la lista y el tablero. */
 export const URGENCIAS: Record<string, string> = { urgente: 'Urgente', alta: 'Alta', media: 'Media', baja: 'Baja' };
 
@@ -37,7 +37,7 @@ export interface Tarea {
 }
 export type EstadoComunicacion = 'abierta' | 'respondida' | 'resuelta' | 'reabierta';
 export type ResultadoClaude = 'listo' | 'falta_decidir' | 'falta_corregir';
-export const ESTADOS_COMUNICACION: Record<EstadoComunicacion, string> = { abierta: 'Esperando a Claude', respondida: 'Claude ha respondido', resuelta: 'Resuelta', reabierta: 'Reabierta' };
+export const ESTADOS_COMUNICACION: Record<EstadoComunicacion, string> = { abierta: 'Esperando a Agente DK', respondida: 'Agente DK ha respondido', resuelta: 'Resuelta', reabierta: 'Reabierta' };
 export const RESULTADOS_CLAUDE: Record<ResultadoClaude, string> = { listo: 'Listo', falta_decidir: 'Falta que decidas', falta_corregir: 'Falta corregir' };
 /** 0087: qué hace la nota al enviarse. */
 export type ModoNota = 'abierta' | 'cerrar' | 'traspasar' | 'estado';

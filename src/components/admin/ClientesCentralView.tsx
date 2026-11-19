@@ -371,7 +371,7 @@ export default function ClientesCentralView({
             onClick={seleccionarPruebasSistema}
             className="shrink-0 rounded-full border border-red-300 bg-red-50 px-3.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors shadow-sm"
           >
-            ⚡ Seleccionar {conteo.sistema} de pruebas de Claude
+            ⚡ Seleccionar {conteo.sistema} de pruebas de sistema
           </button>
         )}
 
@@ -477,7 +477,7 @@ export default function ClientesCentralView({
             <option value="riesgo">En riesgo</option>
             <option value="bajas">Bajas</option>
             <option value="demo">Demo interna</option>
-            <option value="sistema">Pruebas sistema (Claude)</option>
+            <option value="sistema">Pruebas sistema (Agente DK)</option>
             <option value="archivados">Archivados</option>
           </select>
         </div>

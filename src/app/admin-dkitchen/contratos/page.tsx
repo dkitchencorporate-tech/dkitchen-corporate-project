@@ -40,7 +40,7 @@ export default async function Contratos({ searchParams }: { searchParams: Promis
 
       <GuiaZona titulo="Contratos" ancla="contratos"
         que="Los contratos que firmamos con comerciales y clientes. Mientras tengan huecos en oro son BORRADOR y no se envían."
-        pasos={['Elige el contrato arriba.', 'Lee el resumen y los huecos pendientes; las decisiones se toman en el chat con Claude.', 'Cuando no quede ningún hueco de decisión, Claude lo marca como vigente y lo conecta al envío automático tras el pago.']} />
+        pasos={['Elige el contrato arriba.', 'Lee el resumen y los huecos pendientes; las decisiones se toman en el chat con Agente DK.', 'Cuando no quede ningún hueco de decisión, Agente DK lo marca como vigente y lo conecta al envío automático tras el pago.']} />
 
       <section className="grid gap-4 md:grid-cols-[1fr_auto]">
         <div className="rounded-[22px] border border-linea bg-white p-5">

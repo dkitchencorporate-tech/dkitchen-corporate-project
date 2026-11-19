@@ -79,7 +79,7 @@ export default async function Entrenamiento() {
 
       <section className="space-y-3 rounded-[26px] border border-linea bg-white p-5">
         <h2 className="font-display text-xl font-bold">Bitácora de campo</h2>
-        <p className="text-sm text-niebla">Lo que vives en la calle. Sin datos personales: Claude convierte cada caso en un escenario nuevo.</p>
+        <p className="text-sm text-niebla">Lo que vives en la calle. Sin datos personales: Agente DK convierte cada caso en un escenario nuevo.</p>
         <form action={bitacoraAction} className="grid gap-3 sm:grid-cols-2">
           <label className="text-sm font-semibold">Fecha<input type="date" name="fecha" className={campo} /></label>
           <label className="text-sm font-semibold">Perfil<input name="perfil" placeholder="Bar de barrio, chiringuito…" className={campo} /></label>

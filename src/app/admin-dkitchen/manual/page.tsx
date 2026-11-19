@@ -135,8 +135,8 @@ const ZONAS: Zona[] = [
   },
   {
     id: 'tareas', titulo: 'Mis tareas', ruta: '/admin-dkitchen/tareas',
-    que: 'Todo lo pendiente del proyecto en un solo sitio: lo que te toca a ti y la hoja de ruta de lo que construye Claude, con quién lo hace y su tiempo estimado. Si no está aquí, no existe.',
-    pasos: ['Una zona cada vez, en el menú flotante de abajo: Hoy · Lo mío · De Claude · Comunicación · Revisiones · Resueltas.', 'Hoy: lo tuyo y lo de Claude de hoy o atrasado; cuando uno acaba, entra el adelanto (lo del siguiente día y lo urgente).', 'Cada tarea guarda un hilo de notas con fecha y hora: puedes añadir notas hasta que se cierre.', 'Comunicación: Esperando a Claude → Claude ha respondido (Listo / Falta que decidas / Falta corregir) → apruebas y pasa a Resueltas; solo tú la reabres.', 'Revisiones: Por revisar → Enviadas a Claude → En curso → Resueltas por Claude (aprueba o reabre) → Aprobadas.', 'El número del menú es lo que te espera a ti.'],
+    que: 'Todo lo pendiente del proyecto en un solo sitio: lo que te toca a ti y la hoja de ruta de lo que ejecuta Agente DK, con quién lo hace y su tiempo estimado. Si no está aquí, no existe.',
+    pasos: ['Una zona cada vez, en el menú flotante de abajo: Hoy · Lo mío · De Agente DK · Comunicación · Revisiones · Resueltas.', 'Hoy: lo tuyo y lo de Agente DK de hoy o atrasado; cuando uno acaba, entra el adelanto (lo del siguiente día y lo urgente).', 'Cada tarea guarda un hilo de notas con fecha y hora: puedes añadir notas hasta que se cierre.', 'Comunicación: Esperando a Agente DK → Agente DK ha respondido (Listo / Falta que decidas / Falta corregir) → apruebas y pasa a Resueltas; solo tú la reabres.', 'Revisiones: Por revisar → Enviadas a Agente DK → En curso → Resueltas por Agente DK (aprueba o reabre) → Aprobadas.', 'El número del menú es lo que te espera a ti.'],
   },
   {
     id: 'reportes', titulo: 'Reportes', ruta: '/admin-dkitchen/reportes',
@@ -145,8 +145,8 @@ const ZONAS: Zona[] = [
   },
   {
     id: 'decisiones', titulo: 'Decisiones', ruta: '/admin-dkitchen/decisiones',
-    que: 'Todo lo que necesita tu respuesta, con su contexto y la recomendación de Claude marcada. Cada decisión tomada se convierte en tarea.',
-    pasos: ['Por decidir → En comunicación (si matizas o eliges «Otra», hasta que Claude responda) → Decidido (falta aplicarla; queda ligada a su tarea) → Resuelto (aplicada, con dónde), cada paso con fecha y hora.', 'Elige una opción y pulsa «Decidir»; «Aplazar» la deja en Por decidir.', '«Reabrir» devuelve una cerrada a Por decidir.', 'Al cerrar la tarea ligada, la decisión pasa sola a Resuelto.'],
+    que: 'Todo lo que necesita tu respuesta, con su contexto y la recomendación de Agente DK marcada. Cada decisión tomada se convierte en tarea.',
+    pasos: ['Por decidir → En comunicación (si matizas o eliges «Otra», hasta que Agente DK responda) → Decidido (falta aplicarla; queda ligada a su tarea) → Resuelto (aplicada, con dónde), cada paso con fecha y hora.', 'Elige una opción y pulsa «Decidir»; «Aplazar» la deja en Por decidir.', '«Reabrir» devuelve una cerrada a Por decidir.', 'Al cerrar la tarea ligada, la decisión pasa sola a Resuelto.'],
   },
   {
     id: 'documentos', titulo: 'Documentos', ruta: '/admin-dkitchen/documentos',
@@ -156,14 +156,14 @@ const ZONAS: Zona[] = [
   {
     id: 'competencia', titulo: 'Competencia', ruta: '/admin-dkitchen/competencia',
     que: 'La base viva de competidores: qué venden, a qué precio, qué les funciona, sus clientes visibles para prospectar y qué hacemos mejor.',
-    pasos: ['Añade un competidor con su nombre, su web y dónde lo viste.', 'Claude lo audita al empezar su sesión.', 'Si cambia algo, deja una nota y pulsa «Guardar y volver a auditar».'],
+    pasos: ['Añade un competidor con su nombre, su web y dónde lo viste.', 'Agente DK lo audita al empezar su sesión.', 'Si cambia algo, deja una nota y pulsa «Guardar y volver a auditar».'],
     ojo: ['Solo datos públicos de empresas.'],
   },
   {
     id: 'comprobacion', titulo: 'Comprobación', ruta: '/admin-dkitchen/comprobacion',
     que: 'El remapeo final: un checklist por servicio (Carta, Local, Sala, Fundador, Signature, Experience, Auditoría, extras, QR físicos, comerciales) con escenarios reales desde cero. Cada punto está en OK, Falla, Pendiente o No iniciado, con nota y evidencia.',
     pasos: ['Elige un servicio.', 'Cambia el estado de un punto y deja la nota; se guarda al pulsar el estado.', 'La «Ruta priorizada» junta todos los fallos: es lo primero que se arregla.'],
-    ojo: ['Claude rellena los puntos con las pruebas automáticas; si tú cambias uno, queda tu nombre y la fecha.'],
+    ojo: ['Agente DK rellena los puntos con las pruebas automáticas; si tú cambias uno, queda tu nombre y la fecha.'],
   },
 ];
 

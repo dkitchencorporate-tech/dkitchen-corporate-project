@@ -74,7 +74,7 @@ export default async function Comprobacion({ searchParams }: { searchParams: Pro
       {sp.e && <p className="rounded-2xl bg-red-50 p-3 text-sm text-red-700">No se pudo guardar. Inténtalo de nuevo.</p>}
 
       <GuiaZona titulo="Comprobación" ancla="comprobacion"
-        que="El checklist de cada servicio: entrada externa (landing → pago → factura y contrato → cuenta → panel), desde Central (alta → tablero → baja), venta y los puntos robustos (precio, móvil, velocidad, seguridad, legales). Claude lo rellena con las pruebas automáticas del repositorio de pruebas; tú puedes cambiar cualquier punto."
+        que="El checklist de cada servicio: entrada externa (landing → pago → factura y contrato → cuenta → panel), desde Central (alta → tablero → baja), venta y los puntos robustos (precio, móvil, velocidad, seguridad, legales). Agente DK lo rellena con las pruebas automáticas del repositorio de pruebas; tú puedes cambiar cualquier punto."
         pasos={['Elige un servicio en la lista.', 'En cada punto pulsa OK, Falla, Pendiente o No iniciado; añade una nota y, si la tienes, la evidencia (enlace o captura).', 'Abajo, en «Ruta priorizada», están todos los fallos juntos: eso es lo que se arregla primero.']} />
 
       <section aria-label="Servicios" className="grid gap-3 sm:grid-cols-2">

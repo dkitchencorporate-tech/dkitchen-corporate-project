@@ -19,7 +19,7 @@ export const TIPOS = {
   pizzeria: 'Pizzería', asador: 'Asador', restaurante: 'Restaurante', hamburgueseria: 'Hamburguesería', kebab: 'Kebab',
   bar: 'Bar de tapas', cafeteria: 'Cafetería', heladeria: 'Heladería', panaderia: 'Panadería', otro: 'Otro',
 } as const;
-export const FUENTES = { visita: 'Visita', digital: 'Digital (redes)', red_socio: 'Red del socio', referido: 'Referido', script: 'Lote (Claude)' } as const;
+export const FUENTES = { visita: 'Visita', digital: 'Digital (redes)', red_socio: 'Red del socio', referido: 'Referido', script: 'Lote (Agente DK)' } as const;
 export const OFERTAS = { qr_1: 'Carta QR · 1 € el primer mes', fundador: 'Fundador (si está abierto)', signature: 'Signature', experience: 'Experience', dark_kitchen: 'Dark Kitchen' } as const;
 export const CONTACTOS = { visita: 'Visita', llamada: 'Llamada', whatsapp: 'WhatsApp', dm: 'DM (Instagram)', correo: 'Correo', nota: 'Nota' } as const;
 

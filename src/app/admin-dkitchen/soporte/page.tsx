@@ -145,8 +145,8 @@ export default async function SoporteQr({ searchParams }: { searchParams: Promis
 }
 
 const horaMadrid = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
-const MODOS_N1: Record<ModoSoporte['n1'], string> = { apagado: 'Apagada (solo la guía)', agente: 'Agente Claude de guardia (pruebas)', gateway: 'AI Gateway (responde sola)' };
-const MODOS_N2: Record<ModoSoporte['n2'], string> = { reglas: 'Solo reglas', agente: 'Agente Claude de guardia (pruebas)', gateway: 'AI Gateway (botón en cada ticket)' };
+const MODOS_N1: Record<ModoSoporte['n1'], string> = { apagado: 'Apagada (solo la guía)', agente: 'Agente DK de guardia (pruebas)', gateway: 'AI Gateway (responde sola)' };
+const MODOS_N2: Record<ModoSoporte['n2'], string> = { reglas: 'Solo reglas', agente: 'Agente DK de guardia (pruebas)', gateway: 'AI Gateway (botón en cada ticket)' };
 
 /** Interruptor de la IA de soporte (0080): aquí se le pasa el mando a AI Gateway cuando hay saldo. */
 function InterruptorIa({ modo }: { modo: ModoSoporte }) {
@@ -176,7 +176,7 @@ function InterruptorIa({ modo }: { modo: ModoSoporte }) {
         </label>
         <button className="rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white">Guardar</button>
       </form>
-      <p className="mt-3 text-xs text-niebla">En modo agente, el chat solo responde con IA mientras Claude está de guardia (lo abre Claude cuando le pides pruebas); el resto del tiempo enseña la guía y «hablar con una persona». Con saldo en AI Gateway, pon los dos en «AI Gateway».</p>
+      <p className="mt-3 text-xs text-niebla">En modo agente, el chat solo responde con IA mientras Agente DK está de guardia (lo abre Agente DK cuando le pides pruebas); el resto del tiempo enseña la guía y «hablar con una persona». Con saldo en AI Gateway, pon los dos en «AI Gateway».</p>
     </section>
   );
 }
@@ -185,7 +185,7 @@ function BloqueIa({ ia }: { ia: IaN2 }) {
   return (
     <div className="rounded-xl border border-vino/25 bg-vino/[0.04] p-3 text-sm">
       <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-vino">
-        Diagnóstico de la IA · {CATEGORIAS[ia.categoria] ?? ia.categoria} · nivel {ia.nivel} · {ia.motor === 'agente' ? 'agente Claude' : ia.motor} · {fechaHora.format(new Date(ia.en))}
+        Diagnóstico de la IA · {CATEGORIAS[ia.categoria] ?? ia.categoria} · nivel {ia.nivel} · {ia.motor === 'agente' ? 'Agente DK' : ia.motor} · {fechaHora.format(new Date(ia.en))}
       </p>
       {ia.diagnostico && <p className="mt-1 whitespace-pre-wrap">{ia.diagnostico}</p>}
       <p className="mt-2 text-xs text-niebla">El borrador ya está en la caja de respuesta de abajo: revísalo antes de pulsar «Responder».</p>

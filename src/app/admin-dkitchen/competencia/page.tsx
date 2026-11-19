@@ -7,8 +7,8 @@ export const dynamic = 'force-dynamic';
 
 const dia = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Madrid' });
 const OK: Record<string, string> = {
-  nuevo: 'Añadido. Claude lo verá al empezar su próxima sesión y lo auditará.', nota: 'Nota guardada.',
-  reauditar: 'Nota guardada y ficha devuelta a «Por auditar»: Claude la revisará de nuevo.',
+  nuevo: 'Añadido. Agente DK lo verá al empezar su próxima sesión y lo auditará.', nota: 'Nota guardada.',
+  reauditar: 'Nota guardada y ficha devuelta a «Por auditar»: Agente DK la revisará de nuevo.',
 };
 const ERR: Record<string, string> = {
   nombre: 'Escribe el nombre del competidor.', existe: 'Ese competidor ya está en la lista.',
@@ -46,8 +46,8 @@ export default async function Competencia({ searchParams }: { searchParams: Prom
       {sp.e && <p className="rounded-2xl bg-red-50 p-3 text-sm text-red-700">{ERR[sp.e] ?? 'No se pudo guardar.'}</p>}
 
       <GuiaZona titulo="Competencia" ancla="competencia"
-        que="La base de competidores de DKitchen. Tú añades los que veas (un anuncio, una web, un nombre); Claude los audita con el mismo método y rellena la ficha. Cada auditoría nueva sale también en Reportes."
-        pasos={['Abajo, en «Añadir competidor», escribe el nombre y, si la tienes, la web. En la nota cuenta dónde lo viste (p. ej. «anuncio en Instagram, captura en el escritorio»).', 'Claude lo verá al empezar su sesión, lo auditará y lo pasará a «Auditado» o «En vigilancia».', 'Si un competidor cambia (precio nuevo, anuncio nuevo), deja una nota y pulsa «Guardar y volver a auditar».']}
+        que="La base de competidores de DKitchen. Tú añades los que veas (un anuncio, una web, un nombre); Agente DK los audita con el mismo método y rellena la ficha. Cada auditoría nueva sale también en Reportes."
+        pasos={['Abajo, en «Añadir competidor», escribe el nombre y, si la tienes, la web. En la nota cuenta dónde lo viste (p. ej. «anuncio en Instagram, captura en el escritorio»).', 'Agente DK lo verá al empezar su sesión, lo auditará y lo pasará a «Auditado» o «En vigilancia».', 'Si un competidor cambia (precio nuevo, anuncio nuevo), deja una nota y pulsa «Guardar y volver a auditar».']}
         ojo={['Solo datos públicos de empresas. Los «clientes visibles» son negocios que ellos enseñan en su web o sus redes; se usan para prospectar con nuestro método, nunca para copiar sus datos.']} />
 
       {!lista && <p className="rounded-[22px] border border-linea bg-white p-8 text-center text-sm text-niebla">No se pudo leer la lista.</p>}
@@ -55,7 +55,7 @@ export default async function Competencia({ searchParams }: { searchParams: Prom
       <ul className="space-y-4">{lista?.map((c) => <Ficha key={c.id} c={c} />)}</ul>
 
       <section id="nuevo" className="scroll-mt-6 rounded-[28px] border border-oro/40 bg-papel p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Para Claude</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Para Agente DK</p>
         <h2 className="font-display mt-1 text-2xl font-semibold">Añadir competidor</h2>
         <form action={nuevoCompetidorAction} className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">Nombre
@@ -122,7 +122,7 @@ function Ficha({ c }: { c: Competidor }) {
           <p className="text-xs text-ceniza md:col-span-2">{c.auditado_en ? `Auditado el ${dia.format(new Date(c.auditado_en))}` : 'Aún sin auditar'} · en la lista desde el {dia.format(new Date(c.creado_en))}</p>
           <form action={notaCompetidorAction} className="space-y-2 md:col-span-2">
             <input type="hidden" name="id" value={c.id} />
-            <label className="block text-sm">Tu nota para Claude
+            <label className="block text-sm">Tu nota para Agente DK
               <textarea name="nota" maxLength={2000} rows={2} defaultValue={c.nota_karc0 ?? ''} className="mt-1 w-full rounded-xl border border-acero bg-white px-3.5 py-2.5 text-sm outline-none focus:border-tinta" />
             </label>
             <div className="flex flex-wrap gap-2">

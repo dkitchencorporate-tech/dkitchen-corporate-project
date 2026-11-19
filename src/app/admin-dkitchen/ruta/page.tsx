@@ -96,7 +96,7 @@ export default async function RutaLanzamiento({ searchParams }: { searchParams: 
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Link href="/admin-dkitchen/tareas?zona=hoy" className="flex items-center justify-between rounded-[22px] border-2 border-red-600/70 bg-white p-4 text-sm">
-          <span><span className="font-display text-2xl font-semibold text-red-700">{urgentes}</span> <span className="font-semibold">tareas para hoy (tuyas y de Claude)</span></span><span className="text-red-700">Ver →</span>
+          <span><span className="font-display text-2xl font-semibold text-red-700">{urgentes}</span> <span className="font-semibold">tareas para hoy (tuyas y de Agente DK)</span></span><span className="text-red-700">Ver →</span>
         </Link>
         <Link href="/admin-dkitchen/decisiones" className="flex items-center justify-between rounded-[22px] border border-oro bg-papel p-4 text-sm">
           <span><span className="font-display text-2xl font-semibold text-vino">{porDecidir}</span> <span className="font-semibold">decisiones esperan tu respuesta</span></span><span className="text-vino">Ver →</span>

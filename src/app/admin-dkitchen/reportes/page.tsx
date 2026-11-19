@@ -86,7 +86,7 @@ export default async function Reportes({ searchParams }: { searchParams: Promise
       )}
 
       <GuiaZona titulo="Reportes" ancla="reportes"
-        que="Claude deja aquí un reporte fechado al terminar cada fase de trabajo, con su clase. Los arranques y los mapas se sustituyen: solo manda el último y los anteriores quedan como «Superado». Cada reporte enseña las tareas que salen de él."
+        que="Agente DK deja aquí un reporte fechado al terminar cada fase de trabajo, con su clase. Los arranques y los mapas se sustituyen: solo manda el último y los anteriores quedan como «Superado». Cada reporte enseña las tareas que salen de él."
         pasos={['Empieza por «Vigente ahora».', 'Filtra por clase (planes, auditorías…) o busca por palabra.', 'Si algo no cuadra: contesta en Decisiones o deja una nota en la tarea ligada. Los reportes no se editan: son el registro.']} />
 
       {/* Filtro por clase + búsqueda */}
@@ -143,7 +143,7 @@ function Ficha({ r, tareas, todos }: { r: ReporteMapa; tareas: Tarea[]; todos: R
             {abiertas.slice(0, 8).map((t) => (
               <li key={t.id} className="flex flex-wrap justify-between gap-x-3">
                 <Link href={`/admin-dkitchen/tareas#t-${t.id}`} className="min-w-0 flex-1 break-words hover:text-vino">{t.titulo}</Link>
-                <span className="text-xs text-niebla">{t.responsable === 'claude' ? 'Claude' : (RESPONSABLES[t.responsable] ?? t.responsable)}{t.paraCuando ? ` · ${t.paraCuando.slice(8, 10)}/${t.paraCuando.slice(5, 7)}` : ''}</span>
+                <span className="text-xs text-niebla">{t.responsable === 'claude' ? 'Agente DK' : (RESPONSABLES[t.responsable] ?? t.responsable)}{t.paraCuando ? ` · ${t.paraCuando.slice(8, 10)}/${t.paraCuando.slice(5, 7)}` : ''}</span>
               </li>
             ))}
             {abiertas.length > 8 && <li className="text-xs text-niebla">y {abiertas.length - 8} más en Mis tareas</li>}

@@ -17,13 +17,13 @@ export const dynamic = 'force-dynamic';
 const dia = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Madrid' });
 const fecha = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
 const OK: Record<string, string> = {
-  hecha: 'Tarea cerrada. Pasa a «Resueltas».', bloqueada: 'Marcada como bloqueada. Claude leerá tu nota.', pendiente: 'Reabierta.',
-  nota: 'Nota enviada a Claude. La tarea sigue abierta para ti y la nota está en «Comunicación».', cerrar: 'Nota enviada y tarea cerrada. Está en «Resueltas».',
-  traspasar: 'Nota enviada: cerrada para ti y pendiente para Claude. La sigues en «Comunicación».',
-  implementar: 'En cola: Claude la tiene la primera en su arranque y está en Hoy · De Claude. Cuando la termine, te llega para aprobar.',
-  aprobar: 'Aprobada: la comunicación pasa a Resueltas.', reabrir: 'Reabierta: Claude la verá al empezar su sesión.',
-  revision: 'Enviada: la tiene Claude y está aquí, en «Enviadas a Claude», hasta que responda. Tus comentarios anteriores se conservan en el hilo.', aprobada: 'Aprobada: está en «Aprobadas».',
-  material: 'Enviado al Buzón Agentes IA. Se leerá al empezar la próxima sesión.',
+  hecha: 'Tarea cerrada. Pasa a «Resueltas».', bloqueada: 'Marcada como bloqueada. Agente DK leerá tu nota.', pendiente: 'Reabierta.',
+  nota: 'Nota enviada a Agente DK. La tarea sigue abierta para ti y la nota está en «Comunicación».', cerrar: 'Nota enviada y tarea cerrada. Está en «Resueltas».',
+  traspasar: 'Nota enviada: cerrada para ti y pendiente para Agente DK. La sigues en «Comunicación».',
+  implementar: 'En cola: Agente DK la tiene la primera en su arranque y está en Hoy · De Agente DK. Cuando la termine, te llega para aprobar.',
+  aprobar: 'Aprobada: la comunicación pasa a Resueltas.', reabrir: 'Reabierta: Agente DK la verá al empezar su sesión.',
+  revision: 'Enviada: la tiene Agente DK y está aquí, en «Enviadas a Agente DK», hasta que responda. Tus comentarios anteriores se conservan en el hilo.', aprobada: 'Aprobada: está en «Aprobadas».',
+  material: 'Enviado al Buzón Agente DK. Se leerá al empezar la próxima sesión.',
 };
 const ERR: Record<string, string> = { datos: 'Datos no válidos.', base: 'No se pudo guardar. Inténtalo de nuevo.', corto: 'Escribe al menos unas palabras (o añade una imagen).', muchos: 'Demasiados mensajes en una hora.' };
 const urgente = (t: Tarea, hoy: string) => t.estado !== 'hecha' && esMia(t) && (!!t.paraCuando && t.paraCuando <= hoy);
@@ -81,7 +81,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
   const filtroRev = (Object.keys(GRUPOS_REV) as (keyof typeof GRUPOS_REV)[]).find((k) => k === sp.r) ?? (revisiones?.some((r) => r.estado === 'por_revisar') ? 'por_revisar' : revisiones?.some(resuelta) ? 'resueltas' : 'enviadas');
   const revsVisibles = revisiones?.filter(GRUPOS_REV[filtroRev]) ?? [];
   const ZONAS = [
-    ['hoy', 'Hoy', H.mias.length], ['mias', 'Lo mío', zonas.mias.length], ['claude', 'De Claude', zonas.claude.length],
+    ['hoy', 'Hoy', H.mias.length], ['mias', 'Lo mío', zonas.mias.length], ['claude', 'De Agente DK', zonas.claude.length],
     ['comunicacion', 'Comunicación', comunicaciones.filter(GRUPOS_COM.respondidas).length], ['revisiones', 'Revisiones', revPend], ['resueltas', 'Resueltas', zonas.resueltas.length],
   ] as const;
   const pedida = sp.zona === 'enviadas' ? 'comunicacion' : sp.zona;
@@ -93,11 +93,11 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
     ? Object.keys(BLOQUES).map((b) => [b, lista.filter((t) => t.bloque === b)] as const).filter(([, l]) => l.length)
     : [['', lista] as const];
   const TITULOS: Record<string, [string, string]> = {
-    hoy: ['Para hoy', 'Lo de hoy o atrasado, tuyo y de Claude. Cuando uno acaba lo suyo, entra el adelanto: lo del siguiente día y lo urgente.'],
-    mias: ['Lo mío', 'Todo lo que te toca a ti (o a ti con Claude), por bloques.'],
-    claude: ['De Claude', 'Lo que construye Claude (y Antigravity), con su tiempo. Lo tacha él al terminar; tú puedes dejarle una nota.'],
-    comunicacion: ['Comunicación', 'Cada nota que le envías a Claude y su respuesta. Si está lista, apruébala y pasa a Resueltas; solo tú puedes reabrirla.'],
-    revisiones: ['Revisiones de Alex', 'Por revisar → Enviadas a Claude (sin respuesta) → En curso (respondida, falta hacerlo) → Resueltas por Claude (apruébala o reábrela) → Aprobadas.'],
+    hoy: ['Para hoy', 'Lo de hoy o atrasado, tuyo y de Agente DK. Cuando uno acaba lo suyo, entra el adelanto: lo del siguiente día y lo urgente.'],
+    mias: ['Lo mío', 'Todo lo que te toca a ti (o a ti con Agente DK), por bloques.'],
+    claude: ['De Agente DK', 'Lo que ejecuta Agente DK, con su tiempo. Lo tacha al terminar; tú puedes dejarle una nota.'],
+    comunicacion: ['Comunicación', 'Cada nota que le envías a Agente DK y su respuesta. Si está lista, apruébala y pasa a Resueltas; solo tú puedes reabrirla.'],
+    revisiones: ['Revisiones de Alex', 'Por revisar → Enviadas a Agente DK (sin respuesta) → En curso (respondida, falta hacerlo) → Resueltas por Agente DK (apruébala o reábrela) → Aprobadas.'],
     planificacion: ['Planificación', 'Lo que queda aparcado para más adelante: DKitchen Venezuela (dk-vzl), su sistema de cobro y las pasarelas o figuras descartadas para España. Aquí decides cuándo retomarlo.'],
     resueltas: ['Resueltas', 'Tareas cerradas, de la más reciente a la más antigua.'],
   };
@@ -110,7 +110,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
         <h1 className="font-display relative mt-2 text-3xl font-semibold md:text-4xl">Mis tareas</h1>
         <div className="relative mt-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-1 text-sm">
           <span className="font-display whitespace-nowrap text-4xl font-semibold text-oro">{hechas}<span className="text-xl text-white/50"> / {todas.length}</span></span>
-          <span className="text-white/60 sm:text-right">{pct} % hecho · {zonas.mias.length} tuyas abiertas · {zonas.claude.length} de Claude</span>
+          <span className="text-white/60 sm:text-right">{pct} % hecho · {zonas.mias.length} tuyas abiertas · {zonas.claude.length} de Agente DK</span>
         </div>
         <div className="relative mt-2 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-oro" style={{ width: `${pct}%` }} /></div>
         <div className="relative mt-4 flex flex-wrap gap-2 text-sm">
@@ -134,7 +134,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
         <>
           {/* 18/10 (karc0): cada revisión en su sitio según su estado, sin que nada se pierda */}
           <nav aria-label="Estado de las revisiones" className="flex flex-wrap gap-2 text-sm">
-            {([['por_revisar', 'Por revisar'], ['enviadas', 'Enviadas a Claude'], ['en_curso', 'En curso'], ['resueltas', 'Resueltas por Claude'], ['aprobada', 'Aprobadas']] as const).map(([k, t]) => (
+            {([['por_revisar', 'Por revisar'], ['enviadas', 'Enviadas a Agente DK'], ['en_curso', 'En curso'], ['resueltas', 'Resueltas por Agente DK'], ['aprobada', 'Aprobadas']] as const).map(([k, t]) => (
               <a key={k} href={`/admin-dkitchen/tareas?zona=revisiones&r=${k}`} aria-current={filtroRev === k ? 'page' : undefined}
                 className={`rounded-full px-4 py-2 font-semibold ${filtroRev === k ? 'bg-tinta text-white' : 'border border-acero bg-white'}`}>{t} · {revisiones?.filter(GRUPOS_REV[k]).length ?? 0}</a>
             ))}
@@ -146,15 +146,15 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
         <>
           <p className="flex flex-wrap gap-2 text-xs">
             <span className="rounded-full bg-exito/10 px-3 py-1 font-semibold text-exito">Hoy has cerrado {H.hechasHoyMias}</span>
-            <span className="rounded-full bg-noche/10 px-3 py-1 font-semibold text-noche">Claude ha cerrado {H.hechasHoyClaude}</span>
+            <span className="rounded-full bg-noche/10 px-3 py-1 font-semibold text-noche">Agente DK ha cerrado {H.hechasHoyClaude}</span>
           </p>
           <BloqueHoy titulo="Lo tuyo" lista={H.mias} adelanto={H.adelantoMias} hoy={hoy} vacio="Lo tuyo de hoy está hecho." />
-          <BloqueHoy titulo="De Claude" lista={H.claude} adelanto={H.adelantoClaude} hoy={hoy} vacio="Claude ha terminado lo suyo de hoy." />
+          <BloqueHoy titulo="De Agente DK" lista={H.claude} adelanto={H.adelantoClaude} hoy={hoy} vacio="Agente DK ha terminado lo suyo de hoy." />
         </>
       ) : zona === 'comunicacion' ? (
         <>
           <nav aria-label="Estado de la comunicación" className="flex flex-wrap gap-2 text-sm">
-            {([['respondidas', 'Claude ha respondido'], ['abiertas', 'Esperando a Claude'], ['resueltas', 'Resueltas']] as const).map(([k, t]) => (
+            {([['respondidas', 'Agente DK ha respondido'], ['abiertas', 'Esperando a Agente DK'], ['resueltas', 'Resueltas']] as const).map(([k, t]) => (
               <a key={k} href={`/admin-dkitchen/tareas?zona=comunicacion&c=${k}`} aria-current={filtroCom === k ? 'page' : undefined}
                 className={`rounded-full px-4 py-2 font-semibold ${filtroCom === k ? 'bg-tinta text-white' : 'border border-acero bg-white'}`}>{t} · {comunicaciones.filter(GRUPOS_COM[k]).length}</a>
             ))}
@@ -174,12 +174,12 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
       {zona === 'mias' && (
         <>
           <GuiaZona titulo="Mis tareas" ancla="tareas"
-            que="Una zona cada vez, con el menú flotante de abajo. Claude apunta aquí lo que solo puedes hacer tú y lo que construye él; cada nota y cada cambio quedan en la base y Claude los lee al empezar su sesión."
-            pasos={['Haz la tarea y pulsa «✓ Hecha»: pasa a Resueltas.', 'Para escribir a Claude: escribe la nota y pulsa «Enviar nota»; elige si cierras la tarea, si la cierras para ti y la dejas pendiente para Claude, o si sigue abierta.', 'La nota enviada queda bloqueada; para cambiarla, «Editar nota».', 'Cuando Claude cambie algo que debas ver, te llega a «Revisiones»: apruébalo o dile qué cambiar con texto y capturas (puedes pegarlas con Ctrl+V).']} />
+            que="Una zona cada vez, con el menú flotante de abajo. Agente DK apunta aquí lo que solo puedes hacer tú y lo que ejecuta el sistema; cada nota y cada cambio quedan en la base y Agente DK los lee al empezar su sesión."
+            pasos={['Haz la tarea y pulsa «✓ Hecha»: pasa a Resueltas.', 'Para escribir a Agente DK: escribe la nota y pulsa «Enviar nota»; elige si cierras la tarea, si la cierras para ti y la dejas pendiente para Agente DK, o si sigue abierta.', 'La nota enviada queda bloqueada; para cambiarla, «Editar nota».', 'Cuando Agente DK cambie algo que debas ver, te llega a «Revisiones»: apruébalo o dile qué cambiar con texto y capturas (puedes pegarlas con Ctrl+V).']} />
           <section id="material" className="rounded-[28px] border border-oro/40 bg-papel p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Buzón privado</p>
             <h2 className="font-display mt-1 text-2xl font-semibold">Te dejo material</h2>
-            <p className="mt-1 text-sm text-niebla">Dime dónde has dejado algo (carpeta del escritorio, archivo, ID, texto) y para qué es. Llega al Buzón Agentes IA.</p>
+            <p className="mt-1 text-sm text-niebla">Dime dónde has dejado algo (carpeta del escritorio, archivo, ID, texto) y para qué es. Llega al Buzón Agente DK.</p>
             <form action={materialAction} className="mt-4 space-y-3">
               <label className="block text-sm">Ruta o dónde está (opcional)
                 <input name="ruta" maxLength={280} placeholder="p. ej. Escritorio\fotos rincon  ·  ID píxel 1234567890" className="mt-1 w-full rounded-xl border border-acero bg-white px-3.5 py-2.5 text-sm outline-none focus:border-tinta" />
@@ -188,7 +188,7 @@ export default async function MisTareas({ searchParams }: { searchParams: Promis
                 <textarea name="mensaje" required minLength={3} maxLength={4000} rows={3} className="mt-1 w-full rounded-xl border border-acero bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-tinta" />
               </label>
               <PulirTexto campo="mensaje" />
-              <button className="block rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white">Enviar a Claude</button>
+              <button className="block rounded-full bg-vino px-5 py-2.5 text-sm font-semibold text-white">Enviar a Agente DK</button>
             </form>
           </section>
         </>
@@ -247,7 +247,7 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
               <span className={`rounded-full px-2.5 py-0.5 font-semibold ${deClaude ? 'bg-noche text-oro' : 'bg-vino/10 text-vino'}`}>{RESPONSABLES[t.responsable] ?? t.responsable}</span>
               {!hecha && t.urgencia !== 'media' && <span className={`rounded-full px-2.5 py-0.5 font-semibold ${t.urgencia === 'urgente' ? 'bg-red-600 text-white' : t.urgencia === 'alta' ? 'bg-oro text-noche' : 'bg-acero/30 text-carbon'}`}>{URGENCIAS[t.urgencia] ?? t.urgencia}</span>}
               {t.estimado && !hecha && <span className="rounded-full border border-linea px-2.5 py-0.5 font-medium text-carbon">⏱ {t.estimado}</span>}
-              {t.traspasadaEn && !hecha && <span className="rounded-full bg-noche/10 px-2.5 py-0.5 font-semibold text-noche">Cerrada para ti · pendiente para Claude</span>}
+              {t.traspasadaEn && !hecha && <span className="rounded-full bg-noche/10 px-2.5 py-0.5 font-semibold text-noche">Cerrada para ti · pendiente para Agente DK</span>}
               {t.creadoEn && <span>Creada el {fecha.format(new Date(t.creadoEn))}</span>}
               {t.notaEnviadaEn && <span>· Nota el {fecha.format(new Date(t.notaEnviadaEn))}</span>}
               {t.respuestaEn && <span>· Respondida el {fecha.format(new Date(t.respuestaEn))}</span>}
@@ -269,7 +269,7 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
           {t.notaClaude && (
             <div className={`rounded-2xl border-l-[3px] px-4 py-3 ${t.comResultado === 'listo' ? 'border-exito bg-exito/5' : t.comResultado ? 'border-vino bg-vino/5' : 'border-vino bg-papel'}`}>
               <p className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-vino">
-                <span>{t.comResultado ? 'Respuesta de Claude' : 'Nota de Claude'}</span>
+                <span>{t.comResultado ? 'Respuesta de Agente DK' : 'Nota de Agente DK'}</span>
                 {t.comResultado && <span className="rounded-full bg-tinta px-2 py-0.5 normal-case tracking-normal text-white">{RESULTADOS_CLAUDE[t.comResultado]}</span>}
               </p>
               <p className="mt-1 whitespace-pre-wrap text-sm">{t.notaClaude}</p>
@@ -300,7 +300,7 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
             {(!notaBloqueada || puedeAnadir) && (
               <>
                 {puedeAnadir && <input type="hidden" name="anadir" value="1" />}
-                <label className="block text-sm">{editar ? 'Edita tus notas para Claude' : puedeAnadir ? 'Añadir otra nota (queda con fecha y hora)' : 'Nota para Claude'}
+                <label className="block text-sm">{editar ? 'Edita tus notas para Agente DK' : puedeAnadir ? 'Añadir otra nota (queda con fecha y hora)' : 'Nota para Agente DK'}
                   <textarea name="nota" maxLength={editar ? 12000 : 3000} rows={3} defaultValue={editar ? t.notaKarc0 ?? '' : ''} placeholder="Qué has hecho, un dato, un enlace, una instrucción o por qué no puedes." className="mt-1 w-full rounded-xl border border-acero bg-white px-3.5 py-2.5 text-sm outline-none focus:border-tinta" />
                 </label>
                 <PulirTexto campo="nota" />
@@ -309,7 +309,7 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
                   <summary className="cursor-pointer list-none text-sm font-semibold text-vino">Enviar nota ▾ <span className="font-normal text-niebla">· elige qué pasa con la tarea</span></summary>
                   <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                     {!deClaude && !hecha && <button name="modo" value="cerrar" className="rounded-full bg-vino px-4 py-2.5 text-sm font-semibold text-white">Enviar y cerrar la tarea</button>}
-                    {!deClaude && !hecha && <button name="modo" value="traspasar" className="rounded-full bg-noche px-4 py-2.5 text-sm font-semibold text-oro">Enviar · cerrada para mí, pendiente para Claude</button>}
+                    {!deClaude && !hecha && <button name="modo" value="traspasar" className="rounded-full bg-noche px-4 py-2.5 text-sm font-semibold text-oro">Enviar · cerrada para mí, pendiente para Agente DK</button>}
                     <button name="modo" value="abierta" className="rounded-full border border-acero bg-white px-4 py-2.5 text-sm font-medium">Enviar y dejarla abierta</button>
                   </div>
                 </details>
@@ -335,13 +335,13 @@ function TareaFicha({ t, hoy, zona, editar }: { t: Tarea; hoy: string; zona: str
 /** 0095: botón «▶ Implementar ya» o, si ya está en cola, desde cuándo. */
 function BotonImplementar({ t, zona, ancla, r }: { t: Tarea; zona: string; ancla: string; r?: string }) {
   if (t.estado === 'hecha') return null;
-  if (t.implementarYaEn) return <p className="rounded-2xl bg-noche px-4 py-2.5 text-sm font-semibold text-oro">▶ En cola para Claude desde el {fecha.format(new Date(t.implementarYaEn))} · la primera en su arranque</p>;
+  if (t.implementarYaEn) return <p className="rounded-2xl bg-noche px-4 py-2.5 text-sm font-semibold text-oro">▶ En cola para Agente DK desde el {fecha.format(new Date(t.implementarYaEn))} · la primera en su arranque</p>;
   return (
     <form action={implementarYaAction} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="id" value={t.id} /><input type="hidden" name="zona" value={zona} /><input type="hidden" name="ancla" value={ancla} />
       {r && <input type="hidden" name="r" value={r} />}
       <button className="rounded-full bg-noche px-5 py-2.5 text-sm font-semibold text-oro">▶ Implementar ya</button>
-      <span className="text-xs text-niebla">Pasa a Hoy y Claude empieza por aquí en su próxima sesión.</span>
+      <span className="text-xs text-niebla">Pasa a Hoy y Agente DK empieza por aquí en su próxima sesión.</span>
     </form>
   );
 }
@@ -357,7 +357,7 @@ function RevisionFicha({ r, tarea, filtro }: { r: Revision; tarea: Tarea | null;
             <span className="mt-1 flex flex-wrap gap-2 text-xs text-niebla">
               <span className={`rounded-full px-2.5 py-0.5 font-semibold ${color}`}>{ESTADOS_REVISION[r.estado]}</span>
               <span>{fecha.format(new Date(r.creadoEn))}{r.version ? ` · ${r.version}` : ''}</span>
-              {r.revisadoEn && r.estado !== 'aprobada' && <span>Enviada a Claude el {fecha.format(new Date(r.revisadoEn))} · {r.leidoClaude ? '✓ la ha leído' : '● aún sin leer'}</span>}
+              {r.revisadoEn && r.estado !== 'aprobada' && <span>Enviada a Agente DK el {fecha.format(new Date(r.revisadoEn))} · {r.leidoClaude ? '✓ la ha leído' : '● aún sin leer'}</span>}
               {r.estado === 'aprobada' && r.revisadoEn && <span>Aprobada el {fecha.format(new Date(r.revisadoEn))}</span>}
             </span>
           </span>
@@ -369,10 +369,10 @@ function RevisionFicha({ r, tarea, filtro }: { r: Revision; tarea: Tarea | null;
           {r.estado === 'cambios' && (
             <div className={`rounded-2xl border-l-[3px] px-4 py-3 text-sm ${r.estadoClaude === 'implementada' ? 'border-exito bg-exito/5' : r.estadoClaude === 'en_preguntas' || r.estadoClaude === 'decision' ? 'border-vino bg-vino/5' : 'border-tinta bg-white ring-1 ring-linea'}`}>
               <p className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-[0.15em]">
-                <span>Respuesta de Claude</span>
+                <span>Respuesta de Agente DK</span>
                 <span className="rounded-full bg-tinta px-2 py-0.5 normal-case tracking-normal text-white">{r.estadoClaude ? ESTADOS_CLAUDE[r.estadoClaude] : r.leidoClaude ? 'Leída, sin respuesta aún' : 'Sin leer'}</span>
               </p>
-              {r.respuestaClaude ? <p className="mt-1 whitespace-pre-wrap">{r.respuestaClaude}</p> : <p className="mt-1 text-niebla">Claude aún no ha dado el resultado de esta revisión.</p>}
+              {r.respuestaClaude ? <p className="mt-1 whitespace-pre-wrap">{r.respuestaClaude}</p> : <p className="mt-1 text-niebla">Agente DK aún no ha dado el resultado de esta revisión.</p>}
               {r.respondidaEn && <p className="mt-1 text-xs text-niebla">{fecha.format(new Date(r.respondidaEn))}</p>}
             </div>
           )}
@@ -391,7 +391,7 @@ function RevisionFicha({ r, tarea, filtro }: { r: Revision; tarea: Tarea | null;
                 <BotonImplementar t={tarea} zona="revisiones" ancla={`r-${r.id}`} r={filtro} />
               </div>}
               <details className="rounded-2xl border border-linea p-3">
-                <summary className="cursor-pointer list-none text-sm font-semibold text-vino">✓ Ya está en manos de Claude · Añadir algo más ▾</summary>
+                <summary className="cursor-pointer list-none text-sm font-semibold text-vino">✓ Ya está en manos de Agente DK · Añadir algo más ▾</summary>
                 <div className="mt-3"><RevisionForm id={r.id} accion={revisionAction} comentario={null} /></div>
               </details>
               </>
