@@ -20,6 +20,75 @@ const COMPOSICIONES_POR_PERFIL: Record<string, { plantilla: string; color: strin
   experience_evento: { plantilla: 'premium', color: '#1E3A5F', fondo: 'oscuro', etiqueta: 'Premium · Eventos & Sala' },
 };
 
+async function comprimirFotoCarta(file: File): Promise<File> {
+  if (typeof window === 'undefined' || !file.type.startsWith('image/')) return file;
+  const maxLado = 1600;
+  let objUrl: string | null = null;
+  let bitmap: ImageBitmap | null = null;
+  try {
+    let anchoOrig = 0;
+    let altoOrig = 0;
+    let fuente: CanvasImageSource | null = null;
+
+    if (typeof createImageBitmap === 'function') {
+      try {
+        bitmap = await createImageBitmap(file);
+        anchoOrig = bitmap.width;
+        altoOrig = bitmap.height;
+        fuente = bitmap;
+      } catch {
+        bitmap = null;
+      }
+    }
+
+    if (!fuente) {
+      objUrl = URL.createObjectURL(file);
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = () => reject(new Error('No se pudo leer la imagen'));
+        el.src = objUrl as string;
+      });
+      anchoOrig = img.naturalWidth || img.width;
+      altoOrig = img.naturalHeight || img.height;
+      fuente = img;
+    }
+
+    if (!anchoOrig || !altoOrig) return file;
+    const escala = Math.min(1, maxLado / Math.max(anchoOrig, altoOrig));
+    const ancho = Math.max(1, Math.round(anchoOrig * escala));
+    const alto = Math.max(1, Math.round(altoOrig * escala));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = ancho;
+    canvas.height = alto;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, ancho, alto);
+    ctx.drawImage(fuente, 0, 0, ancho, alto);
+
+    const aBlob = (calidad: number) =>
+      new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', calidad));
+
+    let blob = await aBlob(0.82);
+    if (blob && blob.size > 900_000) {
+      const reblob = await aBlob(0.72);
+      if (reblob) blob = reblob;
+    }
+    if (!blob) return file;
+
+    const nombreBase = file.name.replace(/\.[^.]+$/, '') || 'carta';
+    return new File([blob], `${nombreBase}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
+  } catch {
+    return file;
+  } finally {
+    if (bitmap && typeof bitmap.close === 'function') bitmap.close();
+    if (objUrl) URL.revokeObjectURL(objUrl);
+  }
+}
+
 export default function AgenteDemoPropuestaIa({
   base,
   prospectoId,
@@ -85,6 +154,7 @@ export default function AgenteDemoPropuestaIa({
   const [respuestaChat, setRespuestaChat] = useState<string | null>(null);
   const [pendienteChat, iniciarChat] = useTransition();
   const [copiadoChat, setCopiadoChat] = useState(false);
+  const [copiadoPropuesta, setCopiadoPropuesta] = useState(false);
 
   const sinLimite = cuotaIa?.sin_limite === true;
   const demosUsadas = cuotaIa?.demos_usadas ?? 0;
@@ -108,9 +178,10 @@ export default function AgenteDemoPropuestaIa({
     try {
       const nuevas: string[] = [];
       for (const file of Array.from(archivos).slice(0, 4 - fotosCarta.length)) {
+        const comprimido = await comprimirFotoCarta(file);
         const fd = new FormData();
         fd.set('prospecto_id', prospectoId);
-        fd.set('archivo', file);
+        fd.set('archivo', comprimido);
         const r = await subirFotoCartaProspectoAction(fd);
         if (!r.ok) {
           setError(r.error);
@@ -129,10 +200,11 @@ export default function AgenteDemoPropuestaIa({
   const lanzarAgenteUnificado = () => {
     setError(null);
     setResultado(null);
+    setCopiadoPropuesta(false);
     setPasoActual(
       fotosCarta.length > 0
-        ? 'Leyendo foto de la carta con IA, creando Demo de Autor, generando Logo + Banner + fotos IA en principal y redactando propuesta…'
-        : 'Creando Demo de Autor, generando Logo + Banner + 5–6 fotos IA en platos principales y preparando propuesta unificada…'
+        ? 'Leyendo carta con IA y generando Demo + Propuesta en paralelo (~12–35 s)…'
+        : 'Creando Demo de Autor, imágenes seleccionadas y Propuesta en paralelo (~12–35 s)…'
     );
     iniciarAgente(async () => {
       const p = PLANTILLAS_PROPUESTA.find((x) => x.id === perfilId) ?? sugerida;
@@ -196,6 +268,16 @@ export default function AgenteDemoPropuestaIa({
   const restIdActivo = resultado?.restauranteId ?? restauranteId;
   const tokenActivo = resultado?.propuestaToken ?? propuestaToken;
   const totalImagenesEstimadas = (generarLogoIa ? 1 : 0) + (generarBannerIa ? 1 : 0) + cantidadPlatosIa;
+  const esCalleExpress = !generarLogoIa && generarBannerIa && cantidadPlatosIa === 2;
+  const esSoloCarta = !generarLogoIa && !generarBannerIa && cantidadPlatosIa === 0;
+  const esCompleto = generarLogoIa && generarBannerIa && cantidadPlatosIa >= 5;
+  const partesBoton = [
+    ...(fotosCarta.length > 0 ? ['Leer Carta'] : []),
+    ...(generarLogoIa ? ['Logo'] : []),
+    ...(generarBannerIa ? ['Portada'] : []),
+    ...(cantidadPlatosIa > 0 ? [`${cantidadPlatosIa} Fotos IA`] : []),
+    'Propuesta',
+  ].join(' + ');
 
   return (
     <div className="mb-4 rounded-2xl border-2 border-[#b08d57]/50 bg-gradient-to-br from-[#faf6ee] via-white to-[#f6efe2] p-4 shadow-sm">
@@ -203,13 +285,13 @@ export default function AgenteDemoPropuestaIa({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#2a1f1a] px-3 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#f3e5c8]">
-            ✨ Agente IA Unificado · Prospecto → Demo Impacto → Propuesta
+            ✨ Agente DK · Prospecto → Demo Impacto → Propuesta
           </span>
           <h4 className="mt-1.5 font-serif text-base font-semibold text-neutral-900">
-            Generación con IA para captar en vivo o por llamada ({nombre})
+            Generación instantánea para enseñar en calle o enviar por WhatsApp ({nombre})
           </h4>
           <p className="text-xs text-neutral-600">
-            Sube una foto de su carta (o usa la base de su perfil): el agente crea los platos, genera el <b>Logo</b>, el <b>Banner de portada</b> y <b>5 o 6 fotos IA en platos principales</b>, y deja la propuesta lista con el link de su demo.
+            Haz foto de su carta en papel o usa la base de su perfil: Agente DK extrae sus platos reales al momento y prepara su demo navegable y propuesta.
           </p>
         </div>
 
@@ -296,27 +378,43 @@ export default function AgenteDemoPropuestaIa({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-xs font-semibold text-neutral-900">
-              2. Subir foto de su carta física o pantalla (opcional · hasta 4 fotos)
+              2. Foto de su carta en papel o pantalla (opcional · hasta 4 fotos · compresión automática)
             </p>
             <p className="text-[11px] text-neutral-500">
-              Si subes foto de su carta, el Agente IA extrae sus platos y precios reales. Si lo dejas vacío, monta una carta de impacto adaptada a {tipo} en {zona}.
+              Si haces foto a su carta, Agente DK extrae sus platos y precios reales en segundos. Si lo dejas vacío, monta una carta adaptada a {tipo} en {zona}.
             </p>
           </div>
           {fotosCarta.length < 4 && (
-            <label className="cursor-pointer rounded-xl border border-neutral-900 bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-neutral-800">
-              {subiendoFoto ? 'Subiendo foto…' : '📷 Subir foto de su carta'}
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                disabled={subiendoFoto || pendienteAgente}
-                onChange={(e) => {
-                  void handleSubirFotosCarta(e.target.files);
-                  e.currentTarget.value = '';
-                }}
-                className="hidden"
-              />
-            </label>
+            <div className="flex flex-wrap gap-2">
+              <label className="cursor-pointer rounded-xl border border-[#6E0C2B] bg-[#6E0C2B] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#540921]">
+                {subiendoFoto ? 'Procesando…' : '📸 Hacer foto ahora'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  disabled={subiendoFoto || pendienteAgente}
+                  onChange={(e) => {
+                    void handleSubirFotosCarta(e.target.files);
+                    e.currentTarget.value = '';
+                  }}
+                  className="hidden"
+                />
+              </label>
+              <label className="cursor-pointer rounded-xl border border-neutral-900 bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-neutral-800">
+                {subiendoFoto ? 'Subiendo…' : '🖼️ Subir de galería'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  disabled={subiendoFoto || pendienteAgente}
+                  onChange={(e) => {
+                    void handleSubirFotosCarta(e.target.files);
+                    e.currentTarget.value = '';
+                  }}
+                  className="hidden"
+                />
+              </label>
+            </div>
           )}
         </div>
 
@@ -336,21 +434,69 @@ export default function AgenteDemoPropuestaIa({
               </div>
             ))}
             <span className="text-[11px] font-medium text-emerald-800">
-              ✓ {fotosCarta.length} foto{fotosCarta.length === 1 ? '' : 's'} lista{fotosCarta.length === 1 ? '' : 's'} para leer con IA
+              ✓ {fotosCarta.length} foto{fotosCarta.length === 1 ? '' : 's'} comprimida{fotosCarta.length === 1 ? '' : 's'} y lista{fotosCarta.length === 1 ? '' : 's'} para leer con IA
             </span>
           </div>
         )}
       </div>
 
-      {/* Paso 3: Control de imágenes IA (Logo + Banner + 5 o 6 platos en principal) */}
+      {/* Paso 3: Modos de velocidad y control de imágenes IA */}
       <div className="mt-3 rounded-xl border border-neutral-200 bg-white p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs font-semibold text-neutral-900">
-            3. Imágenes generadas con IA para causar impacto ({totalImagenesEstimadas} imágenes en este pase)
+            3. Modo de generación e imágenes IA ({totalImagenesEstimadas} imágenes en este pase)
           </p>
           <span className="text-[11px] text-neutral-500">
             Todas las fotos creadas podrán mejorarse o cambiarse manualmente en el panel
           </span>
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              setGenerarLogoIa(false);
+              setGenerarBannerIa(true);
+              setCantidadPlatosIa(2);
+            }}
+            className={`rounded-full px-3 py-1 text-[11px] font-bold transition ${
+              esCalleExpress
+                ? 'bg-[#6E0C2B] text-white shadow-sm'
+                : 'border border-neutral-300 bg-neutral-50 text-neutral-800 hover:bg-neutral-100'
+            }`}
+          >
+            ⚡ Calle Express (~20 s)
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setGenerarLogoIa(false);
+              setGenerarBannerIa(false);
+              setCantidadPlatosIa(0);
+            }}
+            className={`rounded-full px-3 py-1 text-[11px] font-bold transition ${
+              esSoloCarta
+                ? 'bg-neutral-900 text-white shadow-sm'
+                : 'border border-neutral-300 bg-neutral-50 text-neutral-800 hover:bg-neutral-100'
+            }`}
+          >
+            🚀 Solo Carta (~12 s)
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setGenerarLogoIa(true);
+              setGenerarBannerIa(true);
+              setCantidadPlatosIa(5);
+            }}
+            className={`rounded-full px-3 py-1 text-[11px] font-bold transition ${
+              esCompleto
+                ? 'bg-[#2a1f1a] text-[#f3e5c8] shadow-sm'
+                : 'border border-neutral-300 bg-neutral-50 text-neutral-800 hover:bg-neutral-100'
+            }`}
+          >
+            ✨ Completo (~35 s)
+          </button>
         </div>
 
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
@@ -384,6 +530,7 @@ export default function AgenteDemoPropuestaIa({
               <option value={6}>6 platos principales</option>
               <option value={5}>5 platos principales</option>
               <option value={4}>4 platos principales</option>
+              <option value={2}>2 platos recomendados (rápido)</option>
               <option value={0}>0 (subir a mano)</option>
             </select>
           </label>
@@ -393,13 +540,13 @@ export default function AgenteDemoPropuestaIa({
           type="text"
           value={instruccionExtra}
           onChange={(e) => setInstruccionExtra(e.target.value)}
-          placeholder="Indicación opcional al Agente IA (ej. Destaca sus carnes a la brasa y arroces, estilo rústico elegante)…"
+          placeholder="Indicación opcional al Agente DK (ej. Destaca sus carnes a la brasa y arroces, estilo rústico elegante)…"
           maxLength={140}
           className="mt-2 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs text-neutral-800 placeholder-neutral-400"
         />
       </div>
 
-      {/* Botonera principal: Flujo Agente IA vs Modo Manual */}
+      {/* Botonera principal: Flujo Agente DK vs Modo Manual */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -407,9 +554,7 @@ export default function AgenteDemoPropuestaIa({
           onClick={lanzarAgenteUnificado}
           className="w-full sm:w-auto rounded-xl bg-[#6E0C2B] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#540921] disabled:opacity-50 whitespace-normal text-center"
         >
-          {pendienteAgente
-            ? '⏳ Ejecutando Agente IA…'
-            : `✨ Ejecutar Agente IA (${ fotosCarta.length > 0 ? 'Leer Carta + ' : '' }Logo + Banner + ${cantidadPlatosIa} Fotos IA + Propuesta)`}
+          {pendienteAgente ? '⏳ Ejecutando Agente DK…' : `✨ Ejecutar Agente DK (${partesBoton})`}
         </button>
 
         {restIdActivo && (
@@ -431,7 +576,7 @@ export default function AgenteDemoPropuestaIa({
           onClick={() => setChatAbierto((v) => !v)}
           className="w-full sm:w-auto sm:ml-auto rounded-xl border border-[#b08d57] bg-[#f7efe0] px-3.5 py-2.5 text-xs font-semibold text-[#5a421c] hover:bg-[#efe2c8] text-center"
         >
-          💬 {chatAbierto ? 'Ocultar Chat' : 'Chat y Guiones con Agente IA'}
+          💬 {chatAbierto ? 'Ocultar Chat' : 'Chat y Guiones con Agente DK'}
         </button>
       </div>
 
@@ -439,7 +584,7 @@ export default function AgenteDemoPropuestaIa({
         <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50/90 px-3.5 py-2.5 text-xs text-amber-950">
           <p className="font-semibold">⚡ {pasoActual}</p>
           <p className="mt-0.5 text-[11px] text-amber-800">
-            Puede tardar entre 25 y 60 segundos mientras Vercel AI Gateway genera el logo, la portada y las fotos de los platos principales.
+            Procesamiento paralelo activo (~12–35 segundos según el modo elegido): la carta, las imágenes y la propuesta se construyen a la vez.
           </p>
         </div>
       )}
@@ -490,6 +635,18 @@ export default function AgenteDemoPropuestaIa({
             >
               Ver Propuesta lista (/propuesta) ↗
             </a>
+            <button
+              type="button"
+              onClick={() => {
+                const url = `${window.location.origin}/propuesta/${resultado.propuestaToken}`;
+                void navigator.clipboard?.writeText(url);
+                setCopiadoPropuesta(true);
+                setTimeout(() => setCopiadoPropuesta(false), 1800);
+              }}
+              className="rounded-lg border border-emerald-900 bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:bg-emerald-200"
+            >
+              {copiadoPropuesta ? '✅ Enlace copiado' : '📋 Copiar enlace Propuesta'}
+            </button>
           </div>
         </div>
       )}

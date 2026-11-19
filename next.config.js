@@ -100,6 +100,12 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
 
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '4mb',
+    },
+  },
+
   typescript: {
     // No se ignoran los errores de tipos en el build: un error de tipos en la
     // capa de datos es exactamente la clase de fallo que no debe desplegarse.

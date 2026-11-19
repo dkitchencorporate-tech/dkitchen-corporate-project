@@ -373,7 +373,7 @@ export async function subirFotoCartaProspectoAction(
     const archivo = formulario.get('archivo');
     if (!(archivo instanceof File)) return { ok: false, error: 'No se recibió ninguna foto.' };
     if (!TIPOS_IMAGEN_CARTA.has(archivo.type)) return { ok: false, error: 'Formato no admitido (usa JPG, PNG o WebP).' };
-    if (archivo.size > 1_500_000) return { ok: false, error: 'La foto supera el tamaño máximo (1,5 MB).' };
+    if (archivo.size > 2_500_000) return { ok: false, error: 'La foto supera el tamaño máximo (2,5 MB).' };
 
     await comoCliente(jwt, (c) => c.query('SELECT dk.prosp_exigir($1)', [prospectoId]));
 

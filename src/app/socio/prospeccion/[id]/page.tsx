@@ -4,6 +4,7 @@ import { fichaProspecto } from '@/lib/prospeccion';
 import CrmFicha from '@/components/prospeccion/CrmFicha';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 export default async function FichaSocio({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ e?: string; ok?: string }> }) {
   const jwt = await exigirSocio();

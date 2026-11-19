@@ -6,6 +6,7 @@ import MontajeGratisFicha from '@/components/admin/MontajeGratis';
 import { montajesGratis } from '@/lib/montajes-gratis';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 export default async function FichaCentral({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ e?: string; ok?: string; montaje?: string }> }) {
   const jwt = await exigirAdmin();

@@ -6,8 +6,20 @@ import { leerCartaDeFotos, type SeccionLeida } from '@/lib/carta-foto-ia';
 import { CODIGOS_ALERGENOS } from '@/lib/alergenos';
 import { PLANTILLAS_PROPUESTA, plantillaSegunTipo, construirTextoPropuesta } from '@/lib/prospeccion-catalogo';
 import { actualizarDatosLocal, guardarPortada } from '@/lib/mi-restaurante';
-import { listarMiCarta, crearSeccion, crearPlato, editarPlato, eliminarSeccion } from '@/lib/menu-propietario';
+import { listarMiCarta, editarPlato } from '@/lib/menu-propietario';
 import { crearPromocion, listarPromociones } from '@/lib/promociones';
+
+async function ejecutarConConcurrencia(tareas: (() => Promise<void>)[], limite: number): Promise<void> {
+  if (tareas.length === 0) return;
+  let indice = 0;
+  const trabajadores = Array.from({ length: Math.min(limite, tareas.length) }, async () => {
+    while (indice < tareas.length) {
+      const actual = indice++;
+      await tareas[actual]();
+    }
+  });
+  await Promise.all(trabajadores);
+}
 
 const MODELO_AGENTE = 'google/gemini-3-flash';
 
@@ -179,35 +191,54 @@ export async function ejecutarAgenteDemoPropuesta(
   let platosConFotoIa = 0;
   const avisos: string[] = [];
 
-  // 4. Si se subieron fotos de la carta del prospecto, leer la carta real con IA y sustituir los platos de muestra
+  // 4. Si se subieron fotos de la carta del prospecto, leer la carta real con IA y sustituir todo en una sola transacción
   const fotos = (op.fotosCartaUrls ?? []).filter((u) => typeof u === 'string' && u.startsWith('https://')).slice(0, 4);
   if (fotos.length > 0) {
     try {
       const seccionesLeidas: SeccionLeida[] = await leerCartaDeFotos(fotos);
       const totalPlatosLeidos = seccionesLeidas.reduce((acc, s) => acc + (s.platos?.length ?? 0), 0);
       if (seccionesLeidas.length > 0 && totalPlatosLeidos > 0) {
-        const cartaActual = await listarMiCarta(jwt, restauranteId);
-        // Borrar las secciones de muestra iniciales para dejar solo la carta real del prospecto
-        for (const sec of cartaActual.secciones) {
-          await eliminarSeccion(jwt, sec.id).catch(() => {});
-        }
-        for (const s of seccionesLeidas.slice(0, 20)) {
-          const nombreSec = (s.nombre || 'Carta').trim().slice(0, 60);
-          const platosValidos = (s.platos ?? []).filter((p) => p.nombre && Number(p.precio) > 0).slice(0, 60);
-          if (platosValidos.length === 0) continue;
-          const secCreada = await crearSeccion(jwt, restauranteId, nombreSec);
-          for (const p of platosValidos) {
-            await crearPlato(jwt, restauranteId, {
-              seccionId: secCreada.id,
-              nombre: p.nombre.trim().slice(0, 80),
-              precio: Number(p.precio),
-              descripcion: (p.descripcion || '').trim().slice(0, 300) || null,
-              fotoUrl: null,
-              alergenos: (p.alergenos ?? []).filter((a) => CODIGOS_ALERGENOS.includes(a)),
-            });
-            platosCreadosDeFoto++;
+        platosCreadosDeFoto = await comoCliente(jwt, async (c) => {
+          await c.query('DELETE FROM menu_items WHERE restaurante_id = $1', [restauranteId]);
+          await c.query('DELETE FROM menu_secciones WHERE restaurante_id = $1', [restauranteId]);
+          let creados = 0;
+          let ordenSec = 0;
+          let ordenPlato = 0;
+          for (const s of seccionesLeidas.slice(0, 20)) {
+            const nombreSec = (s.nombre || 'Carta').trim().slice(0, 60);
+            const platosValidos = (s.platos ?? [])
+              .filter((p) => typeof p.nombre === 'string' && p.nombre.trim().length > 0)
+              .slice(0, 60);
+            if (!nombreSec || platosValidos.length === 0) continue;
+            const { rows: secRows } = await c.query<{ id: string }>(
+              'INSERT INTO menu_secciones (restaurante_id, nombre, orden) VALUES ($1, $2, $3) RETURNING id',
+              [restauranteId, nombreSec, ordenSec++]
+            );
+            const seccionId = secRows[0].id;
+            for (const p of platosValidos) {
+              const precioNum =
+                p.precio != null && Number.isFinite(Number(p.precio)) && Number(p.precio) >= 0
+                  ? Math.round(Number(p.precio) * 100) / 100
+                  : 0;
+              await c.query(
+                `INSERT INTO menu_items (restaurante_id, seccion_id, nombre, descripcion, precio, foto_url, alergenos, disponible, orden)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, true, $8)`,
+                [
+                  restauranteId,
+                  seccionId,
+                  p.nombre.trim().slice(0, 80),
+                  (p.descripcion || '').trim().slice(0, 300) || null,
+                  precioNum,
+                  null,
+                  (p.alergenos ?? []).filter((a) => CODIGOS_ALERGENOS.includes(a)),
+                  ordenPlato++,
+                ]
+              );
+              creados++;
+            }
           }
-        }
+          return creados;
+        });
       } else {
         avisos.push('No se detectaron platos claros en la foto; se mantiene la carta base para editar.');
       }
@@ -216,7 +247,7 @@ export async function ejecutarAgenteDemoPropuesta(
     }
   }
 
-  // 5. Generación controlada de imágenes con IA: Logo + Banner/Portada + 5 o 6 platos en Principal
+  // 5. Generación paralela controlada (concurrencia 3): Logo + Portada + platos principales + redacción de propuesta
   const quiereLogo = op.generarLogoIa !== false;
   const quiereBanner = op.generarBannerIa !== false;
   const cantPlatosIa = Math.max(0, Math.min(6, op.cantidadPlatosIa ?? 5));
@@ -224,110 +255,9 @@ export async function ejecutarAgenteDemoPropuesta(
   const contextoMarca = `Nombre del restaurante: «${prosp.nombre}» (${prosp.tipo} en ${prosp.zona}); estilo ${plantillaDemo}, color de marca ${colorDemo}`;
   const extraPrompt = limpiarTextoIa(op.instruccionExtra, 120);
 
-  if (quiereLogo) {
-    try {
-      const rLogo = await generarImagen(
-        jwt,
-        { id: restauranteId, nombre: prosp.nombre },
-        {
-          modo: 'logo',
-          texto: limpiarTextoIa(extraPrompt || `Emblema gastronómico elegante y limpio para ${prosp.nombre} (${prosp.tipo})`),
-          contexto: contextoMarca,
-          nombre: prosp.nombre,
-        }
-      );
-      await actualizarDatosLocal(jwt, restauranteId, {
-        nombre: prosp.nombre,
-        logoUrl: rLogo.url,
-        colorMarca: colorDemo,
-        descripcion: `Cocina y especialidad en ${prosp.zona}`,
-        telefono: prosp.telefono,
-        direccion: prosp.direccion,
-        horario: 'Martes a domingo · 13:00–16:30 y 20:00–23:30',
-        instagram: prosp.instagram,
-        urlResenas: null,
-        whatsapp: null,
-      });
-      logoGenerado = true;
-    } catch (e) {
-      avisos.push(`Logo IA: ${e instanceof Error ? e.message : 'no generado'}`);
-    }
-  }
+  const cartaActual = await listarMiCarta(jwt, restauranteId).catch(() => ({ secciones: [], platos: [] }));
+  const nombresDestacados = cartaActual.platos.slice(0, 5).map((p) => p.nombre).join(', ');
 
-  if (quiereBanner) {
-    try {
-      const cartaParaBanner = await listarMiCarta(jwt, restauranteId).catch(() => ({ secciones: [], platos: [] }));
-      const nombresDestacados = cartaParaBanner.platos.slice(0, 5).map((p) => p.nombre).join(', ');
-      const rBanner = await generarImagen(
-        jwt,
-        { id: restauranteId, nombre: prosp.nombre },
-        {
-          modo: 'portada',
-          texto: limpiarTextoIa(
-            extraPrompt ||
-              `Mesa y ambiente gastronómico apetecible de ${prosp.nombre} (${prosp.tipo} en ${prosp.zona})${nombresDestacados ? ` con platos como ${nombresDestacados}` : ''}`
-          ),
-          contexto: contextoMarca,
-          nombre: prosp.nombre,
-        }
-      );
-      await guardarPortada(jwt, restauranteId, rBanner.url, true);
-      const promos = await listarPromociones(jwt, restauranteId).catch(() => []);
-      if (promos.length === 0) {
-        await crearPromocion(jwt, restauranteId, {
-          titulo: `Especialidades de ${prosp.nombre}`,
-          texto: 'Descubre nuestros platos recomendados recién hechos para ti.',
-          imagenUrl: rBanner.url,
-          botonTexto: null,
-          botonSeccion: null,
-          botonDestino: 'ninguno',
-          botonPlato: null,
-          inicio: null,
-          fin: null,
-          dias: null,
-          horaInicio: null,
-          horaFin: null,
-          prioridad: 1,
-          activa: true,
-        }).catch(() => {});
-      }
-      bannerGenerado = true;
-    } catch (e) {
-      avisos.push(`Banner IA: ${e instanceof Error ? e.message : 'no generado'}`);
-    }
-  }
-
-  if (cantPlatosIa > 0) {
-    const cartaActual = await listarMiCarta(jwt, restauranteId);
-    const principales = elegirPlatosPrincipales(cartaActual.secciones, cartaActual.platos, cantPlatosIa);
-    for (const plato of principales) {
-      try {
-        const desc = plato.descripcion ? ` (${plato.descripcion})` : '';
-        const rPlato = await generarImagen(
-          jwt,
-          { id: restauranteId, nombre: prosp.nombre },
-          {
-            modo: 'plato',
-            texto: limpiarTextoIa(`${plato.nombre}${desc}. Emplatado realista de restaurante en ${prosp.zona}`),
-            contexto: `${contextoMarca}. Plato: ${plato.nombre}${desc}`,
-            nombre: prosp.nombre,
-          }
-        );
-        await editarPlato(jwt, plato.id, {
-          fotoUrl: rPlato.url,
-        });
-        await comoCliente(jwt, (c) =>
-          c.query("UPDATE public.menu_items SET etiqueta = 'estrella' WHERE id = $1", [plato.id])
-        ).catch(() => {});
-        platosConFotoIa++;
-      } catch (e) {
-        avisos.push(`Foto IA «${plato.nombre}»: ${e instanceof Error ? e.message : 'límite alcanzado'}`);
-        break;
-      }
-    }
-  }
-
-  // 6. Redactar/adaptar la propuesta comercial unificada con el link de la demo recién creada
   const demoUrl = `https://dkitchencorporate.es/m/${slug}`;
   const panelUrl = `https://dkitchencorporate.es/demo/panel?local=${slug}`;
   const baseConstruida = construirTextoPropuesta(unificado.plantillaPropuestaId, {
@@ -338,24 +268,140 @@ export async function ejecutarAgenteDemoPropuesta(
   });
   let propuestaTexto = baseConstruida.texto;
 
-  try {
-    const cartaFinal = await listarMiCarta(jwt, restauranteId).catch(() => ({ platos: [] }));
-    const muestraPlatos = cartaFinal.platos.slice(0, 4).map((p) => p.nombre).join(', ');
-    const enriquecido = await llamarTextoAgente(
-      `Eres el agente comercial experto de DKitchen en España. Adapta esta propuesta comercial para el restaurante «${prosp.nombre}» (${prosp.tipo} en ${prosp.zona}).
+  const muestraPlatos = cartaActual.platos.slice(0, 4).map((p) => p.nombre).join(', ');
+  const promesaPropuesta = (async () => {
+    try {
+      const enriquecido = await llamarTextoAgente(
+        `Eres el agente comercial experto de DKitchen en España. Adapta esta propuesta comercial para el restaurante «${prosp.nombre}» (${prosp.tipo} en ${prosp.zona}).
 Reglas estrictas:
 - Español de España natural, directo, cercano y orientado a cerrar la venta o agendar 10 minutos.
 - Menciona de forma natural alguno de sus platos reales (${muestraPlatos || 'sus especialidades'}) que ya hemos cargado en su demo interactiva.
 - Conserva OBLIGATORIAMENTE los enlaces exactos a la carta demo (${demoUrl}) y al simulador de comandas (${panelUrl}).
 - Sin markdown (** ni #), máximo 1200 caracteres.`,
-      `Plantilla base:\n${propuestaTexto}\n\nNotas del prospecto: ${prosp.nota_guia ?? 'sin notas'}\nInstrucción adicional: ${extraPrompt || 'ninguna'}`
-    );
-    if (enriquecido && enriquecido.length >= 80) {
-      propuestaTexto = enriquecido.slice(0, 1500);
+        `Plantilla base:\n${propuestaTexto}\n\nNotas del prospecto: ${prosp.nota_guia ?? 'sin notas'}\nInstrucción adicional: ${extraPrompt || 'ninguna'}`
+      );
+      if (enriquecido && enriquecido.length >= 80) {
+        propuestaTexto = enriquecido.slice(0, 1500);
+      }
+    } catch {
+      // Si falla el enriquecimiento de texto, se usa la plantilla rellenada con los links reales
     }
-  } catch {
-    // Si falla el enriquecimiento de texto, se usa la plantilla rellenada con los links reales
+  })();
+
+  const tareasImagen: (() => Promise<void>)[] = [];
+
+  if (quiereLogo) {
+    tareasImagen.push(async () => {
+      try {
+        const rLogo = await generarImagen(
+          jwt,
+          { id: restauranteId, nombre: prosp.nombre },
+          {
+            modo: 'logo',
+            texto: limpiarTextoIa(extraPrompt || `Emblema gastronómico elegante y limpio para ${prosp.nombre} (${prosp.tipo})`),
+            contexto: contextoMarca,
+            nombre: prosp.nombre,
+          }
+        );
+        await actualizarDatosLocal(jwt, restauranteId, {
+          nombre: prosp.nombre,
+          logoUrl: rLogo.url,
+          colorMarca: colorDemo,
+          descripcion: `Cocina y especialidad en ${prosp.zona}`,
+          telefono: prosp.telefono,
+          direccion: prosp.direccion,
+          horario: 'Martes a domingo · 13:00–16:30 y 20:00–23:30',
+          instagram: prosp.instagram,
+          urlResenas: null,
+          whatsapp: null,
+        });
+        logoGenerado = true;
+      } catch (e) {
+        avisos.push(`Logo IA: ${e instanceof Error ? e.message : 'no generado'}`);
+      }
+    });
   }
+
+  if (quiereBanner) {
+    tareasImagen.push(async () => {
+      try {
+        const rBanner = await generarImagen(
+          jwt,
+          { id: restauranteId, nombre: prosp.nombre },
+          {
+            modo: 'portada',
+            texto: limpiarTextoIa(
+              extraPrompt ||
+                `Mesa y ambiente gastronómico apetecible de ${prosp.nombre} (${prosp.tipo} en ${prosp.zona})${nombresDestacados ? ` con platos como ${nombresDestacados}` : ''}`
+            ),
+            contexto: contextoMarca,
+            nombre: prosp.nombre,
+          }
+        );
+        await guardarPortada(jwt, restauranteId, rBanner.url, true);
+        const promos = await listarPromociones(jwt, restauranteId).catch(() => []);
+        if (promos.length === 0) {
+          await crearPromocion(jwt, restauranteId, {
+            titulo: `Especialidades de ${prosp.nombre}`,
+            texto: 'Descubre nuestros platos recomendados recién hechos para ti.',
+            imagenUrl: rBanner.url,
+            botonTexto: null,
+            botonSeccion: null,
+            botonDestino: 'ninguno',
+            botonPlato: null,
+            inicio: null,
+            fin: null,
+            dias: null,
+            horaInicio: null,
+            horaFin: null,
+            prioridad: 1,
+            activa: true,
+          }).catch(() => {});
+        }
+        bannerGenerado = true;
+      } catch (e) {
+        avisos.push(`Banner IA: ${e instanceof Error ? e.message : 'no generado'}`);
+      }
+    });
+  }
+
+  if (cantPlatosIa > 0) {
+    const principales = elegirPlatosPrincipales(cartaActual.secciones, cartaActual.platos, cantPlatosIa);
+    let limitePlatosAlcanzado = false;
+    for (const plato of principales) {
+      tareasImagen.push(async () => {
+        if (limitePlatosAlcanzado) return;
+        try {
+          const desc = plato.descripcion ? ` (${plato.descripcion})` : '';
+          const rPlato = await generarImagen(
+            jwt,
+            { id: restauranteId, nombre: prosp.nombre },
+            {
+              modo: 'plato',
+              texto: limpiarTextoIa(`${plato.nombre}${desc}. Emplatado realista de restaurante en ${prosp.zona}`),
+              contexto: `${contextoMarca}. Plato: ${plato.nombre}${desc}`,
+              nombre: prosp.nombre,
+            }
+          );
+          await editarPlato(jwt, plato.id, {
+            fotoUrl: rPlato.url,
+          });
+          await comoCliente(jwt, (c) =>
+            c.query("UPDATE public.menu_items SET etiqueta = 'recomendado' WHERE id = $1", [plato.id])
+          ).catch(() => {});
+          platosConFotoIa++;
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : 'límite alcanzado';
+          avisos.push(`Foto IA «${plato.nombre}»: ${msg}`);
+          if (/l[ií]mite|saldo|pausa|usado todas/i.test(msg)) {
+            limitePlatosAlcanzado = true;
+          }
+        }
+      });
+    }
+  }
+
+  await Promise.all([ejecutarConConcurrencia(tareasImagen, 3), promesaPropuesta]);
 
   const propuestaToken = await comoCliente(jwt, async (c) => {
     const r = await c.query<{ t: string }>(
