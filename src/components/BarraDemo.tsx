@@ -68,7 +68,7 @@ export default function BarraDemo({
               onClick={dispararSimulacion}
               className="rounded-full bg-emerald-400 px-4 py-1.5 font-bold text-[#0c2918] shadow-sm transition hover:bg-emerald-300"
             >
-              🔔 Simular comanda en vivo (Mesa 4)
+              Simular comanda en vivo (Mesa 4)
             </button>
           )}
           {localSlug && (
@@ -99,7 +99,7 @@ export default function BarraDemo({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-400">
-                🛎️ Nueva comanda desde QR · {comandaActiva.hora}
+                Nueva comanda desde QR · {comandaActiva.hora}
               </p>
               <p className="mt-1 font-display text-lg font-bold">{comandaActiva.mesa}</p>
               <p className="mt-1 text-xs text-white/80">{comandaActiva.platos}</p>

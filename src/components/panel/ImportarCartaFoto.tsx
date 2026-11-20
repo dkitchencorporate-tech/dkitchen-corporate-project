@@ -24,14 +24,14 @@ export default function ImportarCartaFoto({ abiertoInicial = false, demo = false
   const marcados = secciones?.reduce((n, s) => n + s.platos.filter((p) => p.si && p.precio).length, 0) ?? 0;
 
   const leer = () => {
-    if (demo) { setAviso({ ok: true, texto: 'Demostración: en tu panel real la IA leería tu carta aquí.' }); return; }
+    if (demo) { setAviso({ ok: true, texto: 'Demostración: en tu panel real el sistema leería tu carta aquí.' }); return; }
     setAviso(null); setFase('leer');
     iniciar(async () => {
       const r = await leerCartaFotoAction(fotos);
       setFase(null);
       if (!r.ok) { setAviso({ ok: false, texto: r.error }); return; }
       setSecciones(r.secciones.map((s) => ({ ...s, platos: s.platos.map((p) => ({ ...p, si: true })) })));
-      setAviso({ ok: true, texto: `Leída. Revisa nombres y precios antes de añadir.${r.restantes != null ? ` Te quedan ${r.restantes} créditos de IA.` : ''}` });
+      setAviso({ ok: true, texto: `Leída. Revisa nombres y precios antes de añadir.${r.restantes != null ? ` Te quedan ${r.restantes} créditos visuales.` : ''}` });
     });
   };
 
@@ -59,7 +59,7 @@ export default function ImportarCartaFoto({ abiertoInicial = false, demo = false
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#F2C14E] text-xl text-[#0D090F]">✦</span>
         <span className="min-w-0 flex-1">
           <span className="block font-display text-xl italic text-[#F2C14E]">Monta tu carta desde una foto</span>
-          <span className="block text-sm text-white/70">Sube la foto de tu carta en papel y la IA crea secciones, platos, precios y alérgenos. Tú solo revisas.</span>
+          <span className="block text-sm text-white/70">Sube la foto de tu carta en papel y el sistema extrae secciones, platos, precios y alérgenos. Tú solo revisas.</span>
         </span>
         <span className="hidden rounded-full bg-white/10 px-4 py-2 text-xs font-bold sm:block">Empezar →</span>
       </button>
@@ -70,7 +70,7 @@ export default function ImportarCartaFoto({ abiertoInicial = false, demo = false
     <section className="space-y-5 rounded-[28px] bg-[#0D090F] p-5 text-white sm:p-7" style={{ backgroundImage: 'radial-gradient(120% 70% at 0% 0%, rgba(140,13,55,.5), transparent 60%)' }}>
       <header className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/50">Carta desde foto · 1 crédito de IA</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/50">Carta desde foto · 1 crédito visual</p>
           <h3 className="mt-1 font-display text-3xl italic text-[#F2C14E]">Tu carta en papel, en un minuto</h3>
         </div>
         <button type="button" onClick={() => setAbierto(false)} aria-label="Cerrar" className="grid h-9 w-9 place-items-center rounded-full bg-white/10">✕</button>
@@ -95,7 +95,7 @@ export default function ImportarCartaFoto({ abiertoInicial = false, demo = false
           </div>
           <button type="button" disabled={fotos.length === 0 || pendiente} onClick={leer}
             className="w-full rounded-2xl bg-[#F2C14E] py-4 text-sm font-bold text-[#0D090F] disabled:opacity-40">
-            {fase === 'leer' ? 'Leyendo tu carta… (puede tardar un minuto)' : `Leer con IA ${fotos.length ? `(${fotos.length} ${fotos.length === 1 ? 'foto' : 'fotos'})` : ''}`}
+            {fase === 'leer' ? 'Leyendo tu carta… (puede tardar un minuto)' : `Extraer carta ${fotos.length ? `(${fotos.length} ${fotos.length === 1 ? 'foto' : 'fotos'})` : ''}`}
           </button>
         </>
       )}
@@ -123,7 +123,7 @@ export default function ImportarCartaFoto({ abiertoInicial = false, demo = false
               </ul>
             </div>
           ))}
-          <p className="text-xs text-white/55">Los alérgenos son una propuesta de la IA: revísalos con tu cocina (la ley te hace responsable de la información). Los platos sin precio no se añaden.</p>
+          <p className="text-xs text-white/55">Los alérgenos son una propuesta orientativa: revísalos con tu cocina (la ley te hace responsable de la información). Los platos sin precio no se añaden.</p>
           <div className="flex flex-wrap gap-2">
             <button type="button" disabled={marcados === 0 || pendiente} onClick={anadir} className="flex-1 rounded-2xl bg-[#F2C14E] py-4 text-sm font-bold text-[#0D090F] disabled:opacity-40">
               {fase === 'anadir' ? 'Añadiendo…' : `Añadir ${marcados} platos a mi carta`}

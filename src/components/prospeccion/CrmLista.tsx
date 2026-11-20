@@ -38,7 +38,7 @@ const OKS: Record<string, string> = {
   ruta: 'Ruta de hoy guardada.', contacto: 'Tus datos de contacto están guardados.', registrado: 'Contacto registrado.',
   sinruta: 'No hay locales pendientes situados en el mapa para proponer una ruta.',
   lote: 'Lote de prospectos reasignado con éxito (ya está en la cartera del comercial seleccionado).',
-  demo: 'Demo completa de Autor creada con carta, platos de muestra, mesas y créditos IA.',
+  demo: 'Demo completa de Autor creada con carta, platos de muestra, mesas y créditos visuales.',
 };
 
 export function EtiquetaEstado({ e }: { e: Estado }) {
@@ -80,7 +80,7 @@ function Fila({
         )}
         <p className="mt-1 flex flex-wrap gap-x-3 text-[11px] text-ceniza">
           {p.muestra && <span>✓ Muestra</span>}
-          {p.propuesta_vistas > 0 && <span>👁 Propuesta vista {p.propuesta_vistas}</span>}
+          {p.propuesta_vistas > 0 && <span>Propuesta vista {p.propuesta_vistas}</span>}
           {p.nota_guia && <span>★ Nota de guía</span>}
           {p.no_contactar && <span className="text-red-600">No contactar</span>}
           {p.puntuacion != null && <span>{p.puntuacion}/100</span>}
@@ -153,13 +153,13 @@ function Tarjeta({
           </div>
           {(p.siguiente_accion || p.siguiente_fecha) && (
             <p className={`mt-2 line-clamp-2 text-xs ${vence ? 'font-semibold text-vino' : 'text-grafito'}`}>
-              {vence ? '⏰ ' : ''}{p.siguiente_fecha ? `${fechaCorta(p.siguiente_fecha)} · ` : ''}{p.siguiente_accion || ''}
+              {vence ? 'Pendiente hoy · ' : ''}{p.siguiente_fecha ? `${fechaCorta(p.siguiente_fecha)} · ` : ''}{p.siguiente_accion || ''}
             </p>
           )}
           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
             {demo && <span className="rounded-full bg-papel px-2 py-0.5 font-medium text-grafito">{COMPOSICION[demo.plantilla] ?? 'Carta'} · {demo.platos} platos</span>}
-            {(p.demo_vistas ?? 0) > 0 && <span className="rounded-full bg-violet-50 px-2 py-0.5 font-semibold text-violet-800">👁 Demo {p.demo_vistas}×</span>}
-            {p.propuesta_vistas > 0 && <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">👁 Propuesta {p.propuesta_vistas}×</span>}
+            {(p.demo_vistas ?? 0) > 0 && <span className="rounded-full bg-violet-50 px-2 py-0.5 font-semibold text-violet-800">Demo {p.demo_vistas}×</span>}
+            {p.propuesta_vistas > 0 && <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">Propuesta {p.propuesta_vistas}×</span>}
             {p.puntuacion != null && <span className="rounded-full bg-papel px-2 py-0.5 text-grafito">{p.puntuacion}/100</span>}
             {p.no_contactar && <span className="rounded-full bg-red-50 px-2 py-0.5 font-semibold text-red-700">No contactar</span>}
             {p.canal && <span className="rounded-full bg-papel px-2 py-0.5 text-grafito">{CANALES[p.canal]}{p.ultimo_resultado ? ` · ${RESULTADOS[p.ultimo_resultado]}` : ''}</span>}
@@ -182,7 +182,7 @@ function Tarjeta({
                 <input type="hidden" name="restaurante_id" value={p.restaurante_id} />
                 <input type="hidden" name="pestana" value="carta" />
                 <button className="inline-flex items-center min-h-[36px] rounded-full bg-vino/10 px-3 py-1.5 text-xs font-semibold text-vino hover:bg-vino hover:text-white transition">
-                  ✏️ Fotos / Editar
+                  Fotos / Editar
                 </button>
               </form>
             )}
@@ -193,7 +193,7 @@ function Tarjeta({
             <input type="hidden" name="id" value={p.id} />
             <input type="hidden" name="volver" value="lista" />
             <button className="inline-flex items-center min-h-[36px] rounded-full bg-vino px-3 py-1.5 text-xs font-semibold text-white hover:bg-tinta transition">
-              ⚡ Crear demo
+              Crear demo
             </button>
           </form>
         ) : null}
@@ -354,7 +354,7 @@ export default function CrmLista({
                     activa ? 'bg-vino text-white shadow-sm' : 'bg-papel text-carbon hover:bg-vino/10'
                   }`}
                 >
-                  {idx === 0 ? `👤 Mi cartera (${c.nombre})` : `👤 ${c.nombre}`}
+                  {idx === 0 ? `Mi cartera (${c.nombre})` : c.nombre}
                 </Link>
               );
             })}
@@ -364,7 +364,7 @@ export default function CrmLista({
                 comercial === 'todas' ? 'bg-tinta text-white shadow-sm' : 'bg-white text-grafito ring-1 ring-linea hover:bg-papel'
               }`}
             >
-              🌐 Todas las carteras
+              Todas las carteras
             </Link>
 
           </div>
@@ -389,7 +389,7 @@ export default function CrmLista({
               modo === 'pie' ? 'bg-vino text-white' : 'bg-papel text-carbon hover:bg-vino/10'
             }`}
           >
-            🚶 A pie y Ruta ({aPieTotal})
+            A pie y Ruta ({aPieTotal})
           </Link>
           <Link
             href={q(estado, vista, 'digital')}
@@ -397,7 +397,7 @@ export default function CrmLista({
               modo === 'digital' ? 'bg-indigo-900 text-white' : 'bg-indigo-50 text-indigo-950 hover:bg-indigo-100'
             }`}
           >
-            📱 Zona de Prospección Digital ({digitalesTotal})
+            Zona de Prospección Digital ({digitalesTotal})
           </Link>
         </div>
       </div>
@@ -409,7 +409,7 @@ export default function CrmLista({
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-oro">Zona de Prospección Digital · Demos y Propuestas</p>
               <h2 className="font-display mt-1 text-2xl font-semibold">Trabajo remoto por Instagram, WhatsApp y Teléfono</h2>
               <p className="mt-1 max-w-2xl text-xs text-white/75">
-                Crea la demo interactiva de Autor en 1 clic, abre el editor para subir fotos de sus platos al momento y envíales su propuesta personalizada con el link de su demo incluido.
+                Crea la demo interactiva de Autor en 1 clic, abre el panel para subir fotos de sus platos al momento y envíales su propuesta personalizada con el link de su demo incluido.
               </p>
             </div>
             <a href="#alta" className="rounded-full bg-oro px-4 py-2 text-xs font-bold text-noche hover:brightness-110">
@@ -463,7 +463,7 @@ export default function CrmLista({
                               <input type="hidden" name="restaurante_id" value={p.restaurante_id} />
                               <input type="hidden" name="pestana" value="carta" />
                               <button className="rounded-full bg-white px-2.5 py-1 font-bold text-noche hover:bg-oro">
-                                ✏️ Subir fotos / Editar
+                                Fotos / Editar
                               </button>
                             </form>
                           )}
@@ -474,7 +474,7 @@ export default function CrmLista({
                           <input type="hidden" name="id" value={p.id} />
                           <input type="hidden" name="abrir_editor" value="1" />
                           <button className="rounded-full bg-oro px-3 py-1 font-bold text-noche hover:brightness-110">
-                            ⚡ Crear demo y subir fotos →
+                            Crear demo y subir fotos →
                           </button>
                         </form>
                       )}

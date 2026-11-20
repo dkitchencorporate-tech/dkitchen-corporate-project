@@ -155,8 +155,8 @@ export function construirTextoPropuesta(
 ): { texto: string; oferta: PlantillaPropuesta['oferta'] } {
   const p = PLANTILLAS_PROPUESTA.find((x) => x.id === plantillaId) ?? PLANTILLAS_PROPUESTA[0];
   const bloqueDemo = datos.demoUrl
-    ? `\n\n👉 Podéis ver y tocar vuestra demo en vivo aquí: ${datos.demoUrl}` +
-      (datos.panelUrl ? `\n👉 Y probar vuestro panel y comandero aquí: ${datos.panelUrl}` : '')
+    ? `\n\nPodéis ver vuestra muestra en vivo aquí: ${datos.demoUrl}` +
+      (datos.panelUrl ? `\nY probar vuestro panel completo y comandero de sala aquí: ${datos.panelUrl}` : '')
     : '';
   const texto = p.cuerpo
     .replace(/\{nombre\}/g, datos.nombre || 'vuestro local')

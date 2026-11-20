@@ -203,8 +203,8 @@ export default function AgenteDemoPropuestaIa({
     setCopiadoPropuesta(false);
     setPasoActual(
       fotosCarta.length > 0
-        ? 'Leyendo carta con IA y generando Demo + Propuesta en paralelo (~12–35 s)…'
-        : 'Creando Demo de Autor, imágenes seleccionadas y Propuesta en paralelo (~12–35 s)…'
+        ? 'Digitalizando carta y generando Demo + Propuesta en paralelo (~12–35 s)…'
+        : 'Creando Demo de Autor, fotografías seleccionadas y Propuesta en paralelo (~12–35 s)…'
     );
     iniciarAgente(async () => {
       const p = PLANTILLAS_PROPUESTA.find((x) => x.id === perfilId) ?? sugerida;
@@ -275,17 +275,17 @@ export default function AgenteDemoPropuestaIa({
     ...(fotosCarta.length > 0 ? ['Leer Carta'] : []),
     ...(generarLogoIa ? ['Logo'] : []),
     ...(generarBannerIa ? ['Portada'] : []),
-    ...(cantidadPlatosIa > 0 ? [`${cantidadPlatosIa} Fotos IA`] : []),
+    ...(cantidadPlatosIa > 0 ? [`${cantidadPlatosIa} Fotos`] : []),
     'Propuesta',
   ].join(' + ');
 
   return (
     <div className="mb-4 rounded-2xl border-2 border-[#b08d57]/50 bg-gradient-to-br from-[#faf6ee] via-white to-[#f6efe2] p-4 shadow-sm">
-      {/* Cabecera + Indicador de sesión y cuota IA */}
+      {/* Cabecera + Indicador de sesión y cuota */}
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#2a1f1a] px-3 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#f3e5c8]">
-            ✨ Agente DK · Prospecto → Demo Impacto → Propuesta
+            Agente DK · Prospecto → Demo Impacto → Propuesta
           </span>
           <h4 className="mt-1.5 font-serif text-base font-semibold text-neutral-900">
             Generación instantánea para enseñar en calle o enviar por WhatsApp ({nombre})
@@ -298,15 +298,15 @@ export default function AgenteDemoPropuestaIa({
         <div className="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-right text-[11px]">
           {sinLimite ? (
             <>
-              <p className="font-bold text-emerald-800">👑 Dirección · IA Sin Restricción</p>
-              <p className="text-neutral-500">Demos, fotos IA y chats ilimitados</p>
+              <p className="font-bold text-emerald-800">Dirección · Sin restricción</p>
+              <p className="text-neutral-500">Demos, fotografías editoriales y guiones ilimitados</p>
             </>
           ) : (
             <>
               <p className="font-bold text-neutral-800">
-                🎯 Cupo Comercial: {demosUsadas} / {demosTope} demos
+                Cupo Comercial: {demosUsadas} / {demosTope} demos
               </p>
-              <p className="text-neutral-500">Hasta {imgTope} imágenes IA por demo + Chat IA</p>
+              <p className="text-neutral-500">Hasta {imgTope} imágenes editoriales por demo</p>
             </>
           )}
         </div>
@@ -387,7 +387,7 @@ export default function AgenteDemoPropuestaIa({
           {fotosCarta.length < 4 && (
             <div className="flex flex-wrap gap-2">
               <label className="cursor-pointer rounded-xl border border-[#6E0C2B] bg-[#6E0C2B] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#540921]">
-                {subiendoFoto ? 'Procesando…' : '📸 Hacer foto ahora'}
+                {subiendoFoto ? 'Procesando…' : 'Hacer foto ahora'}
                 <input
                   type="file"
                   accept="image/*"
@@ -401,7 +401,7 @@ export default function AgenteDemoPropuestaIa({
                 />
               </label>
               <label className="cursor-pointer rounded-xl border border-neutral-900 bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-neutral-800">
-                {subiendoFoto ? 'Subiendo…' : '🖼️ Subir de galería'}
+                {subiendoFoto ? 'Subiendo…' : 'Subir de galería'}
                 <input
                   type="file"
                   accept="image/*"
@@ -434,17 +434,17 @@ export default function AgenteDemoPropuestaIa({
               </div>
             ))}
             <span className="text-[11px] font-medium text-emerald-800">
-              ✓ {fotosCarta.length} foto{fotosCarta.length === 1 ? '' : 's'} comprimida{fotosCarta.length === 1 ? '' : 's'} y lista{fotosCarta.length === 1 ? '' : 's'} para leer con IA
+              ✓ {fotosCarta.length} foto{fotosCarta.length === 1 ? '' : 's'} comprimida{fotosCarta.length === 1 ? '' : 's'} y lista{fotosCarta.length === 1 ? '' : 's'} para digitalizar
             </span>
           </div>
         )}
       </div>
 
-      {/* Paso 3: Modos de velocidad y control de imágenes IA */}
+      {/* Paso 3: Modos de velocidad y control de imágenes editoriales */}
       <div className="mt-3 rounded-xl border border-neutral-200 bg-white p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs font-semibold text-neutral-900">
-            3. Modo de generación e imágenes IA ({totalImagenesEstimadas} imágenes en este pase)
+            3. Modo de generación e imágenes editoriales ({totalImagenesEstimadas} imágenes en este pase)
           </p>
           <span className="text-[11px] text-neutral-500">
             Todas las fotos creadas podrán mejorarse o cambiarse manualmente en el panel
@@ -465,7 +465,7 @@ export default function AgenteDemoPropuestaIa({
                 : 'border border-neutral-300 bg-neutral-50 text-neutral-800 hover:bg-neutral-100'
             }`}
           >
-            ⚡ Calle Express (~20 s)
+            Calle Express (~20 s)
           </button>
           <button
             type="button"
@@ -480,7 +480,7 @@ export default function AgenteDemoPropuestaIa({
                 : 'border border-neutral-300 bg-neutral-50 text-neutral-800 hover:bg-neutral-100'
             }`}
           >
-            🚀 Solo Carta (~12 s)
+            Solo Carta (~12 s)
           </button>
           <button
             type="button"
@@ -495,7 +495,7 @@ export default function AgenteDemoPropuestaIa({
                 : 'border border-neutral-300 bg-neutral-50 text-neutral-800 hover:bg-neutral-100'
             }`}
           >
-            ✨ Completo (~35 s)
+            Completo (~35 s)
           </button>
         </div>
 
@@ -507,7 +507,7 @@ export default function AgenteDemoPropuestaIa({
               onChange={(e) => setGenerarLogoIa(e.target.checked)}
               className="h-4 w-4 accent-[#6E0C2B]"
             />
-            <span>🎨 Generar Logo con IA</span>
+            <span>Generar logotipo</span>
           </label>
 
           <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-medium">
@@ -517,11 +517,11 @@ export default function AgenteDemoPropuestaIa({
               onChange={(e) => setGenerarBannerIa(e.target.checked)}
               className="h-4 w-4 accent-[#6E0C2B]"
             />
-            <span>🖼️ Generar Banner / Portada IA</span>
+            <span>Generar portada</span>
           </label>
 
           <label className="flex items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-medium">
-            <span>🍽️ Fotos IA en Principal:</span>
+            <span>Fotos en Principal:</span>
             <select
               value={cantidadPlatosIa}
               onChange={(e) => setCantidadPlatosIa(Number(e.target.value))}
@@ -546,7 +546,7 @@ export default function AgenteDemoPropuestaIa({
         />
       </div>
 
-      {/* Botonera principal: Flujo Agente DK vs Modo Manual */}
+      {/* Botonera principal: Flujo Agente DK vs Panel Completo */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -554,7 +554,7 @@ export default function AgenteDemoPropuestaIa({
           onClick={lanzarAgenteUnificado}
           className="w-full sm:w-auto rounded-xl bg-[#6E0C2B] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#540921] disabled:opacity-50 whitespace-normal text-center"
         >
-          {pendienteAgente ? '⏳ Ejecutando Agente DK…' : `✨ Ejecutar Agente DK (${partesBoton})`}
+          {pendienteAgente ? 'Ejecutando Agente DK…' : `Ejecutar Agente DK (${partesBoton})`}
         </button>
 
         {restIdActivo && (
@@ -566,7 +566,7 @@ export default function AgenteDemoPropuestaIa({
               type="submit"
               className="w-full sm:w-auto rounded-xl border border-neutral-900 bg-white px-3.5 py-2.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-100 text-center"
             >
-              🛠️ Modo Manual: Abrir Editor (/panel)
+              Abrir Panel Real Completo (/panel)
             </button>
           </form>
         )}
@@ -576,13 +576,13 @@ export default function AgenteDemoPropuestaIa({
           onClick={() => setChatAbierto((v) => !v)}
           className="w-full sm:w-auto sm:ml-auto rounded-xl border border-[#b08d57] bg-[#f7efe0] px-3.5 py-2.5 text-xs font-semibold text-[#5a421c] hover:bg-[#efe2c8] text-center"
         >
-          💬 {chatAbierto ? 'Ocultar Chat' : 'Chat y Guiones con Agente DK'}
+          {chatAbierto ? 'Ocultar Chat' : 'Chat y Guiones con Agente DK'}
         </button>
       </div>
 
       {pasoActual && (
         <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50/90 px-3.5 py-2.5 text-xs text-amber-950">
-          <p className="font-semibold">⚡ {pasoActual}</p>
+          <p className="font-semibold">{pasoActual}</p>
           <p className="mt-0.5 text-[11px] text-amber-800">
             Procesamiento paralelo activo (~12–35 segundos según el modo elegido): la carta, las imágenes y la propuesta se construyen a la vez.
           </p>
@@ -598,15 +598,15 @@ export default function AgenteDemoPropuestaIa({
       {resultado && (
         <div className="mt-3 rounded-xl border border-emerald-300 bg-emerald-50/90 p-3 text-xs text-emerald-950">
           <p className="font-bold">
-            ✅ ¡Flujo completado! Demo de impacto + Propuesta listas para enseñar a {nombre}:
+            Flujo completado. Demo de impacto + Propuesta listas para enseñar a {nombre}:
           </p>
           <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
-            {resultado.platosCreadosDeFoto > 0 && <li>📋 {resultado.platosCreadosDeFoto} platos leídos de su carta</li>}
-            <li>🎨 Logo IA: {resultado.logoGenerado ? 'Creado' : 'Mantenido'}</li>
-            <li>🖼️ Banner/Portada IA: {resultado.bannerGenerado ? 'Creado' : 'Mantenido'}</li>
-            <li>🍽️ Platos principales con foto IA: {resultado.platosConFotoIa}</li>
+            {resultado.platosCreadosDeFoto > 0 && <li>{resultado.platosCreadosDeFoto} platos leídos de su carta</li>}
+            <li>Logo: {resultado.logoGenerado ? 'Creado' : 'Mantenido'}</li>
+            <li>Portada: {resultado.bannerGenerado ? 'Creada' : 'Mantenida'}</li>
+            <li>Platos principales con foto: {resultado.platosConFotoIa}</li>
             {resultado.restantesIa !== null && (
-              <li>⚡ Créditos IA restantes en esta demo: {sinLimite ? 'Ilimitados' : resultado.restantesIa}</li>
+              <li>Créditos visuales restantes en esta demo: {sinLimite ? 'Ilimitados' : resultado.restantesIa}</li>
             )}
           </ul>
           {resultado.aviso && <p className="mt-1 text-[11px] text-amber-800">Nota: {resultado.aviso}</p>}
@@ -645,18 +645,18 @@ export default function AgenteDemoPropuestaIa({
               }}
               className="rounded-lg border border-emerald-900 bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:bg-emerald-200"
             >
-              {copiadoPropuesta ? '✅ Enlace copiado' : '📋 Copiar enlace Propuesta'}
+              {copiadoPropuesta ? 'Enlace copiado' : 'Copiar enlace Propuesta'}
             </button>
           </div>
         </div>
       )}
 
-      {/* Chat y Asistente IA para Comerciales y Dirección */}
+      {/* Chat y Agente DK Comercial para Comerciales y Dirección */}
       {chatAbierto && (
         <div className="mt-3 rounded-xl border border-[#b08d57]/60 bg-white p-3 space-y-2.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-bold text-neutral-900">
-              💬 Asistente IA Comercial para {nombre} ({zona})
+              Agente DK Comercial para {nombre} ({zona})
             </p>
             <div className="flex flex-wrap gap-1.5">
               <button
@@ -665,7 +665,7 @@ export default function AgenteDemoPropuestaIa({
                 onClick={() => consultarIa('guion_llamada')}
                 className="rounded-full border border-neutral-300 bg-neutral-50 px-2.5 py-1 text-[11px] font-semibold hover:bg-neutral-100"
               >
-                📞 Guion llamada en vivo
+                Guion llamada en vivo
               </button>
               <button
                 type="button"
@@ -673,7 +673,7 @@ export default function AgenteDemoPropuestaIa({
                 onClick={() => consultarIa('mensaje_whatsapp')}
                 className="rounded-full border border-neutral-300 bg-neutral-50 px-2.5 py-1 text-[11px] font-semibold hover:bg-neutral-100"
               >
-                📲 WhatsApp / DM con Demo
+                WhatsApp / DM con Demo
               </button>
               <button
                 type="button"
@@ -681,7 +681,7 @@ export default function AgenteDemoPropuestaIa({
                 onClick={() => consultarIa('responder_objecion', 'El cliente dice que ahora mismo no tiene tiempo o que ya tiene un PDF')}
                 className="rounded-full border border-neutral-300 bg-neutral-50 px-2.5 py-1 text-[11px] font-semibold hover:bg-neutral-100"
               >
-                🛡️ Rebatir objeción
+                Rebatir objeción
               </button>
             </div>
           </div>
@@ -697,7 +697,7 @@ export default function AgenteDemoPropuestaIa({
                   consultarIa('chat_libre');
                 }
               }}
-              placeholder="Pide al Agente IA: ej. «Adáptame el mensaje para enseñarle sus arroces», «Cómo le cierro hoy el plan Sala»…"
+              placeholder="Pide al Agente DK: ej. «Adáptame el mensaje para enseñarle sus arroces», «Cómo le cierro hoy el plan Sala»…"
               className="w-full flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-xs"
             />
             <button
@@ -706,7 +706,7 @@ export default function AgenteDemoPropuestaIa({
               onClick={() => consultarIa('chat_libre')}
               className="w-full sm:w-auto rounded-xl bg-neutral-900 px-3.5 py-2 text-xs font-semibold text-white disabled:opacity-50"
             >
-              {pendienteChat ? 'Pensando…' : 'Preguntar IA'}
+              {pendienteChat ? 'Pensando…' : 'Consultar Agente DK'}
             </button>
           </div>
 

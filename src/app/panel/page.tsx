@@ -69,9 +69,10 @@ export default async function Panel() {
     }
 
     // Puesta a punto del socio (0052): lo que es solo del dueño (cobro, reservas, operativa)
-    // la base se lo niega; el panel se carga igual con esos bloques vacíos.
-    const puesta = restaurante.puestaAPunto === true;
-    const suave = <T,>(p: Promise<T>, vacio: T): Promise<T> => (puesta ? p.catch(() => vacio) : p);
+    // la base se lo niega; en Modo Soporte de Dirección se carga el panel completo.
+    const puesta = restaurante.puestaAPunto === true && restaurante.soporte !== true;
+    const soporteO = <T,>(p: Promise<T>, vacio: T): Promise<T> => (restaurante.soporte ? p.catch(() => vacio) : p);
+    const suave = <T,>(p: Promise<T>, vacio: T): Promise<T> => (puesta || restaurante.soporte ? p.catch(() => vacio) : p);
     const [codigoQr, carta, escaneosMes, escaneos30d, solicitudesQr, tickets, promociones, reservas, socio] = await Promise.all([
       obtenerCodigoQr(jwt, restaurante.id),
       listarMiCarta(jwt, restaurante.id),
@@ -80,7 +81,7 @@ export default async function Panel() {
       suave(listarMisSolicitudesQrFisico(jwt, restaurante.id), []),
       suave(listarMisTickets(jwt, restaurante.id), []),
       suave(listarPromociones(jwt, restaurante.id), []),
-      puesta ? Promise.resolve([]) : listarMisReservas(jwt, restaurante.id),
+      puesta ? Promise.resolve([]) : soporteO(listarMisReservas(jwt, restaurante.id), []),
       puesta ? Promise.resolve(null) : miSocio(jwt).catch(() => null),
     ]);
     const [servicios, cobro, extras, legal, tutorial] = await Promise.all([estadoServicios(jwt, restaurante.id), puesta ? Promise.resolve(null) : resumenCobro(jwt, restaurante.id).catch(() => null),
@@ -91,10 +92,10 @@ export default async function Panel() {
     const [plano, camareros, tpv, llamadas, traducciones, informe] = await Promise.all([
       hayPlano || hayApp ? cargarPlano(jwt, restaurante.id) : Promise.resolve({ mesas: [], elementos: [] }),
       (hayApp || hayPlano) && (!puesta || restaurante.soporte === true) ? listarCamareros(jwt, restaurante.id) : Promise.resolve([]),
-      hayTpv && !puesta ? estadoConexionTpv(jwt) : Promise.resolve(null),
-      hayPlano && !puesta ? llamadasPendientes(jwt, restaurante.id).then((l) => l.map((x) => x.mesa)) : Promise.resolve([] as string[]),
+      hayTpv && !puesta ? soporteO(estadoConexionTpv(jwt), null) : Promise.resolve(null),
+      hayPlano && !puesta ? soporteO(llamadasPendientes(jwt, restaurante.id).then((l) => l.map((x) => x.mesa)), [] as string[]) : Promise.resolve([] as string[]),
       listarTraducciones(jwt, restaurante.id),
-      hayApp && !puesta ? informeCamareros(jwt, 30) : Promise.resolve([]),
+      hayApp && !puesta ? soporteO(informeCamareros(jwt, 30), []) : Promise.resolve([]),
     ]);
 
     return (

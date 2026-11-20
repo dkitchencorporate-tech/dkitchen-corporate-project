@@ -83,15 +83,15 @@ export default function Mejoras({ restaurante, servicios, demo = false }: { rest
         <div className="grid gap-4 lg:grid-cols-3">
           {bono && (
             <article id="bono-ia" className="flex scroll-mt-24 flex-col rounded-2xl border border-vino/40 bg-vino/[0.06] p-5">
-              <p className="text-2xl" aria-hidden="true">✨</p>
-              <h4 className="mt-2 text-lg font-bold">Bono de 50 fotos con IA</h4>
-              <p className="mt-1 flex-1 text-sm text-grafito">Fotos de tus platos y banners, creadas o mejoradas con IA. Tienes 3 gratis siempre; el bono suma 50 que <strong>nunca caducan</strong> y son tuyas. Se usan desde «✨ Crear con IA» al poner una foto.</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-vino">Fotografía</p>
+              <h4 className="mt-2 text-lg font-bold">Bono de 50 fotografías editoriales</h4>
+              <p className="mt-1 flex-1 text-sm text-grafito">Fotos de tus platos y portadas con iluminación profesional. Tienes 3 gratis siempre; el bono suma 50 que <strong>nunca caducan</strong> y son tuyas. Se usan desde «Estudio visual» al subir una foto.</p>
               <div className="mt-4"><Boton s="bono_ia" texto={`Pedir el bono · ${euros(bono.precioCentimos)} + IVA`} /></div>
             </article>
           )}
           {idioma && (
             <article className="flex flex-col rounded-2xl border border-linea bg-white p-5">
-              <p className="text-2xl" aria-hidden="true">🌍</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-vino">Idiomas</p>
               <h4 className="mt-2 text-lg font-bold">Un idioma más en tu carta</h4>
               <p className="mt-1 flex-1 text-sm text-grafito">¿Recibes turistas? Tu plan ya trae sus idiomas; cada uno más lo <strong>traducimos nosotros</strong> (platos, descripciones y secciones) y tus clientes lo eligen en la carta.</p>
               <div className="mt-4"><Boton s="idioma_extra" texto={`Añadir un idioma · ${euros(idioma.precioCentimos)} + IVA`} /></div>
@@ -99,7 +99,7 @@ export default function Mejoras({ restaurante, servicios, demo = false }: { rest
           )}
           {puesta && (
             <article className="flex flex-col rounded-2xl border border-linea bg-white p-5">
-              <p className="text-2xl" aria-hidden="true">🧑‍🍳</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-vino">Montaje</p>
               <h4 className="mt-2 text-lg font-bold">Puesta a punto</h4>
               <p className="mt-1 flex-1 text-sm text-grafito">Un experto de DKitchen te deja la carta perfecta contigo, sin cambiar el diseño: categorías, textos, alérgenos, fotos, horarios y tu ficha de Google.</p>
               <div className="mt-4"><Boton s="setup_esencial" texto={`Pedir la puesta a punto · ${euros(puesta.precioCentimos)} + IVA`} /></div>
@@ -151,13 +151,13 @@ export default function Mejoras({ restaurante, servicios, demo = false }: { rest
   );
 }
 
-/** Acento y sello de cada fecha (Gran Reserva: fondo noche, color propio por tema). */
+/** Acento y sello tipográfico de cada fecha (Gran Reserva: fondo noche, color propio por tema). */
 const TEMAS: Record<OfertaFecha['tema'], { sello: string; acento: string }> = {
-  halloween: { sello: '🎃', acento: '#E8792B' },
-  navidad: { sello: '🎄', acento: '#D4AF37' },
-  san_valentin: { sello: '💘', acento: '#E0607E' },
-  carnaval: { sello: '🎭', acento: '#B48CE8' },
-  otra: { sello: '⭐', acento: '#F2C14E' },
+  halloween: { sello: 'O', acento: '#E8792B' },
+  navidad: { sello: 'N', acento: '#D4AF37' },
+  san_valentin: { sello: 'V', acento: '#E0607E' },
+  carnaval: { sello: 'C', acento: '#B48CE8' },
+  otra: { sello: 'D', acento: '#F2C14E' },
 };
 const fechaCorta = (d: string) => new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(d));
 
@@ -263,7 +263,7 @@ function MapaNucleo({ credito, nModulos, precioTodo }: { credito: { euros: strin
         <p className="font-bold">Con el plan más completo del QR pagarías {precioTodo}/mes y la app nunca sería tuya. Con DKitchen Signature empiezas desde 99 €/mes y el código de tu app es tuyo.</p>
         {credito && nModulos > 0 ? (
           <p className="mt-2 text-sm">
-            🎁 Te descontamos lo que ya llevas pagado: <strong>{credito.euros}</strong> de la entrada de Signature (hasta la mitad).
+            Te descontamos lo que ya llevas pagado: <strong>{credito.euros}</strong> de la entrada de Signature (hasta la mitad).
             <strong className="text-vino"> Te quedan {credito.dias} días</strong> para aprovecharlo.
           </p>
         ) : (

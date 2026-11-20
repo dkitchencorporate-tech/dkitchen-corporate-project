@@ -48,7 +48,7 @@ export default function Camarero({ slug, codigoQr }: { slug: string; codigoQr: s
           <p className="text-sm text-niebla">La alarma suena en todo el panel, fuerte y repetida, hasta que marcas la llamada como atendida. Deja el panel abierto en la barra.</p>
         </div>
         <button onClick={probarSonido} className="shrink-0 bg-vino hover:bg-vino-hondo text-white text-sm font-bold px-4 py-2 rounded-full">
-          🔔 Probar sonido
+          Probar sonido
         </button>
       </div>
 

@@ -7,11 +7,11 @@ import HerramientasTexto from './HerramientasTexto';
 import VisorImagen from './VisorImagen';
 
 /**
- * Creación de imágenes con IA (0038; rediseño 01/10/2026 por el feedback de la probadora):
+ * Creación de imágenes editoriales (0038; rediseño 01/10/2026 por el feedback de la probadora):
  * - la imagen se ve ARRIBA y, mientras se crea, una animación de carga con los segundos;
  * - el cuadro de texto funciona como un chat: tras la primera imagen, lo que escribes son
  *   cambios sobre ESA imagen; el texto se vacía después de cada creación;
- * - «✨ Mejorar instrucción» reescribe la petición para que la IA la entienda mejor.
+ * - «Mejorar descripción» reescribe la petición para precisar el resultado visual.
  * Cada creación descuenta 1 imagen del saldo (3 gratis siempre; el bono de 50 se pide en Mejoras).
  */
 type Saldo = { restantes: number; gratisRestantes: number; compradas: number; usadas: number; hoy: number };
@@ -105,11 +105,11 @@ export default function GeneradorIa({
   const secundario = 'rounded-full border border-linea bg-white px-4 py-2.5 text-sm font-semibold disabled:opacity-40';
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/50 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="Crear imagen con IA" onClick={onCerrar}>
+    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/50 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="Estudio visual de imágenes" onClick={onCerrar}>
       <div onClick={(e) => e.stopPropagation()} className="max-h-[94dvh] w-full max-w-2xl overflow-y-auto rounded-t-[28px] bg-crema p-5 text-carbon sm:rounded-[28px] sm:p-7">
         <div ref={arriba} className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-vino">Crear con IA</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-vino">Estudio visual</p>
             <h3 className="font-display mt-1 text-2xl font-semibold">{modo === 'plato' ? `Foto de ${plato?.nombre?.trim() || 'tu plato'}` : info.titulo}</h3>
             <p className="mt-1 text-sm text-niebla">{info.explica}</p>
           </div>
@@ -212,7 +212,7 @@ export default function GeneradorIa({
               placeholder={actual ? 'Ej.: más luz, fondo de madera, letras más grandes' : info.ejemplo}
               className="mt-1.5 w-full rounded-xl border border-acero bg-crema px-3 py-2.5 text-sm font-normal placeholder-ceniza focus:border-vino focus:outline-none" />
           </label>
-          {modo !== 'plato' && <p className="mt-1.5 text-[12px] text-niebla">💡 ¿Quieres un texto escrito en la imagen (tu nombre, un precio…)? Escríbelo <strong>entre comillas</strong>: «letrero con "El Rincón del Flores"». Lo escribiremos tal cual.</p>}
+          {modo !== 'plato' && <p className="mt-1.5 text-[12px] text-niebla">¿Quieres un texto escrito en la imagen (tu nombre, un precio…)? Escríbelo <strong>entre comillas</strong>: «letrero con "El Rincón del Flores"». Lo escribiremos tal cual.</p>}
           <HerramientasTexto valor={texto} onCambio={setTexto} tipo="instruccion" contexto={plato?.nombre ?? undefined} demo={demo} />
           <div className="mt-3 flex justify-end">
             <button type="submit" disabled={pendiente || sinSaldo || !texto.trim()} className={boton}>

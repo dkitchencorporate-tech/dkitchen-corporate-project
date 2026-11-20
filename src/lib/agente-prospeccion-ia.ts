@@ -272,11 +272,12 @@ export async function ejecutarAgenteDemoPropuesta(
   const promesaPropuesta = (async () => {
     try {
       const enriquecido = await llamarTextoAgente(
-        `Eres el agente comercial experto de DKitchen en España. Adapta esta propuesta comercial para el restaurante «${prosp.nombre}» (${prosp.tipo} en ${prosp.zona}).
+        `Eres el asesor senior de hostelería de DKitchen Corporate en España. Adapta esta propuesta comercial para el local «${prosp.nombre}» (${prosp.tipo} en ${prosp.zona}).
 Reglas estrictas:
-- Español de España natural, directo, cercano y orientado a cerrar la venta o agendar 10 minutos.
+- Español de España natural, directo, cercano de tú a tú entre hosteleros, orientado a concertar 10 minutos o activar su prueba.
 - Menciona de forma natural alguno de sus platos reales (${muestraPlatos || 'sus especialidades'}) que ya hemos cargado en su demo interactiva.
 - Conserva OBLIGATORIAMENTE los enlaces exactos a la carta demo (${demoUrl}) y al simulador de comandas (${panelUrl}).
+- PROHIBIDO usar emojis, emoticonos o mencionar "IA" / "inteligencia artificial" en textos para el cliente.
 - Sin markdown (** ni #), máximo 1200 caracteres.`,
         `Plantilla base:\n${propuestaTexto}\n\nNotas del prospecto: ${prosp.nota_guia ?? 'sin notas'}\nInstrucción adicional: ${extraPrompt || 'ninguna'}`
       );
@@ -317,7 +318,7 @@ Reglas estrictas:
         });
         logoGenerado = true;
       } catch (e) {
-        avisos.push(`Logo IA: ${e instanceof Error ? e.message : 'no generado'}`);
+        avisos.push(`Logo: ${e instanceof Error ? e.message : 'no generado'}`);
       }
     });
   }
@@ -360,7 +361,7 @@ Reglas estrictas:
         }
         bannerGenerado = true;
       } catch (e) {
-        avisos.push(`Banner IA: ${e instanceof Error ? e.message : 'no generado'}`);
+        avisos.push(`Portada: ${e instanceof Error ? e.message : 'no generada'}`);
       }
     });
   }
@@ -392,7 +393,7 @@ Reglas estrictas:
           platosConFotoIa++;
         } catch (e) {
           const msg = e instanceof Error ? e.message : 'límite alcanzado';
-          avisos.push(`Foto IA «${plato.nombre}»: ${msg}`);
+          avisos.push(`Foto «${plato.nombre}»: ${msg}`);
           if (/l[ií]mite|saldo|pausa|usado todas/i.test(msg)) {
             limitePlatosAlcanzado = true;
           }
@@ -481,19 +482,19 @@ export async function consultarAgenteProspeccion(
 
   const instruccionesModo: Record<ModoConsultaAgenteProsp, string> = {
     mejorar_propuesta:
-      'Mejora y haz más persuasivo el texto de la propuesta comercial para este local. Conserva los enlaces de su demo interactiva si aparecen. Devuelve SOLO el texto listo para guardar en la propuesta (sin comillas ni markdown, máx. 1200 caracteres).',
+      'Mejora y haz más persuasivo el texto de la propuesta comercial para este local. Conserva los enlaces de su demo interactiva si aparecen. Devuelve SOLO el texto listo para guardar en la propuesta (sin comillas ni markdown, sin emojis ni mencionar IA, máx. 1200 caracteres).',
     guion_llamada:
-      'Escribe un guion de llamada o visita presencial de 45 segundos para impactar al dueño enseñándole su demo con sus propios platos y el simulador de comandas en vivo. Claro, directo y sin markdown.',
+      'Escribe un guion de llamada o visita presencial de 45 segundos para impactar al dueño enseñándole su demo con sus propios platos y el simulador de comandas en vivo. Claro, directo, de tú a tú hostelero, sin markdown ni emojis ni mencionar IA.',
     mensaje_whatsapp:
-      'Redacta un mensaje corto de WhatsApp o Instagram DM (máximo 5 líneas) para enviarle ahora mismo al dueño con el enlace de su propuesta y su demo interactiva ya montada. Sin markdown.',
+      'Redacta un mensaje corto de WhatsApp o Instagram DM (máximo 5 líneas) para enviarle ahora mismo al dueño con el enlace de su propuesta y su demo interactiva ya montada. Sin markdown, sin emojis ni mencionar IA.',
     responder_objecion:
       'Da al comercial 2 respuestas cortas, elegantes y efectivas para rebatir la objeción del hostelero apoyándose en la demo en vivo y el mes de prueba desde 1 €.',
     chat_libre:
-      'Ayuda al comercial o a Dirección con lo que pide sobre este prospecto, su demo o su propuesta. Español de España, práctico, directo y sin markdown.',
+      'Ayuda al comercial o a Dirección con lo que pide sobre este prospecto, su demo o su propuesta. Español de España, práctico, directo y sin markdown ni emojis.',
   };
 
   const respuesta = await llamarTextoAgente(
-    `Eres el Agente IA de Prospección y Ventas de DKitchen Corporate.\n${instruccionesModo[d.modo]}\n\nDATOS DEL PROSPECTO:\n${contexto}`,
+    `Eres Agente DK, asesor senior de prospección y hostelería de DKitchen Corporate.\nPROHIBIDO usar emojis, emoticonos o mencionar "IA" / "inteligencia artificial" en textos para el cliente.\n${instruccionesModo[d.modo]}\n\nDATOS DEL PROSPECTO:\n${contexto}`,
     d.texto.trim() || prosp.propuesta_texto || `Prepara el texto para ${prosp.nombre}.`,
     650
   );

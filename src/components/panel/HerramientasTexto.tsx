@@ -47,7 +47,7 @@ export default function HerramientasTexto({
           {pendiente === 'corregir' ? 'Corrigiendo…' : 'Aa Corregir'}
         </button>
         <button type="button" disabled={vacio || !!pendiente} onClick={() => usar('mejorar')} className={boton} title="Lo reescribe más claro y apetecible, sin inventar nada">
-          {pendiente === 'mejorar' ? 'Mejorando…' : tipo === 'instruccion' ? '✨ Mejorar instrucción' : '✨ Mejorar texto'}
+          {pendiente === 'mejorar' ? 'Mejorando…' : tipo === 'instruccion' ? 'Mejorar descripción' : 'Mejorar texto'}
         </button>
         {anterior !== null && <button type="button" onClick={() => { onCambio(anterior); setAnterior(null); setAviso('Has vuelto a tu texto.'); }} className={boton}>↺ Deshacer</button>}
         <button type="button" onClick={() => setAyuda(!ayuda)} aria-expanded={ayuda} aria-label="¿Para qué sirven estos botones?" className="h-6 w-6 rounded-full border border-linea bg-white text-[12px] text-niebla">?</button>
@@ -57,8 +57,8 @@ export default function HerramientasTexto({
         <p className="mt-1.5 rounded-lg bg-crema px-3 py-2 text-[12px] leading-relaxed text-grafito">
           <strong>Aa Corregir</strong> arregla faltas, tildes y puntuación sin cambiar lo que has escrito.{' '}
           {tipo === 'instruccion'
-            ? <><strong>✨ Mejorar instrucción</strong> convierte lo que pides en una descripción clara para la IA (encuadre, luz, ambiente), así la imagen se parece más a lo que imaginas.</>
-            : <><strong>✨ Mejorar texto</strong> lo reescribe más claro y apetecible, usando solo lo que pusiste (no inventa ingredientes ni precios).</>}{' '}
+            ? <><strong>Mejorar descripción</strong> convierte lo que pides en una descripción clara para el estudio visual (encuadre, luz, ambiente), así la imagen se parece más a lo que imaginas.</>
+            : <><strong>Mejorar texto</strong> lo reescribe más claro y apetecible, usando solo lo que pusiste (no inventa ingredientes ni precios).</>}{' '}
           Si no te convence, pulsa <strong>↺ Deshacer</strong>.
         </p>
       )}

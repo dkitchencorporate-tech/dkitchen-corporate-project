@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import PanelShell from '@/components/panel/PanelShell';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
 import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
+import type { MesaPlano, Camarero } from '@/lib/sala';
 import { SERVICIOS_QR } from '@/lib/pricing-config';
 import type { EstadoServicios } from '@/lib/servicios';
 import { comoVisitante } from '@/lib/db';
@@ -50,25 +51,31 @@ const escaneos30d = Array.from({ length: 30 }, (_, i) => ({ fecha: dia(i - 29), 
 const servicios: EstadoServicios = {
   catalogo: [
     { servicio: 'setup_esencial', nombre: 'Puesta a punto', tipo: 'unico', precioCentimos: 4900, precioAnclaCentimos: null, requiereAmpliado: false },
-    { servicio: 'setup_experto', nombre: 'Carta de Autor', tipo: 'unico', precioCentimos: 19900, precioAnclaCentimos: 28000, requiereAmpliado: false },
-    { servicio: 'idiomas', nombre: 'Idiomas', tipo: 'unico', precioCentimos: 2900, precioAnclaCentimos: null, requiereAmpliado: false },
-    { servicio: 'plano_mesas', nombre: 'Plano de mesas', tipo: 'mensual', precioCentimos: 2400, precioAnclaCentimos: null, requiereAmpliado: true },
-    { servicio: 'app_sala', nombre: 'App de sala', tipo: 'mensual', precioCentimos: 4900, precioAnclaCentimos: null, requiereAmpliado: true },
-    { servicio: 'conexion_tpv', nombre: 'Conexión TPV', tipo: 'mensual', precioCentimos: 5900, precioAnclaCentimos: null, requiereAmpliado: true },
-    { servicio: 'pack_sala', nombre: 'Pack Sala', tipo: 'mensual', precioCentimos: 11900, precioAnclaCentimos: 13200, requiereAmpliado: true },
-    { servicio: 'bono_ia', nombre: 'Bono de 50 fotos con IA', tipo: 'unico', precioCentimos: SERVICIOS_QR.bonoIa * 100, precioAnclaCentimos: null, requiereAmpliado: false },
+    { servicio: 'bono_ia', nombre: 'Bono de 50 fotografías editoriales', tipo: 'unico', precioCentimos: SERVICIOS_QR.bonoIa * 100, precioAnclaCentimos: null, requiereAmpliado: false },
     { servicio: 'idioma_extra', nombre: 'Idioma extra', tipo: 'unico', precioCentimos: SERVICIOS_QR.idiomaExtra * 100, precioAnclaCentimos: null, requiereAmpliado: false },
   ],
   ofertasFecha: [{ id: '00000000-0000-0000-0000-000000000105', tema: 'navidad', titulo: 'Pack Navidad', descripcion: 'Menús de Navidad, Nochebuena y Nochevieja en tu carta, listos para coger reservas de grupos.',
-    incluye: ['Portada y banner de Navidad en tu carta', 'Tus menús de Navidad y Nochevieja montados', '10 fotos con IA de temporada', 'Cartel con tu QR para reservar'],
+    incluye: ['Portada y banner de Navidad en tu carta', 'Tus menús de Navidad y Nochevieja montados', '10 fotografías editoriales de temporada', 'Cartel con tu QR para reservar'],
     precio_centimos: 2900, precio_ancla_centimos: null, hasta: `${hoy.getFullYear() + (hoy.getMonth() === 0 ? 0 : 1)}-01-06`, solicitada: null }],
   contratados: [
     { servicio: 'idiomas', estado: 'activo', origen: 'pago', contratadoEn: new Date(hoy.getTime() - 20 * 864e5).toISOString(), checklist: {} },
     { servicio: 'pack_sala', estado: 'activo', origen: 'pago', contratadoEn: new Date(hoy.getTime() - 20 * 864e5).toISOString(), checklist: {} },
   ],
-  plazasExperto: 12, oferta: { oferta: 'setup_experto', motivo: 'demo' }, credito: null,
+  plazasExperto: 12, oferta: null, credito: null,
   signature: { mostrar: true, motivo: 'escaneos', escaneos: 812, reservas: 46, llamadas: 210 },
 };
+
+const mesasDemo: (MesaPlano & { id: string })[] = [
+  { id: 'm1', numero: '1', zona: 'Sala', forma: 'cuadrada', plazas: 4, x: 18, y: 22, ancho: 12, alto: 12, camareroId: 'c1' },
+  { id: 'm2', numero: '2', zona: 'Sala', forma: 'cuadrada', plazas: 4, x: 42, y: 22, ancho: 12, alto: 12, camareroId: 'c1' },
+  { id: 'm3', numero: '3', zona: 'Sala', forma: 'rectangular', plazas: 6, x: 68, y: 22, ancho: 16, alto: 12, camareroId: 'c2' },
+  { id: 'm4', numero: '4', zona: 'Terraza', forma: 'redonda', plazas: 4, x: 30, y: 58, ancho: 12, alto: 12, camareroId: 'c2' },
+];
+
+const camarerosDemo: Camarero[] = [
+  { id: 'c1', nombre: 'Lucía', activo: true, ultimoAcceso: hoy.toISOString() },
+  { id: 'c2', nombre: 'Marcos', activo: true, ultimoAcceso: hoy.toISOString() },
+];
 
 const reservas = [
   ['Alex M.', 1, '21:30', 4, 'pendiente'], ['Marta R.', 0, '14:00', 2, 'confirmada'], ['Jorge P.', 0, '21:00', 6, 'pendiente'], ['Sara L.', 2, '13:30', 3, 'confirmada'],
@@ -78,7 +85,19 @@ const reservas = [
 }));
 
 type DatosDemoSql = {
-  restaurante: MiRestaurante;
+  id?: string;
+  slug?: string;
+  nombre?: string;
+  colorMarca?: string | null;
+  plantilla?: string;
+  estiloFondo?: string;
+  estiloLetra?: string;
+  descripcion?: string | null;
+  telefono?: string | null;
+  direccion?: string | null;
+  horario?: string | null;
+  instagram?: string | null;
+  restaurante?: MiRestaurante;
   secciones: SeccionPropia[];
   platos: PlatoPropio[];
 };
@@ -91,7 +110,27 @@ export default async function DemoPanel({ searchParams }: { searchParams?: Promi
     ? await comoVisitante(async (c) => (await c.query<{ d: DatosDemoSql | null }>('SELECT dk.demo_panel_datos($1) AS d', [slug])).rows[0]?.d ?? null).catch(() => null)
     : null;
 
-  const restaurante = datosLocal?.restaurante ?? restauranteBase;
+  const restaurante: MiRestaurante = datosLocal?.restaurante
+    ? datosLocal.restaurante
+    : datosLocal && datosLocal.slug
+      ? {
+          ...restauranteBase,
+          id: datosLocal.id ?? restauranteBase.id,
+          slug: datosLocal.slug,
+          nombre: datosLocal.nombre ?? restauranteBase.nombre,
+          colorMarca: datosLocal.colorMarca ?? restauranteBase.colorMarca,
+          plantilla: datosLocal.plantilla ?? restauranteBase.plantilla,
+          estiloFondo: datosLocal.estiloFondo ?? restauranteBase.estiloFondo,
+          estiloLetra: datosLocal.estiloLetra ?? restauranteBase.estiloLetra,
+          descripcion: datosLocal.descripcion ?? restauranteBase.descripcion,
+          telefono: datosLocal.telefono ?? restauranteBase.telefono,
+          direccion: datosLocal.direccion ?? restauranteBase.direccion,
+          horario: datosLocal.horario ?? restauranteBase.horario,
+          instagram: datosLocal.instagram ?? null,
+          plan: 'sala',
+          nivelDiseno: 'autor',
+        }
+      : restauranteBase;
   const secciones = datosLocal?.secciones?.length ? datosLocal.secciones : seccionesBase;
   const platos = datosLocal?.platos?.length ? datosLocal.platos : platosBase;
 
@@ -115,7 +154,7 @@ export default async function DemoPanel({ searchParams }: { searchParams?: Promi
           promociones={[]}
           reservas={reservas}
           servicios={servicios}
-          sala={{ mesas: [], elementos: [], informe: [], camareros: [], tpv: null, llamadas: [] }}
+          sala={{ mesas: mesasDemo, elementos: [], informe: [], camareros: camarerosDemo, tpv: null, llamadas: ['4'] }}
           traducciones={[]}
           cobro={null}
         />

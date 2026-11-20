@@ -75,7 +75,7 @@ export default function SubirImagen({
           </button>
           {ia && (
             <button type="button" disabled={subiendo} onClick={() => setGenerador(true)} className="rounded-lg bg-vino px-3 py-1.5 text-sm font-semibold text-white hover:bg-vino-hondo disabled:opacity-50">
-              ✨ Crear con IA
+              Estudio visual
             </button>
           )}
           {valor && !subiendo && (

@@ -34,7 +34,7 @@ const AVISOS: Record<string, string> = {
 const OKS: Record<string, string> = {
   guardado: 'Guardado.', estado: 'Estado cambiado.', anotado: 'Contacto apuntado.', propuesta: 'Propuesta guardada y enlace listo.', reasignado: 'Reasignado.',
   registrado: 'Contacto registrado.', situado: 'Local situado en el mapa.',
-  demo: 'Demo completa de Autor creada (con carta, platos con foto, 4 mesas y 15 créditos IA).',
+  demo: 'Demo completa de Autor creada (con carta, platos con foto, 4 mesas y créditos visuales).',
 };
 const momento = (s: string) => new Date(s).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const EVENTO: Record<string, string> = { ...CONTACTOS, alta: 'Alta', estado: 'Estado', propuesta_vista: 'Abrió la propuesta', demo_vista: 'Abrió la demo', reasignado: 'Reasignado a' };
@@ -174,12 +174,12 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
               {f.cliente_slug ? `Demo activa: /m/${f.cliente_slug}` : 'O crear/ajustar Demo en Modo Manual'}
             </h2>
             <p className="mt-1 text-xs text-niebla">
-              Incluye Carta de Autor personalizada, Panel con Comandero en vivo (4 mesas), subida/mejora de fotos con IA al momento y reutilización automática si el cliente compra.
+              Incluye Carta de Autor personalizada, Panel real con Comandero en vivo (4 mesas), estudio visual de fotografías al momento y reutilización automática si el cliente compra.
             </p>
           </div>
           {(f.demo_vistas ?? 0) > 0 && (
             <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-900">
-              👁 Demo vista {f.demo_vistas} {f.demo_vistas === 1 ? 'vez' : 'veces'}
+              Demo vista {f.demo_vistas} {f.demo_vistas === 1 ? 'vez' : 'veces'}
             </span>
           )}
         </div>
@@ -193,7 +193,7 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
                 rel="noopener noreferrer"
                 className="rounded-full bg-noche px-4 py-2.5 text-xs font-semibold text-white hover:bg-vino"
               >
-                📱 Ver Carta (/m/{f.cliente_slug}) ↗
+                Ver Carta (/m/{f.cliente_slug}) ↗
               </a>
               <CopiarEnlace texto={`${SITIO}/m/${f.cliente_slug}`} />
               <a
@@ -202,20 +202,20 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
                 rel="noopener noreferrer"
                 className="rounded-full bg-vino px-4 py-2.5 text-xs font-semibold text-white hover:bg-tinta"
               >
-                🛎️ Probar Panel y Comandero en vivo ↗
+                Probar Panel y Comandero en vivo ↗
               </a>
               <CopiarEnlace texto={`${SITIO}/demo/panel?local=${f.cliente_slug}`} />
             </div>
 
             {f.restaurante_id && (
               <div className="flex flex-wrap items-center gap-2 border-t border-linea pt-3">
-                <span className="text-xs font-semibold text-grafito">Editor en vivo (subir fotos de platos e IA):</span>
+                <span className="text-xs font-semibold text-grafito">Panel en vivo (Carta, Sala, Pedidos y Camareros):</span>
                 <form action={abrirEditorDemoAction} className="inline">
                   {oculto}
                   <input type="hidden" name="restaurante_id" value={f.restaurante_id} />
                   <input type="hidden" name="pestana" value="carta" />
                   <button className="rounded-full bg-oro px-4 py-2 text-xs font-bold text-noche hover:brightness-105">
-                    📸 Subir fotos de platos / Editar Carta en el Panel →
+                    Abrir Panel Real Completo (Carta, Sala, Pedidos y Camareros) →
                   </button>
                 </form>
                 <form action={abrirEditorDemoAction} className="inline">
@@ -223,7 +223,7 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
                   <input type="hidden" name="restaurante_id" value={f.restaurante_id} />
                   <input type="hidden" name="pestana" value="sala" />
                   <button className="rounded-full border border-linea bg-papel px-3.5 py-2 text-xs font-semibold text-carbon hover:border-vino">
-                    🪑 Mesas y Comandero →
+                    Plano de Mesas y Comandero →
                   </button>
                 </form>
                 {base.startsWith('/admin-dkitchen') && (
@@ -231,7 +231,7 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
                     href={`/admin-dkitchen/clientes/${f.restaurante_id}`}
                     className="rounded-full border border-linea bg-white px-3.5 py-2 text-xs font-semibold text-grafito hover:border-tinta"
                   >
-                    🎨 Diseño de Autor en Central →
+                    Diseño de Autor en Central →
                   </Link>
                 )}
               </div>
@@ -271,10 +271,10 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
           </label>
           <div className="flex flex-wrap gap-2 sm:col-span-3">
             <button type="submit" name="abrir_editor" value="0" className="rounded-full bg-tinta px-5 py-3 text-sm font-semibold text-white hover:bg-vino">
-              {f.cliente_slug ? '🎨 Actualizar estilo de la Demo' : '⚡ Crear Demo Completa en 1 clic'}
+              {f.cliente_slug ? 'Actualizar estilo de la Demo' : 'Crear Demo Completa en 1 clic'}
             </button>
             <button type="submit" name="abrir_editor" value="1" className="rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white hover:bg-tinta">
-              📸 {f.cliente_slug ? 'Guardar y abrir editor para subir fotos →' : 'Crear Demo y abrir editor para subir fotos →'}
+              {f.cliente_slug ? 'Guardar y abrir panel para subir fotos →' : 'Crear Demo y abrir panel para subir fotos →'}
             </button>
           </div>
         </form>

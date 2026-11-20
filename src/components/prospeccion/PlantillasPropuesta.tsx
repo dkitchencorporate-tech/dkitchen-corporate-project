@@ -120,7 +120,7 @@ export default function PlantillasPropuesta({
             onClick={mejorarConIa}
             className="rounded-full border border-[#b08d57] bg-[#faf6ee] px-3 py-1 text-xs font-semibold text-[#5a421c] hover:bg-[#efe2c8] disabled:opacity-50"
           >
-            {pendienteIa ? '✨ Mejorando con IA…' : '✨ Mejorar y personalizar propuesta con IA'}
+            {pendienteIa ? 'Afinando con Agente DK…' : 'Afinar propuesta con Agente DK'}
           </button>
         </div>
         {errorIa && <p className="mt-1 text-xs text-red-700">{errorIa}</p>}
