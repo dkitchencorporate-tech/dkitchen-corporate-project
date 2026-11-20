@@ -110,8 +110,8 @@ export default async function CartaPublica({
   // composición: 'visual' y 'premium' → foto; el resto → autor. ?vista=antigua enseña el diseño anterior.
   const guardada = ['visual', 'express', 'editorial', 'premium'].includes(carta.plantilla ?? '') ? (carta.plantilla as string) : 'clasica';
   const plantilla = vista === 'antigua' ? (guardada === 'premium' ? 'clasica' : guardada) : 'premium';
-  // 26/10 (karc0): la Premium solo sale si se eligió a mano (plantilla 'premium') o con ?vista=premium|foto|autor|antigua.
-  const premiumElegida = ['premium', 'foto', 'autor', 'antigua'].includes(vista ?? '') || (!vista && carta.plantilla === 'premium');
+  // 26/10 (karc0): la Premium solo sale si se eligió a mano (no en nivel_diseno='autor') o con ?vista=premium|foto|autor|antigua.
+  const premiumElegida = ['premium', 'foto', 'autor', 'antigua'].includes(vista ?? '') || (!vista && carta.plantilla === 'premium' && carta.nivelDiseno !== 'autor');
   const variante = vista === 'foto' ? 'foto' : vista === 'autor' ? 'autor' : guardada === 'visual' || guardada === 'premium' ? 'foto' : 'autor';
   const fondo = FONDO[carta.estiloFondo ?? 'papel'] ?? FONDO.papel;
   const letra = carta.estiloLetra === 'serif' || plantilla === 'editorial' ? `carta-serif ${serifCarta.variable}` : '';
@@ -138,7 +138,7 @@ export default async function CartaPublica({
     const oscuro = tema === 'noir' ? true : tema === 'crema' ? false
       : carta.estiloFondo === 'oscuro' || (composicion !== 'taberna' && carta.estiloFondo !== 'papel' && carta.estiloFondo !== 'blanco');
     return (
-      <main className={`min-h-screen ${serifCarta.variable}`} style={{ background: composicion === 'gastro' ? (oscuro ? '#0A0A0A' : '#F4F0E8') : composicion === 'taberna' ? (oscuro ? '#131711' : '#F6F1E7') : (oscuro ? '#0E0D0B' : '#FBF6EE') }}>
+      <main className={`min-h-screen overflow-x-clip ${serifCarta.variable}`} style={{ background: composicion === 'gastro' ? (oscuro ? '#0A0A0A' : '#F4F0E8') : composicion === 'taberna' ? (oscuro ? '#131711' : '#F6F1E7') : (oscuro ? '#0E0D0B' : '#FBF6EE') }}>
         <CartaComposicion
           carta={cartaAutor} grupos={grupos} nombres={nombres} color={color} oscuro={oscuro} composicion={composicion} resenas={urlResenas(carta)}
           serif={serifCarta.className} display={tabernaCarta.className} cartel={cartelCarta.className} accion={reservar} portadaFallback={fotoPortada}
@@ -158,7 +158,7 @@ export default async function CartaPublica({
   if (plantilla === 'premium') {
     const oscuro = tema === 'noir' ? true : tema === 'crema' ? false : carta.estiloFondo !== 'papel' && carta.estiloFondo !== 'blanco';
     return (
-      <main className={`min-h-screen ${serifCarta.variable}`} style={{ background: oscuro ? '#0B0A09' : '#F8F3EA' }}>
+      <main className={`min-h-screen overflow-x-clip ${serifCarta.variable}`} style={{ background: oscuro ? '#0B0A09' : '#F8F3EA' }}>
         <CartaPremium
           carta={carta} grupos={grupos} nombres={nombres} color={color} oscuro={oscuro} variante={variante} resenas={urlResenas(carta)}
           serifClase={serifCarta.className} accion={reservar} portadaFallback={fotoPortada}
@@ -175,7 +175,7 @@ export default async function CartaPublica({
   }
 
   return (
-    <main className={`min-h-screen ${fondo} ${letra}`} style={{ '--marca': color } as CSSProperties}>
+    <main className={`min-h-screen overflow-x-clip ${fondo} ${letra}`} style={{ '--marca': color } as CSSProperties}>
       {slug === 'demo' && <BarraDemo />}
       {plantilla === 'editorial' ? (
         <CabeceraEditorial carta={carta} accion={reservar} />

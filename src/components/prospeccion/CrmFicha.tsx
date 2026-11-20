@@ -60,11 +60,11 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
   const idOculto = <input type="hidden" name="id" value={f.id} />;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 overflow-x-clip">
       <Link href={base} className="text-sm font-medium text-niebla hover:text-vino">← Locales objetivo</Link>
       <div>
         <div className="flex flex-wrap items-center gap-2"><EtiquetaEstado e={f.estado} />{f.no_contactar && <span className="rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-700">No contactar</span>}</div>
-        <h1 className="font-display mt-2 text-3xl font-semibold md:text-4xl">{f.nombre}</h1>
+        <h1 className="font-display mt-2 break-words text-3xl font-semibold md:text-4xl">{f.nombre}</h1>
         <p className="mt-1 text-sm text-niebla">{TIPOS[f.tipo]} · {[f.barrio, f.zona].filter(Boolean).join(', ')} · {FUENTES[f.fuente]}{f.referido_por ? ` (${f.referido_por})` : ''}{f.rol === 'admin' ? ` · cartera de ${f.mio ? 'karc0' : f.comercial}` : ''}</p>
         {f.estado === 'descartado' && f.motivo_descarte && <p className="mt-1 text-sm text-niebla">Motivo: {MOTIVOS[f.motivo_descarte as keyof typeof MOTIVOS]}</p>}
         {f.cliente_slug && <p className="mt-1 text-sm">Alta vinculada: <span className="font-semibold">{f.cliente_slug}</span></p>}
@@ -226,19 +226,19 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
             {f.restaurante_id && (
               <div className="flex flex-wrap items-center gap-2 border-t border-linea pt-3">
                 <span className="text-xs font-semibold text-grafito">Panel en vivo (Carta, Sala, Pedidos y Camareros):</span>
-                <form action={abrirEditorDemoAction} className="inline">
+                <form action={abrirEditorDemoAction} className="w-full sm:inline sm:w-auto">
                   {oculto}
                   <input type="hidden" name="restaurante_id" value={f.restaurante_id} />
                   <input type="hidden" name="pestana" value="carta" />
-                  <button className="rounded-full bg-oro px-4 py-2 text-xs font-bold text-noche hover:brightness-105">
+                  <button className="w-full sm:w-auto rounded-full bg-oro px-4 py-2 text-center text-xs font-bold leading-snug text-noche hover:brightness-105">
                     Abrir Panel Real Completo (Carta, Sala, Pedidos y Camareros) →
                   </button>
                 </form>
-                <form action={abrirEditorDemoAction} className="inline">
+                <form action={abrirEditorDemoAction} className="w-full sm:inline sm:w-auto">
                   {oculto}
                   <input type="hidden" name="restaurante_id" value={f.restaurante_id} />
                   <input type="hidden" name="pestana" value="sala" />
-                  <button className="rounded-full border border-linea bg-papel px-3.5 py-2 text-xs font-semibold text-carbon hover:border-vino">
+                  <button className="w-full sm:w-auto rounded-full border border-linea bg-papel px-3.5 py-2 text-center text-xs font-semibold leading-snug text-carbon hover:border-vino">
                     Plano de Mesas y Comandero →
                   </button>
                 </form>

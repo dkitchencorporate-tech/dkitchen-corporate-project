@@ -7,6 +7,7 @@ import type { SeccionPropia, PlatoPropio } from '@/lib/menu-propietario';
 import type { MesaPlano, Camarero } from '@/lib/sala';
 import { SERVICIOS_QR } from '@/lib/pricing-config';
 import type { EstadoServicios } from '@/lib/servicios';
+import type { Promocion } from '@/lib/promociones';
 import { comoVisitante } from '@/lib/db';
 import { identidadActual } from '@/lib/sesion';
 import { COOKIE_PUESTA } from '@/lib/socio-codigo';
@@ -14,9 +15,9 @@ import { COOKIE_PUESTA } from '@/lib/socio-codigo';
 export const dynamic = 'force-dynamic';
 
 /**
- * Demo pública del panel del cliente (29/09/2026 + 0117 + 0120):
+ * Demo pública del panel del cliente (29/09/2026 + 0117 + 0120 + 0121):
  * - Sin parámetros: enseña Casa Brasa.
- * - Con `?local=[slug]`: carga la demo de Autor creada para ese prospecto (con sus platos y fotos reales)
+ * - Con `?local=[slug]`: carga la demo de Autor creada para ese prospecto (con su logo, portada, firma, platos reales y promociones)
  *   y contabiliza la visita en `prospectos.demo_vistas` solo si es una apertura externa real
  *   (no sesión de equipo/Dirección ni `?preview=1`).
  */
@@ -92,10 +93,15 @@ type DatosDemoSql = {
   id?: string;
   slug?: string;
   nombre?: string;
+  logoUrl?: string | null;
+  portadaUrl?: string | null;
+  portadaConNombre?: boolean;
+  urlResenas?: string | null;
   colorMarca?: string | null;
   plantilla?: string;
   estiloFondo?: string;
   estiloLetra?: string;
+  firma?: MiRestaurante['firma'] | null;
   descripcion?: string | null;
   telefono?: string | null;
   direccion?: string | null;
@@ -104,6 +110,7 @@ type DatosDemoSql = {
   restaurante?: MiRestaurante;
   secciones: SeccionPropia[];
   platos: PlatoPropio[];
+  promociones?: Promocion[];
 };
 
 export default async function DemoPanel({ searchParams }: { searchParams?: Promise<{ local?: string; preview?: string }> }) {
@@ -132,10 +139,15 @@ export default async function DemoPanel({ searchParams }: { searchParams?: Promi
           id: datosLocal.id ?? restauranteBase.id,
           slug: datosLocal.slug,
           nombre: datosLocal.nombre ?? restauranteBase.nombre,
+          logoUrl: datosLocal.logoUrl ?? null,
+          portadaUrl: datosLocal.portadaUrl ?? null,
+          portadaConNombre: Boolean(datosLocal.portadaConNombre),
+          urlResenas: datosLocal.urlResenas ?? null,
           colorMarca: datosLocal.colorMarca ?? restauranteBase.colorMarca,
           plantilla: datosLocal.plantilla ?? restauranteBase.plantilla,
           estiloFondo: datosLocal.estiloFondo ?? restauranteBase.estiloFondo,
           estiloLetra: datosLocal.estiloLetra ?? restauranteBase.estiloLetra,
+          firma: datosLocal.firma ?? restauranteBase.firma,
           descripcion: datosLocal.descripcion ?? restauranteBase.descripcion,
           telefono: datosLocal.telefono ?? restauranteBase.telefono,
           direccion: datosLocal.direccion ?? restauranteBase.direccion,
@@ -147,6 +159,15 @@ export default async function DemoPanel({ searchParams }: { searchParams?: Promi
       : restauranteBase;
   const secciones = datosLocal?.secciones?.length ? datosLocal.secciones : seccionesBase;
   const platos = datosLocal?.platos?.length ? datosLocal.platos : platosBase;
+  const promociones = datosLocal?.promociones?.length ? datosLocal.promociones : [];
+
+  const primeros = platos.slice(0, 3);
+  const totalSim = primeros.reduce((s, p, idx) => s + Number(p.precio || 0) * (idx === 0 ? 2 : 1), 0);
+  const resumenComanda = primeros.length > 0 ? {
+    mesa: 'Mesa 4 (Terraza)',
+    platos: primeros.map((p, idx) => `${idx === 0 ? 2 : 1}× ${p.nombre}`).join(' · '),
+    total: `${totalSim.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`,
+  } : undefined;
 
   return (
     <>
@@ -154,8 +175,9 @@ export default async function DemoPanel({ searchParams }: { searchParams?: Promi
         texto={`Panel en vivo de ${restaurante.nombre} · Prueba cómo entran las comandas y cómo editas tu carta`}
         localSlug={datosLocal ? restaurante.slug : undefined}
         simulador
+        resumenComanda={resumenComanda}
       />
-      <div>
+      <div className="overflow-x-clip">
         <PanelShell
           identidad={{ id: 'demo', nombre: restaurante.nombre, email: `hola@${restaurante.slug}.es` }}
           restaurante={restaurante}
@@ -165,7 +187,7 @@ export default async function DemoPanel({ searchParams }: { searchParams?: Promi
           escaneos30d={escaneos30d}
           solicitudesQr={[]}
           tickets={[]}
-          promociones={[]}
+          promociones={promociones}
           reservas={reservas}
           servicios={servicios}
           sala={{ mesas: mesasDemo, elementos: [], informe: [], camareros: camarerosDemo, tpv: null, llamadas: ['4'] }}

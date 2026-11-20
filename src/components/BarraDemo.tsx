@@ -3,17 +3,19 @@
 import { useState } from 'react';
 
 /**
- * 30/10/2026 (mapeo de karc0) + 0117: las cartas y paneles de muestra (/demo/carta, /m/demo, /demo/panel)
- * incluyen CTA directo y, en el panel de demo, un simulador interactivo de comanda entrante con aviso sonoro.
+ * 30/10/2026 (mapeo de karc0) + 0117 + 0121: las cartas y paneles de muestra (/demo/carta, /m/demo, /demo/panel)
+ * incluyen CTA directo y, en el panel de demo, un simulador interactivo de comanda entrante con aviso sonoro y platos del local.
  */
 export default function BarraDemo({
   texto = '¿Quieres tu carta así?',
   localSlug,
   simulador = false,
+  resumenComanda,
 }: {
   texto?: string;
   localSlug?: string;
   simulador?: boolean;
+  resumenComanda?: { mesa?: string; platos: string; total: string };
 }) {
   const [comandaActiva, setComandaActiva] = useState<{
     mesa: string;
@@ -48,25 +50,25 @@ export default function BarraDemo({
     sonarTimbre();
     const ahora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     setComandaActiva({
-      mesa: 'Mesa 4 (Terraza)',
-      platos: '2× Croquetas cremosas · 1× Plato principal · 2× Bebidas',
-      total: '38,50 €',
+      mesa: resumenComanda?.mesa || 'Mesa 4 (Terraza)',
+      platos: resumenComanda?.platos || '2× Croquetas cremosas · 1× Plato principal · 2× Bebidas',
+      total: resumenComanda?.total || '38,50 €',
       hora: ahora,
     });
   };
 
   return (
     <>
-      <div className="sticky top-0 z-[60] flex flex-wrap items-center justify-center gap-x-4 gap-y-2 bg-[#2A0A12]/95 px-4 py-2.5 text-center font-sans text-sm text-white shadow-lg backdrop-blur">
-        <span className="font-semibold">
+      <div className="sticky top-0 z-[60] flex flex-wrap items-center justify-center gap-x-3 gap-y-2 bg-[#2A0A12]/95 px-3 py-2.5 text-center font-sans text-xs text-white shadow-lg backdrop-blur sm:gap-x-4 sm:px-4 sm:text-sm">
+        <span className="font-semibold leading-snug">
           {texto} <span className="text-[#D4AF6A]">Desde 1 €</span>
         </span>
-        <span className="flex flex-wrap items-center justify-center gap-2">
+        <span className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
           {simulador && (
             <button
               type="button"
               onClick={dispararSimulacion}
-              className="rounded-full bg-emerald-400 px-4 py-1.5 font-bold text-[#0c2918] shadow-sm transition hover:bg-emerald-300"
+              className="rounded-full bg-emerald-400 px-3.5 py-1.5 font-bold text-[#0c2918] shadow-sm transition hover:bg-emerald-300 sm:px-4"
             >
               Simular comanda en vivo (Mesa 4)
             </button>
@@ -81,10 +83,10 @@ export default function BarraDemo({
               Ver Carta QR ↗
             </a>
           )}
-          <a href="/qr" className="rounded-full bg-[#D4AF6A] px-4 py-1.5 font-semibold text-[#1A0710]">
+          <a href="/qr" className="rounded-full bg-[#D4AF6A] px-3.5 py-1.5 font-semibold text-[#1A0710] sm:px-4">
             Ver planes
           </a>
-          <a href="/contacto?i=carta" className="rounded-full border border-white/40 px-4 py-1.5 font-semibold">
+          <a href="/contacto?i=carta" className="rounded-full border border-white/40 px-3.5 py-1.5 font-semibold sm:px-4">
             Que me llamen
           </a>
         </span>
@@ -94,21 +96,21 @@ export default function BarraDemo({
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-5 right-5 z-[70] max-w-sm rounded-2xl border-2 border-emerald-400 bg-[#141414] p-4 text-white shadow-2xl"
+          className="fixed inset-x-3 bottom-4 z-[70] rounded-2xl border-2 border-emerald-400 bg-[#141414] p-4 text-white shadow-2xl sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-full sm:max-w-sm"
         >
           <div className="flex items-start justify-between gap-3">
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-400">
                 Nueva comanda desde QR · {comandaActiva.hora}
               </p>
               <p className="mt-1 font-display text-lg font-bold">{comandaActiva.mesa}</p>
-              <p className="mt-1 text-xs text-white/80">{comandaActiva.platos}</p>
+              <p className="mt-1 break-words text-xs text-white/80">{comandaActiva.platos}</p>
               <p className="mt-2 text-sm font-bold text-[#D4AF6A]">Total comanda: {comandaActiva.total}</p>
             </div>
             <button
               type="button"
               onClick={() => setComandaActiva(null)}
-              className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-white hover:bg-white/20"
+              className="shrink-0 rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-white hover:bg-white/20"
             >
               Atender ✓
             </button>

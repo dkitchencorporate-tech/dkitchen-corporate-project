@@ -92,7 +92,7 @@ function Fila({
 
 /** Demo ligada al local (0097): miniatura de su carta con su color y su composición. */
 export type DemoProspecto = { slug: string; color: string | null; plantilla: string; fondo: string; platos: number };
-const COMPOSICION: Record<string, string> = { gastro: 'Alta cocina', taberna: 'Taberna', urbano: 'Urbana' };
+const COMPOSICION: Record<string, string> = { gastro: 'Alta cocina', taberna: 'Taberna', urbano: 'Urbana', editorial: 'Editorial', premium: 'Premium', visual: 'Visual', clasica: 'Clásica', express: 'Express' };
 const BARRA: Record<Estado, string> = {
   por_revisar: 'bg-acero', por_visitar: 'bg-amber-400', muestra: 'bg-sky-400', visitado: 'bg-indigo-400',
   demo: 'bg-violet-500', interesado: 'bg-orange-500', cliente: 'bg-emerald-500', descartado: 'bg-zinc-300',
@@ -309,7 +309,7 @@ export default function CrmLista({
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 overflow-x-clip">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">{central ? 'Central · Prospección' : 'Prospección'}</p>
         <h1 className="font-display mt-2 text-3xl font-semibold md:text-4xl">Locales objetivo</h1>
