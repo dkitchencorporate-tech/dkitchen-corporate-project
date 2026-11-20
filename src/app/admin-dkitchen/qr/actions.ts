@@ -468,15 +468,19 @@ export type ProspectoResumenAlta = {
 export async function contextoAltaAction(): Promise<{
   serviciosPermitidos: string[];
   prospectos: ProspectoResumenAlta[];
+  montajesCupo: number;
+  montajesUsados: number;
 }> {
   const jwt = await exigirAdmin();
   return comoCliente(jwt, async (c) => {
     const ctx = (
-      await c.query<{ x: { rol_admin: string; servicios_permitidos?: string[] } }>('SELECT dk.admin_alta_contexto() AS x')
+      await c.query<{ x: { rol_admin: string; cupo?: number; usados?: number; servicios_permitidos?: string[] } }>('SELECT dk.admin_alta_contexto() AS x')
     ).rows[0]?.x;
     const serviciosPermitidos = Array.isArray(ctx?.servicios_permitidos) && ctx.servicios_permitidos.length > 0
       ? ctx.servicios_permitidos
       : ['qr', 'signature', 'experience', 'auditoria'];
+    const montajesCupo = Number(ctx?.cupo ?? 20);
+    const montajesUsados = Number(ctx?.usados ?? 0);
     const lista = (
       await c.query<{ l: { id: string; nombre: string; zona: string; contacto?: string | null; telefono: string | null; estado: string; restaurante_id?: string | null }[] }>(
         'SELECT dk.prosp_lista(NULL, NULL) AS l'
@@ -493,8 +497,8 @@ export async function contextoAltaAction(): Promise<{
         telefono: p.telefono ?? null,
         tieneDemo: Boolean(p.restaurante_id),
       }));
-    return { serviciosPermitidos, prospectos };
-  }).catch(() => ({ serviciosPermitidos: ['qr', 'signature', 'experience', 'auditoria'], prospectos: [] }));
+    return { serviciosPermitidos, prospectos, montajesCupo, montajesUsados };
+  }).catch(() => ({ serviciosPermitidos: ['qr', 'signature', 'experience', 'auditoria'], prospectos: [], montajesCupo: 20, montajesUsados: 0 }));
 }
 
 /** modo «previa»: valida y calcula en el servidor SIN crear nada (paso 4 «Revisa y envía» del boceto). */

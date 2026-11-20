@@ -170,163 +170,240 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
         </form>
       </section>
 
-      <section id="demo" className="rounded-[24px] border border-vino/30 bg-gradient-to-br from-white via-papel/60 to-white p-3 sm:p-5 shadow-sm">
-        <AgenteDemoPropuestaIa
-          base={base}
-          prospectoId={f.id}
-          nombre={f.nombre}
-          tipo={f.tipo}
-          zona={f.zona}
-          demoSlug={f.cliente_slug}
-          restauranteId={f.restaurante_id ?? null}
-          propuestaToken={f.propuesta_token}
-          cuotaIa={f.cuota_ia ?? null}
-        />
-
+      <section id="demo" className="rounded-[24px] border border-vino/30 bg-gradient-to-br from-white via-papel/60 to-white p-4 sm:p-5 shadow-sm space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-vino">Demo interactiva real · Opción Manual y Acceso Rápido</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-vino">
+              {f.cliente_slug ? 'Kit comercial activo · Enlaces y Editor' : 'Demo interactiva + Propuesta'}
+            </p>
             <h2 className="font-display mt-1 text-xl font-semibold text-carbon">
-              {f.cliente_slug ? `Demo activa: /m/${f.cliente_slug}` : 'O crear/ajustar Demo en Modo Manual'}
+              {f.cliente_slug ? `Muestra lista de ${f.nombre}` : 'Prepara la Demo y Propuesta de este local'}
             </h2>
             <p className="mt-1 text-xs text-niebla">
-              Incluye Carta de Autor personalizada, Panel real con Comandero en vivo (4 mesas), estudio visual de fotografías al momento y reutilización automática si el cliente compra.
+              {f.cliente_slug
+                ? 'Cada zona separada sin confusiones: lo que ve el comensal, el simulador para el dueño y tu editor interno.'
+                : 'Genera la demo completa con Agente DK (foto de carta o perfil) o créala en modo manual.'}
             </p>
           </div>
-          {(f.demo_vistas ?? 0) > 0 && (
-            <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-900">
-              Demo vista {f.demo_vistas} {f.demo_vistas === 1 ? 'vez' : 'veces'}
-            </span>
-          )}
+          <div className="flex flex-wrap gap-1.5">
+            {(f.demo_vistas ?? 0) > 0 && (
+              <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-900">
+                Simulador visto {f.demo_vistas}×
+              </span>
+            )}
+            {f.propuesta_vistas > 0 && (
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-900">
+                Propuesta abierta {f.propuesta_vistas}×
+              </span>
+            )}
+          </div>
         </div>
 
         {f.cliente_slug && (
-          <div className="mt-4 space-y-3 rounded-2xl border border-linea bg-white p-3 sm:p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <a
-                href={`/m/${f.cliente_slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full bg-noche px-4 py-2.5 text-xs font-semibold text-white hover:bg-vino"
-              >
-                Ver Carta (/m/{f.cliente_slug}) ↗
-              </a>
-              <CopiarEnlace texto={`${SITIO}/m/${f.cliente_slug}`} />
-              <a
-                href={`/demo/panel?local=${f.cliente_slug}&preview=1`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full bg-vino px-4 py-2.5 text-xs font-semibold text-white hover:bg-tinta"
-              >
-                Probar Panel y Comandero en vivo ↗
-              </a>
-              <CopiarEnlace texto={`${SITIO}/demo/panel?local=${f.cliente_slug}`} />
+          <div className="grid gap-3">
+            <div className="rounded-2xl border border-linea bg-white p-3.5 sm:p-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-grafito">
+                1. Carta QR del Comensal (enlace público)
+              </p>
+              <p className="mt-0.5 text-xs text-niebla">Así ven la carta sus clientes desde la mesa o Instagram: {SITIO}/m/{f.cliente_slug}</p>
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                <a
+                  href={`/m/${f.cliente_slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full bg-noche px-4 py-2.5 text-xs font-semibold text-white hover:bg-vino"
+                >
+                  Abrir Carta (/m/{f.cliente_slug}) ↗
+                </a>
+                <CopiarEnlace
+                  texto={`${SITIO}/m/${f.cliente_slug}`}
+                  etiqueta="Copiar link Carta"
+                  className="inline-flex items-center rounded-full border border-linea bg-papel px-4 py-2.5 text-xs font-semibold text-carbon hover:border-vino"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-linea bg-white p-3.5 sm:p-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-vino">
+                2. Simulador de Sala para el Dueño (público, sin iniciar sesión)
+              </p>
+              <p className="mt-0.5 text-xs text-niebla">Para que el hostelero pruebe el panel y el comandero de mesas sin pedirle clave.</p>
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                <a
+                  href={`/demo/panel?local=${f.cliente_slug}&preview=1`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full bg-vino px-4 py-2.5 text-xs font-semibold text-white hover:bg-tinta"
+                >
+                  Probar Simulador (/demo/panel) ↗
+                </a>
+                <CopiarEnlace
+                  texto={`${SITIO}/demo/panel?local=${f.cliente_slug}`}
+                  etiqueta="Copiar link Simulador"
+                  className="inline-flex items-center rounded-full border border-linea bg-papel px-4 py-2.5 text-xs font-semibold text-carbon hover:border-vino"
+                />
+              </div>
             </div>
 
             {f.restaurante_id && (
-              <div className="flex flex-wrap items-center gap-2 border-t border-linea pt-3">
-                <span className="text-xs font-semibold text-grafito">Panel en vivo (Carta, Sala, Pedidos y Camareros):</span>
-                <form action={abrirEditorDemoAction} className="w-full sm:inline sm:w-auto">
-                  {oculto}
-                  <input type="hidden" name="restaurante_id" value={f.restaurante_id} />
-                  <input type="hidden" name="pestana" value="carta" />
-                  <button className="w-full sm:w-auto rounded-full bg-oro px-4 py-2 text-center text-xs font-bold leading-snug text-noche hover:brightness-105">
-                    Abrir Panel Real Completo (Carta, Sala, Pedidos y Camareros) →
-                  </button>
-                </form>
-                <form action={abrirEditorDemoAction} className="w-full sm:inline sm:w-auto">
-                  {oculto}
-                  <input type="hidden" name="restaurante_id" value={f.restaurante_id} />
-                  <input type="hidden" name="pestana" value="sala" />
-                  <button className="w-full sm:w-auto rounded-full border border-linea bg-papel px-3.5 py-2 text-center text-xs font-semibold leading-snug text-carbon hover:border-vino">
-                    Plano de Mesas y Comandero →
-                  </button>
-                </form>
-                {base.startsWith('/admin-dkitchen') && (
-                  <Link
-                    href={`/admin-dkitchen/clientes/${f.restaurante_id}`}
-                    className="rounded-full border border-linea bg-white px-3.5 py-2 text-xs font-semibold text-grafito hover:border-tinta"
-                  >
-                    Diseño de Autor en Central →
-                  </Link>
-                )}
+              <div className="rounded-2xl border border-oro/40 bg-oro/[0.08] p-3.5 sm:p-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-carbon">
+                  3. Tu Editor Interno (solo para ti en Central)
+                </p>
+                <p className="mt-0.5 text-xs text-niebla">Acceso directo de gestión para cambiar platos, fotos, mesas o estilo de esta demo.</p>
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <form action={abrirEditorDemoAction} className="w-full sm:inline sm:w-auto">
+                    {oculto}
+                    <input type="hidden" name="restaurante_id" value={f.restaurante_id} />
+                    <input type="hidden" name="pestana" value="carta" />
+                    <button className="w-full sm:w-auto rounded-full bg-oro px-4 py-2.5 text-center text-xs font-bold leading-snug text-noche hover:brightness-105">
+                      Editar Platos y Fotos en Panel Real (/panel) →
+                    </button>
+                  </form>
+                  <form action={abrirEditorDemoAction} className="w-full sm:inline sm:w-auto">
+                    {oculto}
+                    <input type="hidden" name="restaurante_id" value={f.restaurante_id} />
+                    <input type="hidden" name="pestana" value="sala" />
+                    <button className="w-full sm:w-auto rounded-full border border-linea bg-white px-4 py-2.5 text-center text-xs font-semibold leading-snug text-carbon hover:border-vino">
+                      Plano de Mesas en /panel →
+                    </button>
+                  </form>
+                  {base.startsWith('/admin-dkitchen') && (
+                    <Link
+                      href={`/admin-dkitchen/clientes/${f.restaurante_id}`}
+                      className="w-full sm:w-auto text-center rounded-full border border-linea bg-white px-4 py-2.5 text-xs font-semibold text-grafito hover:border-tinta"
+                    >
+                      Ajustar Diseño de Autor en Central →
+                    </Link>
+                  )}
+                </div>
               </div>
             )}
           </div>
         )}
 
-        <form action={crearDemoProspectoAction} className="mt-4 grid gap-3 sm:grid-cols-3">
-          {oculto}{idOculto}
-          <label className="text-xs font-semibold text-grafito">
-            Composición de Autor
-            <select name="plantilla" defaultValue={f.demo_plantilla ?? 'taberna'} className={`${campo} mt-1`}>
-              <option value="taberna">Taberna / Bar de tapas</option>
-              <option value="gastro">Alta cocina / Gastronómico</option>
-              <option value="urbano">Urbana / Burger / Pizzería</option>
-              <option value="clasica">Clásica</option>
-              <option value="editorial">Editorial</option>
-              <option value="premium">Premium</option>
-            </select>
-          </label>
-          <label className="text-xs font-semibold text-grafito">
-            Fondo de la carta
-            <select name="fondo" defaultValue={f.demo_fondo ?? 'papel'} className={`${campo} mt-1`}>
-              <option value="papel">Papel cálido</option>
-              <option value="oscuro">Noche / Oscuro</option>
-              <option value="blanco">Blanco limpio</option>
-            </select>
-          </label>
-          <label className="text-xs font-semibold text-grafito">
-            Color de acento del local
-            <input
-              name="color"
-              type="color"
-              defaultValue={f.demo_color ?? '#8b5e34'}
-              className="mt-1 h-[48px] w-full cursor-pointer rounded-2xl border border-linea bg-white p-1.5"
-            />
-          </label>
-          <div className="flex flex-wrap gap-2 sm:col-span-3">
-            <button type="submit" name="abrir_editor" value="0" className="rounded-full bg-tinta px-5 py-3 text-sm font-semibold text-white hover:bg-vino">
-              {f.cliente_slug ? 'Actualizar estilo de la Demo' : 'Crear Demo Completa en 1 clic'}
-            </button>
-            <button type="submit" name="abrir_editor" value="1" className="rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white hover:bg-tinta">
-              {f.cliente_slug ? 'Guardar y abrir panel para subir fotos →' : 'Crear Demo y abrir panel para subir fotos →'}
-            </button>
-          </div>
-        </form>
-      </section>
-
-      <section id="propuesta" className={tarjeta}>
-        <h2 className="text-sm font-semibold">Propuesta personalizada automatizada</h2>
-        <p className="mt-1 text-xs text-niebla">
-          Escoge una plantilla según el perfil del cliente y lo que hayáis hablado: se rellena con sus datos e incluye el link directo a su demo.
-        </p>
-        <PlantillasPropuesta
-          base={base}
-          id={f.id}
-          nombre={f.nombre}
-          zona={f.zona}
-          textoInicial={f.propuesta_texto}
-          muestraUrlInicial={f.muestra_url}
-          ofertaInicial={f.oferta}
-          demoSlug={f.cliente_slug}
-          sitio={SITIO}
-        />
-        <div className="mt-4 border-t border-linea pt-4">
+        <div id="propuesta" className="rounded-2xl border border-linea bg-white p-3.5 sm:p-4">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-grafito">
+            {f.cliente_slug ? '4. Página web privada de la Propuesta (/propuesta)' : 'Página web privada de la Propuesta (/propuesta)'}
+          </p>
           {propuesta ? (
-            <div className="space-y-2">
-              <p className="break-all text-sm"><a href={`${propuesta}?preview=1`} target="_blank" rel="noopener noreferrer" className="font-medium underline underline-offset-2">{propuesta}</a></p>
-              <div className="flex flex-wrap gap-2">
-                <CopiarEnlace texto={propuesta} />
-                <a href={`${propuesta}?preview=1`} target="_blank" rel="noopener noreferrer" className={chip}>Abrir / imprimir</a>
-                {base.startsWith('/admin-dkitchen') && <a href={`/admin-dkitchen/propuesta-correo/${f.id}`} className={chip}>Versión para correo</a>}
+            <div className="mt-2 space-y-2.5">
+              <p className="break-all text-xs text-niebla">
+                <a href={`${propuesta}?preview=1`} target="_blank" rel="noopener noreferrer" className="font-medium text-carbon underline underline-offset-2">{propuesta}</a>
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <a href={`${propuesta}?preview=1`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-tinta px-4 py-2 text-xs font-semibold text-white hover:bg-vino">
+                  Abrir / imprimir Propuesta ↗
+                </a>
+                <CopiarEnlace
+                  texto={propuesta}
+                  etiqueta="Copiar link Propuesta"
+                  className="inline-flex items-center rounded-full border border-linea bg-papel px-4 py-2 text-xs font-semibold text-carbon hover:border-vino"
+                />
+                {base.startsWith('/admin-dkitchen') && (
+                  <a href={`/admin-dkitchen/propuesta-correo/${f.id}`} className="rounded-full border border-linea bg-white px-4 py-2 text-xs font-semibold text-carbon hover:border-vino">
+                    Versión para correo
+                  </a>
+                )}
               </div>
-              <p className="text-xs text-niebla">{f.propuesta_vistas > 0 ? `Abierta ${f.propuesta_vistas} ${f.propuesta_vistas === 1 ? 'vez' : 'veces'}; la última, ${momento(f.propuesta_vista_en!)}.` : 'Aún no la ha abierto nadie.'}</p>
+              <p className="text-xs text-niebla">
+                {f.propuesta_vistas > 0
+                  ? `Abierta ${f.propuesta_vistas} ${f.propuesta_vistas === 1 ? 'vez' : 'veces'}; la última, ${momento(f.propuesta_vista_en!)}.`
+                  : 'Aún no la ha abierto nadie (las aperturas con ?preview=1 o sesión interna no suman).'}
+              </p>
             </div>
           ) : (
-            <form action={crearPropuestaAction}>{oculto}{idOculto}<button className={chip}>Crear enlace de la propuesta</button></form>
+            <div className="mt-2">
+              <form action={crearPropuestaAction}>{oculto}{idOculto}<button className={chip}>Crear enlace de la propuesta</button></form>
+            </div>
           )}
         </div>
+
+        <details open={!propuesta} className="rounded-2xl border border-linea bg-white p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-carbon">
+            {propuesta ? 'Editar texto o plantilla de la página web /propuesta (opcional)' : 'Elegir plantilla y crear texto de /propuesta'}
+          </summary>
+          <p className="mt-1 text-xs text-niebla">
+            Solo cambia la página web pública de la propuesta (`/propuesta`). El mensaje corto de WhatsApp se edita arriba en Francotirador.
+          </p>
+          <PlantillasPropuesta
+            base={base}
+            id={f.id}
+            nombre={f.nombre}
+            zona={f.zona}
+            textoInicial={f.propuesta_texto}
+            muestraUrlInicial={f.muestra_url}
+            ofertaInicial={f.oferta}
+            demoSlug={f.cliente_slug}
+            sitio={SITIO}
+          />
+        </details>
+
+        <details className="rounded-2xl border border-linea bg-white p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-carbon">
+            {f.cliente_slug ? 'Cambiar composición, fondo o color de acento de la Demo (opcional)' : 'Crear Demo en Modo Manual (composición, fondo y color)'}
+          </summary>
+          <form action={crearDemoProspectoAction} className="mt-4 grid gap-3 sm:grid-cols-3">
+            {oculto}{idOculto}
+            <label className="text-xs font-semibold text-grafito">
+              Composición de Autor
+              <select name="plantilla" defaultValue={f.demo_plantilla ?? 'taberna'} className={`${campo} mt-1`}>
+                <option value="taberna">Taberna / Bar de tapas</option>
+                <option value="gastro">Alta cocina / Gastronómico</option>
+                <option value="urbano">Urbana / Burger / Pizzería</option>
+                <option value="clasica">Clásica</option>
+                <option value="editorial">Editorial</option>
+                <option value="premium">Premium</option>
+              </select>
+            </label>
+            <label className="text-xs font-semibold text-grafito">
+              Fondo de la carta
+              <select name="fondo" defaultValue={f.demo_fondo ?? 'papel'} className={`${campo} mt-1`}>
+                <option value="papel">Papel cálido</option>
+                <option value="oscuro">Noche / Oscuro</option>
+                <option value="blanco">Blanco limpio</option>
+              </select>
+            </label>
+            <label className="text-xs font-semibold text-grafito">
+              Color de acento del local
+              <input
+                name="color"
+                type="color"
+                defaultValue={f.demo_color ?? '#8b5e34'}
+                className="mt-1 h-[48px] w-full cursor-pointer rounded-2xl border border-linea bg-white p-1.5"
+              />
+            </label>
+            <div className="flex flex-wrap gap-2 sm:col-span-3">
+              <button type="submit" name="abrir_editor" value="0" className="w-full sm:w-auto rounded-full bg-tinta px-5 py-3 text-sm font-semibold text-white hover:bg-vino">
+                {f.cliente_slug ? 'Actualizar estilo de la Demo' : 'Crear Demo Completa en 1 clic'}
+              </button>
+              <button type="submit" name="abrir_editor" value="1" className="w-full sm:w-auto rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white hover:bg-tinta">
+                {f.cliente_slug ? 'Guardar y abrir panel para subir fotos →' : 'Crear Demo y abrir panel para subir fotos →'}
+              </button>
+            </div>
+          </form>
+        </details>
+
+        <details open={!f.cliente_slug} className="rounded-2xl border border-[#b08d57]/40 bg-[#faf6ee]/50 p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-[#5a421c]">
+            {f.cliente_slug
+              ? 'Digitalizar carta en papel por foto o regenerar Demo con Agente DK (Calle Express)'
+              : 'Crear Demo + Propuesta instantánea desde foto o perfil (Agente DK)'}
+          </summary>
+          <div className="mt-3">
+            <AgenteDemoPropuestaIa
+              base={base}
+              prospectoId={f.id}
+              nombre={f.nombre}
+              tipo={f.tipo}
+              zona={f.zona}
+              demoSlug={f.cliente_slug}
+              restauranteId={f.restaurante_id ?? null}
+              propuestaToken={f.propuesta_token}
+              cuotaIa={f.cuota_ia ?? null}
+            />
+          </div>
+        </details>
       </section>
 
       <details className={tarjeta}>

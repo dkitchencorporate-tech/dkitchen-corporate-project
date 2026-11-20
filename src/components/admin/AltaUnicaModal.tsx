@@ -70,6 +70,8 @@ export default function AltaUnicaModal({
   // Paso 2
   const [servicios, setServicios] = useState<ServicioAlta[]>([servicio ?? 'qr']);
   const [planQr, setPlanQr] = useState<'basico' | 'ampliado' | 'sala'>('ampliado');
+  const [montajesCupo, setMontajesCupo] = useState<number>(20);
+  const [montajesUsados, setMontajesUsados] = useState<number>(0);
 
   useEffect(() => {
     if (!abierto) return;
@@ -87,6 +89,8 @@ export default function AltaUnicaModal({
         });
       }
       setProspectosLista(ctx.prospectos ?? []);
+      setMontajesCupo(Number(ctx.montajesCupo ?? 20));
+      setMontajesUsados(Number(ctx.montajesUsados ?? 0));
     }).catch(() => {});
     return () => { cancelado = true; };
   }, [abierto]);
@@ -404,19 +408,44 @@ export default function AltaUnicaModal({
                           <span className="text-sm text-niebla">Puesta a punto +{formatPrecio(SERVICIOS_QR.puestaAPunto)}</span>
                         </button>
                       </div>
-                      {puestaAPunto && !prueba && (
-                        <div className="flex flex-wrap gap-2">
-                          <button type="button" onClick={() => { setMontajeGratis(!montajeGratis); setPrevia(null); }} className={`min-h-[44px] rounded-full border px-5 text-sm font-bold transition ${montajeGratis ? 'border-exito bg-exito text-white' : 'border-linea bg-white hover:bg-papel'}`}>
-                            {montajeGratis ? '✓ Montaje gratis (cupo)' : 'Regalar el montaje (cupo)'}
-                          </button>
-                          {montajeGratis && <BotonOk tipo="montaje_gratis" detalle={{ origen: origenMontaje }} />}
-                          {montajeGratis && (['flyer', 'visita'] as const).map((o) => (
-                            <button key={o} type="button" onClick={() => setOrigenMontaje(o)} className={`min-h-[44px] rounded-full border px-4 text-sm font-semibold ${origenMontaje === o ? 'border-tinta bg-tinta text-white' : 'border-linea bg-white'}`}>
-                              {o === 'flyer' ? 'Vino por flyer' : 'Visita comercial'}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                      {puestaAPunto && !prueba && (() => {
+                        const montajesQuedan = Math.max(0, montajesCupo - montajesUsados);
+                        return (
+                          <div className="space-y-2.5 rounded-2xl border border-linea bg-papel/60 p-3.5">
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                              <span className="font-semibold text-carbon">Cupo de montajes gratis</span>
+                              <span className="font-semibold tabular-nums text-niebla">
+                                {montajesUsados} de {montajesCupo} usados · quedan {montajesQuedan}
+                              </span>
+                            </div>
+                            <div className="flex gap-1" role="img" aria-label={`${montajesUsados} de ${montajesCupo} montajes gratis usados`}>
+                              {Array.from({ length: montajesCupo }, (_, i) => (
+                                <span key={i} className={`h-2 flex-1 rounded-full ${i < montajesUsados ? 'bg-vino' : 'bg-white ring-1 ring-inset ring-linea'}`} />
+                              ))}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                disabled={!montajeGratis && montajesQuedan === 0}
+                                onClick={() => { setMontajeGratis(!montajeGratis); setPrevia(null); }}
+                                className={`min-h-[44px] rounded-full border px-5 text-sm font-bold transition disabled:opacity-45 ${montajeGratis ? 'border-exito bg-exito text-white' : 'border-linea bg-white hover:bg-papel'}`}
+                              >
+                                {montajeGratis
+                                  ? `✓ Montaje gratis aplicado (${Math.min(montajesUsados + 1, montajesCupo)} de ${montajesCupo})`
+                                  : montajesQuedan === 0
+                                    ? `Cupo completo (${montajesUsados}/${montajesCupo})`
+                                    : `Regalar el montaje (${montajesUsados} de ${montajesCupo} usados · quedan ${montajesQuedan})`}
+                              </button>
+                              {montajeGratis && <BotonOk tipo="montaje_gratis" detalle={{ origen: origenMontaje }} />}
+                              {montajeGratis && (['flyer', 'visita'] as const).map((o) => (
+                                <button key={o} type="button" onClick={() => setOrigenMontaje(o)} className={`min-h-[44px] rounded-full border px-4 text-sm font-semibold ${origenMontaje === o ? 'border-tinta bg-tinta text-white' : 'border-linea bg-white'}`}>
+                                  {o === 'flyer' ? 'Vino por flyer' : 'Visita comercial'}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </>

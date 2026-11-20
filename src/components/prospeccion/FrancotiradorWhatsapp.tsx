@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   consultarAgenteProspeccionAction,
@@ -8,6 +9,7 @@ import {
   registrarEnvioWhatsappFrancotiradorAction,
 } from '@/lib/prospeccion-acciones';
 import type { BaseCrm } from '@/lib/prospeccion';
+import CopiarEnlace from './CopiarEnlace';
 
 const SITIO = process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es';
 
@@ -48,6 +50,8 @@ export default function FrancotiradorWhatsapp({
 }) {
   const router = useRouter();
   const propuestaUrl = propuestaToken ? `${SITIO}/propuesta/${propuestaToken}` : `${SITIO}/qr`;
+  const cartaUrl = demoSlug ? `${SITIO}/m/${demoSlug}` : null;
+  const panelDemoUrl = demoSlug ? `${SITIO}/demo/panel?local=${demoSlug}` : null;
   const defecto =
     borradorInicial ||
     `Buenas, soy Alex, de DKitchen.\nOs hemos dejado montada una muestra real de la carta y panel de ${nombre} en ${zona} con vuestros platos para que la probéis sin compromiso.\nPodéis verla aquí desde el móvil: ${propuestaUrl}\nSi os encaja, comentamos dos minutos fuera de horas de servicio.`;
@@ -55,6 +59,7 @@ export default function FrancotiradorWhatsapp({
   const [preparacion, setPreparacion] = useState(preparacionInicial ?? '');
   const [mensaje, setMensaje] = useState(defecto);
   const [enviadoCuando, setEnviadoCuando] = useState<string | null>(ultimoEnvioWhatsapp);
+  const [envioReciente, setEnvioReciente] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
@@ -135,10 +140,13 @@ export default function FrancotiradorWhatsapp({
         minute: '2-digit',
       });
       setEnviadoCuando(ahora);
-      setAviso(`Envío registrado. Tanda de hoy: ${r.enviosHoy} / 15 locales contactados por WhatsApp.`);
+      setEnvioReciente(true);
+      setAviso(`Envío registrado (Tanda de hoy: ${r.enviosHoy} / 15). Este local ha pasado automáticamente a la Zona de Seguimiento (estado «Interesado», recordatorio a 48 h).`);
       router.refresh();
     });
   };
+
+  const pillRevision = 'inline-flex items-center rounded-full border border-emerald-900/20 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:border-emerald-700';
 
   return (
     <section
@@ -164,6 +172,37 @@ export default function FrancotiradorWhatsapp({
           </span>
         )}
       </div>
+
+      {(propuestaToken || demoSlug) && (
+        <div className="mt-3 rounded-2xl border border-emerald-900/15 bg-white/85 p-3">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-900">
+            Revisión rápida antes de enviar (sin sumar visitas)
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {propuestaToken && (
+              <>
+                <a href={`/propuesta/${propuestaToken}?preview=1`} target="_blank" rel="noopener noreferrer" className={pillRevision}>
+                  Ver Propuesta ↗
+                </a>
+                <CopiarEnlace texto={propuestaUrl} etiqueta="Copiar link Propuesta" className={pillRevision} />
+              </>
+            )}
+            {cartaUrl && demoSlug && (
+              <>
+                <a href={`/m/${demoSlug}`} target="_blank" rel="noopener noreferrer" className={pillRevision}>
+                  Ver Carta (/m/{demoSlug}) ↗
+                </a>
+                <CopiarEnlace texto={cartaUrl} etiqueta="Copiar link Carta" className={pillRevision} />
+              </>
+            )}
+            {panelDemoUrl && demoSlug && (
+              <a href={`/demo/panel?local=${demoSlug}&preview=1`} target="_blank" rel="noopener noreferrer" className={pillRevision}>
+                Ver Simulador del Dueño ↗
+              </a>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="mt-3 space-y-3">
         <div>
@@ -210,9 +249,17 @@ export default function FrancotiradorWhatsapp({
           </p>
         )}
         {aviso && (
-          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-900">
-            {aviso}
-          </p>
+          <div className="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-medium text-emerald-900">
+            <p>{aviso}</p>
+            {envioReciente && (
+              <Link
+                href={base}
+                className="inline-flex min-h-[38px] items-center rounded-full bg-tinta px-4 py-1.5 text-xs font-bold text-white hover:bg-vino"
+              >
+                ← Volver a locales pendientes de envío
+              </Link>
+            )}
+          </div>
         )}
 
         <div className="flex flex-wrap items-center gap-2 pt-1">

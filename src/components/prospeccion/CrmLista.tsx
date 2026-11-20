@@ -97,6 +97,15 @@ const BARRA: Record<Estado, string> = {
   por_revisar: 'bg-acero', por_visitar: 'bg-amber-400', muestra: 'bg-sky-400', visitado: 'bg-indigo-400',
   demo: 'bg-violet-500', interesado: 'bg-orange-500', cliente: 'bg-emerald-500', descartado: 'bg-zinc-300',
 };
+const totalVistas = (p: Prospecto) => (p.propuesta_vistas ?? 0) + (p.demo_vistas ?? 0);
+const esEnSeguimiento = (p: Prospecto) =>
+  p.estado !== 'descartado' &&
+  p.estado !== 'cliente' &&
+  (p.estado === 'interesado' || p.ultimo_resultado === 'propuesta' || totalVistas(p) > 0);
+const esPendienteEnvio = (p: Prospecto) =>
+  p.estado !== 'descartado' &&
+  p.estado !== 'cliente' &&
+  !esEnSeguimiento(p);
 
 function MiniCarta({ d, nombre }: { d: DemoProspecto; nombre: string }) {
   const c = d.color || '#7A2E3A';
@@ -158,8 +167,13 @@ function Tarjeta({
           )}
           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
             {demo && <span className="rounded-full bg-papel px-2 py-0.5 font-medium text-grafito">{COMPOSICION[demo.plantilla] ?? 'Carta'} · {demo.platos} platos</span>}
-            {(p.demo_vistas ?? 0) > 0 && <span className="rounded-full bg-violet-50 px-2 py-0.5 font-semibold text-violet-800">Demo {p.demo_vistas}×</span>}
-            {p.propuesta_vistas > 0 && <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">Propuesta {p.propuesta_vistas}×</span>}
+            {totalVistas(p) > 0 ? (
+              <span className="rounded-full bg-emerald-600 px-2.5 py-0.5 font-bold text-white shadow-sm">
+                ¡Abrió enlace! {p.propuesta_vistas > 0 ? `Propuesta ${p.propuesta_vistas}×` : ''}{p.propuesta_vistas > 0 && (p.demo_vistas ?? 0) > 0 ? ' · ' : ''}{(p.demo_vistas ?? 0) > 0 ? `Demo ${p.demo_vistas}×` : ''}
+              </span>
+            ) : (p.estado === 'interesado' || p.ultimo_resultado === 'propuesta') ? (
+              <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-semibold text-indigo-800">✓ Propuesta enviada</span>
+            ) : null}
             {p.puntuacion != null && <span className="rounded-full bg-papel px-2 py-0.5 text-grafito">{p.puntuacion}/100</span>}
             {p.no_contactar && <span className="rounded-full bg-red-50 px-2 py-0.5 font-semibold text-red-700">No contactar</span>}
             {p.canal && <span className="rounded-full bg-papel px-2 py-0.5 text-grafito">{CANALES[p.canal]}{p.ultimo_resultado ? ` · ${RESULTADOS[p.ultimo_resultado]}` : ''}</span>}
@@ -216,6 +230,7 @@ export default function CrmLista({
   // Selección unitaria y múltiple para acciones en lote (0118)
   const [seleccionados, setSeleccionados] = useState<string[]>([]);
   const [cargandoLote, setCargandoLote] = useState(false);
+  const [bandeja, setBandeja] = useState<'pendientes' | 'seguimiento' | 'todos'>('pendientes');
 
   const toggleSeleccion = (id: string) => {
     setSeleccionados((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -233,7 +248,29 @@ export default function CrmLista({
   const ruta = mios.filter((p) => p.ruta_fecha === hoy).sort((a, b) => (a.ruta_orden ?? 0) - (b.ruta_orden ?? 0));
   const tocaHoy = listaPorModo.filter((p) => p.siguiente_fecha && p.siguiente_fecha <= hoy && !['cliente', 'descartado'].includes(p.estado));
   const cuenta = (e: Estado) => listaPorModo.filter((p) => p.estado === e).length;
-  const filtrada = estado ? listaPorModo.filter((p) => p.estado === estado) : listaPorModo.filter((p) => p.estado !== 'descartado');
+  const porEnviarLista = listaPorModo.filter(esPendienteEnvio);
+  const seguimientoLista = [...listaPorModo.filter(esEnSeguimiento)].sort((a, b) => {
+    const va = totalVistas(a);
+    const vb = totalVistas(b);
+    if ((vb > 0) !== (va > 0)) return vb > 0 ? 1 : -1;
+    if (vb !== va) return vb - va;
+    const da = a.siguiente_fecha && a.siguiente_fecha <= hoy ? 1 : 0;
+    const db = b.siguiente_fecha && b.siguiente_fecha <= hoy ? 1 : 0;
+    if (db !== da) return db - da;
+    return (a.siguiente_fecha ?? '9999-12-31').localeCompare(b.siguiente_fecha ?? '9999-12-31');
+  });
+  const segAbiertos = seguimientoLista.filter((p) => totalVistas(p) > 0).length;
+  const segVencenHoy = seguimientoLista.filter((p) => p.siguiente_fecha && p.siguiente_fecha <= hoy).length;
+  const activosLista = listaPorModo.filter((p) => p.estado !== 'descartado');
+  const filtrada = estado
+    ? listaPorModo.filter((p) => p.estado === estado)
+    : vista === 'tablero'
+      ? activosLista
+      : bandeja === 'pendientes'
+        ? porEnviarLista
+        : bandeja === 'seguimiento'
+          ? seguimientoLista
+          : activosLista;
   // Baza y comarca primero; dentro, los que ya están en el mapa.
   const planificables = mios.filter((p) => !['cliente', 'descartado'].includes(p.estado) && !p.no_contactar)
     .sort((a, b) => Number(esBaza(b.zona)) - Number(esBaza(a.zona)) || Number(b.lat != null) - Number(a.lat != null));
@@ -527,25 +564,52 @@ export default function CrmLista({
         ) : (
           <>
             <ol className="mt-4 space-y-2.5">
-              {ruta.map((p, i) => (
+              {ruta.map((p, i) => {
+                const abierto = totalVistas(p) > 0;
+                const enviado = p.estado === 'interesado' || p.ultimo_resultado === 'propuesta';
+                return (
                 <li key={p.id} className="rounded-2xl border border-linea">
                   <details className="group">
                     <summary className="flex cursor-pointer list-none items-center gap-3 p-3 [&::-webkit-details-marker]:hidden">
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino text-sm font-bold text-white">{i + 1}</span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-[15px] font-semibold">{p.nombre}</span>
-                        <span className="block truncate text-xs text-niebla">{TIPOS[p.tipo]} · {p.barrio || p.zona} · {ESTADOS[p.estado]}</span>
+                        <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-niebla">
+                          <span className="truncate">{TIPOS[p.tipo]} · {p.barrio || p.zona} · {ESTADOS[p.estado]}</span>
+                          {abierto ? (
+                            <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                              ¡Abrió enlace ({totalVistas(p)}×)!
+                            </span>
+                          ) : enviado ? (
+                            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-800">
+                              ✓ WhatsApp enviado · Listo para visita
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                              Pendiente de enviar WhatsApp
+                            </span>
+                          )}
+                        </span>
                       </span>
                       <span className="shrink-0 rounded-full bg-tinta px-4 py-2 text-xs font-semibold text-white group-open:bg-oro group-open:text-noche">Registrar</span>
                     </summary>
                     <div className="space-y-3 border-t border-linea p-3">
                       <AntesDeEntrar p={p} demo={demos[p.id]?.slug} />
                       <RegistroRapido base={base} id={p.id} canalInicial="fisico" volver="ruta" compacto />
-                      <Link href={`${base}/${p.id}`} className="inline-block text-xs font-semibold text-vino">Abrir la ficha completa →</Link>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Link
+                          href={`${base}/${p.id}#francotirador`}
+                          className="inline-flex rounded-full bg-emerald-700 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800"
+                        >
+                          {enviado || abierto ? 'Ver WhatsApp / propuesta →' : 'Disparar WhatsApp →'}
+                        </Link>
+                        <Link href={`${base}/${p.id}`} className="inline-block text-xs font-semibold text-vino">Abrir la ficha completa →</Link>
+                      </div>
                     </div>
                   </details>
                 </li>
-              ))}
+                );
+              })}
             </ol>
             <div className="mt-4 flex flex-wrap gap-2">
               {tramos.map((u, i) => (
@@ -631,6 +695,57 @@ export default function CrmLista({
         </section>
       )}
 
+      <section aria-label="Bandeja de prospección" className="rounded-[22px] border border-linea bg-white p-3.5 sm:p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-vino">Flujo sin colisiones · Bandejas de trabajo</p>
+            <p className="text-xs text-niebla">Al enviar una propuesta por WhatsApp, el local sale automáticamente de «Por enviar» y pasa a «Zona de Seguimiento» (48 h).</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {([
+              ['pendientes', `1. Por enviar (${porEnviarLista.length})`],
+              ['seguimiento', `2. Zona de Seguimiento (${seguimientoLista.length})`],
+              ['todos', `3. Todos activos (${activosLista.length})`],
+            ] as const).map(([k, txt]) => {
+              const activa = !estado && vista !== 'tablero' && bandeja === k;
+              const cls = `rounded-full px-4 py-2 text-xs font-bold transition ${
+                activa
+                  ? k === 'seguimiento'
+                    ? 'bg-emerald-700 text-white shadow-sm'
+                    : 'bg-vino text-white shadow-sm'
+                  : 'bg-papel text-carbon ring-1 ring-linea hover:border-vino'
+              }`;
+              return estado ? (
+                <Link key={k} href={q(null, 'tarjetas')} onClick={() => setBandeja(k)} className={cls}>
+                  {txt}
+                </Link>
+              ) : (
+                <button key={k} type="button" onClick={() => setBandeja(k)} className={cls}>
+                  {txt}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {!estado && vista !== 'tablero' && bandeja === 'seguimiento' && (
+          <div className="grid grid-cols-3 gap-2 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3 text-center">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-900">Abrieron enlace</p>
+              <p className="font-display text-2xl font-bold text-emerald-800 tabular-nums">{segAbiertos}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-amber-900">Toca hoy / vencidos</p>
+              <p className="font-display text-2xl font-bold text-amber-800 tabular-nums">{segVencenHoy}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-grafito">Total seguimiento</p>
+              <p className="font-display text-2xl font-bold text-carbon tabular-nums">{seguimientoLista.length}</p>
+            </div>
+          </div>
+        )}
+      </section>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Filtrar por estado">
           <Link href={q(null)} className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-semibold ${!estado ? 'bg-tinta text-white' : 'bg-white text-carbon ring-1 ring-linea'}`}>Activos · {activos}</Link>
@@ -658,7 +773,22 @@ export default function CrmLista({
             );
           })}
         </div>
-      ) : filtrada.length === 0 ? <p className={`${tarjeta} text-sm text-niebla`}>Nada en esta lista todavía.</p> : (
+      ) : filtrada.length === 0 ? (
+        <div className={`${tarjeta} flex flex-wrap items-center justify-between gap-3 text-sm text-niebla`}>
+          <span>
+            {!estado && bandeja === 'pendientes'
+              ? 'No quedan locales pendientes en esta cartera: todos los enviados ya están en la Zona de Seguimiento.'
+              : !estado && bandeja === 'seguimiento'
+                ? 'Aún no hay locales en Zona de Seguimiento (aparecen en cuanto dispares un WhatsApp o cuando abran su propuesta).'
+                : 'Nada en esta lista todavía.'}
+          </span>
+          {!estado && bandeja === 'pendientes' && seguimientoLista.length > 0 && (
+            <button type="button" onClick={() => setBandeja('seguimiento')} className="rounded-full bg-emerald-700 px-4 py-2 text-xs font-bold text-white">
+              Ir a Zona de Seguimiento ({seguimientoLista.length}) →
+            </button>
+          )}
+        </div>
+      ) : (
         <ul className="grid gap-3 md:grid-cols-2">
           {filtrada.map((p) => (
             <Tarjeta
