@@ -5,7 +5,7 @@ import { generarImagen, limpiarTextoIa, saldoIa } from '@/lib/ia';
 import { leerCartaDeFotos, type SeccionLeida } from '@/lib/carta-foto-ia';
 import { CODIGOS_ALERGENOS } from '@/lib/alergenos';
 import { PLANTILLAS_PROPUESTA, plantillaSegunTipo, construirTextoPropuesta } from '@/lib/prospeccion-catalogo';
-import { actualizarDatosLocal, guardarPortada } from '@/lib/mi-restaurante';
+import { guardarPortada } from '@/lib/mi-restaurante';
 import { listarMiCarta, editarPlato } from '@/lib/menu-propietario';
 import { crearPromocion, listarPromociones } from '@/lib/promociones';
 
@@ -304,18 +304,12 @@ Reglas estrictas:
             nombre: prosp.nombre,
           }
         );
-        await actualizarDatosLocal(jwt, restauranteId, {
-          nombre: prosp.nombre,
-          logoUrl: rLogo.url,
-          colorMarca: colorDemo,
-          descripcion: `Cocina y especialidad en ${prosp.zona}`,
-          telefono: prosp.telefono,
-          direccion: prosp.direccion,
-          horario: 'Martes a domingo · 13:00–16:30 y 20:00–23:30',
-          instagram: prosp.instagram,
-          urlResenas: null,
-          whatsapp: null,
-        });
+        await comoCliente(jwt, (c) =>
+          c.query(
+            'UPDATE public.restaurantes SET logo_url = $2, color_marca = COALESCE($3, color_marca) WHERE id = $1',
+            [restauranteId, rLogo.url, colorDemo]
+          )
+        );
         logoGenerado = true;
       } catch (e) {
         avisos.push(`Logo: ${e instanceof Error ? e.message : 'no generado'}`);

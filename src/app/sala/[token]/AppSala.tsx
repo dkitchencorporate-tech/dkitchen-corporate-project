@@ -103,9 +103,9 @@ export default function AppSala({ token }: { token: string }) {
             <p className="font-bold">Hola, {ctx.camarero.nombre}{encargado && <span className="ml-2 rounded-full bg-amber-400 px-2 py-0.5 align-middle text-[10px] font-black uppercase tracking-wide text-black">Encargado</span>}</p>
           </div>
           {listo ? (
-            <button onClick={probarSonido} className="rounded-full bg-black/5 px-3 py-1.5 text-xs font-bold">🔔 Sonido activo · probar</button>
+            <button onClick={probarSonido} className="rounded-full bg-black/5 px-3 py-1.5 text-xs font-bold">Sonido activo · probar</button>
           ) : (
-            <button onClick={activar} className="animate-pulse rounded-full bg-amber-400 px-4 py-2 text-sm font-black text-black">🔔 Toca para activar el sonido</button>
+            <button onClick={activar} className="animate-pulse rounded-full bg-amber-400 px-4 py-2 text-sm font-black text-black">Toca para activar el sonido</button>
           )}
         </div>
       </header>
