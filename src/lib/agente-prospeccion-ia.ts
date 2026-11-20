@@ -441,7 +441,7 @@ export async function consultarAgenteProspeccion(
     propuestaToken?: string | null;
   }
 ): Promise<{ respuesta: string }> {
-  const prosp = await comoCliente(jwt, async (c) => {
+  const { prosp, platos } = await comoCliente(jwt, async (c) => {
     const { rows } = await c.query<{
       nombre: string;
       tipo: string;
@@ -450,23 +450,51 @@ export async function consultarAgenteProspeccion(
       nota_guia: string | null;
       oferta: string | null;
       propuesta_texto: string | null;
+      plataformas: string | null;
+      web: string | null;
+      instagram: string | null;
+      preparacion: string | null;
+      notas: string | null;
+      restaurante_id: string | null;
     }>(
-      `SELECT nombre, tipo, zona, contacto, nota_guia, oferta, propuesta_texto
+      `SELECT nombre, tipo, zona, contacto, nota_guia, oferta, propuesta_texto,
+              plataformas, web, instagram, preparacion, notas, restaurante_id
          FROM public.prospectos WHERE id = $1`,
       [d.prospectoId]
     );
-    return rows[0] ?? null;
+    const p = rows[0] ?? null;
+    let menuPlatos: { nombre: string; precio: string | number }[] = [];
+    if (p?.restaurante_id) {
+      const rp = await c.query<{ nombre: string; precio: string | number }>(
+        `SELECT nombre, precio FROM public.menu_items
+          WHERE restaurante_id = $1
+          ORDER BY orden, nombre
+          LIMIT 6`,
+        [p.restaurante_id]
+      ).catch(() => ({ rows: [] as { nombre: string; precio: string | number }[] }));
+      menuPlatos = rp.rows;
+    }
+    return { prosp: p, platos: menuPlatos };
   });
   if (!prosp) throw new Error('Prospecto no encontrado.');
 
   const urlCarta = d.demoSlug ? `https://dkitchencorporate.es/m/${d.demoSlug}` : null;
   const urlPanel = d.demoSlug ? `https://dkitchencorporate.es/demo/panel?local=${d.demoSlug}` : null;
   const urlPropuesta = d.propuestaToken ? `https://dkitchencorporate.es/propuesta/${d.propuestaToken}` : null;
+  const resumenPlatos = platos.length > 0
+    ? platos.map((x) => `${x.nombre} (${Number(x.precio).toFixed(2).replace('.00', '')} €)`).join(', ')
+    : '';
 
   const contexto = [
     `Local: ${prosp.nombre} (${prosp.tipo} en ${prosp.zona})`,
     prosp.contacto ? `Contacto: ${prosp.contacto}` : '',
-    prosp.nota_guia ? `Notas: ${prosp.nota_guia}` : '',
+    prosp.web ? `Web actual: ${prosp.web}` : 'Sin web propia en ficha',
+    prosp.instagram ? `Instagram: @${prosp.instagram}` : '',
+    prosp.plataformas ? `Plataformas/Delivery: ${prosp.plataformas}` : '',
+    prosp.preparacion ? `Auditoría digital previa: ${prosp.preparacion}` : '',
+    prosp.notas ? `Señales/Reseñas captadas: ${prosp.notas.slice(0, 450)}` : '',
+    prosp.nota_guia ? `Notas guía: ${prosp.nota_guia}` : '',
+    resumenPlatos ? `Platos ya cargados en su demo: ${resumenPlatos}` : '',
     urlCarta ? `Carta demo viva: ${urlCarta}` : '',
     urlPanel ? `Simulador de sala/comandas: ${urlPanel}` : '',
     urlPropuesta ? `Enlace propuesta: ${urlPropuesta}` : '',
@@ -476,19 +504,19 @@ export async function consultarAgenteProspeccion(
 
   const instruccionesModo: Record<ModoConsultaAgenteProsp, string> = {
     mejorar_propuesta:
-      'Mejora y haz más persuasivo el texto de la propuesta comercial para este local. Conserva los enlaces de su demo interactiva si aparecen. Devuelve SOLO el texto listo para guardar en la propuesta (sin comillas ni markdown, sin emojis ni mencionar IA, máx. 1200 caracteres).',
+      'Mejora y haz más persuasivo el texto de la propuesta comercial para este local usando su auditoría real y sus platos reales. Devuelve SOLO el texto listo para guardar en la propuesta (sin comillas ni markdown, sin emojis ni mencionar IA, máx. 1200 caracteres).',
     guion_llamada:
-      'Escribe un guion de llamada o visita presencial de 45 segundos para impactar al dueño enseñándole su demo con sus propios platos y el simulador de comandas en vivo. Claro, directo, de tú a tú hostelero, sin markdown ni emojis ni mencionar IA.',
+      'Escribe un guion de llamada o visita presencial de 45 segundos para impactar al dueño enseñándole su demo con sus propios platos, el diagnóstico real de su local y el simulador de comandas en vivo. Claro, directo, de tú a tú hostelero, sin markdown ni emojis ni mencionar IA.',
     mensaje_whatsapp:
-      'Redacta un mensaje corto de WhatsApp o Instagram DM (máximo 5 líneas) para enviarle ahora mismo al dueño con el enlace de su propuesta y su demo interactiva ya montada. Sin markdown, sin emojis ni mencionar IA.',
+      'Redacta un mensaje de WhatsApp hiper-personalizado (4 a 5 líneas máximo) firmado como Alex ("Buenas, soy Alex..."). Cita obligatoriamente un hallazgo concreto de su auditoría real (web caída, Drive, Linktree, comisiones de delivery o reseñas) y un plato real de su carta si aparece en contexto, e incluye el enlace exacto de la propuesta si está disponible. CERO emojis, CERO markdown y CERO mención a IA.',
     responder_objecion:
       'Da al comercial 2 respuestas cortas, elegantes y efectivas para rebatir la objeción del hostelero apoyándose en la demo en vivo y el mes de prueba desde 1 €.',
     chat_libre:
-      'Ayuda al comercial o a Dirección con lo que pide sobre este prospecto, su demo o su propuesta. Español de España, práctico, directo y sin markdown ni emojis.',
+      'Ayuda al comercial o a Dirección con lo que pide sobre este prospecto, su auditoría, su demo o su propuesta. Español de España, práctico, directo y sin markdown ni emojis.',
   };
 
   const respuesta = await llamarTextoAgente(
-    `Eres Agente DK, asesor senior de prospección y hostelería de DKitchen Corporate.\nPROHIBIDO usar emojis, emoticonos o mencionar "IA" / "inteligencia artificial" en textos para el cliente.\n${instruccionesModo[d.modo]}\n\nDATOS DEL PROSPECTO:\n${contexto}`,
+    `Eres Agente DK, asesor senior de prospección y hostelería de DKitchen Corporate.\nPROHIBIDO usar emojis, emoticonos o mencionar "IA" / "inteligencia artificial" en textos para el cliente.\n${instruccionesModo[d.modo]}\n\nDATOS REALES DEL PROSPECTO:\n${contexto}`,
     d.texto.trim() || prosp.propuesta_texto || `Prepara el texto para ${prosp.nombre}.`,
     650
   );

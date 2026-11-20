@@ -620,7 +620,7 @@ export default function AgenteDemoPropuestaIa({
               Ver Carta Demo viva (/m/{resultado.slug}) ↗
             </a>
             <a
-              href={`/demo/panel?local=${resultado.slug}`}
+              href={`/demo/panel?local=${resultado.slug}&preview=1`}
               target="_blank"
               rel="noreferrer"
               className="rounded-lg border border-emerald-900 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-950"
@@ -628,7 +628,7 @@ export default function AgenteDemoPropuestaIa({
               Abrir Simulador de Comandas ↗
             </a>
             <a
-              href={`/propuesta/${resultado.propuestaToken}`}
+              href={`/propuesta/${resultado.propuestaToken}?preview=1`}
               target="_blank"
               rel="noreferrer"
               className="rounded-lg border border-emerald-900 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-950"

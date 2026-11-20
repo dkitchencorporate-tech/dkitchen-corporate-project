@@ -449,9 +449,91 @@ export async function consultarAgenteProspeccionAction(d: {
     }
 
     const r = await consultarAgenteProspeccion(jwt, d);
+    if (d.modo === 'mensaje_whatsapp' && r.respuesta) {
+      await comoCliente(jwt, (c) =>
+        c.query('SELECT dk.prosp_guardar_whatsapp($1, $2, NULL)', [d.prospectoId, r.respuesta])
+      ).catch(() => {});
+      revalidatePath('/admin-dkitchen/prospeccion');
+      revalidatePath(`/admin-dkitchen/prospeccion/${d.prospectoId}`);
+    }
     return { ok: true, respuesta: r.respuesta };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : 'El asistente IA no ha respondido.' };
+    return { ok: false, error: e instanceof Error ? e.message : 'El asistente Agente DK no ha respondido.' };
+  }
+}
+
+/**
+ * 0120 · Guarda el borrador del mensaje personalizado de WhatsApp y la auditoría (`preparacion`)
+ * directamente desde la ficha sin recargar la página.
+ */
+export async function guardarWhatsappBorradorAction(d: {
+  base?: string;
+  prospectoId: string;
+  texto: string;
+  preparacion?: string | null;
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const jwt = await obtenerJwtDeSesion().catch(() => null);
+    if (!jwt) return { ok: false, error: 'Sesión caducada.' };
+    if (!UUID.test(d?.prospectoId ?? '')) return { ok: false, error: 'Prospecto no válido.' };
+    await comoCliente(jwt, (c) =>
+      c.query('SELECT dk.prosp_guardar_whatsapp($1, $2, $3)', [
+        d.prospectoId,
+        String(d.texto ?? '').slice(0, 1500),
+        d.preparacion != null ? String(d.preparacion).slice(0, 1000) : null,
+      ])
+    );
+    const base = esBaseCrm(d.base) ? d.base : '/admin-dkitchen/prospeccion';
+    revalidatePath(`${base}/${d.prospectoId}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'No se pudo guardar el borrador.' };
+  }
+}
+
+/**
+ * 0120 · Registra en el acto el envío del mensaje personalizado del Francotirador WhatsApp,
+ * guarda el texto enviado en `whatsapp_borrador`, programa el seguimiento a 48 h y
+ * devuelve cuántos locales únicos se han contactado por WhatsApp hoy.
+ */
+export async function registrarEnvioWhatsappFrancotiradorAction(d: {
+  base?: string;
+  prospectoId: string;
+  texto: string;
+  preparacion?: string | null;
+}): Promise<{ ok: true; enviosHoy: number } | { ok: false; error: string }> {
+  try {
+    const jwt = await obtenerJwtDeSesion().catch(() => null);
+    if (!jwt) return { ok: false, error: 'Sesión caducada.' };
+    if (!UUID.test(d?.prospectoId ?? '')) return { ok: false, error: 'Prospecto no válido.' };
+    const texto = String(d.texto ?? '').trim().slice(0, 1500);
+    if (!texto) return { ok: false, error: 'Escribe el mensaje antes de registrar el envío.' };
+
+    const enviosHoy = await comoCliente(jwt, async (c) => {
+      await c.query('SELECT dk.prosp_guardar_whatsapp($1, $2, $3)', [
+        d.prospectoId,
+        texto,
+        d.preparacion != null ? String(d.preparacion).slice(0, 1000) : null,
+      ]);
+      await c.query('SELECT dk.prosp_registrar($1, $2)', [
+        d.prospectoId,
+        {
+          canal: 'whatsapp',
+          resultado: 'propuesta',
+          plantilla: 'Francotirador personalizado',
+          texto: texto.slice(0, 950),
+        },
+      ]);
+      const rHoy = await c.query<{ n: number }>('SELECT dk.prosp_envios_whatsapp_hoy() AS n');
+      return rHoy.rows[0]?.n ?? 1;
+    });
+
+    const base = esBaseCrm(d.base) ? d.base : '/admin-dkitchen/prospeccion';
+    revalidatePath(base);
+    revalidatePath(`${base}/${d.prospectoId}`);
+    return { ok: true, enviosHoy };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'No se pudo registrar el envío.' };
   }
 }
 

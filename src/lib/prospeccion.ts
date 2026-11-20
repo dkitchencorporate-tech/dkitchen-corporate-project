@@ -56,6 +56,7 @@ export type Ficha = Omit<Prospecto, 'muestra' | 'nota_guia' | 'instagram' | 'pla
   restaurante_id?: string | null; demo_interna?: boolean | null; demo_color?: string | null;
   demo_plantilla?: string | null; demo_fondo?: string | null; demo_vistas?: number;
   demo_logo?: string | null; demo_portada?: string | null;
+  whatsapp_borrador?: string | null;
   cuota_ia?: { rol: string; sin_limite: boolean; demos_usadas: number; demos_tope: number; imagenes_tope_demo: number } | null;
   relacion_previa: boolean; consentimiento_en: string | null; preparacion: string | null; geo_fuente: 'osm' | 'gps' | 'manual' | null;
   contactos: Contacto[];
@@ -81,6 +82,9 @@ export const comercialesCentral = (jwt: string) =>
 export type Metrica = { comercial: string; total: number; contactados: number; demos: number; clientes: number; descartados: number; motivos: Record<string, number> };
 export const metricasCentral = (jwt: string) =>
   comoCliente(jwt, async (c) => (await c.query<{ m: Metrica[] }>('SELECT dk.admin_prosp_metricas() AS m')).rows[0].m);
+
+export const enviosWhatsappHoy = (jwt: string) =>
+  comoCliente(jwt, async (c) => (await c.query<{ n: number }>('SELECT dk.prosp_envios_whatsapp_hoy() AS n')).rows[0]?.n ?? 0).catch(() => 0);
 
 /**
  * Enlaces de Google Maps con varias paradas (formato /dir/, que abre la app en

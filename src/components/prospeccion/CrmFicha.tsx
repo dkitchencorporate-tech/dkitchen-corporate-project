@@ -15,6 +15,7 @@ import EstoyAqui from './EstoyAqui';
 import MapaRuta from './MapaRuta';
 import PlantillasPropuesta from './PlantillasPropuesta';
 import AgenteDemoPropuestaIa from './AgenteDemoPropuestaIa';
+import FrancotiradorWhatsapp from './FrancotiradorWhatsapp';
 import NuevoCliente from '@/components/admin/NuevoCliente';
 import { CANALES, RESULTADOS, NIVELES, PRODUCTOS, PALANCAS, MATERIALES } from '@/lib/prospeccion-catalogo';
 
@@ -53,6 +54,8 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
   const wa = enlaceWhatsapp(f.telefono);
   const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${f.direccion || f.nombre}, ${f.zona}`)}`;
   const propuesta = f.propuesta_token ? `${SITIO}/propuesta/${f.propuesta_token}` : null;
+  const ultimoWa = f.eventos.find((e) => e.tipo === 'whatsapp');
+  const ultimoEnvioWhatsapp = ultimoWa ? momento(ultimoWa.creado_en) : null;
   const oculto = <input type="hidden" name="base" value={base} />;
   const idOculto = <input type="hidden" name="id" value={f.id} />;
 
@@ -100,6 +103,19 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
       </div>
 
       {f.siguiente_accion && <p className="text-sm text-niebla">Siguiente paso: <span className="font-medium text-carbon">{f.siguiente_accion}</span>{f.siguiente_fecha ? ` · ${fechaCorta(f.siguiente_fecha)}` : ''}</p>}
+      <FrancotiradorWhatsapp
+        base={base}
+        prospectoId={f.id}
+        nombre={f.nombre}
+        zona={f.zona}
+        telefono={f.telefono}
+        demoSlug={f.cliente_slug}
+        propuestaToken={f.propuesta_token}
+        preparacionInicial={f.preparacion}
+        borradorInicial={f.whatsapp_borrador ?? null}
+        ultimoEnvioWhatsapp={ultimoEnvioWhatsapp}
+        noContactar={f.no_contactar}
+      />
       {!f.no_contactar && <RegistroRapido base={base} id={f.id} canalInicial={f.canal} consentimiento={f.consentimiento || f.relacion_previa} />}
       <AntesDeEntrar p={f} demo={f.cliente_slug ?? undefined} />
       <div className="flex flex-wrap items-center gap-3">
@@ -197,7 +213,7 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
               </a>
               <CopiarEnlace texto={`${SITIO}/m/${f.cliente_slug}`} />
               <a
-                href={`/demo/panel?local=${f.cliente_slug}`}
+                href={`/demo/panel?local=${f.cliente_slug}&preview=1`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-full bg-vino px-4 py-2.5 text-xs font-semibold text-white hover:bg-tinta"
@@ -299,10 +315,10 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
         <div className="mt-4 border-t border-linea pt-4">
           {propuesta ? (
             <div className="space-y-2">
-              <p className="break-all text-sm"><a href={propuesta} target="_blank" rel="noopener noreferrer" className="font-medium underline underline-offset-2">{propuesta}</a></p>
+              <p className="break-all text-sm"><a href={`${propuesta}?preview=1`} target="_blank" rel="noopener noreferrer" className="font-medium underline underline-offset-2">{propuesta}</a></p>
               <div className="flex flex-wrap gap-2">
                 <CopiarEnlace texto={propuesta} />
-                <a href={propuesta} target="_blank" rel="noopener noreferrer" className={chip}>Abrir / imprimir</a>
+                <a href={`${propuesta}?preview=1`} target="_blank" rel="noopener noreferrer" className={chip}>Abrir / imprimir</a>
                 {base.startsWith('/admin-dkitchen') && <a href={`/admin-dkitchen/propuesta-correo/${f.id}`} className={chip}>Versión para correo</a>}
               </div>
               <p className="text-xs text-niebla">{f.propuesta_vistas > 0 ? `Abierta ${f.propuesta_vistas} ${f.propuesta_vistas === 1 ? 'vez' : 'veces'}; la última, ${momento(f.propuesta_vista_en!)}.` : 'Aún no la ha abierto nadie.'}</p>

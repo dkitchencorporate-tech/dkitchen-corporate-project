@@ -1,4 +1,5 @@
 import BarraDemo from '@/components/BarraDemo';
+import { cookies } from 'next/headers';
 import type { Metadata } from 'next';
 import PanelShell from '@/components/panel/PanelShell';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
@@ -7,14 +8,17 @@ import type { MesaPlano, Camarero } from '@/lib/sala';
 import { SERVICIOS_QR } from '@/lib/pricing-config';
 import type { EstadoServicios } from '@/lib/servicios';
 import { comoVisitante } from '@/lib/db';
+import { identidadActual } from '@/lib/sesion';
+import { COOKIE_PUESTA } from '@/lib/socio-codigo';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Demo pública del panel del cliente (29/09/2026 + 0117):
+ * Demo pública del panel del cliente (29/09/2026 + 0117 + 0120):
  * - Sin parámetros: enseña Casa Brasa.
  * - Con `?local=[slug]`: carga la demo de Autor creada para ese prospecto (con sus platos y fotos reales)
- *   y contabiliza la visita en `prospectos.demo_vistas`.
+ *   y contabiliza la visita en `prospectos.demo_vistas` solo si es una apertura externa real
+ *   (no sesión de equipo/Dirección ni `?preview=1`).
  */
 export const metadata: Metadata = { title: 'Demo del panel · DKitchen', robots: { index: false, follow: false } };
 
@@ -102,12 +106,22 @@ type DatosDemoSql = {
   platos: PlatoPropio[];
 };
 
-export default async function DemoPanel({ searchParams }: { searchParams?: Promise<{ local?: string }> }) {
+export default async function DemoPanel({ searchParams }: { searchParams?: Promise<{ local?: string; preview?: string }> }) {
   const sp = searchParams ? await searchParams : {};
   const slug = typeof sp.local === 'string' && /^[a-z0-9-]{2,80}$/.test(sp.local) ? sp.local : null;
 
+  let contarVista = true;
+  if (slug) {
+    const [identidad, jar] = await Promise.all([
+      identidadActual().catch(() => null),
+      cookies().catch(() => null),
+    ]);
+    const esInterno = Boolean(identidad) || sp?.preview === '1' || Boolean(jar?.get(COOKIE_PUESTA)?.value);
+    contarVista = !esInterno;
+  }
+
   const datosLocal = slug
-    ? await comoVisitante(async (c) => (await c.query<{ d: DatosDemoSql | null }>('SELECT dk.demo_panel_datos($1) AS d', [slug])).rows[0]?.d ?? null).catch(() => null)
+    ? await comoVisitante(async (c) => (await c.query<{ d: DatosDemoSql | null }>('SELECT dk.demo_panel_datos($1, $2) AS d', [slug, contarVista])).rows[0]?.d ?? null).catch(() => null)
     : null;
 
   const restaurante: MiRestaurante = datosLocal?.restaurante

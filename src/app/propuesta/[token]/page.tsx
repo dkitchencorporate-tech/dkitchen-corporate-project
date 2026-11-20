@@ -1,7 +1,10 @@
 import QRCode from 'qrcode';
+import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { comoVisitante } from '@/lib/db';
+import { identidadActual } from '@/lib/sesion';
+import { COOKIE_PUESTA } from '@/lib/socio-codigo';
 import { estadoFundador } from '@/lib/fundador';
 import { QR_MENU, FUNDADOR, puntosPlanQr } from '@/lib/pricing-config';
 import { TIPOS, enlaceWhatsapp } from '@/lib/prospeccion';
@@ -11,10 +14,10 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Tu propuesta · DKitchen', robots: { index: false, follow: false } };
 
 /**
- * Propuesta personalizada «Hola, [local]» (0058). Enlace privado con token
- * que el comercial imprime o envía a mano. Cada apertura queda en el CRM
- * (dk.propuesta_ver, como mucho 1 cada 30 min). Si el local pidió no ser
- * contactado, el enlace deja de funcionar.
+ * Propuesta personalizada «Hola, [local]» (0058/0120). Enlace privado con token
+ * que el comercial imprime o envía a mano. Cada apertura externa real queda en
+ * el CRM (dk.propuesta_ver, máx. 1 cada 30 min); las sesiones del equipo y los
+ * enlaces con ?preview=1 nunca incrementan el contador.
  */
 const SITIO = process.env.NEXT_PUBLIC_SITE_URL || 'https://dkitchencorporate.es';
 type Propuesta = {
@@ -26,7 +29,7 @@ type Propuesta = {
 const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: Number.isInteger(n) ? 0 : 2 }) + ' €';
 /** Lo que cambia en el local (mismas ventajas que /qr; sin cifras ni clientes inventados). */
 const CAMBIOS = [
-  { t: 'Fotos que abren el apetito', d: 'Mejoramos tus fotos con IA (o las hacemos desde tu carta) para que cada plato se vea como en la mesa.' },
+  { t: 'Fotos que abren el apetito', d: 'Fotografía editorial de tus platos (o las preparamos desde tu carta) para que cada plato se vea como en la mesa.' },
   { t: 'Alérgenos siempre al día', d: 'Los 14 alérgenos en cada plato, como pide la normativa, y los cambias tú desde el móvil en un minuto.' },
   { t: 'Tu carta en otros idiomas', d: 'El turista la lee en su idioma sin que tengas que traducir nada.' },
   { t: 'La mesa avisa al camarero', d: 'Llamar al camarero y pedir la cuenta desde el móvil: suena en el de tu equipo y sabe a qué mesa ir.' },
@@ -42,10 +45,24 @@ const PREMIUM: Record<string, { ruta: string; nombre: string }> = {
   dark_kitchen: { ruta: 'dark-kitchen', nombre: 'Dark Kitchen' },
 };
 
-export default async function PropuestaPublica({ params }: { params: Promise<{ token: string }> }) {
-  const { token } = await params;
+export default async function PropuestaPublica({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ token: string }>;
+  searchParams: Promise<{ preview?: string }>;
+}) {
+  const [{ token }, sp] = await Promise.all([params, searchParams]);
   if (!/^[0-9a-f]{32}$/.test(token)) notFound();
-  const p = await comoVisitante(async (c) => (await c.query<{ p: Propuesta | null }>('SELECT dk.propuesta_ver($1) AS p', [token])).rows[0].p).catch(() => null);
+
+  const [identidad, jar] = await Promise.all([
+    identidadActual().catch(() => null),
+    cookies().catch(() => null),
+  ]);
+  const esInterno = Boolean(identidad) || sp?.preview === '1' || Boolean(jar?.get(COOKIE_PUESTA)?.value);
+  const contarVista = !esInterno;
+
+  const p = await comoVisitante(async (c) => (await c.query<{ p: Propuesta | null }>('SELECT dk.propuesta_ver($1, $2) AS p', [token, contarVista])).rows[0].p).catch(() => null);
   if (!p) notFound();
 
   const { basico, ampliado, sala } = QR_MENU.planes;
@@ -84,7 +101,7 @@ export default async function PropuestaPublica({ params }: { params: Promise<{ t
               <div className="mt-3 flex flex-wrap gap-2 print:hidden">
                 <a href={muestra} className="inline-flex rounded-full bg-tinta px-5 py-3 text-sm font-semibold text-white">Ver mi carta</a>
                 {p.demo_slug && (
-                  <a href={`${SITIO}/demo/panel?local=${p.demo_slug}`} className="inline-flex rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white">
+                  <a href={`${SITIO}/demo/panel?local=${p.demo_slug}${esInterno ? '&preview=1' : ''}`} className="inline-flex rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white">
                     Probar mi panel y comandas
                   </a>
                 )}

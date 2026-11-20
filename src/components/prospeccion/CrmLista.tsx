@@ -174,7 +174,7 @@ function Tarjeta({
           <>
             <a href={`/m/${demo.slug}`} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center min-h-[36px] rounded-full bg-noche px-3 py-1.5 text-xs font-semibold text-white hover:bg-vino transition">Ver carta ↗</a>
-            <a href={`/demo/panel?local=${demo.slug}`} target="_blank" rel="noopener noreferrer"
+            <a href={`/demo/panel?local=${demo.slug}&preview=1`} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center min-h-[36px] rounded-full border border-linea bg-white px-3 py-1.5 text-xs font-semibold text-carbon hover:border-vino transition">Panel ↗</a>
             {p.restaurante_id && (
               <form action={abrirEditorDemoAction} className="inline">
@@ -202,11 +202,12 @@ function Tarjeta({
   );
 }
 export default function CrmLista({
-  base, lista, estado, aviso, ok, contacto, central, comerciales, comercial, modo = 'todos', metricas, demos = {}, vista = 'tarjetas',
+  base, lista, estado, aviso, ok, contacto, central, comerciales, comercial, modo = 'todos', metricas, demos = {}, vista = 'tarjetas', enviosWaHoy = 0,
 }: {
   base: BaseCrm; lista: Prospecto[]; estado: string | null; aviso?: string; ok?: string; demos?: Record<string, DemoProspecto>; vista?: 'tarjetas' | 'tablero';
   contacto: { nombre_publico: string; telefono: string | null } | null;
   central?: boolean; comerciales?: { id: string; nombre: string }[]; comercial?: string | null; modo?: 'todos' | 'pie' | 'digital'; metricas?: Metrica[] | null;
+  enviosWaHoy?: number;
   }) {
   const hoy = hoyMadrid();
   // Todos los prospectos son reales (importados o creados); se muestran en cartera completa
@@ -336,6 +337,16 @@ export default function CrmLista({
         <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-white/60">
           {embudo.map((e) => <span key={e} className="inline-flex items-center gap-1"><i className={`h-2 w-2 rounded-full ${BARRA[e]}`} />{ESTADOS[e]}</span>)}
         </p>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white/10 px-4 py-2.5 text-xs">
+          <span className="font-semibold text-white">
+            Tanda WhatsApp de hoy: <span className={enviosWaHoy >= 15 ? 'text-amber-300' : 'text-emerald-300'}>{enviosWaHoy} / 15</span> locales enviados
+          </span>
+          <span className="text-[11px] text-white/70">
+            {enviosWaHoy >= 15
+              ? 'Tanda de 15 completa: toca pasar a ruta presencial o llamadas a aperturas.'
+              : 'Límite seguro por tanda: 15 envíos antes de salir a visita presencial.'}
+          </span>
+        </div>
       </section>
       {aviso && AVISOS[aviso] && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{AVISOS[aviso]}</p>}
       {ok && OKS[ok] && <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{OKS[ok]}</p>}
@@ -453,7 +464,7 @@ export default function CrmLista({
                             className="rounded-full bg-oro px-2.5 py-1 font-bold text-noche hover:brightness-110">
                             Ver carta ↗
                           </a>
-                          <a href={`/demo/panel?local=${d.slug}`} target="_blank" rel="noopener noreferrer"
+                          <a href={`/demo/panel?local=${d.slug}&preview=1`} target="_blank" rel="noopener noreferrer"
                             className="rounded-full bg-white/15 px-2.5 py-1 font-semibold text-white hover:bg-white/25">
                             Panel demo ↗
                           </a>
