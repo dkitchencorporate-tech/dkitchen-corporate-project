@@ -7,7 +7,7 @@
  */
 export default function RolEquipo({ id, rol, accion }: { id: string; rol: string; accion: (f: FormData) => void | Promise<void> }) {
   return (
-    <form action={accion} className="inline-flex items-center gap-1.5">
+    <form action={accion} className="inline-flex shrink-0 items-center gap-1.5">
       <input type="hidden" name="id" value={id} />
       <label className="sr-only" htmlFor={`rol-${id}`}>Rol</label>
       <select
@@ -15,7 +15,7 @@ export default function RolEquipo({ id, rol, accion }: { id: string; rol: string
         name="nuevo_rol"
         defaultValue={rol}
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
-        className="rounded-lg border border-linea bg-papel px-2 py-1 text-xs font-semibold text-carbon outline-none focus:border-vino"
+        className="min-h-[44px] shrink-0 whitespace-nowrap rounded-lg border border-linea bg-papel px-2.5 py-1 text-xs font-semibold text-carbon outline-none focus:border-vino"
       >
         <option value="comercial">Comercial</option>
         <option value="direccion">Dirección</option>

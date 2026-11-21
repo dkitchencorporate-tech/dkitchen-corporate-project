@@ -6,7 +6,7 @@ import { escribirBuzonAdminAction, estadoBuzonAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
-/** Central → Cuenta → Buzón para Claude (0065): lo de los admins y lo de los socios. */
+/** Central → Cuenta → Buzón Agente DK (0065 / 0123): lo de los admins y lo de los socios. */
 export default async function BuzonCentral({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const jwt = await exigirAdmin();
   const sp = await searchParams;
@@ -15,11 +15,11 @@ export default async function BuzonCentral({ searchParams }: { searchParams: Pro
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6 text-carbon sm:p-6 lg:p-10">
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vino">Central · Cuenta</p>
-        <h1 className="font-display mt-2 text-3xl font-semibold md:text-4xl">Buzón Agentes IA</h1>
+        <h1 className="font-display mt-2 text-3xl font-semibold md:text-4xl">Buzón Agente DK</h1>
       </header>
-      <GuiaZona titulo="Buzón Agentes IA" ancla="buzon"
-        que="Encargos, ideas, fallos y preguntas para los Agentes IA. Se guardan en la base y el agente los lee al empezar cada sesión de trabajo; aquí ves si los ha leído, si están hechos y su respuesta. También llegan los de los socios."
-        pasos={['Elige el tipo: Encargo (hazlo), Idea (para más adelante), Fallo (algo no funciona) o Pregunta.', 'Escribe el mensaje como se lo dirías a una persona y, si ayuda, la pantalla o el cliente.', 'Cuando el agente lo lea pasará a «Leído por Agentes IA»; cuando lo termine, verás su respuesta y «Hecho».', 'Puedes cerrarlo tú (Hecho / Descartado) o volver a abrirlo.']} />
+      <GuiaZona titulo="Buzón Agente DK" ancla="buzon"
+        que="Encargos, ideas, fallos y preguntas para Agente DK, con capturas o vídeos cortos adjuntos. Se guardan en la base y quedan separados entre Pendientes y Atendidos. También llegan los mensajes de los socios."
+        pasos={['Elige el tipo: Encargo (hazlo), Idea (para más adelante), Fallo (algo no funciona) o Pregunta.', 'Escribe el mensaje, indica pantalla o cliente y adjunta hasta 6 capturas o vídeos (puedes pegarlos con Ctrl+V).', 'Los nuevos y en curso aparecen en la pestaña Pendientes; los cerrados o descartados pasan a Atendidos.', 'Cuando Agente DK termine, verás su respuesta y el mensaje pasará a Atendidos.']} />
       <BuzonVista mensajes={mensajes} esAdmin escribir={escribirBuzonAdminAction} cambiarEstado={estadoBuzonAction} ok={sp.ok === '1'} error={sp.e} />
     </div>
   );

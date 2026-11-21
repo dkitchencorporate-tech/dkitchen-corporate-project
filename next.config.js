@@ -32,12 +32,16 @@ const CSP = [
   // Google Analytics 4 (08/10/2026): solo se carga si el visitante acepta las cookies de medición.
   "img-src 'self' data: blob: https://images.unsplash.com https://*.public.blob.vercel-storage.com https://*.stripe.com https://*.link.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://tile.openstreetmap.org",
 
+  // Vídeos y audio propios del buzón interno (Vercel Blob).
+  "media-src 'self' blob: https://*.public.blob.vercel-storage.com",
+
   // La aplicación no llama a ningún tercero salvo Stripe (el Payment Element
   // de /pago habla con su API y con Link; docs.stripe.com/security/guide, CSP).
   // La base de datos se consulta desde el servidor, nunca desde el navegador:
   // si algún día aparece aquí un dominio de Neon, algo se ha cableado mal.
-  // Excepción: Google Analytics 4, solo tras aceptar cookies (08/10/2026).
-  "connect-src 'self' https://api.stripe.com https://link.com https://*.link.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.facebook.com https://connect.facebook.net",
+  // Excepción: Google Analytics 4, solo tras aceptar cookies (08/10/2026), y
+  // Vercel Blob para subida directa de vídeos internos desde Central/Socio.
+  "connect-src 'self' https://vercel.com https://*.blob.vercel-storage.com https://api.stripe.com https://link.com https://*.link.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.facebook.com https://connect.facebook.net",
 
   // Nadie nos incrusta. Nosotros solo incrustamos páginas propias (las cartas
   // demo de /demo/carta dentro de /qr, 29/09/2026); nunca a terceros.

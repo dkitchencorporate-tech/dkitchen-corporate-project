@@ -60,24 +60,24 @@ export default async function Administradores({ searchParams }: { searchParams: 
                 <p className="truncate text-xs text-niebla mt-0.5">{a.email} · desde el {fecha.format(new Date(a.creadoEn))}</p>
                 <p className={`mt-1 text-xs font-medium ${a.dosFa ? 'text-exito' : 'text-amber-700'}`}>{a.dosFa ? 'Segundo factor activado' : 'Aún no ha configurado el segundo factor'}</p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
                 {!a.yo && (
                   <RolEquipo id={a.id} rol={a.rolAdmin ?? 'comercial'} accion={cambiarRolAdminAction} />
                 )}
                 {!a.yo && (
-                  <form action={reenviarBienvenidaAction}>
+                  <form action={reenviarBienvenidaAction} className="shrink-0">
                     <input type="hidden" name="email" value={a.email} />
                     <input type="hidden" name="nombre" value={a.nombre} />
                     <input type="hidden" name="rol" value={a.rolAdmin === 'direccion' ? 'direccion' : 'comercial'} />
-                    <button className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-linea px-3.5 py-1.5 text-xs font-semibold hover:border-vino" data-testid={`reenviar-${a.email}`}>Reenviar bienvenida y contraseña</button>
+                    <button className="inline-flex min-h-[44px] items-center justify-center whitespace-nowrap rounded-full border border-linea px-3.5 py-1.5 text-xs font-semibold hover:border-vino" data-testid={`reenviar-${a.email}`}>Reenviar bienvenida y contraseña</button>
                   </form>
                 )}
                 {!a.yo && (
-                  <form action={retirarAdminAction} className="flex items-center gap-2 text-xs">
+                  <form action={retirarAdminAction} className="flex shrink-0 flex-wrap items-center gap-2 text-xs">
                     <input type="hidden" name="id" value={a.id} />
                     <input type="hidden" name="email" value={a.email} />
-                    <label className="flex items-center gap-1.5 text-niebla"><input type="checkbox" name="confirmo" value="si" required /> Confirmo</label>
-                    <button className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-vino/40 px-3.5 py-1.5 font-semibold text-vino hover:bg-vino hover:text-white">Retirar</button>
+                    <label className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-niebla"><input type="checkbox" name="confirmo" value="si" required /> Confirmo</label>
+                    <button className="inline-flex min-h-[44px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-vino/40 px-3.5 py-1.5 font-semibold text-vino hover:bg-vino hover:text-white">Retirar</button>
                   </form>
                 )}
               </div>

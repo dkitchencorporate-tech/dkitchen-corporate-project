@@ -8,13 +8,13 @@ import { datosMensaje } from '@/components/buzon/validar';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Buzón para Claude desde Central (0065). Claude Code lo lee al empezar cada sesión. */
+/** Buzón para Agente DK desde Central (0065 / 0123). */
 export async function escribirBuzonAdminAction(formulario: FormData) {
   const jwt = await exigirAdmin();
   const d = datosMensaje(formulario);
   if ('error' in d) redirect(`/admin-dkitchen/buzon?e=${d.error}`);
   try {
-    await escribirBuzon(jwt, d.tipo as TipoBuzon, d.mensaje, d.pantalla);
+    await escribirBuzon(jwt, d.tipo as TipoBuzon, d.mensaje, d.pantalla, d.adjuntos);
   } catch (e) {
     redirect(`/admin-dkitchen/buzon?e=${/demasiados/.test(String((e as Error).message)) ? 'muchos' : 'base'}`);
   }
