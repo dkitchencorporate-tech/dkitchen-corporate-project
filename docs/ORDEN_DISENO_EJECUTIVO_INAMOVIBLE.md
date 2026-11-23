@@ -56,13 +56,16 @@ Cualquier campaña en redes, sub-línea vertical o escena principal de vídeo/Re
 
 1. **Capturas reales obligatorias:** todo móvil mostrado debe exhibir pantallas reales capturadas de nuestras PWAs demo o cartas de autor reales (con fotografías reales de producto, precio y botón `+ PEDIR AHORA`). Prohibido dibujar interfaces ficticias o genéricas a mano.
 2. **Área segura superior del móvil:** respetar una franja superior limpia (`34–36 px` en mockups `1080×1920`) debajo del bisel para que la Isla Dinámica nunca pise logotipos, banderas ni botones de instalación. Ajustar el scroll vertical para que no asomen líneas cortadas en el borde superior.
-3. **Zona segura 9:16 dual (Reel + Historia + TikTok):** mantener libre de texto e importes clave la franja superior (`0–170 px`), el margen derecho crítico y la banda inferior (`1660–1920 px`) para sticker `ENLACE` de Historia y controles nativos de Reels/TikTok.
+3. **Zona Segura Universal 9:16 (`1080×1920`) y formato dedicado Post `4:5` (`1080×1350`):**
+   - **Zona Segura Universal `9:16` (estáticos y todos los Reels futuros en `dkitchen-video`):** fondo completo a sangre (`1080×1920`, cero bandas negras artificiales), pero **todo texto, titular, precio, métrica, sello y pie debe quedar estrictamente dentro de `x: 68–890 px`, `y: 270–1380 px`**. Quedan terminantemente libres de contenido: franja superior (`0–265 px`, cabeceras IG/FB/TikTok), carril derecho de botones sociales (`x: 900–1080 px` en `y >= 760 px`) y zona inferior de descripción/controles (`1380–1920 px`, dejando `1460–1600 px` despejado para el sticker `ENLACE` en Historias).
+   - **Versión Post Feed `4:5` (`1080×1350`):** toda pieza estática de campaña incluye su adaptación dedicada `4:5` en subcarpeta `POST_4x5/` con márgenes limpios de `68 px` en los cuatro bordes.
 4. **Aplicación obligatoria a Reels y Vídeos (`dkitchen-video` / HyperFrames):**
-   - Cada Reel futuro debe traducir en movimiento estas mismas **3 Arquitecturas A, B o C** (paneles limpios Gran Reserva o Crema Editorial, marcos Titanio con scroll real de PWA, cinta marquesina en desplazamiento continuo, sellos lacrados de oferta con entrada firme).
+   - Cada Reel futuro debe traducir en movimiento estas mismas **3 Arquitecturas A, B o C** (paneles limpios Gran Reserva o Crema Editorial, marcos Titanio con scroll real de PWA, cinta marquesina en desplazamiento continuo, sellos lacrados de oferta con entrada firme) respetando la misma caja segura universal **`x: 68–890 px`, `y: 270–1380 px`**.
    - Queda prohibido generar escenas de vídeo con tarjetas translúcidas grises apiladas, iconos genéricos, personajes/avatares sintéticos o estilos desconectados de `dkitchencorporate.es`.
-5. **Regla para sub-líneas verticales en redes públicas (Pizzerías, Asadores de pollo, Hamburgueserías, Comida rápida, Sushi/Poke):**
+5. **Regla para sub-líneas verticales, imágenes estáticas sin botones falsos y privacidad de propuestas:**
    - Usar nuestras PWAs demo reales según encaje (`Wing Boss`, `Seven Food Fries`, `Bokadipan`) y demos sin nombre comercial de terceros para vertical hamburguesería o sushi/poke en publicaciones abiertas.
-   - Las maquetas nominativas con nombre de un prospecto concreto (por ejemplo `UMAMI`) quedan restringidas exclusivamente a su propuesta privada o visita presencial, **nunca en redes públicas**.
+   - **Cero imágenes públicas de propuestas:** las maquetas nominativas con nombre de un prospecto concreto (por ejemplo `UMAMI`) quedan restringidas exclusivamente a su envío privado o visita presencial, **nunca en redes públicas**.
+   - **Cero botones falsos en imágenes estáticas:** en todas las imágenes estáticas de redes están prohibidas las píldoras o botones de aspecto clicable; sustituir siempre por línea editorial tipográfica limpia (`Escribe «SIGNATURE» por mensaje · dkitchencorporate.es/signature`). En piezas privadas de propuestas queda prohibido incluir **ningún botón ni CTA**: la acción vive únicamente dentro de `/propuesta/[token]`.
 
 ---
 
@@ -80,6 +83,9 @@ Cualquier campaña en redes, sub-línea vertical o escena principal de vídeo/Re
 ## 6. Prohibiciones terminantes e innegociables
 
 1. Cero tarjetas rectangulares translúcidas flotantes clonadas como estructura principal de diseño.
-2. Cero emojis en diseños, vídeos, propuestas, webs, CRM y copys.
-3. Cero menciones visibles a herramientas o términos de «IA» o «Claude» ante hosteleros o en perfiles públicos.
-4. Cero precios desalineados respecto a `src/lib/pricing-config.ts` (`Signature Fundador: 500 € + IVA [antes 700 €], 2 meses incluidos, 69 €/mes primer año, 100 plazas o hasta 10/01`; Estándar `700 €` o `2×375 € + IVA` + desde `99 €/mes`; `QR Local: 1 € + IVA primer mes`, luego `29 €/mes`).
+2. Cero botones redondeados o píldoras falsas de apariencia clicable en imágenes estáticas (ni CTAs dentro de piezas visuales privadas de propuestas).
+3. Cero imágenes de propuestas o prospectos concretos publicadas en redes públicas.
+4. Cero contenido legible fuera de la Zona Segura Universal 9:16 (`x: 68–890 px`, `y: 270–1380 px`) ni solapamientos con interfaces de Reels, Historias o TikTok.
+5. Cero emojis en diseños, vídeos, propuestas, webs, CRM y copys.
+6. Cero menciones visibles a herramientas o términos de «IA» o «Claude» ante hosteleros o en perfiles públicos.
+7. Cero precios desalineados respecto a `src/lib/pricing-config.ts` (`Signature Fundador: 500 € + IVA [antes 700 €], 2 meses incluidos, 69 €/mes primer año, 100 plazas o hasta 10/01`; Estándar `700 €` o `2×375 € + IVA` + desde `99 €/mes`; `QR Local: 1 € + IVA primer mes`, luego `29 €/mes`).
