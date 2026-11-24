@@ -10,7 +10,7 @@ export interface MiRestaurante {
   nombre: string;
   logoUrl: string | null;
   plan: string;
-  /** Precio Fundador vigente (0051): plan Sala al 40 %, por trimestre. */
+  /** Precio Fundador vigente (0051): plan Sala −38 %, por trimestre. */
   fundador?: boolean;
   activo: boolean;
   colorMarca: string | null;

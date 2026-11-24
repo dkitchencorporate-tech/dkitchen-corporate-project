@@ -8,7 +8,7 @@ import { QR_MENU, SERVICIOS_QR, puntosPlanQr } from '@/lib/pricing-config';
  * y Sala 79 €; todos con TPV y comandero por cantidades (0068) e idiomas por plan (0086).
  */
 const { basico: C, ampliado: L, sala: S } = QR_MENU.planes;
-const EXTRAS = ['Fotos de platos con IA', 'Asistente en tu panel + una persona por WhatsApp'];
+const EXTRAS = ['Fotos editoriales de tus platos', 'Asistente en tu panel + una persona por WhatsApp'];
 const CARTA = [...puntosPlanQr('basico'), '1 banner de promoción', 'QR que nunca reimprimes', ...EXTRAS];
 const LOCAL = [...puntosPlanQr('ampliado'), 'Llamada al camarero y petición de la cuenta', `${L.topes.banners} banners programables`, 'Botón de reseñas de Google', ...EXTRAS];
 const SALA = [...puntosPlanQr('sala'), 'Encargados en el equipo', `${S.topes.banners} banners programables`, 'Botón de reseñas de Google', ...EXTRAS];
@@ -64,7 +64,7 @@ export default function PlanesQr() {
           {GARANTIAS.map((g) => <li key={g} className="flex items-center gap-2"><Check className="text-exito" />{g}</li>)}
         </ul>
         <p className="mt-6 text-center text-sm text-ceniza">Si te quedas corto, el panel te avisa antes de llegar al límite (te dejamos un 10 % de margen) y subes de plan en un minuto. La llamada al camarero nunca se corta.</p>
-        <p className="mt-3 text-center text-sm text-grafito">Con cualquier plan puedes añadir la <a href="#todo-incluido" className="font-semibold text-vino underline underline-offset-4">puesta a punto</a>: carta cargada, conexión con tu TPV, formación de tu equipo y fotos con IA. {SERVICIOS_QR.puestaAPunto} € (o {SERVICIOS_QR.puestaAPuntoBienvenida} € si la pides al darte de alta). Idioma extra: {SERVICIOS_QR.idiomaExtra} € por idioma, una vez.</p>
+        <p className="mt-3 text-center text-sm text-grafito">Con cualquier plan puedes añadir la <a href="#todo-incluido" className="font-semibold text-vino underline underline-offset-4">puesta a punto</a>: carta cargada, conexión con tu TPV, formación de tu equipo y fotos de tus platos. {SERVICIOS_QR.puestaAPunto} € (o {SERVICIOS_QR.puestaAPuntoBienvenida} € si la pides al darte de alta). Idioma extra: {SERVICIOS_QR.idiomaExtra} € por idioma, una vez.</p>
       </div>
     </section>
   );

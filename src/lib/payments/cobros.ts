@@ -340,12 +340,12 @@ export async function crearCheckoutCambioPlan(datos: DatosCambioPlan): Promise<{
 export async function crearCheckoutFundador(datos: Omit<DatosCheckoutQr, 'plan'>): Promise<{ url: string }> {
   const [cliente] = await Promise.all([
     asegurarCliente({ email: datos.email, nombre: datos.nombreContacto, negocio: datos.restauranteNombre, telefono: datos.telefono, direccion: datos.direccion }),
-    prepararCatalogo([{ producto: 'dk_qr_sala_fundador', nombre: 'DKitchen · Plan Sala Fundador (cuota trimestral, 40 % vitalicio)' }]),
+    prepararCatalogo([{ producto: 'dk_qr_sala_fundador', nombre: 'DKitchen · Plan Sala Fundador (cuota trimestral, 38 % de descuento vitalicio)' }]),
   ]);
   const centimos = Math.round(FUNDADOR.trimestre * 100);
   const id = await crearSuscripcion({
     cliente,
-    cuota: { producto: 'dk_qr_sala_fundador', nombre: 'DKitchen · Plan Sala Fundador (cuota trimestral, 40 % vitalicio)', centimos },
+    cuota: { producto: 'dk_qr_sala_fundador', nombre: 'DKitchen · Plan Sala Fundador (cuota trimestral, 38 % de descuento vitalicio)', centimos },
     intervaloMeses: 3,
     metadata: {
       producto: 'fundador',

@@ -41,7 +41,7 @@ export default async function Fundador() {
       <EmbudoVista producto="fundador" />
       <div className="mx-auto max-w-5xl">
         <p className="etiqueta-dk text-vino">Oferta Fundador · solo {FUNDADOR.plazas} locales</p>
-        <h1 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-6xl">Todo DKitchen para tu sala, al 40 % de por vida.</h1>
+        <h1 className="font-display mt-4 text-4xl font-semibold leading-[1.02] md:text-6xl">Todo DKitchen para tu sala, con un 38 % menos, de por vida.</h1>
         <p className="mt-5 max-w-2xl text-lg text-niebla">
           Plan {S.nombre} completo por <strong className="text-tinta">{eur(FUNDADOR.mensual)}/mes</strong> en lugar de {eur(S.mensual)}.
           Lo pagas por trimestre: {eur(FUNDADOR.trimestre)} + IVA.

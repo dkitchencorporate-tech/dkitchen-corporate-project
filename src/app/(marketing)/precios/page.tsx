@@ -55,9 +55,9 @@ const MODULOS: Linea[] = [
   { nombre: 'Plan personalizado', detalle: `Si tu local supera los topes de ${PS.nombre} (${PS.topes.productos} platos, ${PS.topes.mesas} mesas o ${PS.topes.comandasTpvMes.toLocaleString('es-ES')} comandas al mes) o tienes varios locales`, precio: 'A medida' },
 ];
 const SERVICIOS: Linea[] = [
-  { nombre: 'Puesta a punto', detalle: `Carta cargada, conexión con tu TPV, formación de tu equipo y fotos con IA · ${eur(SERVICIOS_QR.puestaAPuntoBienvenida)} si la pides al darte de alta, antes de montar tu carta`, precio: eur(SERVICIOS_QR.puestaAPunto) },
+  { nombre: 'Puesta a punto', detalle: `Carta cargada, conexión con tu TPV, formación de tu equipo y fotos de tus platos · ${eur(SERVICIOS_QR.puestaAPuntoBienvenida)} si la pides al darte de alta, antes de montar tu carta`, precio: eur(SERVICIOS_QR.puestaAPunto) },
   { nombre: 'Idioma extra', detalle: `Carta: español; Local: español e inglés; Sala: 3 idiomas. Cada idioma más, traducido por DKitchen`, precio: `${eur(SERVICIOS_QR.idiomaExtra)} por idioma` },
-  { nombre: 'Bono de imágenes con IA', detalle: `${SERVICIOS_QR.imagenesBonoIa} fotos de plato (${SERVICIOS_QR.imagenesGratisIa} gratis siempre)`, precio: eur(SERVICIOS_QR.bonoIa) },
+  { nombre: 'Bono de 50 fotos editoriales', detalle: `${SERVICIOS_QR.imagenesBonoIa} fotos de plato (${SERVICIOS_QR.imagenesGratisIa} gratis siempre)`, precio: eur(SERVICIOS_QR.bonoIa) },
   { nombre: 'Etiquetas QR para mesas', detalle: `Desde ${QR_FISICOS.etiquetas.tandas[0].unidades} unidades`, precio: `desde ${eur(QR_FISICOS.etiquetas.tandas[0].precio)}` },
 ];
 

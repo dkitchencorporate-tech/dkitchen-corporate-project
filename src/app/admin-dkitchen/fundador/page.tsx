@@ -34,7 +34,7 @@ export default async function FundadorCentral() {
       </div>
 
       <GuiaZona titulo="Fundador" ancla="fundador"
-        que="Los primeros locales con el plan Sala al 40 % de por vida, pagando por trimestre."
+        que="Los primeros locales con el plan Sala con un 38 % de descuento de por vida, pagando por trimestre."
         pasos={['Mira cuántas plazas quedan y quién las tiene.', 'Si un fundador deja de pagar, pierde el precio y queda registrado.']} />
 
       <div className="grid gap-4 md:grid-cols-[1fr_auto]">

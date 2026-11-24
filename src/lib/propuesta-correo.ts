@@ -15,7 +15,7 @@ const NIEBLA = '#6B6266';
 const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: Number.isInteger(n) ? 0 : 2 }) + ' €';
 
 export const CAMBIOS = [
-  { t: 'Fotos que abren el apetito', d: 'Mejoramos tus fotos con IA (o las hacemos desde tu carta) para que cada plato se vea como en la mesa.' },
+  { t: 'Fotos que abren el apetito', d: 'Mejoramos tus fotos (o las hacemos desde tu carta) para que cada plato se vea como en la mesa.' },
   { t: 'Alérgenos siempre al día', d: 'Los 14 alérgenos en cada plato, como pide la normativa, y los cambias tú desde el móvil en un minuto.' },
   { t: 'Tu carta en otros idiomas', d: 'El turista la lee en su idioma sin que tengas que traducir nada.' },
   { t: 'La mesa avisa al camarero', d: 'Llamar al camarero, pedir la cuenta y, desde el plan Local, pedir desde la mesa: el camarero lo confirma con un toque.' },

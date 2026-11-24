@@ -48,7 +48,7 @@ Cualquier campaña en redes, sub-línea vertical o escena principal de vídeo/Re
 - Mitad superior con fotografía gastronómica realista de alta resolución a sangre (`object-fit: cover`) con viñeta oscura suave superior-izquierda para lectura perfecta.
 - **Cinta diagonal marquesina `.bg-vino` (`-3.2deg`)** con bordes oro finos cruzando la escena (texto alineado para que ningún móvil parta palabras por la mitad).
 - Gran iPhone Titanio protagonista en primer plano derecho cruzando fotografía, cinta marquesina y zócalo negro `#0A080C`.
-- Bloque izquierdo sobre negro con cifra monumental `500 €`, comparativa `700 €` tachado, condiciones claras (`2 meses gratis · 69 €/mes · ahorras 560 €`) y botón oro metálico.
+- Bloque izquierdo sobre negro con cifra monumental `500 €`, comparativa `700 €` tachado, condiciones claras (`2 meses gratis · 69 €/mes · ahorras 500 € el primer año`) y botón oro metálico.
 
 ---
 
@@ -64,14 +64,14 @@ Cualquier campaña en redes, sub-línea vertical o escena principal de vídeo/Re
    - Queda prohibido generar escenas de vídeo con tarjetas translúcidas grises apiladas, iconos genéricos, personajes/avatares sintéticos o estilos desconectados de `dkitchencorporate.es`.
 5. **Regla para sub-líneas verticales, imágenes estáticas sin botones falsos y privacidad de propuestas:**
    - Usar nuestras PWAs demo reales según encaje (`Wing Boss`, `Seven Food Fries`, `Bokadipan`) y demos sin nombre comercial de terceros para vertical hamburguesería o sushi/poke en publicaciones abiertas.
-   - **Cero imágenes públicas de propuestas:** las maquetas nominativas con nombre de un prospecto concreto (por ejemplo `UMAMI`) quedan restringidas exclusivamente a su envío privado o visita presencial, **nunca en redes públicas**.
+   - **Cero imágenes públicas de propuestas:** las maquetas nominativas con nombre de un prospecto concreto quedan restringidas exclusivamente a su envío privado o visita presencial, **nunca en redes públicas**.
    - **Cero botones falsos en imágenes estáticas:** en todas las imágenes estáticas de redes están prohibidas las píldoras o botones de aspecto clicable; sustituir siempre por línea editorial tipográfica limpia (`Escribe «SIGNATURE» por mensaje · dkitchencorporate.es/signature`). En piezas privadas de propuestas queda prohibido incluir **ningún botón ni CTA**: la acción vive únicamente dentro de `/propuesta/[token]`.
 
 ---
 
 ## 5. Regla inamovible de privacidad de clientes reales en Prospección (Signature e Híbridos)
 
-- **PROHIBIDO** enviar, enlazar o mostrar la app/URL real de **Néstor Pizzas** (`nestorpizzas.es`) a ningún prospecto (ni en WhatsApp, ni en `/propuesta/[token]`, ni en demos Signature ni en propuestas Híbridas). `Néstor Pizzas` es un cliente real en producción.
+- **PROHIBIDO** enviar, enlazar o mostrar la app o la URL de ningún **cliente real** a ningún prospecto (ni en WhatsApp, ni en `/propuesta/[token]`, ni en demos Signature ni en propuestas Híbridas).
 - A todos los prospectos **Signature** o **Híbridos** se les muestran únicamente nuestras **3 PWAs demo propias**:
   1. `https://wingboss.dkitchencorporate.es/` (Wing Boss · Alitas, pollo y combos)
   2. `https://sevenfood.dkitchencorporate.es/` (Seven Food Fries · Comida rápida y patatas gourmet)

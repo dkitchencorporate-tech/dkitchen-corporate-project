@@ -1,11 +1,13 @@
 import QRCode from 'qrcode';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { comoVisitante } from '@/lib/db';
 import { identidadActual } from '@/lib/sesion';
+import { esRobot } from '@/lib/robots-vista';
 import { COOKIE_PUESTA } from '@/lib/socio-codigo';
 import { estadoFundador } from '@/lib/fundador';
+import { PLAZAS_PARA_CONTAR } from '@/components/fundador/ContadorFundador';
 import { BASE_OPERATIVA, QR_MENU, FUNDADOR, puntosPlanQr } from '@/lib/pricing-config';
 import { TIPOS, enlaceWhatsapp } from '@/lib/prospeccion';
 import BotonImprimir from '@/components/prospeccion/BotonImprimir';
@@ -29,6 +31,8 @@ type Propuesta = {
   demo_logo?: string | null; demo_portada?: string | null; demo_color?: string | null;
   demo_plantilla?: string | null; demo_lema?: string | null; demo_platos?: PlatoMuestra[] | null;
 };
+/** Año 1: diferencia de entrada más la de las cuotas que se pagan (los meses gratis valen igual en las dos tarifas). */
+const AHORRO_FUNDADOR_SIGNATURE = BASE_OPERATIVA.pagoUnico - FUNDADOR.signature.entrada + (BASE_OPERATIVA.mantenimiento.mensual - FUNDADOR.signature.mensual) * (FUNDADOR.signature.meses - BASE_OPERATIVA.mantenimiento.mesesGratis);
 const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: Number.isInteger(n) ? 0 : 2 }) + ' €';
 const eurPlato = (p: string) => `${Number(p).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 const TITULOS_COMP: Record<string, string> = {
@@ -53,7 +57,7 @@ const PREMIUM: Record<string, { ruta: string; nombre: string }> = {
   experience: { ruta: 'experience', nombre: 'Experience' },
   dark_kitchen: { ruta: 'dark-kitchen', nombre: 'Dark Kitchen' },
 };
-/** Solo nuestras 3 PWAs demo propias (prohibido mostrar apps de clientes reales como Néstor Pizzas). */
+/** Solo nuestras 3 PWAs demo propias (prohibido mostrar apps de clientes reales). */
 const DEMOS_PWA_PROPIAS = [
   { nombre: 'Wing Boss', sector: 'Pollo, alitas y combos', url: 'https://wingboss.dkitchencorporate.es/', imagen: '/demos/app-wingboss.png' },
   { nombre: 'Seven Food Fries', sector: 'Comida rápida y patatas gourmet', url: 'https://sevenfood.dkitchencorporate.es/', imagen: '/demos/app-sevenfood.png' },
@@ -86,7 +90,7 @@ export default async function PropuestaPublica({
     cookies().catch(() => null),
   ]);
   const esInterno = Boolean(identidad) || sp?.preview === '1' || Boolean(jar?.get(COOKIE_PUESTA)?.value);
-  const contarVista = !esInterno;
+  const contarVista = !esInterno && !esRobot((await headers()).get('user-agent'));
 
   const p = await comoVisitante(async (c) => (await c.query<{ p: Propuesta | null }>('SELECT dk.propuesta_ver($1, $2) AS p', [token, contarVista])).rows[0].p).catch(() => null);
   if (!p) notFound();
@@ -128,7 +132,7 @@ export default async function PropuestaPublica({
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">DKitchen Signature · App propia sin comisiones</p>
                   <h2 className="mt-1 font-semibold">Pruébala en tu móvil como un cliente</h2>
                   <p className="mt-1 text-sm text-niebla">
-                    No es un PDF ni una web básica: aquí tienes tres apps reales de pedido propio hechas con la misma arquitectura que estrenará {p.nombre}. Ábrelas, añade platos y revisa el flujo completo.
+                    No es un PDF ni una web básica: aquí tienes tres apps de nuestras propias marcas, funcionando, hechas con la misma arquitectura que estrenará {p.nombre}. Ábrelas, añade platos y revisa el flujo completo.
                   </p>
                   <div className="mt-3 flex flex-col gap-2 print:hidden sm:flex-row sm:flex-wrap">
                     <a href={demosSignatureUrl} className="inline-flex w-full items-center justify-center rounded-full bg-vino px-5 py-3 text-center text-sm font-semibold text-white sm:w-auto">
@@ -155,7 +159,7 @@ export default async function PropuestaPublica({
                     <div className="p-3">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-niebla">{d.sector}</p>
                       <p className="mt-0.5 font-display text-base font-semibold text-carbon">{d.nombre}</p>
-                      <p className="mt-1.5 text-xs font-semibold text-vino">Abrir app real</p>
+                      <p className="mt-1.5 text-xs font-semibold text-vino">Abrir la app</p>
                     </div>
                   </a>
                 ))}
@@ -237,7 +241,7 @@ export default async function PropuestaPublica({
               </a>
             </div>
             <p className="text-sm text-white/75">
-              Sobre la misma base de tu carta digital puedes pasar a tu app instalable con cobro directo y 0 % comisión por pedido en 15 días hábiles ({conFundador ? `Fundador ${eur(FUNDADOR.signature.entrada)} + IVA y ${eur(FUNDADOR.signature.mensual)}/mes primer año con 2 meses incluidos` : `${eur(BASE_OPERATIVA.pagoUnico)} + IVA con 2 meses incluidos`}). Así lucen tres modelos reales nuestros:
+              Sobre la misma base de tu carta digital puedes pasar a tu app instalable con cobro directo y 0 % comisión por pedido en 15 días hábiles ({conFundador ? `Fundador ${eur(FUNDADOR.signature.entrada)} + IVA y ${eur(FUNDADOR.signature.mensual)}/mes primer año con 2 meses incluidos` : `${eur(BASE_OPERATIVA.pagoUnico)} + IVA con 2 meses incluidos`}). Así lucen tres apps de nuestras propias marcas:
             </p>
             <div className="grid gap-3 sm:grid-cols-3">
               {DEMOS_PWA_PROPIAS.map((d) => (
@@ -298,7 +302,7 @@ export default async function PropuestaPublica({
               </p>
               <div className="grid gap-3 text-sm sm:grid-cols-2">
                 <div className="rounded-2xl bg-noche p-4 text-white ring-1 ring-oro/50">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-oro">Plaza Fundador · Ahorras 560 € el 1.er año</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-oro">Plaza Fundador · Ahorras {eur(AHORRO_FUNDADOR_SIGNATURE)} el 1.er año</p>
                   <p className="mt-1 font-display text-2xl font-semibold">{eur(FUNDADOR.signature.entrada)} + IVA <span className="text-sm font-normal line-through text-white/50">{eur(BASE_OPERATIVA.pagoUnico)}</span></p>
                   <p className="mt-1 text-white/80">Pago único · {BASE_OPERATIVA.mantenimiento.mesesGratis} meses gratis · {eur(FUNDADOR.signature.mensual)}/mes el primer año</p>
                   <ul className="mt-3 space-y-1 text-[13px] text-white/80">
@@ -325,7 +329,7 @@ export default async function PropuestaPublica({
               {premium ? (
                 <p className="text-[15px]">Para un local como el tuyo encaja <span className="font-semibold">{premium.nombre}</span>: te lo explicamos en una llamada de 15 minutos y te damos el precio cerrado. Mientras tanto, puedes empezar con la carta QR.</p>
               ) : conFundador && fundador ? (
-                <p className="text-[15px]"><span className="font-semibold">Plan Fundador:</span> todo el plan {sala.nombre} con un {Math.round(FUNDADOR.descuento * 100)} % de descuento de por vida: {eur(FUNDADOR.mensual)} al mes + IVA, pagado por trimestre ({eur(FUNDADOR.trimestre)} + IVA). Quedan {fundador.quedan} de {FUNDADOR.plazas} plazas.</p>
+                <p className="text-[15px]"><span className="font-semibold">Plan Fundador:</span> todo el plan {sala.nombre} con un {Math.round(FUNDADOR.descuento * 100)} % de descuento de por vida: {eur(FUNDADOR.mensual)} al mes + IVA, pagado por trimestre ({eur(FUNDADOR.trimestre)} + IVA). {fundador.plazas - fundador.quedan >= PLAZAS_PARA_CONTAR ? `Quedan ${fundador.quedan} de ${FUNDADOR.plazas} plazas.` : `Plazas limitadas a ${FUNDADOR.plazas} locales.`}</p>
               ) : (
                 <p className="text-[15px]"><span className="font-semibold">Plan {ampliado.nombre}: el primer mes por {eur(QR_MENU.primerMes)} + IVA.</span> Después, {eur(ampliado.mensual)} al mes + IVA, sin permanencia. Si en 30 días no te convence, te devolvemos ese euro y te quedas tu carta en PDF.</p>
               )}

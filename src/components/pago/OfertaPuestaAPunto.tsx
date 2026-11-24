@@ -12,7 +12,7 @@ import { SERVICIOS_QR, formatPrecio } from '@/lib/pricing-config';
  */
 const INCLUYE = [
   'Montamos tu carta completa: secciones, platos, precios y alérgenos.',
-  'Fotos de tus platos generadas con IA cuando no tengas las tuyas.',
+  'Imágenes orientativas de tus platos cuando no tengas las tuyas.',
   'Configuramos tu panel: horarios, datos del local, estilo y QR listo para imprimir.',
   'No cambias de sistema: revisamos tu TPV o POS y tus impresoras térmicas de tickets en remoto, sin visitas.',
   'Conectamos tu TPV y lo adaptamos a tu configuración (también VeriFactu): las comandas llegan a tu TPV y salen por tus impresoras de siempre.',

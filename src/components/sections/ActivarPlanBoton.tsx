@@ -196,7 +196,7 @@ export default function ActivarPlanBoton({
                     className="w-full rounded-full bg-[#1A1714] py-4 text-[15px] font-semibold text-white transition hover:bg-black disabled:opacity-50">
                     {cargando ? 'Abriendo el pago seguro…' : 'Continuar al pago seguro'}
                   </button>
-                  <p className="mt-3 text-center text-xs text-black/45">No se cobra nada ahora: te escribimos para darte de alta. Sin permanencia.</p>
+                  <p className="mt-3 text-center text-xs text-black/45">Pagas en la página segura de Stripe. Sin permanencia.</p>
                 </div>
               </motion.form>
               {cargando && <PreparandoPago />}

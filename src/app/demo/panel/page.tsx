@@ -1,5 +1,5 @@
 import BarraDemo from '@/components/BarraDemo';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import type { Metadata } from 'next';
 import PanelShell from '@/components/panel/PanelShell';
 import type { MiRestaurante } from '@/lib/mi-restaurante';
@@ -10,6 +10,7 @@ import type { EstadoServicios } from '@/lib/servicios';
 import type { Promocion } from '@/lib/promociones';
 import { comoVisitante } from '@/lib/db';
 import { identidadActual } from '@/lib/sesion';
+import { esRobot } from '@/lib/robots-vista';
 import { COOKIE_PUESTA } from '@/lib/socio-codigo';
 
 export const dynamic = 'force-dynamic';
@@ -124,7 +125,7 @@ export default async function DemoPanel({ searchParams }: { searchParams?: Promi
       cookies().catch(() => null),
     ]);
     const esInterno = Boolean(identidad) || sp?.preview === '1' || Boolean(jar?.get(COOKIE_PUESTA)?.value);
-    contarVista = !esInterno;
+    contarVista = !esInterno && !esRobot((await headers()).get('user-agent'));
   }
 
   const datosLocal = slug

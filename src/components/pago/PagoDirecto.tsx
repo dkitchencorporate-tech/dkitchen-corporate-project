@@ -120,7 +120,7 @@ export default function PagoDirecto({
       <button type="submit" disabled={estado === 'enviando'} aria-busy={estado === 'enviando'} className="mt-1 rounded-full bg-vino px-7 py-4 text-[16px] font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60">
         {estado === 'enviando' ? 'Abriendo el pago seguro…' : `${boton} · ${fraccionable && enCuotas ? fraccionable.importeCuota : precio} € + IVA${fraccionable && enCuotas ? ' hoy' : ''}`}
       </button>
-      <p className="text-center text-xs text-ceniza">No se cobra nada ahora: te escribimos para darte de alta.</p>
+      <p className="text-center text-xs text-ceniza">Pagas en la página segura de Stripe. Al confirmarse te llegan el contrato y la factura.</p>
     </form>
   );
 }

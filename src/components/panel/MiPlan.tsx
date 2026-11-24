@@ -58,7 +58,7 @@ export default function MiPlan({ restaurante, servicios }: { restaurante: MiRest
           <p className="text-3xl font-black mt-1">{actual.nombre}{fundador && <span className="ml-2 align-middle rounded-full bg-vino/10 px-2.5 py-1 text-xs font-bold text-vino">Fundador</span>}</p>
           <p className="text-niebla text-sm mt-1">
             {fundador
-              ? `${FUNDADOR.trimestre.toLocaleString('es-ES', { minimumFractionDigits: 2 })} € + IVA cada trimestre (40 % de por vida mientras sigas en Sala)`
+              ? `${FUNDADOR.trimestre.toLocaleString('es-ES', { minimumFractionDigits: 2 })} € + IVA cada trimestre (38 % de descuento de por vida mientras sigas en Sala)`
               : `${actual.mensual} € + IVA al mes · sin permanencia`}
           </p>
         </div>

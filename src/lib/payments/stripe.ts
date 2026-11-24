@@ -21,7 +21,7 @@ import { enviarCorreoInterno } from '@/lib/email';
 const BASE = 'https://api.stripe.com/v1';
 
 /**
- * 25/10 (karc0): no hay ninguna pasarela de pago conectada. Todo checkout
+ * Interruptor de cobros: con true (como del 25 al 30/10, sin pasarela) todo checkout
  * termina en una solicitud de alta (/pago/reserva) y Central recibe los
  * datos del cliente por correo para contactarle. No se cobra nada.
  */

@@ -36,7 +36,7 @@ export default function CasosDeExito() {
 
       <section id="nestor" className="scroll-mt-20 py-24 md:py-32">
         <div className="mx-auto max-w-6xl px-6 md:px-8">
-          <Titulo etiqueta="Canilés, Granada · DKitchen Signature" texto="Néstor Pizzas: de pedir por teléfono a tener su propia app." />
+          <Titulo etiqueta="Caniles, Granada · DKitchen Signature" texto="Néstor Pizzas: de pedir por teléfono a tener su propia app." />
           <div className="mt-14 grid gap-5 md:grid-cols-2">
             <Aparecer className="rounded-[28px] border border-linea bg-crema p-8"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-ceniza">Antes</p><p className="font-display mt-3 text-3xl font-semibold">Pedidos solo por teléfono, sin carta digital propia.</p></Aparecer>
             <Aparecer retraso={0.1} className="rounded-[28px] bg-noche p-8 text-white"><p className="etiqueta-dk text-vino">Ahora</p><p className="font-display mt-3 text-3xl font-semibold">Su propia app en producción: pedido, catálogo y club de fidelización.</p></Aparecer>

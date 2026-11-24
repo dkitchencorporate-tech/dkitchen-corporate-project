@@ -20,7 +20,7 @@ export default function SimuladorIngresos({ p, metaMrr, mrrReal }: { p: PreciosS
   const pct = Math.min(100, Math.round((mrr / metaMrr) * 100));
   const filas: [keyof typeof n, string, string, number][] = [
     ['carta', 'Carta QR · Carta', `${p.carta} €/mes`, 60], ['local', 'Carta QR · Local', `${p.local} €/mes`, 150], ['sala', 'Carta QR · Sala', `${p.sala} €/mes`, 60],
-    ['fundador', 'Fundador (Sala al 40 %)', `${p.fundador} €/mes`, 100], ['signature', 'Signature', `${p.signatureEntrada} € + ${p.signatureMensual} €/mes`, 20],
+    ['fundador', 'Fundador (Sala −38 %)', `${p.fundador} €/mes`, 100], ['signature', 'Signature', `${p.signatureEntrada} € + ${p.signatureMensual} €/mes`, 20],
     ['experience', 'Experience (eventos al mes)', `${p.experience} € cada uno`, 20], ['auditoria', 'Auditorías al mes', `${p.auditoria} €`, 30],
   ];
   return (

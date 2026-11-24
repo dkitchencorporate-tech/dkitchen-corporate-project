@@ -33,7 +33,7 @@ export interface Ciudad {
 
 export const VENTAJAS: Record<VentajaId, { t: string; d: string }> = {
   foto: { t: 'Te la montamos desde una foto', d: 'Nos mandas una foto de tu carta o el PDF y la pasamos a digital con tus platos, tus precios y tu estilo. No tecleas nada.' },
-  ia: { t: 'Fotos de tus platos, perfeccionadas con IA', d: 'Partimos de tus fotos y las dejamos de carta, idénticas o muy cercanas a tu plato real y siempre como imagen orientativa.' },
+  ia: { t: 'Fotos de tus platos, con acabado editorial', d: 'Partimos de tus fotos y las dejamos de carta, idénticas o muy cercanas a tu plato real y siempre como imagen orientativa.' },
   mesa: { t: 'Tu cliente pide desde la mesa', d: 'Desde el plan Local, el comensal pide desde su móvil; tu camarero lo confirma con un toque y entra en la cuenta de la mesa. Se paga en la barra, como siempre.' },
   resenas: { t: 'Reseñas de toda la mesa', d: 'Un botón en la carta invita a cada comensal, no solo al que paga, a dejar su reseña en Google. Más reseñas, mejor posición en Google Maps.' },
   idiomas: { t: 'Tu carta en otros idiomas', d: 'Local incluye español e inglés y Sala, tres idiomas. El turista entiende lo que pide sin preguntar plato por plato.' },
@@ -133,7 +133,7 @@ export const CIUDADES: Ciudad[] = [
     motivo: 'Producto de la huerta',
     zonas: ['Plaza de las Flores', 'Santo Domingo', 'Catedral', 'Alfonso X', 'El Carmen', 'La Huerta'],
     titulo: 'Carta digital QR en Murcia para bares y restaurantes',
-    descripcion: `Carta QR para bares y restaurantes de Murcia: pedido desde la mesa en terrazas grandes, fotos de plato con IA y reseñas de toda la mesa. Primer mes por ${QR_MENU.primerMes} €.`,
+    descripcion: `Carta QR para bares y restaurantes de Murcia: pedido desde la mesa en terrazas grandes, fotos editoriales de tus platos y reseñas de toda la mesa. Primer mes por ${QR_MENU.primerMes} €.`,
     entradilla: 'En Murcia se tapea de pie y en plazas enormes: marineras, zarangollo, pastel de carne. Una carta que pide sola desde la mesa y enseña el producto de la huerta como se merece.',
     escena: [
       ['Plazas con decenas de mesas', 'En la plaza de las Flores o en Santo Domingo las terrazas son enormes. El cuello de botella es el camarero, no la cocina.'],
@@ -149,7 +149,7 @@ export const CIUDADES: Ciudad[] = [
     banda: { foto: '/images/demo/ia/cuevas-al-jatib-69a96634.webp', frase: 'De la huerta a la mesa, y de la mesa a la cocina sin esperar.' },
     preguntas: [
       ['¿Sirve para una terraza grande en una plaza de Murcia?', 'Sí. Con el plan Sala tienes el plano de mesas, los camareros y la llamada desde la mesa; desde Local, el pedido desde la mesa que confirma tu camarero.'],
-      ['¿Puedo poner fotos de mis tapas si no tengo fotógrafo?', `Sí. Partimos de tus fotos del móvil y las dejamos de carta con IA, siempre como imagen orientativa. Tienes ${SERVICIOS_QR.imagenesGratisIa} gratis.`],
+      ['¿Puedo poner fotos de mis tapas si no tengo fotógrafo?', `Sí. Partimos de tus fotos del móvil y las dejamos de carta, siempre como imagen orientativa. Tienes ${SERVICIOS_QR.imagenesGratisIa} gratis.`],
     ],
   },
   {
@@ -161,7 +161,7 @@ export const CIUDADES: Ciudad[] = [
     motivo: 'Mesa con vistas al mundo',
     zonas: ['Centro histórico', 'Soho', 'Pedregalejo', 'El Palo', 'La Malagueta', 'Teatinos'],
     titulo: 'Carta digital QR en Málaga para bares y restaurantes',
-    descripcion: `Carta QR para bares y restaurantes de Málaga: carta en varios idiomas, reseñas de toda la mesa y fotos de plato con IA. Primer mes por ${QR_MENU.primerMes} €, sin permanencia.`,
+    descripcion: `Carta QR para bares y restaurantes de Málaga: carta en varios idiomas, reseñas de toda la mesa y fotos editoriales de tus platos. Primer mes por ${QR_MENU.primerMes} €, sin permanencia.`,
     entradilla: 'En Málaga la mesa de al lado habla inglés, alemán o francés. Una carta que el visitante entiende en su idioma, con fotos que abren el apetito y un botón para que toda la mesa deje su reseña.',
     escena: [
       ['El visitante elige por el móvil', 'Del centro histórico a los espetos de Pedregalejo, el turista decide con Google Maps en la mano. Las reseñas son tu escaparate.'],
@@ -217,7 +217,7 @@ export const CIUDADES: Ciudad[] = [
     motivo: 'Patios, mezquita y salmorejo',
     zonas: ['Judería', 'Mezquita', 'San Basilio', 'Ribera', 'Ciudad Jardín', 'Centro'],
     titulo: 'Carta digital QR en Córdoba para bares y restaurantes',
-    descripcion: `Carta QR para bares y restaurantes de Córdoba: carta en inglés para el visitante de la Mezquita, fotos de plato con IA y reseñas de toda la mesa. Primer mes por ${QR_MENU.primerMes} €.`,
+    descripcion: `Carta QR para bares y restaurantes de Córdoba: carta en inglés para el visitante de la Mezquita, fotos editoriales de tus platos y reseñas de toda la mesa. Primer mes por ${QR_MENU.primerMes} €.`,
     entradilla: 'En Córdoba el visitante viene a la Mezquita y se queda por el salmorejo y el flamenquín. Una carta que se entiende en su idioma, con fotos que hacen justicia al plato y reseñas de toda la mesa.',
     escena: [
       ['Mayo llena la ciudad', 'Con los Patios y las Cruces de mayo, la Judería y San Basilio reciben más visitantes que nunca. Es cuando más pesa servir rápido.'],

@@ -110,7 +110,7 @@ const ZONAS: Zona[] = [
   },
   {
     id: 'fundador', titulo: 'Fundador', ruta: '/admin-dkitchen/fundador',
-    que: 'El programa de los primeros locales con el plan Sala al 40 % de por vida (cuota trimestral).',
+    que: 'El programa de los primeros locales con el plan Sala con un 38 % de descuento de por vida (cuota trimestral).',
     pasos: ['Verás cuántas plazas quedan y quién las tiene.', 'Si un fundador deja de pagar, pierde el precio (queda registrado).'],
   },
   {
