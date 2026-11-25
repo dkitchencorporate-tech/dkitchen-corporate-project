@@ -13,7 +13,7 @@ import { TIPOS, enlaceWhatsapp } from '@/lib/prospeccion';
 import BotonImprimir from '@/components/prospeccion/BotonImprimir';
 
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = { title: 'Tu propuesta · DKitchen', robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: 'Propuesta · DKitchen', robots: { index: false, follow: false } };
 
 /**
  * Propuesta personalizada «Hola, [local]» (0058/0120/0121). Enlace privado con token
@@ -42,15 +42,15 @@ const TITULOS_COMP: Record<string, string> = {
 };
 /** Lo que cambia en el local (mismas ventajas que /qr; sin cifras ni clientes inventados). */
 const CAMBIOS = [
-  { t: 'Fotos que abren el apetito', d: 'Fotografía editorial de tus platos (o las preparamos desde tu carta) para que cada plato se vea como en la mesa.' },
-  { t: 'Alérgenos siempre al día', d: 'Los 14 alérgenos en cada plato, como pide la normativa, y los cambias tú desde el móvil en un minuto.' },
-  { t: 'Tu carta en otros idiomas', d: 'El turista la lee en su idioma sin que tengas que traducir nada.' },
-  { t: 'La mesa avisa al camarero', d: 'Llamar al camarero y pedir la cuenta desde el móvil: suena en el de tu equipo y sabe a qué mesa ir.' },
+  { t: 'Fotos que abren el apetito', d: 'Fotografía editorial de los platos (o la preparamos a partir de la carta) para que cada plato se vea como en la mesa.' },
+  { t: 'Alérgenos siempre al día', d: 'Los 14 alérgenos en cada plato, como pide la normativa, y se cambian desde el móvil en un minuto.' },
+  { t: 'La carta en otros idiomas', d: 'El turista la lee en su idioma sin necesidad de traducir nada.' },
+  { t: 'La mesa avisa al camarero', d: 'Llamar al camarero y pedir la cuenta desde el móvil: suena en el del equipo, que sabe a qué mesa ir.' },
 ];
 const PASOS = [
-  { n: '1', t: 'Nos mandas una foto de tu carta', d: 'Por WhatsApp o por correo. Nada más.' },
-  { n: '2', t: 'Te la montamos', d: 'Con tus platos, tus precios y tus colores. La revisas en tu móvil antes de ponerla.' },
-  { n: '3', t: 'QR en las mesas', d: 'Te damos los QR listos para imprimir y la cambias tú cuando quieras.' },
+  { n: '1', t: 'Nos envían una foto de la carta', d: 'Por WhatsApp o por correo. Nada más.' },
+  { n: '2', t: 'La dejamos montada', d: 'Con los platos, precios y colores del local. Se revisa en el móvil antes de ponerla.' },
+  { n: '3', t: 'QR en las mesas', d: 'Entregamos los QR listos para imprimir y la carta se cambia cuando haga falta.' },
 ];
 const PREMIUM: Record<string, { ruta: string; nombre: string }> = {
   signature: { ruta: 'signature', nombre: 'Signature' },
@@ -64,15 +64,15 @@ const DEMOS_PWA_PROPIAS = [
   { nombre: 'Bokadipan', sector: 'Bocadillería y horno de piedra', url: 'https://bokadipan.dkitchencorporate.es/', imagen: '/demos/app-bokadipan.png' },
 ] as const;
 const CAMBIOS_SIGNATURE = [
-  { t: 'No es una web ni un QR más: es tu app', d: 'App instalable en el móvil de tus clientes con tu marca, tus fotos y tu propio dominio.' },
-  { t: 'Recogida, domicilio y mesa al 0 %', d: 'Tus clientes piden y pagan directo en tu app sin pagar comisiones por pedido a plataformas.' },
-  { t: 'Pantalla de cocina y freno de picos', d: 'Cada comanda entra ordenada a cocina y puedes pausar pedidos entrantes con un toque.' },
-  { t: 'Cobro en tu banco y Club VIP propio', d: 'Conectada a tu Stripe, SumUp, Revolut Pay o Redsys; los puntos y datos son 100 % de tu local.' },
+  { t: 'No es una web ni un QR más: es la app del local', d: 'App instalable en el móvil de los clientes, con la marca, las fotos y el dominio propio del local.' },
+  { t: 'Recogida, domicilio y mesa al 0 %', d: 'Los clientes piden y pagan directamente en la app del local, sin comisiones por pedido a plataformas.' },
+  { t: 'Pantalla de cocina y freno de picos', d: 'Cada comanda entra ordenada en cocina y los pedidos entrantes se pausan con un toque.' },
+  { t: 'Cobro en la cuenta del local y Club VIP propio', d: 'Conectada a la cuenta de Stripe, SumUp, Revolut Pay o Redsys del local; los puntos y los datos son 100 % del local.' },
 ];
 const PASOS_SIGNATURE = [
-  { n: '1', t: 'Revisamos tu carta y operativa', d: 'Preparamos colores, carta, variantes, horarios y zona de recogida o reparto de tu negocio.' },
-  { n: '2', t: 'Montamos tu app en 15 días hábiles', d: 'Te la entregamos lista con tu pantalla de cocina, club de puntos VIP y QR de captación.' },
-  { n: '3', t: 'Cobras el 100 % en tu cuenta', d: 'Sin intermediarios en caja ni retenciones: cada pago va directo a tu entidad bancaria.' },
+  { n: '1', t: 'Revisamos la carta y la operativa', d: 'Preparamos colores, carta, variantes, horarios y zona de recogida o reparto del negocio.' },
+  { n: '2', t: 'Montamos la app en 15 días hábiles', d: 'Se entrega lista, con pantalla de cocina, club de puntos VIP y QR de captación.' },
+  { n: '3', t: 'El local cobra el 100 % en su cuenta', d: 'Sin intermediarios en caja ni retenciones: cada pago va directo a la entidad bancaria del local.' },
 ];
 
 export default async function PropuestaPublica({
@@ -116,7 +116,7 @@ export default async function PropuestaPublica({
       <article className="mx-auto max-w-2xl space-y-6 rounded-[24px] bg-white p-5 ring-1 ring-linea print:max-w-none print:rounded-none print:p-0 print:ring-0 sm:rounded-[28px] sm:p-10">
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-vino sm:tracking-[0.2em]">Propuesta para tu {(TIPOS[p.tipo] ?? 'local').toLowerCase()} · {p.zona}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-vino sm:tracking-[0.2em]">Propuesta para {p.nombre} · {p.zona}</p>
             <h1 className="font-display mt-2 break-words text-3xl font-semibold leading-tight sm:text-4xl">Hola, {p.nombre}</h1>
           </div>
           <p className="shrink-0 text-[15px] font-bold">D<span className="text-vino">Kitchen</span></p>
@@ -130,9 +130,9 @@ export default async function PropuestaPublica({
               <div className="grid gap-5 sm:grid-cols-[1fr_auto] sm:items-center">
                 <div className="min-w-0">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">DKitchen Signature · App propia sin comisiones</p>
-                  <h2 className="mt-1 font-semibold">Pruébala en tu móvil como un cliente</h2>
+                  <h2 className="mt-1 font-semibold">Pruébenla en el móvil como un cliente más</h2>
                   <p className="mt-1 text-sm text-niebla">
-                    No es un PDF ni una web básica: aquí tienes tres apps de nuestras propias marcas, funcionando, hechas con la misma arquitectura que estrenará {p.nombre}. Ábrelas, añade platos y revisa el flujo completo.
+                    No es un PDF ni una web básica: aquí están tres apps de nuestras propias marcas, funcionando, hechas con la misma arquitectura que estrenaría {p.nombre}. Se pueden abrir, añadir platos y revisar el flujo completo.
                   </p>
                   <div className="mt-3 flex flex-col gap-2 print:hidden sm:flex-row sm:flex-wrap">
                     <a href={demosSignatureUrl} className="inline-flex w-full items-center justify-center rounded-full bg-vino px-5 py-3 text-center text-sm font-semibold text-white sm:w-auto">
@@ -168,16 +168,16 @@ export default async function PropuestaPublica({
           ) : (
             <div className="grid gap-5 sm:grid-cols-[1fr_auto] sm:items-center">
               <div className="min-w-0">
-                <h2 className="font-semibold">{muestra ? 'Tu carta, ya montada' : 'Tu carta digital con QR'}</h2>
+                <h2 className="font-semibold">{muestra ? 'La carta, ya montada' : 'Carta digital con QR'}</h2>
                 <p className="mt-1 text-sm text-niebla">
                   {muestra
-                    ? 'Escanea el código o pulsa el botón: así la verán tus clientes en el móvil, con tus platos y tus colores (muestra orientativa ajustable a tu carta real).'
-                    : 'Escanea el código para activarla. La montamos contigo y la cambias desde el móvil cuando quieras.'}
+                    ? 'Escaneen el código o pulsen el botón: así la verán los clientes en el móvil (muestra orientativa, ajustable a la carta real del local).'
+                    : 'Escaneen el código para activarla. La montamos con el local y después se cambia desde el móvil cuando haga falta.'}
                 </p>
                 {muestra && (
                   <div className="mt-3 flex flex-col gap-2 print:hidden sm:flex-row sm:flex-wrap">
                     <a href={muestra} className="inline-flex w-full items-center justify-center rounded-full bg-tinta px-5 py-3 text-center text-sm font-semibold text-white sm:w-auto">
-                      Ver mi carta
+                      Ver la carta
                     </a>
                     {p.demo_slug && (
                       <a href={`${SITIO}/demo/panel?local=${p.demo_slug}${esInterno ? '&preview=1' : ''}`} className="inline-flex w-full items-center justify-center rounded-full bg-vino px-5 py-3 text-center text-sm font-semibold text-white sm:w-auto">
@@ -234,14 +234,14 @@ export default async function PropuestaPublica({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-oro">Evolución natural · DKitchen Signature</p>
-                <h2 className="mt-1 font-display text-xl font-semibold">¿Quieres sumar también tu propia app de pedidos sin comisiones?</h2>
+                <h2 className="mt-1 font-display text-xl font-semibold">¿Y si además el local tuviera su propia app de pedidos sin comisiones?</h2>
               </div>
               <a href={demosSignatureUrl} className="shrink-0 rounded-full bg-vino px-4 py-2 text-xs font-semibold text-white print:hidden">
                 Probar apps Signature
               </a>
             </div>
             <p className="text-sm text-white/75">
-              Sobre la misma base de tu carta digital puedes pasar a tu app instalable con cobro directo y 0 % comisión por pedido en 15 días hábiles ({conFundador ? `Fundador ${eur(FUNDADOR.signature.entrada)} + IVA y ${eur(FUNDADOR.signature.mensual)}/mes primer año con 2 meses incluidos` : `${eur(BASE_OPERATIVA.pagoUnico)} + IVA con 2 meses incluidos`}). Así lucen tres apps de nuestras propias marcas:
+              Sobre la misma base de la carta digital se puede pasar a una app instalable con cobro directo y 0 % comisión por pedido en 15 días hábiles ({conFundador ? `Fundador ${eur(FUNDADOR.signature.entrada)} + IVA y ${eur(FUNDADOR.signature.mensual)}/mes primer año con 2 meses incluidos` : `${eur(BASE_OPERATIVA.pagoUnico)} + IVA con 2 meses incluidos`}). Así lucen tres apps de nuestras propias marcas:
             </p>
             <div className="grid gap-3 sm:grid-cols-3">
               {DEMOS_PWA_PROPIAS.map((d) => (
@@ -261,7 +261,7 @@ export default async function PropuestaPublica({
         )}
 
         <section className="space-y-3">
-          <h2 className="font-semibold">Qué cambia en tu local</h2>
+          <h2 className="font-semibold">Qué cambia en el local</h2>
           <ul className="grid gap-3 sm:grid-cols-2">
             {(esSignature ? CAMBIOS_SIGNATURE : CAMBIOS).map((c) => (
               <li key={c.t} className="rounded-2xl p-4 ring-1 ring-linea">
@@ -302,12 +302,12 @@ export default async function PropuestaPublica({
               </p>
               <div className="grid gap-3 text-sm sm:grid-cols-2">
                 <div className="rounded-2xl bg-noche p-4 text-white ring-1 ring-oro/50">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-oro">Plaza Fundador · Ahorras {eur(AHORRO_FUNDADOR_SIGNATURE)} el 1.er año</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-oro">Plaza Fundador · Ahorro de {eur(AHORRO_FUNDADOR_SIGNATURE)} el 1.er año</p>
                   <p className="mt-1 font-display text-2xl font-semibold">{eur(FUNDADOR.signature.entrada)} + IVA <span className="text-sm font-normal line-through text-white/50">{eur(BASE_OPERATIVA.pagoUnico)}</span></p>
                   <p className="mt-1 text-white/80">Pago único · {BASE_OPERATIVA.mantenimiento.mesesGratis} meses gratis · {eur(FUNDADOR.signature.mensual)}/mes el primer año</p>
                   <ul className="mt-3 space-y-1 text-[13px] text-white/80">
                     <li>· 0 % comisión por pedido para siempre</li>
-                    <li>· App instalable, dominio y base de datos tuyos</li>
+                    <li>· App instalable, dominio y base de datos del local</li>
                     <li>· Entrega llave en mano en 15 días hábiles</li>
                   </ul>
                 </div>
@@ -322,16 +322,16 @@ export default async function PropuestaPublica({
                   </ul>
                 </div>
               </div>
-              <p className="text-xs text-niebla">¿Prefieres empezar primero con una Carta QR de sala sin pedido propio? Plan Local por {eur(QR_MENU.primerMes)} + IVA el primer mes (después {eur(ampliado.mensual)}/mes).</p>
+              <p className="text-xs text-niebla">¿Prefieren empezar con una Carta QR de sala sin pedido propio? Plan Local por {eur(QR_MENU.primerMes)} + IVA el primer mes (después {eur(ampliado.mensual)}/mes).</p>
             </>
           ) : (
             <>
               {premium ? (
-                <p className="text-[15px]">Para un local como el tuyo encaja <span className="font-semibold">{premium.nombre}</span>: te lo explicamos en una llamada de 15 minutos y te damos el precio cerrado. Mientras tanto, puedes empezar con la carta QR.</p>
+                <p className="text-[15px]">Para un local así encaja <span className="font-semibold">{premium.nombre}</span>: lo explicamos en una llamada de 15 minutos y damos el precio cerrado. Mientras tanto, se puede empezar con la carta QR.</p>
               ) : conFundador && fundador ? (
                 <p className="text-[15px]"><span className="font-semibold">Plan Fundador:</span> todo el plan {sala.nombre} con un {Math.round(FUNDADOR.descuento * 100)} % de descuento de por vida: {eur(FUNDADOR.mensual)} al mes + IVA, pagado por trimestre ({eur(FUNDADOR.trimestre)} + IVA). {fundador.plazas - fundador.quedan >= PLAZAS_PARA_CONTAR ? `Quedan ${fundador.quedan} de ${FUNDADOR.plazas} plazas.` : `Plazas limitadas a ${FUNDADOR.plazas} locales.`}</p>
               ) : (
-                <p className="text-[15px]"><span className="font-semibold">Plan {ampliado.nombre}: el primer mes por {eur(QR_MENU.primerMes)} + IVA.</span> Después, {eur(ampliado.mensual)} al mes + IVA, sin permanencia. Si en 30 días no te convence, te devolvemos ese euro y te quedas tu carta en PDF.</p>
+                <p className="text-[15px]"><span className="font-semibold">Plan {ampliado.nombre}: el primer mes por {eur(QR_MENU.primerMes)} + IVA.</span> Después, {eur(ampliado.mensual)} al mes + IVA, sin permanencia. Si en 30 días no convence, devolvemos ese euro y el local se queda con su carta en PDF.</p>
               )}
               <ul className="grid gap-2.5 text-sm sm:grid-cols-3">
                 {[basico, ampliado, sala].map((pl) => (
@@ -357,11 +357,11 @@ export default async function PropuestaPublica({
               premium && <a href={`${SITIO}/${premium.ruta}?${utm}`} className="inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-3 text-center text-sm font-semibold ring-1 ring-linea sm:w-auto">Ver {premium.nombre}</a>
             )}
           </div>
-          {p.codigo && <p className="text-xs text-niebla">Código de tu asesor: <span className="font-mono font-semibold">{p.codigo}</span></p>}
+          {p.codigo && <p className="text-xs text-niebla">Código del asesor: <span className="font-mono font-semibold">{p.codigo}</span></p>}
         </section>
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-linea pt-5 text-sm">
-          <p>Te atiende <span className="font-semibold">{p.comercial}</span>{p.telefono ? ` · ${p.telefono}` : ''}</p>
+          <p>Les atiende <span className="font-semibold">{p.comercial}</span>{p.telefono ? ` · ${p.telefono}` : ''}</p>
           <div className="flex w-full flex-wrap gap-2 print:hidden sm:w-auto">
             {wa && <a href={`${wa}?text=${encodeURIComponent(`Hola, soy de ${p.nombre}. He visto la propuesta de DKitchen.`)}`} className="inline-flex flex-1 items-center justify-center rounded-full bg-tinta px-5 py-3 text-center text-sm font-semibold text-white sm:flex-initial">Escribir por WhatsApp</a>}
             <BotonImprimir />

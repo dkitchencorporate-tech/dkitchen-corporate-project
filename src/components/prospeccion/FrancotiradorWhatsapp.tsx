@@ -52,9 +52,12 @@ export default function FrancotiradorWhatsapp({
   const propuestaUrl = propuestaToken ? `${SITIO}/propuesta/${propuestaToken}` : `${SITIO}/qr`;
   const cartaUrl = demoSlug ? `${SITIO}/m/${demoSlug}` : null;
   const panelDemoUrl = demoSlug ? `${SITIO}/demo/panel?local=${demoSlug}` : null;
-  const defecto =
+  // 26/11 (Alex): estilo v4, lenguaje neutro (nunca os/vuestro/vosotros), cargo de consultor y saludo según la hora.
+  const saludo = new Date().getHours() < 14 ? 'Buenos días' : 'Buenas tardes';
+  const defecto = (
     borradorInicial ||
-    `Buenas, soy Alex, de DKitchen.\nOs hemos dejado montada una muestra real de la carta y panel de ${nombre} en ${zona} con vuestros platos para que la probéis sin compromiso.\nPodéis verla aquí desde el móvil: ${propuestaUrl}\nSi os encaja, comentamos dos minutos fuera de horas de servicio.`;
+    `Buenos días, equipo de ${nombre}. Les escribe Alex, consultor de DKitchen; ayudamos a bares y restaurantes de ${zona} a presentar su carta en el móvil y a recibir pedidos sin comisiones.\n\nHemos preparado una demostración de cómo podría verse ${nombre}:\n${propuestaUrl}\n\nLleva platos, imágenes y precios de muestra, sin compromiso. Si resulta interesante, puedo acercarme estos días o lo comentamos por teléfono fuera del servicio.\n\nAlex\nConsultor digital · DKitchen\n\nSi prefieren no recibir más mensajes, indíquenmelo y así será.`
+  ).replace(/^(Buenos días|Buenas tardes)/, saludo);
 
   const [preparacion, setPreparacion] = useState(preparacionInicial ?? '');
   const [mensaje, setMensaje] = useState(defecto);

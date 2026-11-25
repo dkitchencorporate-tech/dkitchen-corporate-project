@@ -132,7 +132,7 @@ export default function LandingEstudio({ slug, plan, ir, inicial, platos, demo =
 
       <div className={`${tarjeta} space-y-4`}>
         <p className={etiqueta}>La casa</p>
-        <textarea value={l.historia ?? ''} maxLength={600} rows={5} onChange={(e) => set('historia', e.target.value)} placeholder="Quiénes sois, qué cocináis y cómo se está en vuestra casa." className={`${campo} font-display text-base leading-relaxed`} />
+        <textarea value={l.historia ?? ''} maxLength={600} rows={5} onChange={(e) => set('historia', e.target.value)} placeholder="Quién está detrás, qué se cocina y cómo se está en la casa." className={`${campo} font-display text-base leading-relaxed`} />
         <p className="text-right text-[11px] text-ceniza">{(l.historia ?? '').length}/600</p>
         <SubirImagen valor={l.fotoHistoriaUrl} onCambio={(u) => set('fotoHistoriaUrl', u)} etiqueta="Foto de la casa (vertical)" ia={{ modo: 'portada' }} />
       </div>

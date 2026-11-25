@@ -504,11 +504,11 @@ export async function consultarAgenteProspeccion(
 
   const instruccionesModo: Record<ModoConsultaAgenteProsp, string> = {
     mejorar_propuesta:
-      'Mejora y haz más persuasivo el texto de la propuesta comercial para este local usando su auditoría real y sus platos reales. Devuelve SOLO el texto listo para guardar en la propuesta (sin comillas ni markdown, sin emojis ni mencionar IA, máx. 1200 caracteres).',
+      'Mejora y haz más persuasivo el texto de la propuesta comercial para este local usando su auditoría real y sus platos reales, en lenguaje neutro (usted/ustedes o impersonal; nunca tú, os, vuestro ni vosotros). Devuelve SOLO el texto listo para guardar en la propuesta (sin comillas ni markdown, sin emojis ni mencionar IA, máx. 1200 caracteres).',
     guion_llamada:
-      'Escribe un guion de llamada o visita presencial de 45 segundos para impactar al dueño enseñándole su demo con sus propios platos, el diagnóstico real de su local y el simulador de comandas en vivo. Claro, directo, de tú a tú hostelero, sin markdown ni emojis ni mencionar IA.',
+      'Escribe un guion de llamada o visita presencial de 45 segundos para impactar al dueño enseñándole su demo con sus propios platos, el diagnóstico real de su local y el simulador de comandas en vivo. Claro y directo, tratando al dueño de usted, sin markdown ni emojis ni mencionar IA.',
     mensaje_whatsapp:
-      'Redacta un mensaje de WhatsApp hiper-personalizado (4 a 5 líneas máximo) firmado como Alex ("Buenas, soy Alex..."). Cita obligatoriamente un hallazgo concreto de su auditoría real (web caída, Drive, Linktree, comisiones de delivery o reseñas) y un plato real de su carta si aparece en contexto, e incluye el enlace exacto de la propuesta si está disponible. CERO emojis, CERO markdown y CERO mención a IA.',
+      'Redacta un mensaje de WhatsApp en frío en español de España y en lenguaje NEUTRO (usted/ustedes o impersonal): PROHIBIDO tutear y PROHIBIDO «os», «vuestro/a/s», «vosotros» y los verbos de vosotros (podéis, tenéis, queréis). Estructura, en párrafos cortos: 1) saludo según la hora («Buenos días» o «Buenas tardes») al equipo del local y presentación «Les escribe Alex, consultor de DKitchen» con una frase sobre qué hace DKitchen; 2) un dato real y comprobable del local tomado de su auditoría (nota y número de opiniones, plato más citado, web caída, Drive, Linktree, comisiones de reparto) y el problema concreto que provoca; 3) la demostración con el enlace exacto de la propuesta, aclarando que platos, precios e imágenes son de muestra y sin compromiso; 4) cierre con visita (solo en Baza y su comarca) o llamada fuera del servicio; 5) firma en dos líneas «Alex» y «Consultor digital · DKitchen» y una última línea de baja como «Si prefieren no recibir más mensajes, indíquenmelo y así será.». No inventes datos: si el contexto no trae un dato real, no pongas cifras. Que cada mensaje sea distinto y no repita frases hechas. CERO emojis, CERO markdown y CERO mención a IA.',
     responder_objecion:
       'Da al comercial 2 respuestas cortas, elegantes y efectivas para rebatir la objeción del hostelero apoyándose en la demo en vivo y el mes de prueba desde 1 €.',
     chat_libre:
@@ -516,7 +516,7 @@ export async function consultarAgenteProspeccion(
   };
 
   const respuesta = await llamarTextoAgente(
-    `Eres Agente DK, asesor senior de prospección y hostelería de DKitchen Corporate.\nPROHIBIDO usar emojis, emoticonos o mencionar "IA" / "inteligencia artificial" en textos para el cliente.\n${instruccionesModo[d.modo]}\n\nDATOS REALES DEL PROSPECTO:\n${contexto}`,
+    `Eres Agente DK, asesor senior de prospección y hostelería de DKitchen Corporate.\nPROHIBIDO usar emojis, emoticonos o mencionar "IA" / "inteligencia artificial" en textos para el cliente. En todo texto para el cliente: lenguaje neutro de usted/ustedes o impersonal, nunca tú, os, vuestro ni vosotros; Alex firma como consultor de DKitchen.\n${instruccionesModo[d.modo]}\n\nDATOS REALES DEL PROSPECTO:\n${contexto}`,
     d.texto.trim() || prosp.propuesta_texto || `Prepara el texto para ${prosp.nombre}.`,
     650
   );

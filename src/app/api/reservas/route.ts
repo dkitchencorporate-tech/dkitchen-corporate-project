@@ -52,7 +52,7 @@ export async function POST(peticion: Request) {
       acusarReservaAlCliente(r.marca, datos),
     ]).then((res) => res.forEach((x) => x.status === 'rejected' && console.error('Correo de reserva no enviado:', (x.reason as Error)?.message)));
 
-    const mensaje = `Hola, soy ${nombre}. Acabo de pedir mesa desde vuestra carta: ${personas} ${personas === 1 ? 'persona' : 'personas'}, ${fechaLarga(fecha)} a las ${hora}.${notas ? ` Nota: ${notas}` : ''} Mi teléfono: ${telefono}.`;
+    const mensaje = `Hola, soy ${nombre}. Acabo de pedir mesa desde la carta online: ${personas} ${personas === 1 ? 'persona' : 'personas'}, ${fechaLarga(fecha)} a las ${hora}.${notas ? ` Nota: ${notas}` : ''} Mi teléfono: ${telefono}.`;
     const whatsappUrl = r.whatsapp ? `https://wa.me/${r.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(mensaje)}` : null;
     return NextResponse.json({ resultado: 'ok', whatsappUrl });
   } catch (error) {

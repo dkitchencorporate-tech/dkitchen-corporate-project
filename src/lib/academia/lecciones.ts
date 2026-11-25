@@ -161,7 +161,7 @@ export const LECCIONES: Leccion[] = [
         'Cada visita se registra el mismo día en Prospección en 3 toques (resultado, canal, siguiente paso). Sin registro, la visita no existe: ni para tu comisión ni para el embudo.',
       ] },
       { tipo: 'teoria', titulo: 'Digital: Instagram y WhatsApp', parrafos: [
-        'Primer mensaje: 3 líneas, un detalle real de su local, una pregunta y sin enlaces. Ejemplo: «Hola, vuestras croquetas tienen las mejores fotos de la zona. ¿Os enseño cómo quedaría vuestra carta en el móvil, con fotos y en inglés?»',
+        'Primer mensaje: 3 líneas, un detalle real de su local, una pregunta y sin enlaces. Ejemplo: «Buenos días. Sus croquetas tienen las mejores fotos de la zona. ¿Les enseño cómo quedaría su carta en el móvil, con fotos y en inglés?» Siempre en lenguaje neutro (usted/ustedes): nunca os, vuestro ni vosotros.',
         'Seguimiento a las 48 h con una frase y una pregunta. Máximo 3 toques en 10 días. El cierre nunca es por texto: audio de 2 minutos o llamada.',
       ], bien: ['3 líneas, detalle real, pregunta, sin enlace.'], mal: ['Un enlace con todos los precios en el primer mensaje.', 'Escribir cada día al que no responde.'] },
       { tipo: 'teoria', titulo: 'La ley: LSSI y datos personales', parrafos: [

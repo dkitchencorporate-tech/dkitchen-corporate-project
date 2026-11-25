@@ -70,14 +70,14 @@ export type PlantillaPropuesta = {
 export const PLANTILLAS_PROPUESTA: readonly PlantillaPropuesta[] = [
   {
     id: 'qr_papel_redes',
-    titulo: '1. Carta en papel / Instagram → Carta QR de Autor (1 € el 1.er mes)',
+    titulo: '1. Carta en papel / Instagram → Carta QR (1 € el 1.er mes)',
     perfil: 'Locales con carta física desactualizada, PDF incómodo o solo fotos sueltas en redes',
     oferta: 'qr_1',
     cuerpo:
-      'Hola equipo de {nombre}, hemos preparado una muestra real de cómo se ve vuestra Carta Digital Interactiva en {zona}.\n\n' +
-      '• Vuestros clientes abren la carta al instante desde la mesa o desde vuestro Instagram sin descargar nada ni hacer zoom en un PDF.\n' +
-      '• Podéis cambiar precios, marcar platos agotados o destacar sugerencias del día desde el móvil en 10 segundos.\n' +
-      '• Nosotros os dejamos toda la carta montada con vuestras fotos e imagen para que empecéis por solo 1 € el primer mes, sin permanencia.{demo}',
+      'Hola, equipo de {nombre}. Hemos preparado una muestra de cómo se vería la carta digital del local en {zona}.\n\n' +
+      '• Los clientes abren la carta desde la mesa o desde Instagram, sin descargar nada ni ampliar un PDF.\n' +
+      '• Precios, platos agotados y sugerencias del día se cambian desde el móvil en segundos.\n' +
+      '• Dejamos la carta montada con las fotos y la imagen del local, y se empieza por 1 € + IVA el primer mes, sin permanencia.{demo}',
   },
   {
     id: 'qr_sala_terraza',
@@ -85,9 +85,9 @@ export const PLANTILLAS_PROPUESTA: readonly PlantillaPropuesta[] = [
     perfil: 'Bares de tapas, terrazas y restaurantes con picos de trabajo que quieren agilizar comandas',
     oferta: 'qr_1',
     cuerpo:
-      'Hola equipo de {nombre}, tal y como comentamos, os hemos montado vuestra demo operativa para {zona} con Carta QR y Comandero de Sala.\n\n' +
+      'Hola, equipo de {nombre}. Tal y como comentamos, hemos preparado la demostración para {zona} con Carta QR y comandero de sala.\n\n' +
       '• El cliente ve los platos con foto desde su mesa y puede pedir o avisar al camarero sin esperas en horas punta.\n' +
-      '• Vuestro equipo recibe las comandas por mesa en tiempo real con aviso sonoro y control de estado.\n' +
+      '• El equipo recibe las comandas por mesa en tiempo real, con aviso sonoro y control de estado.\n' +
       '• Aumenta la rotación de mesas y las rondas de bebida/postre desde el primer fin de semana.{demo}',
   },
   {
@@ -96,7 +96,7 @@ export const PLANTILLAS_PROPUESTA: readonly PlantillaPropuesta[] = [
     perfil: 'Restaurantes, asadores y hoteles que cuidan la estética y quieren subir el ticket medio',
     oferta: 'qr_1',
     cuerpo:
-      'Hola equipo de {nombre}, hemos diseñado una propuesta de Carta de Autor a la altura de vuestra cocina en {zona}.\n\n' +
+      'Hola, equipo de {nombre}. Hemos diseñado una propuesta de carta a la altura de la cocina del restaurante en {zona}.\n\n' +
       '• Diseño editorial con la identidad visual de {nombre}, fotografías apetecibles al plato y sugerencias del chef.\n' +
       '• Destacados visuales para entrantes para compartir, vinos y postres caseros que elevan el ticket medio por comensal.\n' +
       '• Panel de control privado para actualizar carta, precios y destacados al momento.{demo}',
@@ -107,10 +107,10 @@ export const PLANTILLAS_PROPUESTA: readonly PlantillaPropuesta[] = [
     perfil: 'Locales con visitantes de fuera, hoteles o clientes que preguntan por alérgenos',
     oferta: 'qr_1',
     cuerpo:
-      'Hola equipo de {nombre}, os compartimos la propuesta preparada para {nombre} en {zona} enfocada en atención ágil a todo tipo de comensal.\n\n' +
+      'Hola, equipo de {nombre}. Les compartimos la propuesta preparada para {nombre} en {zona}, pensada para atender con agilidad a todo tipo de comensal.\n\n' +
       '• Carta clara con fotografía por plato e información directa de alérgenos (normativa UE) para evitar dudas en sala.\n' +
       '• Lectura cómoda desde cualquier móvil para visitantes y clientes habituales.\n' +
-      '• Os entregamos los soportes QR listos para mesa y barra.{demo}',
+      '• Entregamos los soportes QR listos para mesa y barra.{demo}',
   },
   {
     id: 'signature_delivery',
@@ -118,10 +118,10 @@ export const PLANTILLAS_PROPUESTA: readonly PlantillaPropuesta[] = [
     perfil: 'Pizzerías, hamburgueserías, sushi o restaurantes con pedidos a domicilio o para llevar',
     oferta: 'signature',
     cuerpo:
-      'Hola equipo de {nombre}, hemos preparado esta propuesta para que {nombre} tenga su propio canal de pedidos directos en {zona} sin pagar comisiones por pedido.\n\n' +
-      '• Web y carta propia de pedidos directos (recogida en local y envío) conectada con vuestra cocina.\n' +
-      '• El cliente os pide directamente desde WhatsApp, Instagram o Google y el margen íntegro se queda en casa.\n' +
-      '• Incluye vuestra demo interactiva para que veáis cómo luce vuestra carta digital desde hoy.{demo}',
+      'Hola, equipo de {nombre}. Hemos preparado esta propuesta para que {nombre} tenga su propio canal de pedidos directos en {zona}, sin comisiones por pedido.\n\n' +
+      '• App y carta propias de pedidos directos (recogida en el local y envío), conectadas con la cocina.\n' +
+      '• El cliente pide directamente desde WhatsApp, Instagram o Google, y el margen íntegro se queda en casa.\n' +
+      '• Incluye una demostración interactiva para ver cómo luciría la carta digital del local.{demo}',
   },
   {
     id: 'experience_evento',
@@ -129,9 +129,9 @@ export const PLANTILLAS_PROPUESTA: readonly PlantillaPropuesta[] = [
     perfil: 'Locales con buena cocina que quieren llenar entre semana o dar a conocer su carta',
     oferta: 'experience',
     cuerpo:
-      'Hola equipo de {nombre}, os proponemos organizar una experiencia gastronómica en {nombre} ({zona}) junto a DKitchen Experience.\n\n' +
-      '• Diseñamos un menú especial o noche temática con reserva previa para llenar sala en vuestro día más tranquilo.\n' +
-      '• Además, dejamos activada vuestra Carta Digital Interactiva para que todos los asistentes os guarden y repitan.{demo}',
+      'Hola, equipo de {nombre}. Les proponemos organizar una experiencia gastronómica en {nombre} ({zona}) con DKitchen Experience.\n\n' +
+      '• Diseñamos un menú especial o una noche temática con reserva previa para llenar la sala en el día más tranquilo de la semana.\n' +
+      '• Además, dejamos activa la carta digital del local para que los asistentes la guarden y repitan.{demo}',
   },
 ] as const;
 
@@ -155,12 +155,12 @@ export function construirTextoPropuesta(
 ): { texto: string; oferta: PlantillaPropuesta['oferta'] } {
   const p = PLANTILLAS_PROPUESTA.find((x) => x.id === plantillaId) ?? PLANTILLAS_PROPUESTA[0];
   const bloqueDemo = datos.demoUrl
-    ? `\n\nPodéis ver vuestra muestra en vivo aquí: ${datos.demoUrl}` +
-      (datos.panelUrl ? `\nY probar vuestro panel completo y comandero de sala aquí: ${datos.panelUrl}` : '')
+    ? `\n\nLa muestra puede verse aquí: ${datos.demoUrl}` +
+      (datos.panelUrl ? `\nY el panel completo con el comandero de sala, aquí: ${datos.panelUrl}` : '')
     : '';
   const texto = p.cuerpo
-    .replace(/\{nombre\}/g, datos.nombre || 'vuestro local')
-    .replace(/\{zona\}/g, datos.zona || 'vuestra zona')
+    .replace(/\{nombre\}/g, datos.nombre || 'su local')
+    .replace(/\{zona\}/g, datos.zona || 'su zona')
     .replace(/\{demo\}/g, bloqueDemo);
   return { texto, oferta: p.oferta };
 }

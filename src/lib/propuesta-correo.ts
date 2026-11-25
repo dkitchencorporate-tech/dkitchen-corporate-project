@@ -44,10 +44,10 @@ export function propuestaCorreo(p: DatosCorreo, o: { fundadorQuedan: number | nu
   const tipo = (TIPOS[p.tipo] ?? 'local').toLowerCase();
 
   const oferta = p.oferta === 'signature' || p.oferta === 'experience' || p.oferta === 'dark_kitchen'
-    ? `Para un local como el vuestro encaja una solución a medida: os la explicamos en una llamada de 15 minutos y os damos el precio cerrado. Mientras tanto, podéis empezar con la carta QR.`
+    ? `Para un local así encaja una solución a medida: la explicamos en una llamada de 15 minutos y damos el precio cerrado. Mientras tanto, se puede empezar con la carta QR.`
     : conFundador
       ? `<strong>Plan Fundador:</strong> todo el plan ${sala.nombre} con un ${Math.round(FUNDADOR.descuento * 100)} % de descuento de por vida: ${eur(FUNDADOR.mensual)} al mes + IVA, pagado por trimestre (${eur(FUNDADOR.trimestre)} + IVA). Quedan ${o.fundadorQuedan} de ${FUNDADOR.plazas} plazas.`
-      : `<strong>Plan ${ampliado.nombre}: el primer mes por ${eur(QR_MENU.primerMes)} + IVA.</strong> Después, ${eur(ampliado.mensual)} al mes + IVA, sin permanencia. Si en 30 días no os convence, os devolvemos ese euro y os quedáis la carta en PDF.`;
+      : `<strong>Plan ${ampliado.nombre}: el primer mes por ${eur(QR_MENU.primerMes)} + IVA.</strong> Después, ${eur(ampliado.mensual)} al mes + IVA, sin permanencia. Si en 30 días no convence, devolvemos ese euro y el local se queda con la carta en PDF.`;
   const textoBoton = p.pago_url ? 'Activar mi carta' : conFundador ? 'Quiero ser Fundador' : `Activar por ${eur(QR_MENU.primerMes)}`;
 
   const boton = (href: string, texto: string, fondo = VINO) =>

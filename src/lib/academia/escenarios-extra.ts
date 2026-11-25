@@ -44,15 +44,15 @@ export const ESCENARIOS_EXTRA: EscenarioR[] = [
       ],
       digital: [
         { id: 'd1', situacion: 'La hija responde a tu DM: «¡Qué chulo! Pero decide mi madre y no usa el móvil».', opciones: [
-          { texto: '«Te preparo la carta de vuestra cafetería para que se la enseñes en tu móvil. ¿Me pasas una foto de la carta actual?»', puntos: 10, feedback: 'Le das a la influyente algo que enseñar.', dim: 'digital', sig: 'd2' },
+          { texto: '«Le preparo la carta de la cafetería para que pueda enseñarla en su móvil. ¿Me pasa una foto de la carta actual?»', puntos: 10, feedback: 'Le das a la influyente algo que enseñar.', dim: 'digital', sig: 'd2' },
           { texto: '«Pásame el WhatsApp de tu madre»', puntos: 3, feedback: 'Pedir el contacto de un tercero sin su permiso incomoda.', dim: 'digital', sig: 'd2f' },
           { texto: '«Pues dile que es gratis el primer mes»', puntos: -5, feedback: '«Gratis» no existe.', regla: true, dim: 'digital', sig: 'd2f' }] },
         { id: 'd2f', situacion: 'La hija deja de contestar 4 días.', opciones: [
-          { texto: 'Un único seguimiento con valor: «Te dejo cómo quedaría vuestra carta en inglés para los turistas» (sin enlace de pago)', puntos: 3, feedback: 'Recuperas aportando algo.', dim: 'digital', sig: 'd3' },
+          { texto: 'Un único seguimiento con valor: «Les dejo cómo quedaría su carta en inglés para los turistas» (sin enlace de pago)', puntos: 3, feedback: 'Recuperas aportando algo.', dim: 'digital', sig: 'd3' },
           { texto: 'Le escribes cada día', puntos: 0, feedback: 'Máximo 3 toques en 10 días.', dim: 'digital', sig: 'd-fin' },
           { texto: 'Buscas el email de la cafetería y escribes', puntos: -5, feedback: 'Correo frío: LSSI.', regla: true, dim: 'digital', sig: 'd-fin' }] },
         { id: 'd2', situacion: 'Te manda la foto. Le preparas la demo y te dice: «A mi madre le ha gustado. ¿Cuánto es?»', opciones: [
-          { texto: `«Local: ${e(QR_MENU.primerMes)} el primer mes, sin permanencia. ¿Os llamo 5 minutos a las dos y lo dejamos activo?»`, puntos: 10, feedback: 'Precio corto y cierre por voz con la decisora.', dim: 'cerrador', sig: 'd3' },
+          { texto: `«Local: ${e(QR_MENU.primerMes)} el primer mes, sin permanencia. ¿Les llamo 5 minutos a las dos y lo dejamos activo?»`, puntos: 10, feedback: 'Precio corto y cierre por voz con la decisora.', dim: 'cerrador', sig: 'd3' },
           { texto: 'Le pegas el enlace de pago sin más', puntos: 3, feedback: 'Sin conversación con la decisora, el pago se queda pendiente.', dim: 'cerrador', sig: 'd3' },
           { texto: '«Depende, mejor lo hablamos otro día»', puntos: 0, feedback: 'Esquivar el precio enfría.', dim: 'cerrador', sig: 'd2f' }] },
         { id: 'd3', situacion: 'En la llamada, la madre: «¿Y si no la sé usar?»', fin: true, opciones: [
@@ -98,9 +98,9 @@ export const ESCENARIOS_EXTRA: EscenarioR[] = [
       ],
       digital: [
         { id: 'hd1', situacion: 'La directora acepta tu solicitud de LinkedIn y te escribe: «¿Qué ofrecéis para hoteles?»', opciones: [
-          { texto: '«Carta en el móvil en todos los idiomas de vuestros clientes y eventos para la terraza entre semana. ¿Le preparo la de su restaurante para que la vea?»', puntos: 10, feedback: 'Respuesta a su medida y demo.', dim: 'digital', sig: 'hd2' },
+          { texto: '«Carta en el móvil en todos los idiomas de sus clientes y eventos para la terraza entre semana. ¿Le preparo la de su restaurante para que la vea?»', puntos: 10, feedback: 'Respuesta a su medida y demo.', dim: 'digital', sig: 'hd2' },
           { texto: 'Le mandas el catálogo completo en PDF', puntos: 3, feedback: 'Información sin conversación.', dim: 'digital', sig: 'hd2' },
-          { texto: '«Os subimos la ocupación del restaurante un 30 %»', puntos: -5, feedback: 'Promesa de resultados.', regla: true, dim: 'digital', sig: 'hd-fin' }] },
+          { texto: '«Les subimos la ocupación del restaurante un 30 %»', puntos: -5, feedback: 'Promesa de resultados.', regla: true, dim: 'digital', sig: 'hd-fin' }] },
         { id: 'hd2', situacion: 'Le gusta la demo: «¿Precio para 28 mesas y 5 idiomas?»', opciones: [
           { texto: `Sala ${e(QR_MENU.planes.sala.mensual)}/mes con 3 idiomas + 2 idiomas extra a ${e(SERVICIOS_QR.idiomaExtra)}; o Fundador si quedan plazas. «¿Le llamo 10 minutos y lo dejamos claro?»`, puntos: 10, feedback: 'Precio exacto y cierre por voz.', dim: 'cerrador', sig: 'hd3' },
           { texto: '«Le hago un precio especial por ser hotel»', puntos: 0, feedback: 'No hay precios especiales que tú puedas dar.', dim: 'cerrador', sig: 'hd3' },

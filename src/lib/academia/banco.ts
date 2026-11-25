@@ -91,7 +91,7 @@ export const ESCENARIOS: Escenario[] = [
       ]),
       digital: comun([
         { id: 'e1d-1', situacion: 'Le escribes por Instagram. Primer mensaje:', opciones: [
-          { texto: '«Hola, vuestras burgers son de las mejores de la zona. ¿Os enseño cómo tener vuestro canal propio sin comisiones?» (sin enlaces)', puntos: 10, feedback: 'Corto, personal, sin enlaces.', dim: 'digital' },
+          { texto: '«Buenos días. Sus burgers son de las mejores de la zona. ¿Les enseño cómo tener un canal propio de pedidos sin comisiones?» (sin enlaces)', puntos: 10, feedback: 'Corto, personal, sin enlaces.', dim: 'digital' },
           { texto: 'Enlace a la web con todos los precios', puntos: 0, feedback: 'El primer mensaje no vende: busca respuesta.', dim: 'digital' },
           { texto: 'Correo a su email de la web con la propuesta', puntos: -5, feedback: 'Correo frío: rompe la LSSI.', regla: true, dim: 'digital' }] },
         { id: 'e1d-2', situacion: '«¿Cuánto cuesta?»', opciones: [
@@ -152,7 +152,7 @@ export const ESCENARIOS: Escenario[] = [
           { texto: '«¿Qué hace el martes con este salón?»', puntos: 10, feedback: 'Detectas el día flojo.', dim: 'prospector' },
           { texto: 'Hablas de la Carta QR', puntos: 3, feedback: 'No es su dolor principal.', dim: 'prospector' },
           { texto: '«Le llenamos el salón»', puntos: -5, feedback: 'Prometer aforo rompe M5.', regla: true, dim: 'cerrador' }] },
-        { id: 'e3-2', situacion: '«¿Y vosotros qué os lleváis de las entradas?»', opciones: [
+        { id: 'e3-2', situacion: '«¿Y ustedes qué se llevan de las entradas?»', opciones: [
           { texto: `«Nada: la taquilla es 100 % suya, con su Stripe. Nosotros cobramos el evento: ${P.exp1}»`, puntos: 10, feedback: '0 % de comisión y tarifa clara.', dim: 'cerrador' },
           { texto: '«Un pequeño porcentaje»', puntos: -5, feedback: 'Falso: DKitchen nunca cobra comisión.', regla: true, dim: 'cerrador' },
           { texto: '«Depende del evento»', puntos: 0, feedback: 'Respuesta vaga que genera desconfianza.', dim: 'cerrador' }] },
@@ -163,9 +163,9 @@ export const ESCENARIOS: Escenario[] = [
       ]),
       digital: comun([
         { id: 'e3d-1', situacion: 'Ves en Instagram que publica «salón disponible para grupos».', opciones: [
-          { texto: '«He visto vuestro salón. ¿Habéis probado eventos con entradas para los días flojos?»', puntos: 10, feedback: 'Entrada por su dolor visible.', dim: 'digital' },
+          { texto: '«He visto su salón. ¿Han probado eventos con entradas para los días flojos?»', puntos: 10, feedback: 'Entrada por su dolor visible.', dim: 'digital' },
           { texto: 'Le mandas el catálogo de Experience', puntos: 3, feedback: 'Sin pregunta, sin conversación.', dim: 'digital' },
-          { texto: '«Os llenamos el salón cada semana»', puntos: -5, feedback: 'Promesa de resultados.', regla: true, dim: 'digital' }] },
+          { texto: '«Les llenamos el salón cada semana»', puntos: -5, feedback: 'Promesa de resultados.', regla: true, dim: 'digital' }] },
         { id: 'e3d-2', situacion: '«¿Cuánto cuesta?»', opciones: [
           { texto: `«${P.exp1} el evento (${P.exp1Qr} si ya es cliente de la Carta QR); la taquilla es toda suya»`, puntos: 10, feedback: 'Precio del catálogo y el 0 %.', dim: 'digital' },
           { texto: '«Depende de las entradas que vendáis»', puntos: -5, feedback: 'Insinúa comisión: falso.', regla: true, dim: 'digital' },
