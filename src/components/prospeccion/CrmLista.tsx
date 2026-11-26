@@ -101,7 +101,7 @@ const totalVistas = (p: Prospecto) => (p.propuesta_vistas ?? 0) + (p.demo_vistas
 const esEnSeguimiento = (p: Prospecto) =>
   p.estado !== 'descartado' &&
   p.estado !== 'cliente' &&
-  (p.estado === 'interesado' || p.ultimo_resultado === 'propuesta' || totalVistas(p) > 0);
+  (p.estado === 'interesado' || p.ultimo_resultado != null || totalVistas(p) > 0);
 const esPendienteEnvio = (p: Prospecto) =>
   p.estado !== 'descartado' &&
   p.estado !== 'cliente' &&
@@ -305,6 +305,21 @@ export default function CrmLista({
     || (a.siguiente_fecha ?? '9999-12-31').localeCompare(b.siguiente_fecha ?? '9999-12-31')
     || (b.puntuacion ?? 0) - (a.puntuacion ?? 0));
   const tocaHoySeg = tocaHoy.filter(esEnSeguimiento);
+  // 26/11 (Alex): cada lote con su prioridad y su orden; Baza ciudad aparte, es el envío inminente.
+  const LOTES = [
+    { id: 'baza', titulo: 'Prioridad 1 · Baza', nota: 'Envío inminente. Por este orden, un local cada 5 o 6 minutos.', es: (p: Prospecto) => /^\s*baza( y comarca)?\s*$/i.test(p.zona) },
+    { id: 'comarca', titulo: 'Prioridad 2 · Comarca de Baza', nota: 'Después de Baza: Zújar, Caniles, Freila, Cúllar y alrededores.', es: (p: Prospecto) => esBaza(p.zona) },
+    { id: 'guadix', titulo: 'Prioridad 3 · Guadix', nota: 'Cuando la comarca de Baza esté enviada.', es: (p: Prospecto) => /guadix/i.test(p.zona) },
+    { id: 'resto', titulo: 'Prioridad 4 · Granada, Jaén y Almería', nota: 'Solo digital; sin visita por ahora.', es: () => true },
+  ] as const;
+  const nivel = (p: Prospecto) => (demos[p.id] && movilWa(p.telefono) ? 0 : demos[p.id] && p.telefono ? 1 : 2);
+  const usados = new Set<string>();
+  const lotes = LOTES.map((l) => {
+    const todos = enviarLista.filter((p) => !usados.has(p.id) && l.es(p));
+    todos.forEach((p) => usados.add(p.id));
+    todos.sort((a, b) => nivel(a) - nivel(b) || (b.puntuacion ?? 0) - (a.puntuacion ?? 0) || a.nombre.localeCompare(b.nombre, 'es'));
+    return { ...l, listos: todos.filter((p) => nivel(p) === 0), llamar: todos.filter((p) => nivel(p) === 1), sinPreparar: todos.filter((p) => nivel(p) === 2) };
+  });
   // Baza y comarca primero; dentro, los que ya están en el mapa.
   const planificables = mios.filter((p) => !['cliente', 'descartado'].includes(p.estado) && !p.no_contactar)
     .sort((a, b) => Number(esBaza(b.zona)) - Number(esBaza(a.zona)) || Number(b.lat != null) - Number(a.lat != null));
@@ -392,7 +407,7 @@ export default function CrmLista({
         {([
           ['enviar', 'Enviar', enviarLista.length, 'bg-emerald-700'],
           ['ruta', 'Ruta', ruta.length, 'bg-vino'],
-          ['seguimiento', 'Seguimiento', seguimientoLista.length, 'bg-indigo-800'],
+          ['seguimiento', 'Enviados', seguimientoLista.length, 'bg-indigo-800'],
           ['cartera', 'Cartera', activos, 'bg-tinta'],
         ] as const).map(([z, t, n, color]) => (
           <Link key={z} href={q(null, 'tarjetas', modo, comercial, z)} aria-current={zona === z ? 'page' : undefined}
@@ -404,18 +419,58 @@ export default function CrmLista({
       {aviso && AVISOS[aviso] && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{AVISOS[aviso]}</p>}
       {ok && OKS[ok] && <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{OKS[ok]}</p>}
       {zona === 'enviar' && (
-        <section className="space-y-3">
+        <section className="space-y-4">
           <div className="rounded-[22px] bg-noche p-4 text-white">
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-oro">Enviar WhatsApp</p>
-            <p className="mt-1 text-sm">Tanda de hoy: <b className={enviosWaHoy >= 15 ? 'text-amber-300' : 'text-emerald-300'}>{enviosWaHoy} / 15</b>. Pulsa «Enviar», manda los 3 mensajes y vuelve: el local pasa solo a Seguimiento.</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-oro">Enviar WhatsApp · por prioridad</p>
+            <p className="mt-1 text-sm">Tanda de hoy: <b className={enviosWaHoy >= 15 ? 'text-amber-300' : 'text-emerald-300'}>{enviosWaHoy} / 15</b>. Empieza por la Prioridad 1 y sigue el número. Al enviar el primer mensaje, el local sale de aquí y pasa a «Enviados».</p>
           </div>
-          {enviarLista.length === 0 ? (
-            <p className={`${tarjeta} text-sm text-niebla`}>No queda ningún local por enviar en esta cartera.</p>
-          ) : (
-            <ol className="space-y-2">
-              {enviarLista.map((p, i) => <FilaEnviar key={p.id} p={p} n={i + 1} base={base} demo={demos[p.id]} />)}
-            </ol>
-          )}
+          {lotes.map((l, li) => {
+            const total = l.listos.length + l.llamar.length + l.sinPreparar.length;
+            if (total === 0) return null;
+            const destacado = li === 0;
+            return (
+              <details key={l.id} open={destacado || (li === 1 && lotes[0].listos.length === 0)}
+                className={`group rounded-[22px] border p-3.5 ${destacado ? 'border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-600/20' : 'border-linea bg-white'}`}>
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                  <span>
+                    <span className={`block font-display text-lg font-semibold ${destacado ? 'text-emerald-900' : 'text-carbon'}`}>{l.titulo}</span>
+                    <span className="block text-xs text-niebla">{l.nota}</span>
+                  </span>
+                  <span className="shrink-0 text-right text-[11px] font-semibold text-grafito">
+                    <span className="block rounded-full bg-emerald-700 px-2.5 py-0.5 text-white">{l.listos.length} por WhatsApp</span>
+                    {l.llamar.length > 0 && <span className="mt-1 block">{l.llamar.length} por llamada</span>}
+                    {l.sinPreparar.length > 0 && <span className="block text-ceniza">{l.sinPreparar.length} sin preparar</span>}
+                  </span>
+                </summary>
+                <div className="mt-3 space-y-3">
+                  {l.listos.length > 0 && (
+                    <ol className="space-y-2">
+                      {l.listos.map((p, i) => <FilaEnviar key={p.id} p={p} n={i + 1} base={base} demo={demos[p.id]} />)}
+                    </ol>
+                  )}
+                  {l.llamar.length > 0 && (
+                    <div>
+                      <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-grafito">Con demo, pero teléfono fijo: llamar o visitar</p>
+                      <ol className="space-y-2">
+                        {l.llamar.map((p, i) => <FilaEnviar key={p.id} p={p} n={l.listos.length + i + 1} base={base} demo={demos[p.id]} />)}
+                      </ol>
+                    </div>
+                  )}
+                  {l.sinPreparar.length > 0 && (
+                    <details className="rounded-2xl border border-dashed border-linea bg-white/70 p-3">
+                      <summary className="cursor-pointer text-xs font-semibold text-niebla">Sin demo o sin móvil todavía · {l.sinPreparar.length} (no se envían)</summary>
+                      <ul className="mt-2 space-y-1 text-xs">
+                        {l.sinPreparar.map((p) => (
+                          <li key={p.id}><Link href={`${base}/${p.id}`} className="font-semibold text-carbon hover:text-vino">{p.nombre}</Link><span className="text-niebla"> · {p.zona}{p.telefono ? '' : ' · sin teléfono'}{demos[p.id] ? '' : ' · sin demo'}</span></li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </div>
+              </details>
+            );
+          })}
+          {enviarLista.length === 0 && <p className={`${tarjeta} text-sm text-niebla`}>No queda ningún local por enviar en esta cartera.</p>}
         </section>
       )}
       {zona === 'ruta' && (
@@ -553,10 +608,14 @@ export default function CrmLista({
       )}
       {zona === 'seguimiento' && (
         <>
+        <div className="rounded-[22px] bg-indigo-950 p-4 text-white">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-oro">Enviados · en revisión</p>
+          <p className="mt-1 text-sm">Aquí llega cada local en cuanto se le envía el WhatsApp o se registra un contacto. Ya no aparece en «Enviar». Primero los que abrieron la propuesta; después, a quién toca llamar o visitar hoy.</p>
+        </div>
         <div className="grid grid-cols-3 gap-2 rounded-2xl border border-indigo-200 bg-indigo-50/60 p-3 text-center">
           <div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-900">Abrieron</p><p className="font-display text-2xl font-bold text-emerald-800 tabular-nums">{segAbiertos}</p></div>
           <div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-amber-900">Toca hoy</p><p className="font-display text-2xl font-bold text-amber-800 tabular-nums">{segVencenHoy}</p></div>
-          <div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-grafito">En seguimiento</p><p className="font-display text-2xl font-bold text-carbon tabular-nums">{seguimientoLista.length}</p></div>
+          <div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-grafito">Enviados</p><p className="font-display text-2xl font-bold text-carbon tabular-nums">{seguimientoLista.length}</p></div>
         </div>
       {tocaHoySeg.length > 0 && (
         <section className={`${tarjeta} p-0`}>

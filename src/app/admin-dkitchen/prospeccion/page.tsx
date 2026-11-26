@@ -29,8 +29,8 @@ export default async function ProspeccionCentral({ searchParams }: { searchParam
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 text-carbon sm:px-6 lg:px-10">
       <GuiaZona titulo="Prospección" ancla="prospeccion"
-        que="Cuatro zonas separadas: Enviar (WhatsApp en 3 mensajes), Ruta (mapa y visitas a pie), Seguimiento (los que ya recibieron algo) y Cartera (todos los locales, demos, lotes y comerciales)."
-        pasos={['Enviar: pulsa «Enviar» en cada local, manda los 3 mensajes y vuelve; pasa solo a Seguimiento.', 'Ruta: el mapa y las paradas de hoy; al terminar cada visita pulsa «Registrar».', 'Seguimiento: quién abrió la propuesta y a quién toca llamar o visitar hoy.']} />
+        que="Cuatro zonas separadas: Enviar (WhatsApp en 3 mensajes), Ruta (mapa y visitas a pie), Enviados (los que ya recibieron el WhatsApp o un contacto: zona de revisión) y Cartera (todos los locales, demos, lotes y comerciales)."
+        pasos={['Enviar: lotes por prioridad (Baza primero). Pulsa «Enviar», manda los 3 mensajes y el local pasa solo a «Enviados».', 'Ruta: el mapa y las paradas de hoy; al terminar cada visita pulsa «Registrar».', 'Enviados: quién abrió la propuesta y a quién toca llamar o visitar hoy.']} />
       <CrmLista base="/admin-dkitchen/prospeccion" lista={lista} estado={esEstado(sp.estado) ? sp.estado : null} aviso={sp.e} ok={sp.ok}
         contacto={contacto} central={Boolean(comerciales && comerciales.length > 0)} comerciales={comerciales ?? undefined}
         comercial={sp.comercial === 'todas' ? 'todas' : comercialFiltro} modo={modo} metricas={metricas} demos={demos}
