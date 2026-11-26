@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -72,6 +72,26 @@ export default function FrancotiradorWhatsapp({
   const [pendienteEnviar, iniciarEnviar] = useTransition();
 
   const telWa = normalizarTelefonoWa(telefono);
+  // 26/11 (Alex): mensaje en partes. Una línea que solo tenga --- separa cada burbuja;
+  // el enlace va en la última. La parte 1 registra el envío; las demás solo abren WhatsApp.
+  const partes = mensaje.split(/\n[ \t]*-{3,}[ \t]*\n/).map((p) => p.trim()).filter(Boolean);
+  const enPartes = partes.length > 1;
+  const [partesEnviadas, setPartesEnviadas] = useState(0);
+  // Al volver de WhatsApp el móvil puede recargar la pestaña: se recuerda por qué parte iba.
+  const clavePartes = `dk-franco-partes-${prospectoId}`;
+  useEffect(() => {
+    const n = Number(sessionStorage.getItem(clavePartes) || 0);
+    if (n > 0) setPartesEnviadas(n);
+  }, [clavePartes]);
+  useEffect(() => {
+    if (partesEnviadas > 0) sessionStorage.setItem(clavePartes, String(partesEnviadas));
+  }, [clavePartes, partesEnviadas]);
+  const abrirParte = (i: number) => {
+    if (!telWa || noContactar) return;
+    window.open(`https://wa.me/${telWa}?text=${encodeURIComponent(partes[i])}`, '_blank', 'noopener,noreferrer');
+    setPartesEnviadas((n) => Math.max(n, i + 1));
+  };
+  const textoPlano = partes.join('\n\n');
 
   const afinarConAgente = () => {
     setError(null);
@@ -125,8 +145,11 @@ export default function FrancotiradorWhatsapp({
       setError('Este local no tiene teléfono: copia el mensaje o visítalo; no se registra ningún envío.');
       return;
     }
-    const url = `https://wa.me/${telWa}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    if (enPartes) {
+      abrirParte(0);
+    } else {
+      window.open(`https://wa.me/${telWa}?text=${encodeURIComponent(mensaje)}`, '_blank', 'noopener,noreferrer');
+    }
     iniciarEnviar(async () => {
       const r = await registrarEnvioWhatsappFrancotiradorAction({
         base,
@@ -147,7 +170,11 @@ export default function FrancotiradorWhatsapp({
       });
       setEnviadoCuando(ahora);
       setEnvioReciente(true);
-      setAviso(`Envío registrado (Tanda de hoy: ${r.enviosHoy} / 15). Queda en «Demo hecha» con seguimiento a 48 h.`);
+      setAviso(
+        enPartes
+          ? `Parte 1 enviada y registrada (Tanda de hoy: ${r.enviosHoy} / 15). Vuelve aquí y pulsa la parte 2.`
+          : `Envío registrado (Tanda de hoy: ${r.enviosHoy} / 15). Queda en «Demo hecha» con seguimiento a 48 h.`,
+      );
       router.refresh();
     });
   };
@@ -230,16 +257,20 @@ export default function FrancotiradorWhatsapp({
             <label className="block text-xs font-semibold text-grafito">
               Mensaje de WhatsApp listo (sin emojis, directo y con enlace a su propuesta)
             </label>
-            <span className="text-[11px] text-niebla">{mensaje.length}/1500 caracteres</span>
+            <span className="text-[11px] text-niebla">{enPartes ? `${partes.length} partes · ` : ''}{mensaje.length}/1500 caracteres</span>
           </div>
           <textarea
             value={mensaje}
             onChange={(e) => setMensaje(e.target.value)}
-            rows={6}
+            rows={enPartes ? 12 : 6}
             maxLength={1500}
             className="mt-1 w-full rounded-2xl border border-linea bg-white px-3.5 py-3 text-sm leading-relaxed text-carbon focus:border-emerald-700 focus:outline-none"
           />
         </div>
+
+        <p className="text-[11px] text-niebla">
+          Para enviarlo en varios mensajes, separa cada parte con una línea que solo tenga <b>---</b>. El enlace, en la última.
+        </p>
 
         {!telWa && (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
@@ -257,7 +288,7 @@ export default function FrancotiradorWhatsapp({
         {aviso && (
           <div className="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-medium text-emerald-900">
             <p>{aviso}</p>
-            {envioReciente && (
+            {envioReciente && (!enPartes || partesEnviadas >= partes.length) && (
               <Link
                 href={base}
                 className="inline-flex min-h-[38px] items-center rounded-full bg-tinta px-4 py-1.5 text-xs font-bold text-white hover:bg-vino"
@@ -269,7 +300,44 @@ export default function FrancotiradorWhatsapp({
         )}
 
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          {telWa && (
+          {telWa && enPartes && (
+            <div className="w-full space-y-2 rounded-2xl border border-emerald-900/15 bg-white/85 p-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-900">
+                Envío en {partes.length} partes · pulsa, envía en WhatsApp y vuelve aquí
+              </p>
+              {partes.map((p, i) => {
+                const hecha = partesEnviadas > i;
+                const toca = partesEnviadas === i;
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    disabled={noContactar || (i === 0 ? pendienteEnviar || hecha : !toca && !hecha)}
+                    onClick={i === 0 ? enviarYRegistrar : () => abrirParte(i)}
+                    className={`flex w-full min-h-[44px] items-start gap-3 rounded-2xl px-4 py-2.5 text-left text-sm ${
+                      hecha
+                        ? 'bg-emerald-100 text-emerald-950'
+                        : toca
+                          ? 'bg-emerald-700 font-bold text-white shadow-sm hover:bg-emerald-800'
+                          : 'bg-papel text-niebla ring-1 ring-linea'
+                    } disabled:opacity-60`}
+                  >
+                    <span className="shrink-0 font-bold">{hecha ? '✓' : `${i + 1}.`}</span>
+                    <span className="min-w-0">
+                      <span className="block font-bold">
+                        {i === 0 && pendienteEnviar
+                          ? 'Registrando envío…'
+                          : `${hecha ? 'Enviada' : 'Enviar'} parte ${i + 1}${i === partes.length - 1 ? ' (enlace)' : ''}${i === 0 ? ' y registrar' : ''}`}
+                      </span>
+                      <span className="mt-0.5 block truncate text-xs font-normal opacity-80">{p.split('\n')[0]}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {telWa && !enPartes && (
             <button
               type="button"
               disabled={pendienteEnviar || noContactar}
@@ -301,7 +369,7 @@ export default function FrancotiradorWhatsapp({
           <button
             type="button"
             onClick={() => {
-              void navigator.clipboard?.writeText(mensaje);
+              void navigator.clipboard?.writeText(textoPlano);
               setCopiado(true);
               setTimeout(() => setCopiado(false), 1800);
             }}
