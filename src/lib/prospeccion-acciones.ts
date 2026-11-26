@@ -519,7 +519,8 @@ export async function registrarEnvioWhatsappFrancotiradorAction(d: {
         d.prospectoId,
         {
           canal: 'whatsapp',
-          resultado: 'propuesta',
+          // 26/11: enviar no es interés; el local queda en «demo» hasta que responda.
+          resultado: 'demo',
           plantilla: 'Francotirador personalizado',
           texto: texto.slice(0, 950),
         },

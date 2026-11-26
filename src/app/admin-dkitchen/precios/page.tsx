@@ -85,7 +85,7 @@ export default async function PreciosYFunciones() {
     { t: 'Llamar al camarero y pedir la cuenta', v: (p) => (QR_MENU.planes[p].llamarCamarero ? <Si /> : <No />) },
     { t: 'Pedido desde la mesa', v: (p) => (p !== 'basico' ? <Si /> : <No />) },
     { t: 'QR con su logo y colores', v: (p) => (QR_MENU.planes[p].personalizacionQr ? <Si /> : <No />) },
-    { t: 'Google sincronizado y botón de reseñas', v: (p) => ('sincronizacionGoogleBusiness' in QR_MENU.planes[p] ? <Si /> : <No />) },
+    { t: 'Enlace en la ficha de Google y botón de reseñas', v: (p) => ('sincronizacionGoogleBusiness' in QR_MENU.planes[p] ? <Si /> : <No />) },
   ];
 
   const indice = [

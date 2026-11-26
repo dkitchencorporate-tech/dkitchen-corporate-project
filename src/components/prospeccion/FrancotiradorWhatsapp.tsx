@@ -120,10 +120,13 @@ export default function FrancotiradorWhatsapp({
     }
     setError(null);
     setAviso(null);
-    if (telWa) {
-      const url = `https://wa.me/${telWa}?text=${encodeURIComponent(mensaje)}`;
-      window.open(url, '_blank', 'noopener,noreferrer');
+    // 26/11: sin teléfono no hay envío real, así que no se registra nada.
+    if (!telWa) {
+      setError('Este local no tiene teléfono: copia el mensaje o visítalo; no se registra ningún envío.');
+      return;
     }
+    const url = `https://wa.me/${telWa}?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
     iniciarEnviar(async () => {
       const r = await registrarEnvioWhatsappFrancotiradorAction({
         base,
@@ -144,7 +147,7 @@ export default function FrancotiradorWhatsapp({
       });
       setEnviadoCuando(ahora);
       setEnvioReciente(true);
-      setAviso(`Envío registrado (Tanda de hoy: ${r.enviosHoy} / 15). Este local ha pasado automáticamente a la Zona de Seguimiento (estado «Interesado», recordatorio a 48 h).`);
+      setAviso(`Envío registrado (Tanda de hoy: ${r.enviosHoy} / 15). Queda en «Demo hecha» con seguimiento a 48 h.`);
       router.refresh();
     });
   };

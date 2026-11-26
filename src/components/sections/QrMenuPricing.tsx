@@ -57,7 +57,7 @@ export default function QrMenuPricing() {
               <li>✓ QR con logo, color de marca y marco (nivel de corrección alto)</li>
               <li>✓ Promociones y ofertas visibles en el menú</li>
               <li>✓ Botón de &quot;llamar al camarero&quot;</li>
-              <li>✓ Sincronización con tu ficha de Google Business</li>
+              <li>✓ Enlace de la carta en tu ficha de Google</li>
               <li>✓ Motor de reservas propio, incluido sin coste extra</li>
               <li>✓ Botón de reseñas para pedir valoraciones tras la visita</li>
               <li>✓ Hasta {ampliado.topeProductos} productos</li>
