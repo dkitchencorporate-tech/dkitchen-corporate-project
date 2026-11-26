@@ -144,7 +144,7 @@ export async function guardarRutaAction(f: FormData) {
     redirect(`${base}?e=${aviso(e)}`);
   }
   revalidatePath(base);
-  redirect(`${base}?ok=ruta#ruta`);
+  redirect(`${base}?zona=ruta&ok=ruta#ruta`);
 }
 
 /**
@@ -156,7 +156,7 @@ export async function registrarContactoAction(f: FormData) {
   const { jwt, base } = await contexto(f);
   const id = idDe(f);
   const enRuta = f.get('volver') === 'ruta';
-  const atras = (q: string) => (enRuta ? `${base}?${q}#ruta` : `${base}/${id}?${q}#registro`);
+  const atras = (q: string) => (enRuta ? `${base}?zona=ruta&${q}#ruta` : `${base}/${id}?${q}#registro`);
   const canal = String(f.get('canal') ?? '');
   const resultado = String(f.get('resultado') ?? '');
   if (!esCanal(canal) || !esResultado(resultado)) redirect(atras('e=datos'));
@@ -213,10 +213,10 @@ export async function proponerRutaAction(f: FormData) {
     n = ruta.length;
     if (n) await comoCliente(jwt, (c) => c.query('SELECT dk.prosp_ruta($1, $2::uuid[])', [hoyMadrid(), ruta.map((p) => p.id)]));
   } catch (e) {
-    redirect(`${base}?e=${aviso(e)}#ruta`);
+    redirect(`${base}?zona=ruta&e=${aviso(e)}#ruta`);
   }
   revalidatePath(base);
-  redirect(`${base}?ok=${n ? 'ruta' : 'sinruta'}#ruta`);
+  redirect(`${base}?zona=ruta&ok=${n ? 'ruta' : 'sinruta'}#ruta`);
 }
 
 export async function crearPropuestaAction(f: FormData) {
@@ -239,7 +239,7 @@ export async function guardarMiContactoAction(f: FormData) {
   } catch (e) {
     redirect(`${base}?e=${aviso(e)}`);
   }
-  redirect(`${base}?ok=contacto`);
+  redirect(`${base}?zona=cartera&ok=contacto`);
 }
 
 export async function reasignarAction(f: FormData) {
@@ -275,7 +275,7 @@ export async function reasignarLoteAction(f: FormData) {
     redirect(`${base}?e=${aviso(e)}`);
   }
   revalidatePath(base);
-  redirect(`${base}?ok=lote`);
+  redirect(`${base}?zona=cartera&ok=lote`);
 }
 
 /**

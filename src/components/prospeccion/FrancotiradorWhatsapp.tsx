@@ -23,6 +23,21 @@ function normalizarTelefonoWa(telefono: string | null): string | null {
   return d.length >= 9 ? d : null;
 }
 
+/**
+ * 26/11 (Alex): todos los mensajes salen en 3 burbujas, sin copiar ni pegar.
+ * Si el texto ya trae líneas «---», se respetan. Si no, se divide solo:
+ * 1) el saludo, 2) lo que hemos visto del local y 3) desde el enlace hasta el final.
+ */
+export function dividirEnPartes(mensaje: string): string[] {
+  const manual = mensaje.split(/\n[ \t]*-{3,}[ \t]*\n/).map((p) => p.trim()).filter(Boolean);
+  if (manual.length > 1) return manual;
+  const parrafos = mensaje.split(/\n[ \t]*\n/).map((p) => p.trim()).filter(Boolean);
+  const conEnlace = parrafos.findIndex((p) => /https?:\/\//.test(p));
+  if (parrafos.length < 3 || conEnlace < 1) return manual;
+  if (conEnlace === 1) return [parrafos[0], parrafos.slice(1).join('\n\n')];
+  return [parrafos[0], parrafos.slice(1, conEnlace).join('\n\n'), parrafos.slice(conEnlace).join('\n\n')];
+}
+
 export default function FrancotiradorWhatsapp({
   base,
   prospectoId,
@@ -74,7 +89,7 @@ export default function FrancotiradorWhatsapp({
   const telWa = normalizarTelefonoWa(telefono);
   // 26/11 (Alex): mensaje en partes. Una línea que solo tenga --- separa cada burbuja;
   // el enlace va en la última. La parte 1 registra el envío; las demás solo abren WhatsApp.
-  const partes = mensaje.split(/\n[ \t]*-{3,}[ \t]*\n/).map((p) => p.trim()).filter(Boolean);
+  const partes = dividirEnPartes(mensaje);
   const enPartes = partes.length > 1;
   const [partesEnviadas, setPartesEnviadas] = useState(0);
   // Al volver de WhatsApp el móvil puede recargar la pestaña: se recuerda por qué parte iba.
@@ -180,6 +195,7 @@ export default function FrancotiradorWhatsapp({
   };
 
   const pillRevision = 'inline-flex items-center rounded-full border border-emerald-900/20 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:border-emerald-700';
+  const yaEnviado = Boolean(enviadoCuando) && !envioReciente && partesEnviadas === 0;
 
   return (
     <section
@@ -189,196 +205,185 @@ export default function FrancotiradorWhatsapp({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-900 sm:tracking-[0.18em]">
-            Francotirador WhatsApp · Auditoría + Demo lista para enviar
+            Francotirador · Enviar WhatsApp
           </p>
-          <h2 className="font-display mt-1 break-words text-xl font-semibold text-carbon">
-            Mensaje personalizado de {nombre}
-          </h2>
+          <h2 className="font-display mt-1 break-words text-xl font-semibold text-carbon">{nombre}</h2>
         </div>
         {enviadoCuando ? (
           <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-900">
-            WhatsApp enviado ({enviadoCuando})
+            Enviado ({enviadoCuando})
           </span>
         ) : (
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">
-            Listo para primer impacto
-          </span>
+          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">Sin enviar</span>
         )}
       </div>
 
-      {(propuestaToken || demoSlug) && (
-        <div className="mt-3 rounded-2xl border border-emerald-900/15 bg-white/85 p-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-900">
-            Revisión rápida antes de enviar (sin sumar visitas)
-          </p>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {propuestaToken && (
-              <>
-                <a href={`/propuesta/${propuestaToken}?preview=1`} target="_blank" rel="noopener noreferrer" className={pillRevision}>
-                  Ver Propuesta ↗
-                </a>
-                <CopiarEnlace texto={propuestaUrl} etiqueta="Copiar link Propuesta" className={pillRevision} />
-              </>
-            )}
-            {cartaUrl && demoSlug && (
-              <>
-                <a href={`/m/${demoSlug}`} target="_blank" rel="noopener noreferrer" className={pillRevision}>
-                  Ver Carta (/m/{demoSlug}) ↗
-                </a>
-                <CopiarEnlace texto={cartaUrl} etiqueta="Copiar link Carta" className={pillRevision} />
-              </>
-            )}
-            {panelDemoUrl && demoSlug && (
-              <a href={`/demo/panel?local=${demoSlug}&preview=1`} target="_blank" rel="noopener noreferrer" className={pillRevision}>
-                Ver Simulador del Dueño ↗
-              </a>
-            )}
-          </div>
+      {yaEnviado && (
+        <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
+          A este local ya se le escribió el {enviadoCuando}. No lo repitas: toca llamada o visita.
+        </p>
+      )}
+      {!telWa && (
+        <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          {telefono
+            ? `El teléfono guardado (${telefono}) es fijo o no admite WhatsApp: llama o visítalo. No se registra ningún envío.`
+            : 'Este local no tiene móvil guardado: llama o visítalo. No se registra ningún envío.'}
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-800">
+          {error}
+        </p>
+      )}
+      {aviso && (
+        <div className="mt-3 space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-medium text-emerald-900">
+          <p>{aviso}</p>
+          {envioReciente && (!enPartes || partesEnviadas >= partes.length) && (
+            <Link
+              href={`${base}?zona=enviar`}
+              className="inline-flex min-h-[38px] items-center rounded-full bg-tinta px-4 py-1.5 text-xs font-bold text-white hover:bg-vino"
+            >
+              ← Siguiente local por enviar
+            </Link>
+          )}
         </div>
       )}
 
-      <div className="mt-3 space-y-3">
-        <div>
-          <label className="block text-xs font-semibold text-grafito">
-            Auditoría digital real (qué falla hoy y argumento clave al hablarle)
-          </label>
-          <textarea
-            value={preparacion}
-            onChange={(e) => setPreparacion(e.target.value)}
-            rows={2}
-            maxLength={1000}
-            placeholder="Diagnóstico del local (web caída, Drive, Linktree, comisiones delivery, reseñas…)"
-            className="mt-1 w-full rounded-2xl border border-linea bg-white px-3.5 py-2.5 text-xs leading-relaxed text-carbon focus:border-emerald-700 focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <label className="block text-xs font-semibold text-grafito">
-              Mensaje de WhatsApp listo (sin emojis, directo y con enlace a su propuesta)
-            </label>
-            <span className="text-[11px] text-niebla">{enPartes ? `${partes.length} partes · ` : ''}{mensaje.length}/1500 caracteres</span>
-          </div>
-          <textarea
-            value={mensaje}
-            onChange={(e) => setMensaje(e.target.value)}
-            rows={enPartes ? 12 : 6}
-            maxLength={1500}
-            className="mt-1 w-full rounded-2xl border border-linea bg-white px-3.5 py-3 text-sm leading-relaxed text-carbon focus:border-emerald-700 focus:outline-none"
-          />
-        </div>
-
-        <p className="text-[11px] text-niebla">
-          Para enviarlo en varios mensajes, separa cada parte con una línea que solo tenga <b>---</b>. El enlace, en la última.
-        </p>
-
-        {!telWa && (
-          <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            {telefono
-              ? `El teléfono guardado (${telefono}) es fijo o no admite WhatsApp directo: usa «Copiar mensaje» para Instagram DM o muéstrale su demo en visita presencial.`
-              : 'Este local no tiene móvil guardado: usa «Copiar mensaje» para Instagram DM o visita presencial.'}
+      {telWa && enPartes && (
+        <div className="mt-3 space-y-2">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-900">
+            {partes.length} mensajes · pulsa, envía en WhatsApp y vuelve aquí
           </p>
-        )}
-
-        {error && (
-          <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-800">
-            {error}
-          </p>
-        )}
-        {aviso && (
-          <div className="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-medium text-emerald-900">
-            <p>{aviso}</p>
-            {envioReciente && (!enPartes || partesEnviadas >= partes.length) && (
-              <Link
-                href={base}
-                className="inline-flex min-h-[38px] items-center rounded-full bg-tinta px-4 py-1.5 text-xs font-bold text-white hover:bg-vino"
+          {partes.map((p, i) => {
+            const hecha = partesEnviadas > i;
+            const toca = partesEnviadas === i;
+            return (
+              <button
+                key={i}
+                type="button"
+                disabled={noContactar || (i === 0 ? pendienteEnviar || hecha : !toca && !hecha)}
+                onClick={i === 0 ? enviarYRegistrar : () => abrirParte(i)}
+                className={`flex w-full min-h-[52px] items-start gap-3 rounded-2xl px-4 py-3 text-left text-sm ${
+                  hecha
+                    ? 'bg-emerald-100 text-emerald-950'
+                    : toca
+                      ? 'bg-emerald-700 font-bold text-white shadow-sm hover:bg-emerald-800'
+                      : 'bg-papel text-niebla ring-1 ring-linea'
+                } disabled:opacity-60`}
               >
-                ← Volver a locales pendientes de envío
-              </Link>
-            )}
-          </div>
-        )}
+                <span className="shrink-0 font-bold">{hecha ? '✓' : `${i + 1}.`}</span>
+                <span className="min-w-0">
+                  <span className="block font-bold">
+                    {i === 0 && pendienteEnviar
+                      ? 'Registrando envío…'
+                      : `${hecha ? 'Enviado' : 'Enviar'} mensaje ${i + 1}${i === partes.length - 1 ? ' (enlace)' : ''}`}
+                  </span>
+                  <span className="mt-0.5 block truncate text-xs font-normal opacity-80">{p.split('\n')[0]}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          {telWa && enPartes && (
-            <div className="w-full space-y-2 rounded-2xl border border-emerald-900/15 bg-white/85 p-3">
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-900">
-                Envío en {partes.length} partes · pulsa, envía en WhatsApp y vuelve aquí
-              </p>
-              {partes.map((p, i) => {
-                const hecha = partesEnviadas > i;
-                const toca = partesEnviadas === i;
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    disabled={noContactar || (i === 0 ? pendienteEnviar || hecha : !toca && !hecha)}
-                    onClick={i === 0 ? enviarYRegistrar : () => abrirParte(i)}
-                    className={`flex w-full min-h-[44px] items-start gap-3 rounded-2xl px-4 py-2.5 text-left text-sm ${
-                      hecha
-                        ? 'bg-emerald-100 text-emerald-950'
-                        : toca
-                          ? 'bg-emerald-700 font-bold text-white shadow-sm hover:bg-emerald-800'
-                          : 'bg-papel text-niebla ring-1 ring-linea'
-                    } disabled:opacity-60`}
-                  >
-                    <span className="shrink-0 font-bold">{hecha ? '✓' : `${i + 1}.`}</span>
-                    <span className="min-w-0">
-                      <span className="block font-bold">
-                        {i === 0 && pendienteEnviar
-                          ? 'Registrando envío…'
-                          : `${hecha ? 'Enviada' : 'Enviar'} parte ${i + 1}${i === partes.length - 1 ? ' (enlace)' : ''}${i === 0 ? ' y registrar' : ''}`}
-                      </span>
-                      <span className="mt-0.5 block truncate text-xs font-normal opacity-80">{p.split('\n')[0]}</span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+      {telWa && !enPartes && (
+        <button
+          type="button"
+          disabled={pendienteEnviar || noContactar}
+          onClick={enviarYRegistrar}
+          className="mt-3 w-full min-h-[52px] rounded-2xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-800 disabled:opacity-50"
+        >
+          {pendienteEnviar ? 'Registrando envío…' : 'Enviar por WhatsApp y registrar'}
+        </button>
+      )}
+
+      {(propuestaToken || demoSlug) && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {propuestaToken && (
+            <a href={`/propuesta/${propuestaToken}?preview=1`} target="_blank" rel="noopener noreferrer" className={pillRevision}>
+              Ver su propuesta ↗
+            </a>
           )}
+          {demoSlug && (
+            <a href={`/m/${demoSlug}`} target="_blank" rel="noopener noreferrer" className={pillRevision}>
+              Ver su carta ↗
+            </a>
+          )}
+        </div>
+      )}
 
-          {telWa && !enPartes && (
+      <details className="mt-3 rounded-2xl border border-linea bg-white/85">
+        <summary className="cursor-pointer px-4 py-3 text-xs font-semibold text-grafito">Ver o cambiar el texto, la auditoría y los enlaces</summary>
+        <div className="space-y-3 border-t border-linea p-3.5">
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label className="block text-xs font-semibold text-grafito">Mensaje de WhatsApp</label>
+              <span className="text-[11px] text-niebla">{enPartes ? `${partes.length} mensajes · ` : ''}{mensaje.length}/1500 caracteres</span>
+            </div>
+            <textarea
+              value={mensaje}
+              onChange={(e) => setMensaje(e.target.value)}
+              rows={12}
+              maxLength={1500}
+              className="mt-1 w-full rounded-2xl border border-linea bg-white px-3.5 py-3 text-sm leading-relaxed text-carbon focus:border-emerald-700 focus:outline-none"
+            />
+            <p className="mt-1 text-[11px] text-niebla">
+              Se divide solo en 3: el saludo, lo que hemos visto del local y, desde el enlace, el resto. Para cortarlo a mano, pon una línea con <b>---</b>.
+            </p>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-grafito">Auditoría del local (argumento al hablarle)</label>
+            <textarea
+              value={preparacion}
+              onChange={(e) => setPreparacion(e.target.value)}
+              rows={3}
+              maxLength={1000}
+              placeholder="Diagnóstico del local (web caída, Drive, Linktree, comisiones delivery, reseñas…)"
+              className="mt-1 w-full rounded-2xl border border-linea bg-white px-3.5 py-2.5 text-xs leading-relaxed text-carbon focus:border-emerald-700 focus:outline-none"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              disabled={pendienteEnviar || noContactar}
-              onClick={enviarYRegistrar}
-              className="w-full sm:w-auto min-h-[44px] rounded-full bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-800 disabled:opacity-50"
+              disabled={pendienteGuardar}
+              onClick={guardarBorrador}
+              className="min-h-[44px] rounded-full bg-tinta px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
             >
-              {pendienteEnviar ? 'Registrando envío…' : 'Abrir WhatsApp con este mensaje y registrar envío'}
+              {pendienteGuardar ? 'Guardando…' : 'Guardar cambios'}
             </button>
+            <button
+              type="button"
+              disabled={pendienteIa}
+              onClick={afinarConAgente}
+              className="min-h-[44px] rounded-full border border-[#b08d57] bg-[#faf6ee] px-4 py-2 text-xs font-bold text-[#5a421c] hover:bg-[#efe2c8] disabled:opacity-50"
+            >
+              {pendienteIa ? 'Redactando con Agente DK…' : 'Reescribir con Agente DK'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void navigator.clipboard?.writeText(textoPlano);
+                setCopiado(true);
+                setTimeout(() => setCopiado(false), 1800);
+              }}
+              className="min-h-[44px] rounded-full bg-papel px-4 py-2 text-xs font-semibold text-carbon ring-1 ring-linea hover:bg-white"
+            >
+              {copiado ? 'Copiado' : 'Copiar (para Instagram)'}
+            </button>
+          </div>
+          {(propuestaToken || cartaUrl) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {propuestaToken && <CopiarEnlace texto={propuestaUrl} etiqueta="Copiar enlace de la propuesta" className={pillRevision} />}
+              {cartaUrl && <CopiarEnlace texto={cartaUrl} etiqueta="Copiar enlace de la carta" className={pillRevision} />}
+              {panelDemoUrl && demoSlug && (
+                <a href={`/demo/panel?local=${demoSlug}&preview=1`} target="_blank" rel="noopener noreferrer" className={pillRevision}>
+                  Simulador del dueño ↗
+                </a>
+              )}
+            </div>
           )}
-
-          <button
-            type="button"
-            disabled={pendienteIa}
-            onClick={afinarConAgente}
-            className="w-full sm:w-auto min-h-[44px] rounded-full border border-[#b08d57] bg-[#faf6ee] px-4 py-2 text-center text-xs font-bold leading-snug text-[#5a421c] hover:bg-[#efe2c8] disabled:opacity-50"
-          >
-            {pendienteIa ? 'Redactando con Agente DK…' : 'Generar / Afinar Auditoría y WhatsApp con Agente DK'}
-          </button>
-
-          <button
-            type="button"
-            disabled={pendienteGuardar}
-            onClick={guardarBorrador}
-            className="w-full sm:w-auto min-h-[44px] rounded-full border border-linea bg-white px-4 py-2 text-center text-xs font-semibold text-carbon hover:border-tinta disabled:opacity-50"
-          >
-            {pendienteGuardar ? 'Guardando…' : 'Guardar borrador'}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              void navigator.clipboard?.writeText(textoPlano);
-              setCopiado(true);
-              setTimeout(() => setCopiado(false), 1800);
-            }}
-            className="w-full sm:w-auto min-h-[44px] rounded-full bg-papel px-4 py-2 text-center text-xs font-semibold text-carbon ring-1 ring-linea hover:bg-white"
-          >
-            {copiado ? 'Mensaje copiado' : 'Copiar mensaje'}
-          </button>
         </div>
-      </div>
+      </details>
     </section>
   );
 }

@@ -1,12 +1,12 @@
 import { exigirSocio } from '@/lib/guard-admin';
 import { listaProspectos, miContacto, enviosWhatsappHoy, esEstado } from '@/lib/prospeccion';
-import CrmLista, { type DemoProspecto } from '@/components/prospeccion/CrmLista';
+import CrmLista, { type DemoProspecto, type ZonaCrm } from '@/components/prospeccion/CrmLista';
 import { comoCliente } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 /** /socio → Prospección (0058/0117/0120): cartera del comercial con Zona de Prospección Digital, demos interactivas y editor. */
-export default async function ProspeccionSocio({ searchParams }: { searchParams: Promise<{ estado?: string; modo?: string; vista?: string; e?: string; ok?: string }> }) {
+export default async function ProspeccionSocio({ searchParams }: { searchParams: Promise<{ estado?: string; modo?: string; vista?: string; e?: string; ok?: string; zona?: string }> }) {
   const jwt = await exigirSocio();
   const sp = await searchParams;
   const [lista, contacto, demos, enviosWaHoy] = await Promise.all([
@@ -28,6 +28,7 @@ export default async function ProspeccionSocio({ searchParams }: { searchParams:
       modo={modo}
       vista={sp.vista === 'tablero' ? 'tablero' : 'tarjetas'}
       enviosWaHoy={enviosWaHoy}
+      zona={(['enviar', 'ruta', 'seguimiento', 'cartera'] as const).find((z) => z === sp.zona) ?? ('enviar' as ZonaCrm)}
     />
   );
 }

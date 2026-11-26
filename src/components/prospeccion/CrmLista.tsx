@@ -215,13 +215,46 @@ function Tarjeta({
     </li>
   );
 }
+/** 26/11 (Alex): la prospección se separa en 4 zonas para no mezclar envío, ruta, seguimiento y cartera. */
+export type ZonaCrm = 'enviar' | 'ruta' | 'seguimiento' | 'cartera';
+export const esZonaCrm = (z?: string): z is ZonaCrm => z === 'enviar' || z === 'ruta' || z === 'seguimiento' || z === 'cartera';
+const movilWa = (t: string | null) => {
+  const d = (t || '').replace(/\D/g, '');
+  const es = d.startsWith('34') && d.length >= 11 ? d.slice(2) : d;
+  return /^[67]\d{8}$/.test(es) || (d.length > 9 && !d.startsWith('34'));
+};
+
+function FilaEnviar({ p, n, base, demo }: { p: Prospecto; n: number; base: BaseCrm; demo?: DemoProspecto }) {
+  const movil = movilWa(p.telefono);
+  return (
+    <li className="flex items-center gap-3 rounded-2xl border border-linea bg-white p-3">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-sm font-bold text-white">{n}</span>
+      <Link href={`${base}/${p.id}`} className="min-w-0 flex-1">
+        <span className="block truncate text-[15px] font-semibold">{p.nombre}</span>
+        <span className="block truncate text-xs text-niebla">
+          {TIPOS[p.tipo]} · {p.barrio || p.zona}{demo ? '' : ' · sin demo'}{p.siguiente_fecha && p.siguiente_fecha < hoyMadrid() ? ` · tocaba el ${fechaCorta(p.siguiente_fecha)}` : ''}
+        </span>
+      </Link>
+      {movil ? (
+        <Link href={`${base}/${p.id}#francotirador`} className="shrink-0 rounded-full bg-emerald-700 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-800">
+          Enviar →
+        </Link>
+      ) : p.telefono ? (
+        <a href={`tel:${p.telefono.replace(/\s/g, '')}`} className="shrink-0 rounded-full bg-tinta px-4 py-2.5 text-xs font-bold text-white">Fijo: llamar</a>
+      ) : (
+        <span className="shrink-0 rounded-full bg-papel px-3 py-2 text-[11px] font-semibold text-niebla ring-1 ring-linea">Sin teléfono</span>
+      )}
+    </li>
+  );
+}
+
 export default function CrmLista({
-  base, lista, estado, aviso, ok, contacto, central, comerciales, comercial, modo = 'todos', metricas, demos = {}, vista = 'tarjetas', enviosWaHoy = 0,
+  base, lista, estado, aviso, ok, contacto, central, comerciales, comercial, modo = 'todos', metricas, demos = {}, vista = 'tarjetas', enviosWaHoy = 0, zona = 'enviar',
 }: {
   base: BaseCrm; lista: Prospecto[]; estado: string | null; aviso?: string; ok?: string; demos?: Record<string, DemoProspecto>; vista?: 'tarjetas' | 'tablero';
   contacto: { nombre_publico: string; telefono: string | null } | null;
   central?: boolean; comerciales?: { id: string; nombre: string }[]; comercial?: string | null; modo?: 'todos' | 'pie' | 'digital'; metricas?: Metrica[] | null;
-  enviosWaHoy?: number;
+  enviosWaHoy?: number; zona?: ZonaCrm;
   }) {
   const hoy = hoyMadrid();
   // Todos los prospectos son reales (importados o creados); se muestran en cartera completa
@@ -230,7 +263,6 @@ export default function CrmLista({
   // Selección unitaria y múltiple para acciones en lote (0118)
   const [seleccionados, setSeleccionados] = useState<string[]>([]);
   const [cargandoLote, setCargandoLote] = useState(false);
-  const [bandeja, setBandeja] = useState<'pendientes' | 'seguimiento' | 'todos'>('pendientes');
 
   const toggleSeleccion = (id: string) => {
     setSeleccionados((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -262,15 +294,17 @@ export default function CrmLista({
   const segAbiertos = seguimientoLista.filter((p) => totalVistas(p) > 0).length;
   const segVencenHoy = seguimientoLista.filter((p) => p.siguiente_fecha && p.siguiente_fecha <= hoy).length;
   const activosLista = listaPorModo.filter((p) => p.estado !== 'descartado');
-  const filtrada = estado
-    ? listaPorModo.filter((p) => p.estado === estado)
-    : vista === 'tablero'
-      ? activosLista
-      : bandeja === 'pendientes'
-        ? porEnviarLista
-        : bandeja === 'seguimiento'
-          ? seguimientoLista
-          : activosLista;
+  const filtrada = zona === 'seguimiento'
+    ? seguimientoLista
+    : estado
+      ? listaPorModo.filter((p) => p.estado === estado)
+      : activosLista;
+  // Zona «Enviar WhatsApp»: los que aún no han recibido nada, con móvil primero y los que ya tocaban antes.
+  const enviarLista = porEnviarLista.filter((p) => !p.no_contactar).sort((a, b) =>
+    Number(movilWa(b.telefono)) - Number(movilWa(a.telefono))
+    || (a.siguiente_fecha ?? '9999-12-31').localeCompare(b.siguiente_fecha ?? '9999-12-31')
+    || (b.puntuacion ?? 0) - (a.puntuacion ?? 0));
+  const tocaHoySeg = tocaHoy.filter(esEnSeguimiento);
   // Baza y comarca primero; dentro, los que ya están en el mapa.
   const planificables = mios.filter((p) => !['cliente', 'descartado'].includes(p.estado) && !p.no_contactar)
     .sort((a, b) => Number(esBaza(b.zona)) - Number(esBaza(a.zona)) || Number(b.lat != null) - Number(a.lat != null));
@@ -335,8 +369,9 @@ export default function CrmLista({
     }
   };
 
-  const q = (e: string | null, v: string = vista, m: string = modo, com: string | null | undefined = comercial) => {
+  const q = (e: string | null, v: string = vista, m: string = modo, com: string | null | undefined = comercial, z: ZonaCrm = zona) => {
     const s = new URLSearchParams();
+    if (z !== 'enviar') s.set('zona', z);
     if (e) s.set('estado', e);
     if (com) s.set('comercial', com);
     if (m !== 'todos') s.set('modo', m);
@@ -353,6 +388,197 @@ export default function CrmLista({
         <p className="mt-1 text-sm text-niebla">Cada local con su análisis, su propuesta y su siguiente paso. Nunca en frío del todo.</p>
       </div>
 
+      <nav aria-label="Zonas de prospección" className="grid grid-cols-4 gap-1.5">
+        {([
+          ['enviar', 'Enviar', enviarLista.length, 'bg-emerald-700'],
+          ['ruta', 'Ruta', ruta.length, 'bg-vino'],
+          ['seguimiento', 'Seguimiento', seguimientoLista.length, 'bg-indigo-800'],
+          ['cartera', 'Cartera', activos, 'bg-tinta'],
+        ] as const).map(([z, t, n, color]) => (
+          <Link key={z} href={q(null, 'tarjetas', modo, comercial, z)} aria-current={zona === z ? 'page' : undefined}
+            className={`flex min-h-[52px] flex-col items-center justify-center rounded-2xl px-1 text-center text-[12px] font-bold leading-tight transition ${zona === z ? `${color} text-white shadow-sm` : 'bg-white text-carbon ring-1 ring-linea'}`}>
+            <span>{t}</span><span className="text-[11px] font-semibold opacity-80 tabular-nums">{n}</span>
+          </Link>
+        ))}
+      </nav>
+      {aviso && AVISOS[aviso] && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{AVISOS[aviso]}</p>}
+      {ok && OKS[ok] && <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{OKS[ok]}</p>}
+      {zona === 'enviar' && (
+        <section className="space-y-3">
+          <div className="rounded-[22px] bg-noche p-4 text-white">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-oro">Enviar WhatsApp</p>
+            <p className="mt-1 text-sm">Tanda de hoy: <b className={enviosWaHoy >= 15 ? 'text-amber-300' : 'text-emerald-300'}>{enviosWaHoy} / 15</b>. Pulsa «Enviar», manda los 3 mensajes y vuelve: el local pasa solo a Seguimiento.</p>
+          </div>
+          {enviarLista.length === 0 ? (
+            <p className={`${tarjeta} text-sm text-niebla`}>No queda ningún local por enviar en esta cartera.</p>
+          ) : (
+            <ol className="space-y-2">
+              {enviarLista.map((p, i) => <FilaEnviar key={p.id} p={p} n={i + 1} base={base} demo={demos[p.id]} />)}
+            </ol>
+          )}
+        </section>
+      )}
+      {zona === 'ruta' && (
+        <>
+      <section id="ruta" className={tarjeta}>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-xl font-semibold">Ruta de hoy · {ruta.length} {ruta.length === 1 ? 'parada' : 'paradas'}</h2>
+          <span className="text-xs text-ceniza">{fechaCorta(hoy)} · Baza y comarca primero</span>
+        </div>
+        <div className="mt-3">
+          <MapaRuta base={base} ruta={ruta.length > 0} etiqueta={ruta.length ? 'Mapa de la ruta de hoy' : 'Mapa de la cartera'}
+            puntos={(ruta.length ? ruta : enMapa).filter((p) => p.lat != null && p.lng != null).map((p, i) => ({
+              id: p.id, nombre: p.nombre, lat: Number(p.lat), lng: Number(p.lng), orden: ruta.length ? i + 1 : undefined,
+              tono: BARRA[p.estado], detalle: ESTADOS[p.estado],
+            }))} />
+        </div>
+        {ruta.length > 0 && ruta.some((p) => p.lat == null) && (
+          <p className="mt-2 text-xs text-niebla">{ruta.filter((p) => p.lat == null).length} parada(s) sin posición todavía: se sitúan solas al registrar la visita.</p>
+        )}
+        {ruta.length === 0 ? (
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <p className="flex-1 text-sm text-niebla">Sin ruta para hoy. Que la proponga DKitchen (los pendientes más cercanos de Baza y comarca) o planifícala abajo a mano.</p>
+            <form action={proponerRutaAction}><input type="hidden" name="base" value={base} />
+              <button className="w-full rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white sm:w-auto">Proponer ruta de hoy</button>
+            </form>
+          </div>
+        ) : (
+          <>
+            <ol className="mt-4 space-y-2.5">
+              {ruta.map((p, i) => {
+                const abierto = totalVistas(p) > 0;
+                const enviado = p.estado === 'interesado' || p.ultimo_resultado === 'propuesta';
+                return (
+                <li key={p.id} className="rounded-2xl border border-linea">
+                  <details className="group">
+                    <summary className="flex cursor-pointer list-none items-center gap-3 p-3 [&::-webkit-details-marker]:hidden">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino text-sm font-bold text-white">{i + 1}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[15px] font-semibold">{p.nombre}</span>
+                        <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-niebla">
+                          <span className="truncate">{TIPOS[p.tipo]} · {p.barrio || p.zona} · {ESTADOS[p.estado]}</span>
+                          {abierto ? (
+                            <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                              ¡Abrió enlace ({totalVistas(p)}×)!
+                            </span>
+                          ) : enviado ? (
+                            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-800">
+                              ✓ WhatsApp enviado · Listo para visita
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                              Pendiente de enviar WhatsApp
+                            </span>
+                          )}
+                        </span>
+                      </span>
+                      <span className="shrink-0 rounded-full bg-tinta px-4 py-2 text-xs font-semibold text-white group-open:bg-oro group-open:text-noche">Registrar</span>
+                    </summary>
+                    <div className="space-y-3 border-t border-linea p-3">
+                      <AntesDeEntrar p={p} demo={demos[p.id]?.slug} />
+                      <RegistroRapido base={base} id={p.id} canalInicial="fisico" volver="ruta" compacto />
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Link href={`${base}/${p.id}`} className="inline-block text-xs font-semibold text-vino">Abrir la ficha completa →</Link>
+                      </div>
+                    </div>
+                  </details>
+                </li>
+                );
+              })}
+            </ol>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {tramos.map((u, i) => (
+                <a key={u} href={u} target="_blank" rel="noopener noreferrer" className="rounded-full bg-tinta px-5 py-3 text-sm font-semibold text-white">
+                  Abrir en Google Maps{tramos.length > 1 ? ` (tramo ${i + 1})` : ''}
+                </a>
+              ))}
+            </div>
+          </>
+        )}
+        {planificables.length > 0 && (
+          <details className="mt-4">
+            <summary className="cursor-pointer text-sm font-semibold text-vino">Planificar la ruta de hoy</summary>
+            <form action={guardarRutaAction} className="mt-3 space-y-2">
+              <input type="hidden" name="base" value={base} />
+              <p className="text-xs text-niebla">Pon 1, 2, 3… en los que vas a visitar hoy. Vacío = fuera de la ruta.</p>
+              <ul className="divide-y divide-linea rounded-2xl border border-linea">
+                {planificables.map((p) => (
+                  <li key={p.id} className="flex items-center gap-3 px-3 py-2">
+                    <input name={`orden_${p.id}`} inputMode="numeric" pattern="[0-9]*" defaultValue={p.ruta_fecha === hoy ? String(p.ruta_orden ?? '') : ''}
+                      aria-label={`Orden de ${p.nombre}`} className="w-14 rounded-xl border border-linea px-2 py-2 text-center text-[15px]" />
+                    <span className="min-w-0 flex-1 truncate text-sm">{p.nombre}<span className="text-xs text-niebla"> · {p.barrio || p.zona} · {ESTADOS[p.estado]}</span></span>
+                  </li>
+                ))}
+              </ul>
+              <button className="w-full rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white sm:w-auto">Guardar ruta de hoy</button>
+            </form>
+          </details>
+        )}
+      </section>
+      <details id="alta" className={tarjeta} open={lista.length === 0}>
+        <summary className="cursor-pointer text-sm font-semibold">+ Alta rápida (a pie de calle)</summary>
+        <form action={guardarProspectoAction} className="mt-4 grid gap-3 sm:grid-cols-2">
+          <input type="hidden" name="base" value={base} />
+          <input name="nombre" required minLength={2} maxLength={120} placeholder="Nombre del local *" className={`${campo} sm:col-span-2`} />
+          <select name="tipo" defaultValue="restaurante" className={campo}>{Object.entries(TIPOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+          <select name="fuente" defaultValue="visita" className={campo}>{Object.entries(FUENTES).filter(([k]) => k !== 'script').map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+          <label className="text-xs text-niebla">Canal del primer contacto
+            <select name="canal" defaultValue="fisico" className={`${campo} mt-1 text-carbon`}>{(Object.keys(CANALES) as Canal[]).map((k) => <option key={k} value={k}>{CANALES[k]}{k === 'email' ? ' (solo con permiso)' : ''}</option>)}</select>
+          </label>
+          <div className="flex flex-col justify-end gap-1 text-xs text-niebla">
+            <input type="hidden" name="consentimiento_campo" value="1" />
+            <label className="flex items-center gap-2"><input type="checkbox" name="consentimiento" className="h-5 w-5" /> Nos da su consentimiento para escribirle</label>
+            <label className="flex items-center gap-2"><input type="checkbox" name="relacion_previa" className="h-5 w-5" /> Ya hay relación previa</label>
+          </div>
+          <input name="zona" defaultValue="Baza" maxLength={60} placeholder="Zona (pueblo/ciudad)" className={campo} />
+          <input name="barrio" maxLength={60} placeholder="Barrio o calle principal" className={campo} />
+          <input name="direccion" maxLength={200} placeholder="Dirección" className={`${campo} sm:col-span-2`} />
+          <input name="telefono" type="tel" maxLength={30} placeholder="Teléfono del local" className={campo} />
+          <input name="instagram" maxLength={120} placeholder="Instagram (@usuario)" className={campo} />
+          <input name="referido_por" maxLength={120} placeholder="Si es referido: ¿quién?" className={campo} />
+          <label className="text-xs text-niebla">Apertura prevista (si es nuevo)
+            <input name="apertura_prevista" type="date" className={`${campo} mt-1`} />
+          </label>
+          <textarea name="notas" maxLength={2000} rows={3} placeholder="Qué has visto: carta en papel, Glovo, colores, quién atiende…" className={`${campo} sm:col-span-2`} />
+          {central && comerciales && (
+            <select name="comercial_id" defaultValue="" className={`${campo} sm:col-span-2`}>
+              <option value="">Para mi cartera</option>
+              {comerciales.slice(1).map((c) => <option key={c.id} value={c.id}>Para {c.nombre}</option>)}
+            </select>
+          )}
+          <button className="rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white sm:col-span-2 sm:justify-self-start">Dar de alta</button>
+        </form>
+      </details>
+        </>
+      )}
+      {zona === 'seguimiento' && (
+        <>
+        <div className="grid grid-cols-3 gap-2 rounded-2xl border border-indigo-200 bg-indigo-50/60 p-3 text-center">
+          <div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-900">Abrieron</p><p className="font-display text-2xl font-bold text-emerald-800 tabular-nums">{segAbiertos}</p></div>
+          <div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-amber-900">Toca hoy</p><p className="font-display text-2xl font-bold text-amber-800 tabular-nums">{segVencenHoy}</p></div>
+          <div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-grafito">En seguimiento</p><p className="font-display text-2xl font-bold text-carbon tabular-nums">{seguimientoLista.length}</p></div>
+        </div>
+      {tocaHoySeg.length > 0 && (
+        <section className={`${tarjeta} p-0`}>
+          <h2 className="px-5 pt-4 text-sm font-semibold text-vino">Toca llamar o visitar hoy · {tocaHoySeg.length}</h2>
+          <ul className="mt-2 divide-y divide-linea">
+            {tocaHoySeg.map((p) => (
+              <Fila
+                key={p.id}
+                p={p}
+                base={base}
+                central={!!central}
+                seleccionado={seleccionados.includes(p.id)}
+                onToggleSeleccion={central ? toggleSeleccion : undefined}
+              />
+            ))}
+          </ul>
+        </section>
+      )}
+        </>
+      )}
+      {zona === 'cartera' && (
+        <>
       <section className="overflow-hidden rounded-[26px] bg-noche p-5 text-white sm:p-6">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {([['Activos', activos, 'en la cartera'], ['Con demo', conDemo, 'carta montada'], ['Propuestas vistas', vistas, 'han abierto el enlace'], ['Toca hoy', tocaHoy.length, 'o van con retraso']] as const).map(([t, n, sub], i) => (
@@ -385,9 +611,6 @@ export default function CrmLista({
           </span>
         </div>
       </section>
-      {aviso && AVISOS[aviso] && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{AVISOS[aviso]}</p>}
-      {ok && OKS[ok] && <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{OKS[ok]}</p>}
-
       {central && comerciales && (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2 rounded-[22px] border border-linea bg-white p-3">
@@ -538,214 +761,6 @@ export default function CrmLista({
           )}
         </section>
       )}
-
-      <section id="ruta" className={tarjeta}>
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-xl font-semibold">Ruta de hoy · {ruta.length} {ruta.length === 1 ? 'parada' : 'paradas'}</h2>
-          <span className="text-xs text-ceniza">{fechaCorta(hoy)} · Baza y comarca primero</span>
-        </div>
-        <div className="mt-3">
-          <MapaRuta base={base} ruta={ruta.length > 0} etiqueta={ruta.length ? 'Mapa de la ruta de hoy' : 'Mapa de la cartera'}
-            puntos={(ruta.length ? ruta : enMapa).filter((p) => p.lat != null && p.lng != null).map((p, i) => ({
-              id: p.id, nombre: p.nombre, lat: Number(p.lat), lng: Number(p.lng), orden: ruta.length ? i + 1 : undefined,
-              tono: BARRA[p.estado], detalle: ESTADOS[p.estado],
-            }))} />
-        </div>
-        {ruta.length > 0 && ruta.some((p) => p.lat == null) && (
-          <p className="mt-2 text-xs text-niebla">{ruta.filter((p) => p.lat == null).length} parada(s) sin posición todavía: se sitúan solas al registrar la visita.</p>
-        )}
-        {ruta.length === 0 ? (
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-            <p className="flex-1 text-sm text-niebla">Sin ruta para hoy. Que la proponga DKitchen (los pendientes más cercanos de Baza y comarca) o planifícala abajo a mano.</p>
-            <form action={proponerRutaAction}><input type="hidden" name="base" value={base} />
-              <button className="w-full rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white sm:w-auto">Proponer ruta de hoy</button>
-            </form>
-          </div>
-        ) : (
-          <>
-            <ol className="mt-4 space-y-2.5">
-              {ruta.map((p, i) => {
-                const abierto = totalVistas(p) > 0;
-                const enviado = p.estado === 'interesado' || p.ultimo_resultado === 'propuesta';
-                return (
-                <li key={p.id} className="rounded-2xl border border-linea">
-                  <details className="group">
-                    <summary className="flex cursor-pointer list-none items-center gap-3 p-3 [&::-webkit-details-marker]:hidden">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino text-sm font-bold text-white">{i + 1}</span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[15px] font-semibold">{p.nombre}</span>
-                        <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-niebla">
-                          <span className="truncate">{TIPOS[p.tipo]} · {p.barrio || p.zona} · {ESTADOS[p.estado]}</span>
-                          {abierto ? (
-                            <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                              ¡Abrió enlace ({totalVistas(p)}×)!
-                            </span>
-                          ) : enviado ? (
-                            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-800">
-                              ✓ WhatsApp enviado · Listo para visita
-                            </span>
-                          ) : (
-                            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
-                              Pendiente de enviar WhatsApp
-                            </span>
-                          )}
-                        </span>
-                      </span>
-                      <span className="shrink-0 rounded-full bg-tinta px-4 py-2 text-xs font-semibold text-white group-open:bg-oro group-open:text-noche">Registrar</span>
-                    </summary>
-                    <div className="space-y-3 border-t border-linea p-3">
-                      <AntesDeEntrar p={p} demo={demos[p.id]?.slug} />
-                      <RegistroRapido base={base} id={p.id} canalInicial="fisico" volver="ruta" compacto />
-                      <div className="flex flex-wrap items-center gap-3">
-                        <Link
-                          href={`${base}/${p.id}#francotirador`}
-                          className="inline-flex rounded-full bg-emerald-700 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800"
-                        >
-                          {enviado || abierto ? 'Ver WhatsApp / propuesta →' : 'Disparar WhatsApp →'}
-                        </Link>
-                        <Link href={`${base}/${p.id}`} className="inline-block text-xs font-semibold text-vino">Abrir la ficha completa →</Link>
-                      </div>
-                    </div>
-                  </details>
-                </li>
-                );
-              })}
-            </ol>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {tramos.map((u, i) => (
-                <a key={u} href={u} target="_blank" rel="noopener noreferrer" className="rounded-full bg-tinta px-5 py-3 text-sm font-semibold text-white">
-                  Abrir en Google Maps{tramos.length > 1 ? ` (tramo ${i + 1})` : ''}
-                </a>
-              ))}
-            </div>
-          </>
-        )}
-        {planificables.length > 0 && (
-          <details className="mt-4">
-            <summary className="cursor-pointer text-sm font-semibold text-vino">Planificar la ruta de hoy</summary>
-            <form action={guardarRutaAction} className="mt-3 space-y-2">
-              <input type="hidden" name="base" value={base} />
-              <p className="text-xs text-niebla">Pon 1, 2, 3… en los que vas a visitar hoy. Vacío = fuera de la ruta.</p>
-              <ul className="divide-y divide-linea rounded-2xl border border-linea">
-                {planificables.map((p) => (
-                  <li key={p.id} className="flex items-center gap-3 px-3 py-2">
-                    <input name={`orden_${p.id}`} inputMode="numeric" pattern="[0-9]*" defaultValue={p.ruta_fecha === hoy ? String(p.ruta_orden ?? '') : ''}
-                      aria-label={`Orden de ${p.nombre}`} className="w-14 rounded-xl border border-linea px-2 py-2 text-center text-[15px]" />
-                    <span className="min-w-0 flex-1 truncate text-sm">{p.nombre}<span className="text-xs text-niebla"> · {p.barrio || p.zona} · {ESTADOS[p.estado]}</span></span>
-                  </li>
-                ))}
-              </ul>
-              <button className="w-full rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white sm:w-auto">Guardar ruta de hoy</button>
-            </form>
-          </details>
-        )}
-      </section>
-
-      <details id="alta" className={tarjeta} open={lista.length === 0}>
-        <summary className="cursor-pointer text-sm font-semibold">+ Alta rápida (a pie de calle)</summary>
-        <form action={guardarProspectoAction} className="mt-4 grid gap-3 sm:grid-cols-2">
-          <input type="hidden" name="base" value={base} />
-          <input name="nombre" required minLength={2} maxLength={120} placeholder="Nombre del local *" className={`${campo} sm:col-span-2`} />
-          <select name="tipo" defaultValue="restaurante" className={campo}>{Object.entries(TIPOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-          <select name="fuente" defaultValue="visita" className={campo}>{Object.entries(FUENTES).filter(([k]) => k !== 'script').map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-          <label className="text-xs text-niebla">Canal del primer contacto
-            <select name="canal" defaultValue="fisico" className={`${campo} mt-1 text-carbon`}>{(Object.keys(CANALES) as Canal[]).map((k) => <option key={k} value={k}>{CANALES[k]}{k === 'email' ? ' (solo con permiso)' : ''}</option>)}</select>
-          </label>
-          <div className="flex flex-col justify-end gap-1 text-xs text-niebla">
-            <input type="hidden" name="consentimiento_campo" value="1" />
-            <label className="flex items-center gap-2"><input type="checkbox" name="consentimiento" className="h-5 w-5" /> Nos da su consentimiento para escribirle</label>
-            <label className="flex items-center gap-2"><input type="checkbox" name="relacion_previa" className="h-5 w-5" /> Ya hay relación previa</label>
-          </div>
-          <input name="zona" defaultValue="Baza" maxLength={60} placeholder="Zona (pueblo/ciudad)" className={campo} />
-          <input name="barrio" maxLength={60} placeholder="Barrio o calle principal" className={campo} />
-          <input name="direccion" maxLength={200} placeholder="Dirección" className={`${campo} sm:col-span-2`} />
-          <input name="telefono" type="tel" maxLength={30} placeholder="Teléfono del local" className={campo} />
-          <input name="instagram" maxLength={120} placeholder="Instagram (@usuario)" className={campo} />
-          <input name="referido_por" maxLength={120} placeholder="Si es referido: ¿quién?" className={campo} />
-          <label className="text-xs text-niebla">Apertura prevista (si es nuevo)
-            <input name="apertura_prevista" type="date" className={`${campo} mt-1`} />
-          </label>
-          <textarea name="notas" maxLength={2000} rows={3} placeholder="Qué has visto: carta en papel, Glovo, colores, quién atiende…" className={`${campo} sm:col-span-2`} />
-          {central && comerciales && (
-            <select name="comercial_id" defaultValue="" className={`${campo} sm:col-span-2`}>
-              <option value="">Para mi cartera</option>
-              {comerciales.slice(1).map((c) => <option key={c.id} value={c.id}>Para {c.nombre}</option>)}
-            </select>
-          )}
-          <button className="rounded-full bg-vino px-5 py-3 text-sm font-semibold text-white sm:col-span-2 sm:justify-self-start">Dar de alta</button>
-        </form>
-      </details>
-
-
-      {tocaHoy.length > 0 && (
-        <section className={`${tarjeta} p-0`}>
-          <h2 className="px-5 pt-4 text-sm font-semibold text-vino">Toca hoy o va con retraso · {tocaHoy.length}</h2>
-          <ul className="mt-2 divide-y divide-linea">
-            {tocaHoy.map((p) => (
-              <Fila
-                key={p.id}
-                p={p}
-                base={base}
-                central={!!central}
-                seleccionado={seleccionados.includes(p.id)}
-                onToggleSeleccion={central ? toggleSeleccion : undefined}
-              />
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section aria-label="Bandeja de prospección" className="rounded-[22px] border border-linea bg-white p-3.5 sm:p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-vino">Flujo sin colisiones · Bandejas de trabajo</p>
-            <p className="text-xs text-niebla">Al enviar una propuesta por WhatsApp, el local sale automáticamente de «Por enviar» y pasa a «Zona de Seguimiento» (48 h).</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {([
-              ['pendientes', `1. Por enviar (${porEnviarLista.length})`],
-              ['seguimiento', `2. Zona de Seguimiento (${seguimientoLista.length})`],
-              ['todos', `3. Todos activos (${activosLista.length})`],
-            ] as const).map(([k, txt]) => {
-              const activa = !estado && vista !== 'tablero' && bandeja === k;
-              const cls = `rounded-full px-4 py-2 text-xs font-bold transition ${
-                activa
-                  ? k === 'seguimiento'
-                    ? 'bg-emerald-700 text-white shadow-sm'
-                    : 'bg-vino text-white shadow-sm'
-                  : 'bg-papel text-carbon ring-1 ring-linea hover:border-vino'
-              }`;
-              return estado ? (
-                <Link key={k} href={q(null, 'tarjetas')} onClick={() => setBandeja(k)} className={cls}>
-                  {txt}
-                </Link>
-              ) : (
-                <button key={k} type="button" onClick={() => setBandeja(k)} className={cls}>
-                  {txt}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {!estado && vista !== 'tablero' && bandeja === 'seguimiento' && (
-          <div className="grid grid-cols-3 gap-2 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3 text-center">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-900">Abrieron enlace</p>
-              <p className="font-display text-2xl font-bold text-emerald-800 tabular-nums">{segAbiertos}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-amber-900">Toca hoy / vencidos</p>
-              <p className="font-display text-2xl font-bold text-amber-800 tabular-nums">{segVencenHoy}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-grafito">Total seguimiento</p>
-              <p className="font-display text-2xl font-bold text-carbon tabular-nums">{seguimientoLista.length}</p>
-            </div>
-          </div>
-        )}
-      </section>
-
       <div className="flex flex-wrap items-center justify-between gap-3">
         <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Filtrar por estado">
           <Link href={q(null)} className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-semibold ${!estado ? 'bg-tinta text-white' : 'bg-white text-carbon ring-1 ring-linea'}`}>Activos · {activos}</Link>
@@ -760,6 +775,10 @@ export default function CrmLista({
         </div>
       </div>
 
+        </>
+      )}
+      {(zona === 'seguimiento' || zona === 'cartera') && (
+        <>
       {vista === 'tablero' && !estado ? (
         <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0">
           {embudo.map((e) => {
@@ -776,17 +795,8 @@ export default function CrmLista({
       ) : filtrada.length === 0 ? (
         <div className={`${tarjeta} flex flex-wrap items-center justify-between gap-3 text-sm text-niebla`}>
           <span>
-            {!estado && bandeja === 'pendientes'
-              ? 'No quedan locales pendientes en esta cartera: todos los enviados ya están en la Zona de Seguimiento.'
-              : !estado && bandeja === 'seguimiento'
-                ? 'Aún no hay locales en Zona de Seguimiento (aparecen en cuanto dispares un WhatsApp o cuando abran su propuesta).'
-                : 'Nada en esta lista todavía.'}
+            {zona === 'seguimiento' ? 'Aún no hay locales en seguimiento: aparecen en cuanto envías un WhatsApp o abren su propuesta.' : 'Nada en esta lista todavía.'}
           </span>
-          {!estado && bandeja === 'pendientes' && seguimientoLista.length > 0 && (
-            <button type="button" onClick={() => setBandeja('seguimiento')} className="rounded-full bg-emerald-700 px-4 py-2 text-xs font-bold text-white">
-              Ir a Zona de Seguimiento ({seguimientoLista.length}) →
-            </button>
-          )}
         </div>
       ) : (
         <ul className="grid gap-3 md:grid-cols-2">
@@ -803,8 +813,10 @@ export default function CrmLista({
           ))}
         </ul>
       )}
-
-      {/* Barra flotante de acciones por lote (0118): solo Dirección en Central; la base lo exige igualmente */}
+        </>
+      )}
+      {zona === 'cartera' && (
+        <>
       {central && (
       <BarraLote
         seleccionados={seleccionados}
@@ -830,7 +842,6 @@ export default function CrmLista({
         cargando={cargandoLote}
       />
       )}
-
       <details className={tarjeta} open={!contacto}>
         <summary className="cursor-pointer text-sm font-semibold">Mis datos para la propuesta{contacto ? ` · ${contacto.nombre_publico}` : ' (pendiente)'}</summary>
         <form action={guardarMiContactoAction} className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -840,7 +851,6 @@ export default function CrmLista({
           <button className="rounded-full bg-tinta px-5 py-3 text-sm font-semibold text-white sm:justify-self-start">Guardar</button>
         </form>
       </details>
-
       {central && metricas && metricas.length > 0 && (
         <section className={tarjeta}>
           <h2 className="text-sm font-semibold">Conversión por comercial</h2>
@@ -859,6 +869,8 @@ export default function CrmLista({
             </table>
           </div>
         </section>
+      )}
+        </>
       )}
     </div>
   );
