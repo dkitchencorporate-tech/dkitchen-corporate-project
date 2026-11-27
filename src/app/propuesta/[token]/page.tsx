@@ -113,6 +113,7 @@ export default async function PropuestaPublica({
   const premium = PREMIUM[p.oferta];
   const qr = await QRCode.toDataURL(esSignature ? demosSignatureUrl : (muestra || alta), { width: 320, margin: 1 });
   const wa = enlaceWhatsapp(p.telefono);
+  const nombreComercial = (p.comercial || '').split('·')[0].trim() || p.comercial;
   const colorDemo = p.demo_color || '#6E0C2B';
   const platosMuestra = Array.isArray(p.demo_platos) ? p.demo_platos.slice(0, 3) : [];
 
@@ -128,8 +129,8 @@ export default async function PropuestaPublica({
         </header>
 
         <div className="rounded-2xl border-l-4 border-vino bg-papel/60 p-4 text-[15px] leading-relaxed text-carbon/90">
-          <p>Gracias por dedicarle un par de minutos. Soy {p.comercial}, consultor de DKitchen: trabajamos con bares y restaurantes de {p.zona} y la comarca.</p>
-          <p className="mt-2">Antes de escribirles hemos mirado {p.nombre} como lo haría un cliente: su ficha de Google, sus reseñas y su carta. Lo que verán aquí está preparado para su local, no es una plantilla. Sin compromiso: si algo no encaja, nos lo dicen y lo ajustamos.</p>
+          <p>Gracias por dedicarnos un par de minutos. Mi nombre es {nombreComercial} y soy consultor de DKitchen Corporate. Acompañamos a bares y restaurantes de {p.zona} y su comarca a dar el salto digital sin perder su esencia.</p>
+          <p className="mt-2">Antes de escribirles, hemos mirado {p.nombre} con los ojos de un cliente: su ficha de Google, sus reseñas y su carta. Lo que encontrarán en esta página está pensado para su local, no es una plantilla. Y sin ningún compromiso: si algo no encaja, nos lo dicen y lo ajustamos.</p>
         </div>
 
         {p.texto && <p className="whitespace-pre-line text-[15px] leading-relaxed text-carbon/90">{p.texto}</p>}
@@ -267,8 +268,8 @@ export default async function PropuestaPublica({
 
         {/* 27/11 (Alex): zona 1 de decisión = elegir plan de Carta QR (o Signature si la propuesta es Signature). */}
         <section className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">Paso 1 · Elegir cómo empezar</p>
-          <h2 className="font-display text-2xl font-semibold leading-tight">{esSignature ? 'La app propia del local: DKitchen Signature' : 'Carta QR: tres planes según el tamaño del local'}</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">{esSignature ? 'Lo que proponemos' : 'Nivel 1 · Carta QR · digitalizar el local en días'}</p>
+          <h2 className="font-display text-2xl font-semibold leading-tight">{esSignature ? 'La app propia del local: DKitchen Signature' : 'La Carta QR: el local, digital desde la primera semana'}</h2>
           {esSignature ? (
             <>
               <p className="text-[15px]">
@@ -290,7 +291,7 @@ export default async function PropuestaPublica({
               {premium ? (
                 <p className="text-[15px]">Para un local así encaja <span className="font-semibold">{premium.nombre}</span>: lo explicamos en una llamada de 15 minutos y damos el precio cerrado. Mientras tanto, se puede empezar con la Carta QR.</p>
               ) : (
-                <p className="text-[15px]">La Carta QR es un servicio mensual, sin permanencia: la carta con fotos y alérgenos, el aviso al camarero, las reservas y la conexión con el TPV, con límites según el plan. <span className="font-semibold">El plan {ampliado.nombre} cuesta {eur(QR_MENU.primerMes)} + IVA el primer mes</span> y después {eur(ampliado.mensual)} al mes + IVA. Si en 30 días no convence, devolvemos ese euro y el local se queda con su carta en PDF.</p>
+                <p className="text-[15px]">La Carta QR es la forma más rápida de modernizar el servicio. El cliente escanea el código de la mesa y ve la carta con fotos, alérgenos y en otros idiomas; desde ahí llama al camarero, pide la cuenta y, en los planes {ampliado.nombre} y {sala.nombre}, hace su pedido, que el camarero confirma con un toque. Incluye reservas, conexión con el TPV y un panel para cambiar platos y precios desde el móvil. Es un servicio mensual de DKitchen, sin permanencia, y cada plan tiene sus límites de platos, mesas y comandas. <span className="font-semibold">El plan {ampliado.nombre} cuesta {eur(QR_MENU.primerMes)} + IVA el primer mes</span> y después {eur(ampliado.mensual)} al mes + IVA. Si en 30 días no convence, devolvemos ese euro y el local se queda con su carta en PDF.</p>
               )}
               <ul className="grid gap-2.5 text-sm sm:grid-cols-3">
                 {[basico, ampliado, sala].map((pl) => (
@@ -317,11 +318,40 @@ export default async function PropuestaPublica({
           </div>
         </section>
 
+        {/* 27/11 v6 (Alex): salto de descubrimiento hacia el siguiente nivel. */}
+        <section className="overflow-hidden rounded-[24px] bg-noche p-5 text-white sm:p-7">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-oro">{esSignature ? 'Por qué Signature' : 'Nivel 2 · ¿Su negocio pide algo más?'}</p>
+          <h2 className="mt-2 font-display text-2xl font-semibold leading-tight sm:text-3xl">Cuando el local crece, necesita algo que sea suyo: su propia app.</h2>
+          <p className="mt-3 text-[15px] leading-relaxed text-white/80">Hay negocios a los que una carta en la mesa se les queda corta: venden para llevar, reparten a domicilio, quieren que sus clientes vuelvan o están cansados de pagar comisiones por cada pedido. Para ellos existe <span className="font-semibold text-white">DKitchen Signature</span>.</p>
+          <div className="mt-4 grid gap-3 text-[14px] sm:grid-cols-2">
+            <div className="rounded-2xl bg-white/[0.06] p-4 ring-1 ring-white/10"><p className="font-semibold text-oro">Es del local, para siempre</p><p className="mt-1 text-white/75">Una app instalable en el móvil de sus clientes, con su marca, su dominio y sus datos. No se alquila: se paga una vez y es suya.</p></div>
+            <div className="rounded-2xl bg-white/[0.06] p-4 ring-1 ring-white/10"><p className="font-semibold text-oro">Pedidos en mesa, para recoger y a domicilio</p><p className="mt-1 text-white/75">Todo en un mismo sitio, sin límites de platos, mesas ni comandas y con un 0 % de comisión por pedido.</p></div>
+            <div className="rounded-2xl bg-white/[0.06] p-4 ring-1 ring-white/10"><p className="font-semibold text-oro">El dinero, directo a su cuenta</p><p className="mt-1 text-white/75">El cliente paga en la app y el importe entra en la cuenta del local (Stripe, SumUp, Revolut o Redsys). Sin intermediarios.</p></div>
+            <div className="rounded-2xl bg-white/[0.06] p-4 ring-1 ring-white/10"><p className="font-semibold text-oro">Clientes que vuelven</p><p className="mt-1 text-white/75">Club VIP de puntos propio y pantalla de cocina para que cada comanda llegue ordenada, incluso en las horas punta.</p></div>
+          </div>
+          <p className="mt-5 text-sm font-semibold text-white">Pruébenlo como un cliente más: tres apps de nuestras propias marcas, funcionando.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {DEMOS_PWA_PROPIAS.map((d) => (
+              <a key={d.nombre} href={d.url} target="_blank" rel="noopener noreferrer" className="group overflow-hidden rounded-2xl border border-white/15 bg-white/[0.05] transition hover:border-oro">
+                <div className="relative aspect-[16/10] overflow-hidden bg-black/40">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={d.imagen} alt={`App demo ${d.nombre}`} className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-[1.03]" />
+                </div>
+                <div className="p-3">
+                  <p className="text-[11px] uppercase tracking-[0.12em] text-oro">{d.sector}</p>
+                  <p className="mt-0.5 font-display text-sm font-semibold text-white">{d.nombre}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+          <a href={`${SITIO}/signature?${utm}`} className="mt-4 inline-flex items-center justify-center rounded-full bg-oro px-5 py-3 text-sm font-semibold text-noche print:hidden">Conocer Signature a fondo</a>
+        </section>
+
         {/* 27/11 (Alex): QR frente a Signature, explicado antes de la zona Fundador. */}
         <section className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">Paso 2 · La diferencia, en claro</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">Comparativa · Carta QR o Signature</p>
           <h2 className="font-display text-2xl font-semibold leading-tight">Carta QR o app propia: las dos reciben pedidos</h2>
-          <p className="text-[15px] text-carbon/90">La diferencia no está en si el cliente puede pedir, sino en de quién es la herramienta y hasta dónde llega.</p>
+          <p className="text-[15px] text-carbon/90">Con las dos el cliente puede pedir. La diferencia está en de quién es la herramienta y hasta dónde llega: la Carta QR es un servicio que se paga cada mes; Signature es un activo del propio negocio.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl p-4 ring-1 ring-linea">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-niebla">Carta QR · servicio mensual</p>
@@ -351,7 +381,7 @@ export default async function PropuestaPublica({
         {conFundador && (
           <section className="space-y-4 rounded-[24px] bg-gradient-to-br from-vino to-noche p-5 text-white sm:p-7">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-oro">Paso 3 · Plazas Fundador · {quedanTexto}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-oro">Plazas Fundador · {quedanTexto}</p>
               <h2 className="mt-1 font-display text-2xl font-semibold leading-tight sm:text-3xl">Hacerse Fundador: el mejor precio, para los primeros locales</h2>
               <p className="mt-2 text-sm text-white/80">Fundador no es otro producto: es el precio de lanzamiento para los primeros {FUNDADOR.plazas} locales que confían en DKitchen, hasta el 10/01 o hasta completar plazas. Se puede ser Fundador en la Carta QR o en Signature (las plazas son compartidas).</p>
             </div>
