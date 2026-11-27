@@ -275,7 +275,7 @@ export default function FrancotiradorWhatsapp({
       {telWa && !bloqueado && !numeroMal && (
         <div className={`mt-3 rounded-2xl border px-3.5 py-3 text-xs ${verificado ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-300 bg-amber-50 text-amber-950'}`}>
           {verificado ? (
-            <p className="font-semibold">✓ Perfil comprobado: el número es del local.</p>
+            <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-semibold">✓ Perfil comprobado: el número es del local.</p><button type="button" onClick={() => { sessionStorage.removeItem(claveVerif); setVerificado(false); }} className="inline-flex min-h-[32px] items-center rounded-full bg-white px-3 text-[11px] font-bold text-emerald-900 ring-1 ring-emerald-300 hover:ring-emerald-700">Deshacer</button></div>
           ) : (
             <>
               <p className="font-bold">Paso 0 · Comprueba que el número es del local</p>
