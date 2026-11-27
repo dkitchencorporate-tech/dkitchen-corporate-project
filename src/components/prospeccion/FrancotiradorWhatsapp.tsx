@@ -226,6 +226,7 @@ export default function FrancotiradorWhatsapp({
       {yaEnviado && (
         <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
           A este local ya se le escribió el {enviadoCuando}. No lo repitas: toca llamada o visita.
+          <Link href={`${base}?zona=enviar`} className="mt-2 flex min-h-[38px] w-fit items-center rounded-full bg-tinta px-4 py-1.5 text-xs font-bold text-white hover:bg-vino">← Siguiente local por enviar</Link>
         </p>
       )}
       {!telWa && (

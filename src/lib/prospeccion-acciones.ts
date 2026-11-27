@@ -506,7 +506,8 @@ export async function registrarEnvioWhatsappFrancotiradorAction(d: {
     const jwt = await obtenerJwtDeSesion().catch(() => null);
     if (!jwt) return { ok: false, error: 'Sesión caducada.' };
     if (!UUID.test(d?.prospectoId ?? '')) return { ok: false, error: 'Prospecto no válido.' };
-    const texto = String(d.texto ?? '').trim().slice(0, 1500);
+    // 27/11: en el historial, las burbujas (---) se guardan como párrafos.
+    const texto = String(d.texto ?? '').replace(/\n[ \t]*-{3,}[ \t]*\n/g, '\n\n').trim().slice(0, 1500);
     if (!texto) return { ok: false, error: 'Escribe el mensaje antes de registrar el envío.' };
 
     const enviosHoy = await comoCliente(jwt, async (c) => {
