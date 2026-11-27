@@ -1,6 +1,6 @@
 import 'server-only';
 import { comoCliente } from '@/lib/db';
-import type { EstadoIdea, IdeaContenido, PublicoIdea, RedIdea, ServicioIdea } from '@/lib/ideas-contenido-tipos';
+import type { EstadoIdea, IdeaContenido, LineaContenido, PublicoIdea, RedIdea, ServicioIdea } from '@/lib/ideas-contenido-tipos';
 
 export * from '@/lib/ideas-contenido-tipos';
 
@@ -36,6 +36,8 @@ export async function listarIdeas(jwt: string): Promise<IdeaContenido[]> {
       guardados: num(r.guardados),
       comentarios: num(r.comentarios),
       aprendizaje: r.aprendizaje,
+      lineaEditorial: r.linea_editorial ?? null,
+      lineaCreativa: r.linea_creativa ?? null,
       creadoEn: new Date(r.creado_en).toISOString(),
       actualizadoEn: new Date(r.actualizado_en).toISOString(),
     })),
@@ -54,4 +56,29 @@ export async function cambiarEstadoIdea(jwt: string, id: string, estado: EstadoI
 
 export async function guardarIdea(jwt: string, id: string, campos: Record<string, string>): Promise<void> {
   await comoCliente(jwt, (c) => c.query('SELECT dk.ideas_guardar($1, $2::jsonb)', [id, JSON.stringify(campos)]));
+}
+
+export async function listarLineas(jwt: string): Promise<LineaContenido[]> {
+  return comoCliente(jwt, async (c) =>
+    (await c.query('SELECT * FROM dk.lineas_listar()')).rows.map((r) => ({
+      codigo: r.codigo,
+      tipo: r.tipo,
+      nombre: r.nombre,
+      paraQue: r.para_que,
+      como: r.como,
+      quien: r.quien,
+      herramienta: r.herramienta,
+      etiquetaIa: r.etiqueta_ia,
+      referencias: r.referencias,
+      estado: r.estado,
+      piezas: Number(r.piezas),
+      publicadas: Number(r.publicadas),
+      retencionMedia: r.retencion_media == null ? null : Number(r.retencion_media),
+      compartidos: Number(r.compartidos),
+    })),
+  );
+}
+
+export async function guardarLineasIdea(jwt: string, id: string, editorial: string | null, creativa: string | null): Promise<void> {
+  await comoCliente(jwt, (c) => c.query('SELECT dk.ideas_lineas($1, $2, $3)', [id, editorial, creativa]));
 }

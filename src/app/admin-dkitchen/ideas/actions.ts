@@ -5,11 +5,11 @@ import { revalidatePath } from 'next/cache';
 import { exigirAdmin } from '@/lib/guard-admin';
 import { esComercialActual } from '@/lib/rol-central';
 import { ESTADOS_IDEA, PUBLICOS_IDEA, REDES_IDEA, SERVICIOS_IDEA, type EstadoIdea, type PublicoIdea, type RedIdea, type ServicioIdea } from '@/lib/ideas-contenido-tipos';
-import { cambiarEstadoIdea, crearIdea, guardarIdea } from '@/lib/ideas-contenido';
+import { cambiarEstadoIdea, crearIdea, guardarIdea, guardarLineasIdea } from '@/lib/ideas-contenido';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const RUTA = '/admin-dkitchen/ideas';
-const ZONAS = ['ideas', 'aprobar', 'plan', 'medicion'];
+const ZONAS = ['ideas', 'aprobar', 'plan', 'medicion', 'lineas'];
 
 async function direccion(): Promise<string> {
   const jwt = await exigirAdmin();
@@ -48,8 +48,8 @@ export async function estadoIdeaAction(f: FormData) {
   if (!UUID.test(id) || !(estado in ESTADOS_IDEA)) redirect(`${RUTA}?zona=${zona}&e=datos`);
   try {
     await cambiarEstadoIdea(jwt, id, estado as EstadoIdea, nota);
-  } catch {
-    redirect(`${RUTA}?zona=${zona}&e=base`);
+  } catch (e) {
+    redirect(`${RUTA}?zona=${zona}&e=${/faltan las l/i.test(e instanceof Error ? e.message : '') ? 'lineas' : 'base'}#i-${id}`);
   }
   revalidatePath(RUTA);
   redirect(`${RUTA}?zona=${zona}&ok=${estado}`);
@@ -83,4 +83,20 @@ export async function guardarIdeaAction(f: FormData) {
   }
   revalidatePath(RUTA);
   redirect(`${RUTA}?zona=${zona}&ok=guardada#i-${id}`);
+}
+
+export async function lineasIdeaAction(f: FormData) {
+  const jwt = await direccion();
+  const id = String(f.get('id') ?? '');
+  const zona = zonaDe(f);
+  const ed = String(f.get('linea_editorial') ?? '');
+  const cr = String(f.get('linea_creativa') ?? '');
+  if (!UUID.test(id) || (ed && !/^E\d{1,2}$/.test(ed)) || (cr && !/^C\d{1,2}$/.test(cr))) redirect(`${RUTA}?zona=${zona}&e=datos`);
+  try {
+    await guardarLineasIdea(jwt, id, ed || null, cr || null);
+  } catch {
+    redirect(`${RUTA}?zona=${zona}&e=base`);
+  }
+  revalidatePath(RUTA);
+  redirect(`${RUTA}?zona=${zona}&ok=lineas#i-${id}`);
 }

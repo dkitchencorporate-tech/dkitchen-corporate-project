@@ -4,6 +4,28 @@ export type PublicoIdea = 'dueno' | 'emprendedor' | 'empleado' | 'cliente_final'
 export type ServicioIdea = 'signature' | 'experience' | 'qr' | 'auditoria' | 'general';
 export type RedIdea = 'tiktok' | 'instagram' | 'facebook' | 'todas';
 export type ZonaIdeas = 'ideas' | 'aprobar' | 'plan' | 'medicion';
+export type ZonaIdeasVista = ZonaIdeas | 'lineas';
+
+/** Catálogo de líneas editoriales (E) y creativas (C), 0126. */
+export interface LineaContenido {
+  codigo: string;
+  tipo: 'editorial' | 'creativa';
+  nombre: string;
+  paraQue: string;
+  como: string | null;
+  quien: 'claude' | 'mixto' | 'herramienta';
+  herramienta: string | null;
+  etiquetaIa: 'no' | 'si' | 'segun';
+  referencias: string | null;
+  estado: 'activa' | 'en_prueba' | 'pausada';
+  piezas: number;
+  publicadas: number;
+  retencionMedia: number | null;
+  compartidos: number;
+}
+export const QUIEN_LINEA = { claude: 'Agente DK al 100 %', mixto: 'Mixto: clips de Alex en Flow + montaje de Agente DK', herramienta: 'Herramienta externa (API)' } as const;
+export const ESTADO_LINEA = { activa: { nombre: 'Activa', chip: 'bg-exito/15 text-exito' }, en_prueba: { nombre: 'En prueba', chip: 'bg-amber-500/15 text-amber-800' }, pausada: { nombre: 'Pausada', chip: 'bg-papel text-ceniza' } } as const;
+export const ETIQUETA_IA = { no: 'Sin etiqueta IA', si: 'Lleva etiqueta IA', segun: 'Etiqueta IA si hay personas realistas' } as const;
 
 export interface IdeaContenido {
   id: string;
@@ -27,6 +49,8 @@ export interface IdeaContenido {
   guardados: number | null;
   comentarios: number | null;
   aprendizaje: string | null;
+  lineaEditorial: string | null;
+  lineaCreativa: string | null;
   creadoEn: string;
   actualizadoEn: string;
 }

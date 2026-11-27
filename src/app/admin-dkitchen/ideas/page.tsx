@@ -5,6 +5,12 @@ import { esComercialActual } from '@/lib/rol-central';
 import GuiaZona from '@/components/admin/GuiaZona';
 import {
   listarIdeas,
+  listarLineas,
+  ESTADO_LINEA,
+  QUIEN_LINEA,
+  ETIQUETA_IA,
+  type LineaContenido,
+  type ZonaIdeasVista,
   ESTADOS_IDEA,
   PUBLICOS_IDEA,
   REDES_IDEA,
@@ -13,7 +19,7 @@ import {
   type IdeaContenido,
   type ZonaIdeas,
 } from '@/lib/ideas-contenido';
-import { crearIdeaAction, estadoIdeaAction, guardarIdeaAction } from './actions';
+import { crearIdeaAction, estadoIdeaAction, guardarIdeaAction, lineasIdeaAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +33,7 @@ const OK: Record<string, string> = {
   programada: 'Marcada como programada.',
   publicada: 'Marcada como publicada: ya cuenta en Medición.',
   propuesta: 'Vuelve a «Por aprobar».',
+  lineas: 'Líneas guardadas.',
 };
 const ERR: Record<string, string> = {
   titulo: 'Escribe un título corto (2 a 160 caracteres).',
@@ -35,6 +42,7 @@ const ERR: Record<string, string> = {
   enlace: 'El enlace tiene que empezar por https://',
   muchas: 'Demasiadas ideas en una hora. Espera un poco.',
   base: 'No se pudo guardar en la base. Inténtalo de nuevo.',
+  lineas: 'Antes de aprobar, elige la línea editorial y la línea creativa de la ficha.',
 };
 
 const fechaCorta = (iso: string | null) =>
@@ -57,7 +65,7 @@ function Chips({ i }: { i: IdeaContenido }) {
   );
 }
 
-function BotonEstado({ i, zona, estado, texto, clase, nota }: { i: IdeaContenido; zona: ZonaIdeas; estado: string; texto: string; clase: string; nota?: boolean }) {
+function BotonEstado({ i, zona, estado, texto, clase, nota }: { i: IdeaContenido; zona: ZonaIdeasVista; estado: string; texto: string; clase: string; nota?: boolean }) {
   if (nota) {
     return (
       <details className="w-full">
@@ -82,7 +90,7 @@ function BotonEstado({ i, zona, estado, texto, clase, nota }: { i: IdeaContenido
   );
 }
 
-function Editar({ i, zona }: { i: IdeaContenido; zona: ZonaIdeas }) {
+function Editar({ i, zona }: { i: IdeaContenido; zona: ZonaIdeasVista }) {
   const t = (n: string, l: string, v: string | number | null, extra?: string) => (
     <label className="block text-xs font-semibold text-grafito">{l}
       <input name={n} defaultValue={v ?? ''} className={campo} {...(extra === 'fecha' ? { type: 'date' } : extra === 'num' ? { inputMode: 'decimal' as const } : {})} />
@@ -120,7 +128,7 @@ function Editar({ i, zona }: { i: IdeaContenido; zona: ZonaIdeas }) {
   );
 }
 
-function Medir({ i, zona }: { i: IdeaContenido; zona: ZonaIdeas }) {
+function Medir({ i, zona }: { i: IdeaContenido; zona: ZonaIdeasVista }) {
   const n = (k: string, l: string, v: number | null) => (
     <label className="block text-xs font-semibold text-grafito">{l}<input name={k} defaultValue={v ?? ''} inputMode="decimal" className={campo} /></label>
   );
@@ -141,7 +149,69 @@ function Medir({ i, zona }: { i: IdeaContenido; zona: ZonaIdeas }) {
   );
 }
 
-function Tarjeta({ i, zona }: { i: IdeaContenido; zona: ZonaIdeas }) {
+function Lineas({ i, zona, lineas }: { i: IdeaContenido; zona: ZonaIdeasVista; lineas: LineaContenido[] }) {
+  const nombre = (c: string) => `${c} · ${lineas.find((l) => l.codigo === c)?.nombre ?? ''}`;
+  const op = (tipo: 'editorial' | 'creativa') => lineas.filter((l) => l.tipo === tipo);
+  const falta = !i.lineaEditorial || !i.lineaCreativa;
+  return (
+    <form action={lineasIdeaAction} className={`mt-4 grid gap-2 rounded-2xl p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end ${falta ? 'bg-amber-500/10 ring-1 ring-amber-500/30' : 'bg-papel/60'}`}>
+      <input type="hidden" name="id" value={i.id} />
+      <input type="hidden" name="zona" value={zona} />
+      <label className="block text-xs font-semibold text-grafito">Línea editorial (qué contamos)
+        <select name="linea_editorial" defaultValue={i.lineaEditorial ?? ''} className={campo}>
+          <option value="">Sin elegir</option>
+          {op('editorial').map((l) => <option key={l.codigo} value={l.codigo}>{nombre(l.codigo)}</option>)}
+        </select>
+      </label>
+      <label className="block text-xs font-semibold text-grafito">Línea creativa (cómo se ve)
+        <select name="linea_creativa" defaultValue={i.lineaCreativa ?? ''} className={campo}>
+          <option value="">Sin elegir</option>
+          {op('creativa').map((l) => <option key={l.codigo} value={l.codigo}>{nombre(l.codigo)}{l.estado !== 'activa' ? ` (${ESTADO_LINEA[l.estado].nombre.toLowerCase()})` : ''}</option>)}
+        </select>
+      </label>
+      <button className={`${boton} bg-noche text-white`}>Guardar líneas</button>
+      {falta && <p className="text-xs text-amber-800 sm:col-span-3">Elige las dos líneas: sin ellas no se puede aprobar.</p>}
+    </form>
+  );
+}
+
+function VistaLineas({ lineas }: { lineas: LineaContenido[] }) {
+  const bloque = (tipo: 'editorial' | 'creativa', titulo: string, sub: string) => (
+    <section className="space-y-3">
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-vino">{titulo}</h2>
+        <p className="mt-1 text-sm text-grafito">{sub}</p>
+      </div>
+      <ul className="grid gap-4 md:grid-cols-2">
+        {lineas.filter((l) => l.tipo === tipo).map((l) => (
+          <li key={l.codigo} className="rounded-[22px] border border-linea bg-white p-5">
+            <div className="flex items-start justify-between gap-3">
+              <p className="font-display text-lg font-semibold"><span className="mr-2 text-vino">{l.codigo}</span>{l.nombre}</p>
+              <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${ESTADO_LINEA[l.estado].chip}`}>{ESTADO_LINEA[l.estado].nombre}</span>
+            </div>
+            <p className="mt-2 text-sm text-carbon">{l.paraQue}</p>
+            {l.como && <p className="mt-2 text-sm text-grafito"><b>Cómo:</b> {l.como}</p>}
+            {tipo === 'creativa' && (
+              <p className="mt-2 text-xs text-grafito">{QUIEN_LINEA[l.quien]}{l.herramienta ? ` · ${l.herramienta}` : ''} · {ETIQUETA_IA[l.etiquetaIa]}</p>
+            )}
+            {l.referencias && <p className="mt-2 text-xs text-ceniza">Referencia: {l.referencias}</p>}
+            <p className="mt-3 rounded-xl bg-papel px-3 py-2 text-xs text-carbon">
+              {l.piezas} fichas · {l.publicadas} publicadas · retención media <b>{l.retencionMedia == null ? '—' : `${l.retencionMedia} s`}</b> · {l.compartidos} compartidos
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+  return (
+    <div className="space-y-8">
+      {bloque('editorial', 'Líneas editoriales', 'Qué contamos. Cada ficha elige una.')}
+      {bloque('creativa', 'Líneas creativas', 'Cómo se ve. Cada ficha elige una; la retención media dice cuál funciona.')}
+    </div>
+  );
+}
+
+function Tarjeta({ i, zona, lineas }: { i: IdeaContenido; zona: ZonaIdeasVista; lineas: LineaContenido[] }) {
   return (
     <li id={`i-${i.id}`} className="rounded-[22px] border border-linea bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -188,6 +258,7 @@ function Tarjeta({ i, zona }: { i: IdeaContenido; zona: ZonaIdeas }) {
         {i.estado === 'descartada' && <BotonEstado i={i} zona={zona} estado="idea" texto="Recuperar" clase="bg-papel text-carbon" />}
         {i.estado !== 'descartada' && i.estado !== 'publicada' && <BotonEstado i={i} zona={zona} estado="descartada" texto="Descartar" clase="bg-white text-ceniza ring-1 ring-linea" />}
       </div>
+      {i.estado !== 'descartada' && <Lineas i={i} zona={zona} lineas={lineas} />}
       {i.estado === 'publicada' && <Medir i={i} zona={zona} />}
       <Editar i={i} zona={zona} />
     </li>
@@ -209,10 +280,10 @@ export default async function IdeasContenidoPage({ searchParams }: { searchParam
   const jwt = await exigirAdmin();
   if (await esComercialActual(jwt)) redirect('/admin-dkitchen/inicio');
   const sp = await searchParams;
-  const zona = ((Object.keys(ZONAS_IDEAS) as ZonaIdeas[]).find((z) => z === sp.zona) ?? 'ideas') as ZonaIdeas;
-  const todas = await listarIdeas(jwt).catch(() => [] as IdeaContenido[]);
+  const zona: ZonaIdeasVista = sp.zona === 'lineas' ? 'lineas' : ((Object.keys(ZONAS_IDEAS) as ZonaIdeas[]).find((z) => z === sp.zona) ?? 'ideas');
+  const [todas, lineas] = await Promise.all([listarIdeas(jwt).catch(() => [] as IdeaContenido[]), listarLineas(jwt).catch(() => [] as LineaContenido[])]);
   const de = (z: ZonaIdeas) => todas.filter((i) => ZONAS_IDEAS[z].estados.includes(i.estado));
-  const lista = de(zona);
+  const lista = zona === 'lineas' ? [] : de(zona);
   const descartadas = todas.filter((i) => i.estado === 'descartada');
   const publicadas = de('medicion');
   const conRet = publicadas.filter((i) => i.retencionSeg != null);
@@ -245,6 +316,7 @@ export default async function IdeasContenidoPage({ searchParams }: { searchParam
         pasos={[
           'Escribe la idea tal cual se te ocurra en el recuadro de arriba y pulsa «Guardar idea».',
           'Agente DK la convierte en propuesta (guion, escenas y texto) y la deja en «Por aprobar».',
+          'En cada ficha se eligen la línea editorial (qué contamos) y la creativa (cómo se ve). El catálogo está en la pestaña Líneas.',
           'Pulsa «Aprobar» o «Pedir cambios» (con tu nota). Lo aprobado pasa a Planificación con su fecha.',
           'Cuando se publica, Agente DK apunta vistas, retención y compartidos en Medición y anota qué aprendemos.',
         ]}
@@ -260,6 +332,9 @@ export default async function IdeasContenidoPage({ searchParams }: { searchParam
             {ZONAS_IDEAS[z].nombre} <span className="opacity-70">{de(z).length}</span>
           </Link>
         ))}
+        <Link href="/admin-dkitchen/ideas?zona=lineas" className={`${boton} ${zona === 'lineas' ? 'bg-vino text-white' : 'bg-white text-carbon ring-1 ring-linea'}`}>
+          Líneas <span className="opacity-70">{lineas.length}</span>
+        </Link>
       </nav>
 
       {zona === 'ideas' && (
@@ -283,15 +358,17 @@ export default async function IdeasContenidoPage({ searchParams }: { searchParam
         </p>
       )}
 
-      {lista.length === 0 ? (
+      {zona === 'lineas' ? (
+        <VistaLineas lineas={lineas} />
+      ) : lista.length === 0 ? (
         <p className="rounded-[22px] bg-white p-6 text-sm text-niebla ring-1 ring-linea">Nada en esta pestaña todavía.</p>
       ) : zona === 'plan' ? (
-        <ul className="space-y-4">{lista.map((i) => <Tarjeta key={i.id} i={i} zona={zona} />)}</ul>
+        <ul className="space-y-4">{lista.map((i) => <Tarjeta key={i.id} i={i} zona={zona} lineas={lineas} />)}</ul>
       ) : (
         porSerie(lista).map(([serie, filas]) => (
           <section key={serie} className="space-y-3">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-vino">{serie} <span className="text-ceniza">{filas.length}</span></h2>
-            <ul className="space-y-4">{filas.map((i) => <Tarjeta key={i.id} i={i} zona={zona} />)}</ul>
+            <ul className="space-y-4">{filas.map((i) => <Tarjeta key={i.id} i={i} zona={zona} lineas={lineas} />)}</ul>
           </section>
         ))
       )}
@@ -299,7 +376,7 @@ export default async function IdeasContenidoPage({ searchParams }: { searchParam
       {zona === 'ideas' && descartadas.length > 0 && (
         <details className="rounded-[22px] bg-white p-5 ring-1 ring-linea">
           <summary className="cursor-pointer text-sm font-semibold text-grafito">Descartadas ({descartadas.length})</summary>
-          <ul className="mt-4 space-y-4">{descartadas.map((i) => <Tarjeta key={i.id} i={i} zona={zona} />)}</ul>
+          <ul className="mt-4 space-y-4">{descartadas.map((i) => <Tarjeta key={i.id} i={i} zona={zona} lineas={lineas} />)}</ul>
         </details>
       )}
     </div>
