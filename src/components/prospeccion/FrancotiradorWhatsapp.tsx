@@ -104,6 +104,16 @@ export default function FrancotiradorWhatsapp({
   // 27/11 (Alex): abrir NO es enviar. Las partes se pueden abrir siempre, en cualquier orden y
   // las veces que haga falta; solo cuenta como enviado cuando Alex pulsa «Ya los envié».
   const bloqueado = Boolean(enviadoCuando) || noContactar;
+  // 27/11: el estado real vive en la base. Al volver a la pestaña (p. ej. tras enviar desde el
+  // móvil) se recarga la ficha, así el PC y el móvil ven lo mismo sin tocar nada.
+  useEffect(() => {
+    const alVolver = () => { if (document.visibilityState === 'visible') router.refresh(); };
+    document.addEventListener('visibilitychange', alVolver);
+    window.addEventListener('focus', alVolver);
+    const t = window.setInterval(alVolver, 30000);
+    return () => { document.removeEventListener('visibilitychange', alVolver); window.removeEventListener('focus', alVolver); window.clearInterval(t); };
+  }, [router]);
+  useEffect(() => { setEnviadoCuando(ultimoEnvioWhatsapp); }, [ultimoEnvioWhatsapp]);
   const abrirParte = (i: number) => {
     if (!telWa || bloqueado) return;
     window.open(`https://wa.me/${telWa}?text=${encodeURIComponent(partes[i])}`, '_blank', 'noopener,noreferrer');
@@ -293,15 +303,13 @@ export default function FrancotiradorWhatsapp({
       {telWa && !bloqueado && (
         <button
           type="button"
-          disabled={pendienteEnviar || partesEnviadas < (enPartes ? partes.length : 1)}
+          disabled={pendienteEnviar}
           onClick={enviarYRegistrar}
-          className="mt-2 w-full min-h-[48px] rounded-2xl bg-tinta px-5 py-3 text-sm font-bold text-white hover:bg-vino disabled:bg-papel disabled:text-niebla disabled:ring-1 disabled:ring-linea"
+          className="mt-2 w-full min-h-[48px] rounded-2xl bg-tinta px-5 py-3 text-sm font-bold text-white hover:bg-vino disabled:opacity-60"
         >
           {pendienteEnviar
             ? 'Registrando envío…'
-            : partesEnviadas < (enPartes ? partes.length : 1)
-              ? `Abre ${enPartes ? `los ${partes.length} mensajes` : 'el mensaje'} para poder confirmar`
-              : `Ya envié ${enPartes ? `los ${partes.length} mensajes` : 'el mensaje'} · registrar y bloquear`}
+            : `Ya envié ${enPartes ? `los ${partes.length} mensajes` : 'el mensaje'} · registrar y bloquear`}
         </button>
       )}
 
