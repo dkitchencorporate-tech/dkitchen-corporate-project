@@ -46,6 +46,7 @@ const CAMBIOS = [
   { t: 'Alérgenos siempre al día', d: 'Los 14 alérgenos en cada plato, como pide la normativa, y se cambian desde el móvil en un minuto.' },
   { t: 'La carta en otros idiomas', d: 'El turista la lee en su idioma sin necesidad de traducir nada.' },
   { t: 'La mesa avisa al camarero', d: 'Llamar al camarero y pedir la cuenta desde el móvil: suena en el del equipo, que sabe a qué mesa ir.' },
+  { t: 'El cliente pide desde la mesa', d: 'En los planes Local y Sala el cliente pide desde su móvil y el camarero lo confirma con un toque; la comanda llega ordenada.' },
 ];
 const PASOS = [
   { n: '1', t: 'Nos envían una foto de la carta', d: 'Por WhatsApp o por correo. Nada más.' },
@@ -97,12 +98,16 @@ export default async function PropuestaPublica({
 
   const { basico, ampliado, sala } = QR_MENU.planes;
   const esSignature = p.oferta === 'signature';
-  const esHibrido = !esSignature && /\bsignature\b/i.test(p.texto || '');
-  const fundador = p.oferta === 'fundador' || esSignature || esHibrido ? await estadoFundador() : null;
+  // 27/11 (Alex): la zona Fundador (QR y Signature) va en todas las propuestas, no solo en las de oferta fundador/Signature.
+  const fundador = await estadoFundador().catch(() => null);
   const conFundador = !!fundador?.abierto;
   const utm = 'utm_source=propuesta&utm_medium=directo&utm_campaign=crm';
   // Si hay demo con enlace de pago preparado en Central, activar = pagar ESA cuenta (demo → cliente, 08/10).
-  const alta = p.pago_url || (esSignature ? `${SITIO}/${conFundador ? 'pagar/signature-fundador' : 'pagar/signature'}?${p.codigo ? `v=${p.codigo}&` : ''}${utm}` : `${SITIO}/${conFundador ? 'fundador' : 'qr'}?${p.codigo ? `v=${p.codigo}&` : ''}${utm}`);
+  const v = p.codigo ? `v=${p.codigo}&` : '';
+  const alta = p.pago_url || (esSignature ? `${SITIO}/${conFundador ? 'pagar/signature-fundador' : 'pagar/signature'}?${v}${utm}` : `${SITIO}/qr?${v}${utm}#planes`);
+  const urlFundadorQr = `${SITIO}/fundador?${v}${utm}`;
+  const urlFundadorSignature = `${SITIO}/pagar/signature-fundador?${v}${utm}`;
+  const quedanTexto = fundador && fundador.plazas - fundador.quedan >= PLAZAS_PARA_CONTAR ? `Quedan ${fundador.quedan} de ${FUNDADOR.plazas} plazas.` : `Solo ${FUNDADOR.plazas} plazas en total, hasta el 10/01.`;
   const muestra = p.muestra_url || (p.demo_slug ? `${SITIO}/m/${p.demo_slug}` : null);
   const demosSignatureUrl = `${SITIO}/demos/signature?${utm}`;
   const premium = PREMIUM[p.oferta];
@@ -121,6 +126,11 @@ export default async function PropuestaPublica({
           </div>
           <p className="shrink-0 text-[15px] font-bold">D<span className="text-vino">Kitchen</span></p>
         </header>
+
+        <div className="rounded-2xl border-l-4 border-vino bg-papel/60 p-4 text-[15px] leading-relaxed text-carbon/90">
+          <p>Gracias por dedicarle un par de minutos. Soy {p.comercial}, consultor de DKitchen: trabajamos con bares y restaurantes de {p.zona} y la comarca.</p>
+          <p className="mt-2">Antes de escribirles hemos mirado {p.nombre} como lo haría un cliente: su ficha de Google, sus reseñas y su carta. Lo que verán aquí está preparado para su local, no es una plantilla. Sin compromiso: si algo no encaja, nos lo dicen y lo ajustamos.</p>
+        </div>
 
         {p.texto && <p className="whitespace-pre-line text-[15px] leading-relaxed text-carbon/90">{p.texto}</p>}
 
@@ -229,36 +239,6 @@ export default async function PropuestaPublica({
           )}
         </section>
 
-        {esHibrido && (
-          <section className="space-y-4 rounded-[22px] bg-noche p-5 text-white">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-oro">Evolución natural · DKitchen Signature</p>
-                <h2 className="mt-1 font-display text-xl font-semibold">¿Y si además el local tuviera su propia app de pedidos sin comisiones?</h2>
-              </div>
-              <a href={demosSignatureUrl} className="shrink-0 rounded-full bg-vino px-4 py-2 text-xs font-semibold text-white print:hidden">
-                Probar apps Signature
-              </a>
-            </div>
-            <p className="text-sm text-white/75">
-              Sobre la misma base de la carta digital se puede pasar a una app instalable con cobro directo y 0 % comisión por pedido en 15 días hábiles ({conFundador ? `Fundador ${eur(FUNDADOR.signature.entrada)} + IVA y ${eur(FUNDADOR.signature.mensual)}/mes primer año con 2 meses incluidos` : `${eur(BASE_OPERATIVA.pagoUnico)} + IVA con 2 meses incluidos`}). Así lucen tres apps de nuestras propias marcas:
-            </p>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {DEMOS_PWA_PROPIAS.map((d) => (
-                <a key={d.nombre} href={d.url} target="_blank" rel="noopener noreferrer" className="group overflow-hidden rounded-2xl border border-white/15 bg-white/[0.05] transition hover:border-oro">
-                  <div className="relative aspect-[16/10] overflow-hidden bg-black/40">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={d.imagen} alt={`App demo ${d.nombre}`} className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-[1.03]" />
-                  </div>
-                  <div className="p-3">
-                    <p className="text-[11px] uppercase tracking-[0.12em] text-oro">{d.sector}</p>
-                    <p className="mt-0.5 font-display text-sm font-semibold text-white">{d.nombre}</p>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </section>
-        )}
 
         <section className="space-y-3">
           <h2 className="font-semibold">Qué cambia en el local</h2>
@@ -285,53 +265,32 @@ export default async function PropuestaPublica({
           </ol>
         </section>
 
+        {/* 27/11 (Alex): zona 1 de decisión = elegir plan de Carta QR (o Signature si la propuesta es Signature). */}
         <section className="space-y-3">
-          <h2 className="font-semibold">La oferta</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">Paso 1 · Elegir cómo empezar</p>
+          <h2 className="font-display text-2xl font-semibold leading-tight">{esSignature ? 'La app propia del local: DKitchen Signature' : 'Carta QR: tres planes según el tamaño del local'}</h2>
           {esSignature ? (
             <>
               <p className="text-[15px]">
-                {conFundador && fundador ? (
-                  <>
-                    <span className="font-semibold">Condiciones Fundador Signature (hasta el 10/01 o completar {FUNDADOR.plazas} plazas):</span> entrada única de <span className="font-semibold text-vino">{eur(FUNDADOR.signature.entrada)} + IVA</span> (tarifa general {eur(BASE_OPERATIVA.pagoUnico)}), con <span className="font-semibold">{BASE_OPERATIVA.mantenimiento.mesesGratis} meses de mantenimiento incluidos</span> y cuota de <span className="font-semibold">{eur(FUNDADOR.signature.mensual)}/mes + IVA</span> durante el primer año (después tramo Arranque {eur(BASE_OPERATIVA.mantenimiento.mensual)}/mes + IVA).
-                  </>
-                ) : (
-                  <>
-                    <span className="font-semibold">DKitchen Signature:</span> entrada única de <span className="font-semibold text-vino">{eur(BASE_OPERATIVA.pagoUnico)} + IVA</span> (o {BASE_OPERATIVA.fraccionado.cuotas} cuotas de {eur(BASE_OPERATIVA.fraccionado.importeCuota)} + IVA), con <span className="font-semibold">{BASE_OPERATIVA.mantenimiento.mesesGratis} meses incluidos</span> y mantenimiento desde {eur(BASE_OPERATIVA.mantenimiento.mensual)}/mes + IVA.
-                  </>
-                )}
+                <span className="font-semibold">DKitchen Signature</span> es la app del propio local, con su marca y su dominio: es del local para siempre. Los clientes piden en la mesa, para recoger o a domicilio y pagan dentro de la app; el dinero entra directo en la cuenta del local. Tarifa general: entrada única de <span className="font-semibold text-vino">{eur(BASE_OPERATIVA.pagoUnico)} + IVA</span> (o {BASE_OPERATIVA.fraccionado.cuotas} cuotas de {eur(BASE_OPERATIVA.fraccionado.importeCuota)} + IVA), {BASE_OPERATIVA.mantenimiento.mesesGratis} meses incluidos y mantenimiento desde {eur(BASE_OPERATIVA.mantenimiento.mensual)}/mes + IVA.{conFundador ? ' Con plaza Fundador sale más barato: lo explicamos justo debajo.' : ''}
               </p>
-              <div className="grid gap-3 text-sm sm:grid-cols-2">
-                <div className="rounded-2xl bg-noche p-4 text-white ring-1 ring-oro/50">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-oro">Plaza Fundador · Ahorro de {eur(AHORRO_FUNDADOR_SIGNATURE)} el 1.er año</p>
-                  <p className="mt-1 font-display text-2xl font-semibold">{eur(FUNDADOR.signature.entrada)} + IVA <span className="text-sm font-normal line-through text-white/50">{eur(BASE_OPERATIVA.pagoUnico)}</span></p>
-                  <p className="mt-1 text-white/80">Pago único · {BASE_OPERATIVA.mantenimiento.mesesGratis} meses gratis · {eur(FUNDADOR.signature.mensual)}/mes el primer año</p>
-                  <ul className="mt-3 space-y-1 text-[13px] text-white/80">
-                    <li>· 0 % comisión por pedido para siempre</li>
-                    <li>· App instalable, dominio y base de datos del local</li>
-                    <li>· Entrega llave en mano en 15 días hábiles</li>
-                  </ul>
-                </div>
-                <div className="rounded-2xl p-4 ring-1 ring-linea">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-niebla">Entrada Estándar Fraccionada</p>
-                  <p className="mt-1 font-display text-2xl font-semibold text-carbon">{BASE_OPERATIVA.fraccionado.cuotas} × {eur(BASE_OPERATIVA.fraccionado.importeCuota)} + IVA</p>
-                  <p className="mt-1 text-niebla">O {eur(BASE_OPERATIVA.pagoUnico)} + IVA único · {BASE_OPERATIVA.mantenimiento.mesesGratis} meses gratis · {eur(BASE_OPERATIVA.mantenimiento.mensual)}/mes Arranque</p>
-                  <ul className="mt-3 space-y-1 text-[13px] text-carbon/80">
-                    <li>· Pedidos para llevar, domicilio y mesa</li>
-                    <li>· Pantalla de cocina y Club VIP de puntos</li>
-                    <li>· Conexión directa Stripe, SumUp, Revolut o Redsys</li>
-                  </ul>
-                </div>
+              <div className="rounded-2xl p-4 text-sm ring-1 ring-linea">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-niebla">Entrada estándar fraccionada</p>
+                <p className="mt-1 font-display text-2xl font-semibold text-carbon">{BASE_OPERATIVA.fraccionado.cuotas} × {eur(BASE_OPERATIVA.fraccionado.importeCuota)} + IVA</p>
+                <p className="mt-1 text-niebla">O {eur(BASE_OPERATIVA.pagoUnico)} + IVA en un pago · {BASE_OPERATIVA.mantenimiento.mesesGratis} meses gratis · {eur(BASE_OPERATIVA.mantenimiento.mensual)}/mes tramo Arranque</p>
+                <ul className="mt-3 space-y-1 text-[13px] text-carbon/80">
+                  <li>· Pedidos en mesa, para llevar y a domicilio</li>
+                  <li>· Pantalla de cocina y Club VIP de puntos</li>
+                  <li>· Conexión directa Stripe, SumUp, Revolut o Redsys</li>
+                </ul>
               </div>
-              <p className="text-xs text-niebla">¿Prefieren empezar con una Carta QR de sala sin pedido propio? Plan Local por {eur(QR_MENU.primerMes)} + IVA el primer mes (después {eur(ampliado.mensual)}/mes).</p>
             </>
           ) : (
             <>
               {premium ? (
-                <p className="text-[15px]">Para un local así encaja <span className="font-semibold">{premium.nombre}</span>: lo explicamos en una llamada de 15 minutos y damos el precio cerrado. Mientras tanto, se puede empezar con la carta QR.</p>
-              ) : conFundador && fundador ? (
-                <p className="text-[15px]"><span className="font-semibold">Plan Fundador:</span> todo el plan {sala.nombre} con un {Math.round(FUNDADOR.descuento * 100)} % de descuento de por vida: {eur(FUNDADOR.mensual)} al mes + IVA, pagado por trimestre ({eur(FUNDADOR.trimestre)} + IVA). {fundador.plazas - fundador.quedan >= PLAZAS_PARA_CONTAR ? `Quedan ${fundador.quedan} de ${FUNDADOR.plazas} plazas.` : `Plazas limitadas a ${FUNDADOR.plazas} locales.`}</p>
+                <p className="text-[15px]">Para un local así encaja <span className="font-semibold">{premium.nombre}</span>: lo explicamos en una llamada de 15 minutos y damos el precio cerrado. Mientras tanto, se puede empezar con la Carta QR.</p>
               ) : (
-                <p className="text-[15px]"><span className="font-semibold">Plan {ampliado.nombre}: el primer mes por {eur(QR_MENU.primerMes)} + IVA.</span> Después, {eur(ampliado.mensual)} al mes + IVA, sin permanencia. Si en 30 días no convence, devolvemos ese euro y el local se queda con su carta en PDF.</p>
+                <p className="text-[15px]">La Carta QR es un servicio mensual, sin permanencia: la carta con fotos y alérgenos, el aviso al camarero, las reservas y la conexión con el TPV, con límites según el plan. <span className="font-semibold">El plan {ampliado.nombre} cuesta {eur(QR_MENU.primerMes)} + IVA el primer mes</span> y después {eur(ampliado.mensual)} al mes + IVA. Si en 30 días no convence, devolvemos ese euro y el local se queda con su carta en PDF.</p>
               )}
               <ul className="grid gap-2.5 text-sm sm:grid-cols-3">
                 {[basico, ampliado, sala].map((pl) => (
@@ -339,8 +298,7 @@ export default async function PropuestaPublica({
                     <p className="font-semibold">{pl.nombre}{pl.id === 'ampliado' ? <span className="ml-2 text-xs font-semibold text-vino">el más elegido</span> : null}</p>
                     <p className="text-niebla">{eur(pl.mensual)}/mes + IVA</p>
                     <ul className="mt-2 space-y-1 text-[13px] text-carbon/80">
-                      {puntosPlanQr(pl.id as 'basico' | 'ampliado' | 'sala').slice(0, 3).map((x) => <li key={x}>· {x}</li>)}
-                      {pl.id !== 'basico' && <li>· Pedido desde la mesa</li>}
+                      {puntosPlanQr(pl.id as 'basico' | 'ampliado' | 'sala').slice(0, 4).map((x) => <li key={x}>· {x}</li>)}
                     </ul>
                   </li>
                 ))}
@@ -349,7 +307,7 @@ export default async function PropuestaPublica({
           )}
           <div className="flex flex-col gap-2 print:hidden sm:flex-row sm:flex-wrap">
             <a href={alta} className="inline-flex w-full items-center justify-center rounded-full bg-vino px-5 py-3 text-center text-sm font-semibold text-white sm:w-auto">
-              {esSignature ? (conFundador ? `Reservar plaza Fundador · ${eur(FUNDADOR.signature.entrada)} + IVA` : `Contratar Signature · ${eur(BASE_OPERATIVA.pagoUnico)} + IVA`) : (p.pago_url ? 'Activar mi carta' : conFundador ? 'Quiero ser Fundador' : `Activar por ${eur(QR_MENU.primerMes)}`)}
+              {esSignature ? (conFundador ? `Reservar plaza Fundador · ${eur(FUNDADOR.signature.entrada)} + IVA` : `Contratar Signature · ${eur(BASE_OPERATIVA.pagoUnico)} + IVA`) : (p.pago_url ? 'Activar mi carta' : `Ver los planes y activar por ${eur(QR_MENU.primerMes)}`)}
             </a>
             {esSignature ? (
               <a href={`${SITIO}/signature?${utm}`} className="inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-3 text-center text-sm font-semibold ring-1 ring-linea sm:w-auto">Ver todo sobre Signature</a>
@@ -357,8 +315,74 @@ export default async function PropuestaPublica({
               premium && <a href={`${SITIO}/${premium.ruta}?${utm}`} className="inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-3 text-center text-sm font-semibold ring-1 ring-linea sm:w-auto">Ver {premium.nombre}</a>
             )}
           </div>
-          {p.codigo && <p className="text-xs text-niebla">Código del asesor: <span className="font-mono font-semibold">{p.codigo}</span></p>}
         </section>
+
+        {/* 27/11 (Alex): QR frente a Signature, explicado antes de la zona Fundador. */}
+        <section className="space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vino">Paso 2 · La diferencia, en claro</p>
+          <h2 className="font-display text-2xl font-semibold leading-tight">Carta QR o app propia: las dos reciben pedidos</h2>
+          <p className="text-[15px] text-carbon/90">La diferencia no está en si el cliente puede pedir, sino en de quién es la herramienta y hasta dónde llega.</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl p-4 ring-1 ring-linea">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-niebla">Carta QR · servicio mensual</p>
+              <p className="mt-1 font-display text-lg font-semibold">Desde {eur(basico.mensual)}/mes + IVA</p>
+              <ul className="mt-2 space-y-1.5 text-[13px] text-carbon/85">
+                <li>· El cliente pide desde la mesa y el camarero lo confirma con un toque (planes {ampliado.nombre} y {sala.nombre})</li>
+                <li>· Carta, reservas, aviso al camarero y conexión con el TPV</li>
+                <li>· Se paga cada mes y tiene límites por plan: platos, mesas, camareros, comandas</li>
+                <li>· Es un servicio de DKitchen: mientras se paga, funciona</li>
+              </ul>
+            </div>
+            <div className="rounded-2xl bg-noche p-4 text-white ring-1 ring-oro/50">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-oro">Signature · la app es del local</p>
+              <p className="mt-1 font-display text-lg font-semibold">Pago único de entrada</p>
+              <ul className="mt-2 space-y-1.5 text-[13px] text-white/85">
+                <li>· App instalable con la marca, el dominio y los datos del local, para siempre</li>
+                <li>· Pedidos en mesa, para recoger y a domicilio, pagados dentro de la app</li>
+                <li>· Sin límites de platos, mesas ni comandas y 0 % de comisión por pedido</li>
+                <li>· Cobro directo en la cuenta del local, pantalla de cocina y Club VIP propio</li>
+              </ul>
+              <a href={demosSignatureUrl} className="mt-3 inline-block text-xs font-semibold text-oro underline print:hidden">Probar tres apps Signature de nuestras marcas</a>
+            </div>
+          </div>
+        </section>
+
+        {/* 27/11 (Alex): zona grande Fundador, con un botón para cada camino. */}
+        {conFundador && (
+          <section className="space-y-4 rounded-[24px] bg-gradient-to-br from-vino to-noche p-5 text-white sm:p-7">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-oro">Paso 3 · Plazas Fundador · {quedanTexto}</p>
+              <h2 className="mt-1 font-display text-2xl font-semibold leading-tight sm:text-3xl">Hacerse Fundador: el mejor precio, para los primeros locales</h2>
+              <p className="mt-2 text-sm text-white/80">Fundador no es otro producto: es el precio de lanzamiento para los primeros {FUNDADOR.plazas} locales que confían en DKitchen, hasta el 10/01 o hasta completar plazas. Se puede ser Fundador en la Carta QR o en Signature (las plazas son compartidas).</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="flex flex-col rounded-2xl bg-white/[0.07] p-4 ring-1 ring-white/15">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-oro">Fundador Carta QR</p>
+                <p className="mt-1 font-display text-2xl font-semibold">{eur(FUNDADOR.mensual)}/mes + IVA <span className="text-sm font-normal text-white/50 line-through">{eur(sala.mensual)}</span></p>
+                <p className="mt-1 text-[13px] text-white/80">Todo el plan {sala.nombre} (el más completo) con un {Math.round(FUNDADOR.descuento * 100)} % menos de por vida, mientras siga activo. Se paga por trimestre: {eur(FUNDADOR.trimestre)} + IVA.</p>
+                <ol className="mt-3 space-y-1 text-[13px] text-white/80">
+                  <li>1. Pulsan el botón y ven las condiciones</li>
+                  <li>2. Activan el plan {sala.nombre} Fundador con pago seguro</li>
+                  <li>3. Nos envían la carta y la dejamos montada</li>
+                </ol>
+                <a href={urlFundadorQr} className="mt-4 inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-center text-sm font-semibold text-vino print:hidden">Quiero ser Fundador de la Carta QR</a>
+              </div>
+              <div className="flex flex-col rounded-2xl bg-white/[0.07] p-4 ring-1 ring-oro/60">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-oro">Fundador Signature · ahorro de {eur(AHORRO_FUNDADOR_SIGNATURE)} el 1.er año</p>
+                <p className="mt-1 font-display text-2xl font-semibold">{eur(FUNDADOR.signature.entrada)} + IVA <span className="text-sm font-normal text-white/50 line-through">{eur(BASE_OPERATIVA.pagoUnico)}</span></p>
+                <p className="mt-1 text-[13px] text-white/80">Pago único por la app propia del local, con {BASE_OPERATIVA.mantenimiento.mesesGratis} meses de mantenimiento incluidos y después {eur(FUNDADOR.signature.mensual)}/mes + IVA el primer año. Entrega en 15 días hábiles.</p>
+                <ol className="mt-3 space-y-1 text-[13px] text-white/80">
+                  <li>1. Pulsan el botón y reservan la plaza con pago seguro</li>
+                  <li>2. Revisamos con el local la carta y la operativa</li>
+                  <li>3. Entregamos la app lista en 15 días hábiles</li>
+                </ol>
+                <a href={urlFundadorSignature} className="mt-4 inline-flex items-center justify-center rounded-full bg-oro px-5 py-3 text-center text-sm font-semibold text-noche print:hidden">Quiero ser Fundador de Signature</a>
+              </div>
+            </div>
+            <p className="text-xs text-white/60">¿Dudas antes de decidir? Escríbannos por WhatsApp y lo vemos juntos en 10 minutos.</p>
+          </section>
+        )}
+        {p.codigo && <p className="text-xs text-niebla">Código del asesor: <span className="font-mono font-semibold">{p.codigo}</span></p>}
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-linea pt-5 text-sm">
           <p>Les atiende <span className="font-semibold">{p.comercial}</span>{p.telefono ? ` · ${p.telefono}` : ''}</p>
