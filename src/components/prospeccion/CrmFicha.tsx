@@ -4,7 +4,7 @@ import {
   type BaseCrm, type Ficha,
 } from '@/lib/prospeccion';
 import {
-  guardarProspectoAction, estadoProspectoAction, anotarContactoAction, crearPropuestaAction, reasignarAction,
+  guardarProspectoAction, estadoProspectoAction, crearPropuestaAction, reasignarAction,
   crearDemoProspectoAction, abrirEditorDemoAction,
 } from '@/lib/prospeccion-acciones';
 import { EtiquetaEstado } from './CrmLista';
@@ -136,8 +136,14 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
                   {[k.objecion_nivel && `Objeción ${NIVELES[k.objecion_nivel].toLowerCase()}${k.objecion ? `: «${k.objecion}»` : ''}`,
                     k.producto && PRODUCTOS[k.producto], k.palanca && k.palanca !== 'ninguna' && `Palanca: ${PALANCAS[k.palanca]}`,
                     k.material.length > 0 && `Material: ${k.material.map((m) => MATERIALES[m]).join(', ')}${k.flyer_codigo ? ` (${k.flyer_codigo})` : ''}`,
-                    k.texto].filter(Boolean).join(' · ')}
+                  ].filter(Boolean).join(' · ')}
                 </p>
+                {k.texto && (k.texto.length > 160 ? (
+                  <details className="mt-1 text-xs text-grafito">
+                    <summary className="cursor-pointer">{k.texto.slice(0, 140)}… <span className="font-semibold text-vino">ver mensaje</span></summary>
+                    <p className="mt-1 whitespace-pre-line">{k.texto}</p>
+                  </details>
+                ) : <p className="text-xs text-grafito">{k.texto}</p>)}
                 <p className="text-xs text-ceniza">{momento(k.creado_en)} · {k.quien}{k.siguiente ? ` · siguiente: ${k.siguiente}${k.siguiente_fecha ? ` (${fechaCorta(k.siguiente_fecha)})` : ''}` : ''}</p>
               </li>
             ))}
@@ -145,17 +151,6 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
         </section>
       )}
 
-      <details className={tarjeta}>
-        <summary className="cursor-pointer text-sm font-semibold">Solo apuntar una nota o cambiar el siguiente paso</summary>
-        <form action={anotarContactoAction} className="mt-3 grid gap-3 sm:grid-cols-2">
-          {oculto}{idOculto}
-          <select name="tipo" defaultValue="nota" className={campo}>{Object.entries(CONTACTOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-          <input name="texto" maxLength={1000} placeholder="Qué pasó / qué dijo" className={campo} />
-          <input name="siguiente" maxLength={200} placeholder="Siguiente acción (volver con tablet, llamar…)" className={campo} />
-          <input name="fecha" type="date" aria-label="Fecha de la siguiente acción" className={campo} />
-          <button className={`${boton} bg-vino sm:col-span-2 sm:justify-self-start`}>Apuntar</button>
-        </form>
-      </details>
 
       <section className={tarjeta}>
         <h2 className="text-sm font-semibold">Etapa y situación</h2>
@@ -461,15 +456,42 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
       )}
 
       <section className={tarjeta}>
-        <h2 className="text-sm font-semibold">Historial</h2>
-        <ul className="mt-3 space-y-2.5">
-          {f.eventos.map((e, i) => (
-            <li key={i} className="text-sm">
-              <span className="font-medium">{EVENTO[e.tipo] ?? e.tipo}</span>{e.texto ? `: ${e.texto}` : ''}
-              <span className="block text-xs text-ceniza">{momento(e.creado_en)}{e.tipo !== 'propuesta_vista' ? ` · ${e.quien}` : ''}</span>
-            </li>
+        <h2 className="text-sm font-semibold">Historial · {f.eventos.length}</h2>
+        {/* 27/11 (Alex): historial ordenado por días; los textos largos (mensajes enviados) se pliegan. */}
+        <div className="mt-3 space-y-4">
+          {Object.entries(f.eventos.reduce<Record<string, typeof f.eventos>>((acc, e) => {
+            const dia = new Date(e.creado_en).toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', weekday: 'long', day: 'numeric', month: 'long' });
+            (acc[dia] ||= []).push(e);
+            return acc;
+          }, {})).map(([dia, lista]) => (
+            <div key={dia}>
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-niebla">{dia}</p>
+              <ol className="mt-2 space-y-2 border-l border-linea pl-3">
+                {lista.map((e, i) => {
+                  const texto = (e.texto || '').replace(/^\w+ · \w+ · /, '').trim();
+                  const hora = new Date(e.creado_en).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' });
+                  return (
+                    <li key={i} className="text-sm">
+                      <div className="flex flex-wrap items-baseline gap-x-2">
+                        <span className="text-xs tabular-nums text-ceniza">{hora}</span>
+                        <span className="rounded-full bg-papel px-2 py-0.5 text-[11px] font-semibold text-carbon ring-1 ring-linea">{EVENTO[e.tipo] ?? e.tipo}</span>
+                        {e.tipo !== 'propuesta_vista' && <span className="text-[11px] text-ceniza">{e.quien.split('·')[0].trim()}</span>}
+                      </div>
+                      {texto && (texto.length > 160 ? (
+                        <details className="mt-1">
+                          <summary className="cursor-pointer text-[13px] text-carbon/85">{texto.slice(0, 140)}… <span className="font-semibold text-vino">ver completo</span></summary>
+                          <p className="mt-1 whitespace-pre-line text-[13px] text-carbon/85">{texto}</p>
+                        </details>
+                      ) : (
+                        <p className="mt-1 text-[13px] text-carbon/85">{texto}</p>
+                      ))}
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
           ))}
-        </ul>
+        </div>
       </section>
     </div>
   );

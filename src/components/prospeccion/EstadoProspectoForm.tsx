@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ESTADOS, MOTIVOS } from '@/lib/prospeccion-catalogo';
+import { ESTADOS, MOTIVOS, CONTACTOS } from '@/lib/prospeccion-catalogo';
 
 /**
  * 0128 (27/11, Alex): zona de estado lógica. La etapa avanza sola con el Francotirador
@@ -43,9 +43,16 @@ export default function EstadoProspectoForm({
           </label>
         )}
       </div>
+      <div className="grid gap-3 sm:grid-cols-[200px_1fr]">
+        <label className="block text-xs font-semibold text-grafito">Qué fue
+          <select name="tipo" defaultValue="nota" className={`${campo} mt-1`}>
+            {Object.entries(CONTACTOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </label>
       <label className="block text-xs font-semibold text-grafito">Situación, con tus palabras
         <textarea name="situacion" rows={2} maxLength={1000} placeholder="Ej.: abrió la propuesta, le interesa Signature para el local nuevo; llamar el lunes por la tarde." className={`${campo} mt-1`} />
       </label>
+      </div>
       <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
         <label className="block text-xs font-semibold text-grafito">Siguiente paso
           <input name="siguiente" maxLength={200} defaultValue={siguiente ?? ''} placeholder="Llamar, visitar, enviar precio…" className={`${campo} mt-1`} />
