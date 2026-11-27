@@ -7,8 +7,11 @@ export const ESTADOS = {
   por_visitar: 'Por visitar',
   muestra: 'Muestra hecha',
   visitado: 'Visitado',
-  demo: 'Demo hecha',
+  demo: 'Demo preparada',
+  enviada: 'Propuesta enviada',
+  seguimiento: 'En seguimiento',
   interesado: 'Interesado',
+  negociacion: 'En negociación',
   cliente: 'Cliente',
   descartado: 'Descartado',
 } as const;

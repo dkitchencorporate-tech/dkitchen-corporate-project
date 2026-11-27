@@ -194,7 +194,7 @@ export default function FrancotiradorWhatsapp({
       setEnviadoCuando(ahora);
       setEnvioReciente(true);
       sessionStorage.removeItem(clavePartes);
-      setAviso(`Envío registrado (Tanda de hoy: ${r.enviosHoy} / 15). Queda en «Demo hecha» con seguimiento a 48 h.`);
+      setAviso(`Envío registrado (Tanda de hoy: ${r.enviosHoy} / 15). Queda en «Propuesta enviada» con seguimiento a 48 h.`);
       router.refresh();
     });
   };

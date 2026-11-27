@@ -16,6 +16,7 @@ import MapaRuta from './MapaRuta';
 import PlantillasPropuesta from './PlantillasPropuesta';
 import AgenteDemoPropuestaIa from './AgenteDemoPropuestaIa';
 import FrancotiradorWhatsapp from './FrancotiradorWhatsapp';
+import EstadoProspectoForm from './EstadoProspectoForm';
 import NuevoCliente from '@/components/admin/NuevoCliente';
 import { CANALES, RESULTADOS, NIVELES, PRODUCTOS, PALANCAS, MATERIALES } from '@/lib/prospeccion-catalogo';
 
@@ -157,17 +158,9 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
       </details>
 
       <section className={tarjeta}>
-        <h2 className="text-sm font-semibold">Estado</h2>
-        <form action={estadoProspectoAction} className="mt-3 grid gap-3 sm:grid-cols-3">
-          {oculto}{idOculto}
-          <select name="estado" defaultValue={f.estado} className={campo}>{Object.entries(ESTADOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-          <select name="motivo" defaultValue={f.motivo_descarte ?? ''} className={campo} aria-label="Motivo si se descarta">
-            <option value="">Motivo (si se descarta)</option>
-            {Object.entries(MOTIVOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-          <input name="slug" maxLength={80} placeholder="Si es cliente: su slug de alta" className={campo} />
-          <button className={`${boton} sm:col-span-3 sm:justify-self-start`}>Cambiar estado</button>
-        </form>
+        <h2 className="text-sm font-semibold">Etapa y situación</h2>
+        <p className="mt-1 text-xs text-niebla">La etapa avanza sola al registrar un envío o una visita. Aquí puedes corregirla, contar la situación con tus palabras y fijar el siguiente paso.</p>
+        <EstadoProspectoForm accion={estadoProspectoAction} base={base} id={f.id} estado={f.estado} motivo={f.motivo_descarte} siguiente={f.siguiente_accion} fecha={f.siguiente_fecha ? String(f.siguiente_fecha).slice(0, 10) : null} />
       </section>
 
       <section id="demo" className="rounded-[24px] border border-vino/30 bg-gradient-to-br from-white via-papel/60 to-white p-4 sm:p-5 shadow-sm space-y-4">

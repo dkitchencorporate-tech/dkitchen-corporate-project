@@ -104,8 +104,17 @@ export async function estadoProspectoAction(f: FormData) {
   if (!esEstado(estado)) redirect(`${base}/${id}?e=datos`);
   const motivo = String(f.get('motivo') ?? '') || null;
   const slug = String(f.get('slug') ?? '').trim() || null;
+  // 0128: situación libre y siguiente paso en el mismo guardado; la etapa solo se reescribe si cambia.
+  const cambiaEstado = estado !== String(f.get('estado_actual') ?? '') || (estado === 'cliente' && !!slug);
+  const situacion = String(f.get('situacion') ?? '').trim().slice(0, 1000);
+  const hayPaso = !!situacion || String(f.get('siguiente') ?? '') !== String(f.get('siguiente_actual') ?? '') || String(f.get('fecha') ?? '') !== String(f.get('fecha_actual') ?? '');
+  const siguiente = String(f.get('siguiente') ?? '').slice(0, 200);
+  const fecha = String(f.get('fecha') ?? '');
   try {
-    await comoCliente(jwt, (c) => c.query('SELECT dk.prosp_estado($1, $2, $3, $4)', [id, estado, estado === 'descartado' ? motivo : null, estado === 'cliente' ? slug : null]));
+    await comoCliente(jwt, async (c) => {
+      if (cambiaEstado) await c.query('SELECT dk.prosp_estado($1, $2, $3, $4)', [id, estado, estado === 'descartado' ? motivo : null, estado === 'cliente' ? slug : null]);
+      if (hayPaso) await c.query('SELECT dk.prosp_anotar($1, $2, $3, $4, $5)', [id, 'nota', situacion || (cambiaEstado ? null : 'Siguiente paso actualizado'), siguiente, FECHA.test(fecha) ? fecha : null]);
+    });
   } catch (e) {
     redirect(`${base}/${id}?e=${aviso(e)}`);
   }

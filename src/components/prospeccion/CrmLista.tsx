@@ -26,7 +26,8 @@ const tarjeta = 'rounded-[22px] border border-linea bg-white p-5';
 const campo = 'w-full rounded-2xl border border-linea bg-white px-4 py-3 text-[15px] focus:border-vino focus:outline-none';
 const COLOR: Record<Estado, string> = {
   por_revisar: 'bg-papel text-niebla', por_visitar: 'bg-amber-50 text-amber-800', muestra: 'bg-sky-50 text-sky-800',
-  visitado: 'bg-indigo-50 text-indigo-800', demo: 'bg-violet-50 text-violet-800', interesado: 'bg-orange-50 text-orange-800',
+  visitado: 'bg-indigo-50 text-indigo-800', demo: 'bg-violet-50 text-violet-800', enviada: 'bg-blue-50 text-blue-800',
+  seguimiento: 'bg-cyan-50 text-cyan-800', interesado: 'bg-orange-50 text-orange-800', negociacion: 'bg-rose-50 text-rose-800',
   cliente: 'bg-emerald-50 text-emerald-800', descartado: 'bg-zinc-100 text-zinc-500',
 };
 const AVISOS: Record<string, string> = {
@@ -95,13 +96,13 @@ export type DemoProspecto = { slug: string; color: string | null; plantilla: str
 const COMPOSICION: Record<string, string> = { gastro: 'Alta cocina', taberna: 'Taberna', urbano: 'Urbana', editorial: 'Editorial', premium: 'Premium', visual: 'Visual', clasica: 'Clásica', express: 'Express' };
 const BARRA: Record<Estado, string> = {
   por_revisar: 'bg-acero', por_visitar: 'bg-amber-400', muestra: 'bg-sky-400', visitado: 'bg-indigo-400',
-  demo: 'bg-violet-500', interesado: 'bg-orange-500', cliente: 'bg-emerald-500', descartado: 'bg-zinc-300',
+  demo: 'bg-violet-500', enviada: 'bg-blue-500', seguimiento: 'bg-cyan-500', interesado: 'bg-orange-500', negociacion: 'bg-rose-500', cliente: 'bg-emerald-500', descartado: 'bg-zinc-300',
 };
 const totalVistas = (p: Prospecto) => (p.propuesta_vistas ?? 0) + (p.demo_vistas ?? 0);
 const esEnSeguimiento = (p: Prospecto) =>
   p.estado !== 'descartado' &&
   p.estado !== 'cliente' &&
-  (p.estado === 'interesado' || p.ultimo_resultado != null || totalVistas(p) > 0);
+  (['enviada', 'seguimiento', 'interesado', 'negociacion'].includes(p.estado) || p.ultimo_resultado != null || totalVistas(p) > 0);
 const esPendienteEnvio = (p: Prospecto) =>
   p.estado !== 'descartado' &&
   p.estado !== 'cliente' &&
