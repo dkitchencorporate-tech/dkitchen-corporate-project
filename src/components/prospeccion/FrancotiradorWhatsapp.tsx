@@ -106,8 +106,34 @@ export default function FrancotiradorWhatsapp({
   const [editandoRed, setEditandoRed] = useState(false);
   const [valorRed, setValorRed] = useState('');
   const [pendienteRed, iniciarRed] = useTransition();
-  // 27/11 (Alex): en el móvil, estos enlaces los abre directamente la app de cada red (no Google).
-  const nombreQ = encodeURIComponent(`${nombre.replace(/[«»"]/g, '')} ${zona.split(/[ ,(]/)[0]}`.trim());
+  // 27/11 (Alex): en el móvil se abre la APP de cada red, con el nombre ya copiado para pegarlo en su buscador.
+  // Las apps no aceptan de forma fiable un enlace directo a su buscador, así que: copiar + abrir la app;
+  // si la app no está, se abre la búsqueda web de esa red (nunca Google).
+  const textoBusqueda = `${nombre.replace(/[«»"]/g, '')} ${zona.split(/[ ,(]/)[0]}`.trim();
+  const nombreQ = encodeURIComponent(textoBusqueda);
+  const [copiadoBusqueda, setCopiadoBusqueda] = useState<string | null>(null);
+  const APPS: Record<'instagram' | 'facebook' | 'tiktok', { paquete: string; esquema: string }> = {
+    instagram: { paquete: 'com.instagram.android', esquema: 'instagram://app' },
+    facebook: { paquete: 'com.facebook.katana', esquema: 'fb://' },
+    tiktok: { paquete: 'com.zhiliaoapp.musically', esquema: 'snssdk1233://' },
+  };
+  const abrirBusqueda = (red: 'instagram' | 'facebook' | 'tiktok', web: string) => {
+    void navigator.clipboard?.writeText(textoBusqueda).catch(() => {});
+    setCopiadoBusqueda(red);
+    const ua = navigator.userAgent || '';
+    if (/Android/i.test(ua)) {
+      const sinEsquema = web.replace(/^https:\/\//, '');
+      window.location.href = `intent://${sinEsquema}#Intent;scheme=https;package=${APPS[red].paquete};S.browser_fallback_url=${encodeURIComponent(web)};end`;
+      return;
+    }
+    if (/iPhone|iPad|iPod/i.test(ua)) {
+      const t = window.setTimeout(() => { if (document.visibilityState === 'visible') window.location.href = web; }, 1600);
+      document.addEventListener('visibilitychange', () => window.clearTimeout(t), { once: true });
+      window.location.href = APPS[red].esquema;
+      return;
+    }
+    window.open(web, '_blank', 'noopener,noreferrer');
+  };
   const perfilRed: Record<Exclude<CanalF, 'whatsapp'>, { nombre: string; url: string | null; buscar: string; ayuda: string }> = {
     instagram: { nombre: 'Instagram', url: redes.instagram ? `https://www.instagram.com/${redes.instagram}/` : null, buscar: `https://www.instagram.com/explore/search/keyword/?q=${nombreQ}`, ayuda: 'Pega el enlace o el usuario (@cuenta)' },
     facebook: { nombre: 'Facebook', url: redes.facebook || null, buscar: `https://www.facebook.com/search/pages/?q=${nombreQ}`, ayuda: 'Pega el enlace de su página de Facebook' },
@@ -319,8 +345,9 @@ export default function FrancotiradorWhatsapp({
             ) : (
               <div className="space-y-2 rounded-2xl bg-white p-3.5 ring-1 ring-amber-300">
                 <p className="text-xs font-bold text-amber-950">1. Encuentra y verifica su {red.nombre}</p>
-                <a href={red.buscar} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[36px] items-center rounded-full bg-amber-100 px-3.5 text-xs font-bold text-amber-950 hover:bg-amber-200">Buscar «{nombre}» en {red.nombre} ↗</a>
-                <p className="text-[11px] text-niebla">Se abre la búsqueda en la app. Comprueba que es la cuenta del local (nombre, fotos, dirección), copia el enlace del perfil (menú ⋯ → «Copiar enlace» o «Compartir») y pégalo aquí. También vale el @usuario. Quedará guardada en la ficha.</p>
+                <button type="button" onClick={() => abrirBusqueda(canal as 'instagram' | 'facebook' | 'tiktok', red.buscar)} className="inline-flex min-h-[44px] items-center rounded-full bg-amber-100 px-4 text-sm font-bold text-amber-950 hover:bg-amber-200">Abrir {red.nombre} y buscar «{textoBusqueda}» ↗</button>
+                {copiadoBusqueda === canal && <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-950">✓ Copiado «{textoBusqueda}». En {red.nombre} toca la lupa y pega (mantén pulsado → Pegar).</p>}
+                <p className="text-[11px] text-niebla">Se abre la app de {red.nombre} con el nombre copiado. Comprueba que es la cuenta del local (nombre, fotos, dirección), copia el enlace del perfil (menú ⋯ → «Copiar enlace» o «Compartir») y pégalo aquí. También vale el @usuario. Quedará guardada en la ficha.</p>
                 <div className="flex gap-2">
                   <input value={valorRed} onChange={(e) => setValorRed(e.target.value)} placeholder={red.ayuda} className="min-w-0 flex-1 rounded-xl border border-linea px-3 py-2 text-sm focus:border-emerald-700 focus:outline-none" />
                   <button type="button" disabled={pendienteRed || !valorRed.trim()} onClick={() => guardarRed(canal as 'instagram' | 'facebook' | 'tiktok', valorRed)} className="rounded-xl bg-emerald-700 px-3.5 text-xs font-bold text-white disabled:opacity-50">{pendienteRed ? 'Guardando…' : 'Guardar'}</button>
