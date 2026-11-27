@@ -326,7 +326,7 @@ export default function FrancotiradorWhatsapp({
                 </div>
                 {red.url && <button type="button" onClick={() => setEditandoRed(false)} className="text-[11px] font-semibold text-niebla underline">Cancelar</button>}
               </div>
-            )
+            )}
             <button type="button" onClick={() => { void navigator.clipboard.writeText(textoDm).then(() => setCopiadoDm(true)); }}
               className={`flex w-full min-h-[52px] items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm ${copiadoDm ? 'bg-emerald-100 text-emerald-950' : 'bg-emerald-700 font-bold text-white hover:bg-emerald-800'}`}>
               <span className="font-bold">{copiadoDm ? '✓' : '2.'}</span>
