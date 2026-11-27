@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import { comoVisitante } from '@/lib/db';
 import { identidadActual } from '@/lib/sesion';
 import { esRobot } from '@/lib/robots-vista';
+import { huellaRed } from '@/lib/red-equipo';
 import { COOKIE_PUESTA } from '@/lib/socio-codigo';
 import { estadoFundador } from '@/lib/fundador';
 import { PLAZAS_PARA_CONTAR } from '@/components/fundador/ContadorFundador';
@@ -91,9 +92,11 @@ export default async function PropuestaPublica({
     cookies().catch(() => null),
   ]);
   const esInterno = Boolean(identidad) || sp?.preview === '1' || Boolean(jar?.get(COOKIE_PUESTA)?.value);
-  const contarVista = !esInterno && !esRobot((await headers()).get('user-agent'));
+  const cab = await headers();
+  const contarVista = !esInterno && !esRobot(cab.get('user-agent'));
 
-  const p = await comoVisitante(async (c) => (await c.query<{ p: Propuesta | null }>('SELECT dk.propuesta_ver($1, $2) AS p', [token, contarVista])).rows[0].p).catch(() => null);
+  // 0127: las aperturas desde la red del equipo (anotada al abrir Central) no cuentan.
+  const p = await comoVisitante(async (c) => (await c.query<{ p: Propuesta | null }>('SELECT dk.propuesta_ver_red($1, $2, $3) AS p', [token, contarVista, huellaRed(cab)])).rows[0].p).catch(() => null);
   if (!p) notFound();
 
   const { basico, ampliado, sala } = QR_MENU.planes;

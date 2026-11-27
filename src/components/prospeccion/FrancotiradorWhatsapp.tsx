@@ -101,8 +101,11 @@ export default function FrancotiradorWhatsapp({
   useEffect(() => {
     if (partesEnviadas > 0) sessionStorage.setItem(clavePartes, String(partesEnviadas));
   }, [clavePartes, partesEnviadas]);
+  // 27/11 (Alex): abrir NO es enviar. Las partes se pueden abrir siempre, en cualquier orden y
+  // las veces que haga falta; solo cuenta como enviado cuando Alex pulsa «Ya los envié».
+  const bloqueado = Boolean(enviadoCuando) || noContactar;
   const abrirParte = (i: number) => {
-    if (!telWa || noContactar) return;
+    if (!telWa || bloqueado) return;
     window.open(`https://wa.me/${telWa}?text=${encodeURIComponent(partes[i])}`, '_blank', 'noopener,noreferrer');
     setPartesEnviadas((n) => Math.max(n, i + 1));
   };
@@ -160,11 +163,6 @@ export default function FrancotiradorWhatsapp({
       setError('Este local no tiene teléfono: copia el mensaje o visítalo; no se registra ningún envío.');
       return;
     }
-    if (enPartes) {
-      abrirParte(0);
-    } else {
-      window.open(`https://wa.me/${telWa}?text=${encodeURIComponent(mensaje)}`, '_blank', 'noopener,noreferrer');
-    }
     iniciarEnviar(async () => {
       const r = await registrarEnvioWhatsappFrancotiradorAction({
         base,
@@ -185,17 +183,14 @@ export default function FrancotiradorWhatsapp({
       });
       setEnviadoCuando(ahora);
       setEnvioReciente(true);
-      setAviso(
-        enPartes
-          ? `Parte 1 enviada y registrada (Tanda de hoy: ${r.enviosHoy} / 15). Vuelve aquí y pulsa la parte 2.`
-          : `Envío registrado (Tanda de hoy: ${r.enviosHoy} / 15). Queda en «Demo hecha» con seguimiento a 48 h.`,
-      );
+      sessionStorage.removeItem(clavePartes);
+      setAviso(`Envío registrado (Tanda de hoy: ${r.enviosHoy} / 15). Queda en «Demo hecha» con seguimiento a 48 h.`);
       router.refresh();
     });
   };
 
   const pillRevision = 'inline-flex items-center rounded-full border border-emerald-900/20 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:border-emerald-700';
-  const yaEnviado = Boolean(enviadoCuando) && !envioReciente && partesEnviadas === 0;
+  const yaEnviado = Boolean(enviadoCuando) && !envioReciente;
 
   return (
     <section
@@ -238,7 +233,7 @@ export default function FrancotiradorWhatsapp({
       {aviso && (
         <div className="mt-3 space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-medium text-emerald-900">
           <p>{aviso}</p>
-          {envioReciente && (!enPartes || partesEnviadas >= partes.length) && (
+          {envioReciente && (
             <Link
               href={`${base}?zona=enviar`}
               className="inline-flex min-h-[38px] items-center rounded-full bg-tinta px-4 py-1.5 text-xs font-bold text-white hover:bg-vino"
@@ -252,7 +247,7 @@ export default function FrancotiradorWhatsapp({
       {telWa && enPartes && (
         <div className="mt-3 space-y-2">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-900">
-            {partes.length} mensajes · pulsa, envía en WhatsApp y vuelve aquí
+            {partes.length} mensajes · ábrelos, envíalos en WhatsApp y, al terminar, confirma abajo
           </p>
           {partes.map((p, i) => {
             const hecha = partesEnviadas > i;
@@ -261,8 +256,8 @@ export default function FrancotiradorWhatsapp({
               <button
                 key={i}
                 type="button"
-                disabled={noContactar || (i === 0 ? pendienteEnviar || hecha : !toca && !hecha)}
-                onClick={i === 0 ? enviarYRegistrar : () => abrirParte(i)}
+                disabled={bloqueado}
+                onClick={() => abrirParte(i)}
                 className={`flex w-full min-h-[52px] items-start gap-3 rounded-2xl px-4 py-3 text-left text-sm ${
                   hecha
                     ? 'bg-emerald-100 text-emerald-950'
@@ -274,9 +269,7 @@ export default function FrancotiradorWhatsapp({
                 <span className="shrink-0 font-bold">{hecha ? '✓' : `${i + 1}.`}</span>
                 <span className="min-w-0">
                   <span className="block font-bold">
-                    {i === 0 && pendienteEnviar
-                      ? 'Registrando envío…'
-                      : `${hecha ? 'Enviado' : 'Enviar'} mensaje ${i + 1}${i === partes.length - 1 ? ' (enlace)' : ''}`}
+                    {`${hecha ? 'Abierto' : 'Abrir'} mensaje ${i + 1}${i === partes.length - 1 ? ' (enlace)' : ''}${hecha && !bloqueado ? ' · volver a abrir' : ''}`}
                   </span>
                   <span className="mt-0.5 block truncate text-xs font-normal opacity-80">{p.split('\n')[0]}</span>
                 </span>
@@ -289,11 +282,26 @@ export default function FrancotiradorWhatsapp({
       {telWa && !enPartes && (
         <button
           type="button"
-          disabled={pendienteEnviar || noContactar}
-          onClick={enviarYRegistrar}
+          disabled={bloqueado}
+          onClick={() => { window.open(`https://wa.me/${telWa}?text=${encodeURIComponent(mensaje)}`, '_blank', 'noopener,noreferrer'); setPartesEnviadas(1); }}
           className="mt-3 w-full min-h-[52px] rounded-2xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-800 disabled:opacity-50"
         >
-          {pendienteEnviar ? 'Registrando envío…' : 'Enviar por WhatsApp y registrar'}
+          Abrir el mensaje en WhatsApp
+        </button>
+      )}
+
+      {telWa && !bloqueado && (
+        <button
+          type="button"
+          disabled={pendienteEnviar || partesEnviadas < (enPartes ? partes.length : 1)}
+          onClick={enviarYRegistrar}
+          className="mt-2 w-full min-h-[48px] rounded-2xl bg-tinta px-5 py-3 text-sm font-bold text-white hover:bg-vino disabled:bg-papel disabled:text-niebla disabled:ring-1 disabled:ring-linea"
+        >
+          {pendienteEnviar
+            ? 'Registrando envío…'
+            : partesEnviadas < (enPartes ? partes.length : 1)
+              ? `Abre ${enPartes ? `los ${partes.length} mensajes` : 'el mensaje'} para poder confirmar`
+              : `Ya envié ${enPartes ? `los ${partes.length} mensajes` : 'el mensaje'} · registrar y bloquear`}
         </button>
       )}
 

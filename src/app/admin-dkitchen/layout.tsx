@@ -11,6 +11,9 @@ import { verTareas } from '@/lib/tareas';
 import { verRevisiones } from '@/lib/revisiones';
 import { tareasDeHoy } from '@/lib/tareas-hoy';
 import { miConfigComercial } from '@/lib/rol-central';
+import { headers } from 'next/headers';
+import { comoCliente } from '@/lib/db';
+import { huellaRed } from '@/lib/red-equipo';
 
 export const metadata = {
   title: 'DKitchen · Central de Operaciones',
@@ -26,9 +29,12 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const jwt = await exigirAdmin();
+  // 0127: la red desde la que se abre Central es del equipo; sus aperturas de propuestas no cuentan.
+  const huella = huellaRed(await headers());
   const [yo, configComercial] = await Promise.all([
     identidadActual().catch(() => null),
     miConfigComercial(jwt),
+    huella ? comoCliente(jwt, (c) => c.query('SELECT dk.equipo_red_anotar($1)', [huella])).catch(() => null) : null,
   ]);
   const esComercial = configComercial.esComercial;
   const [decisiones, tareas, revisiones] = esComercial
