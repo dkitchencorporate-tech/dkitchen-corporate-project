@@ -7,6 +7,7 @@ import {
   consultarAgenteProspeccionAction,
   guardarWhatsappBorradorAction,
   registrarEnvioWhatsappFrancotiradorAction,
+  numeroNoEsDelLocalAction,
 } from '@/lib/prospeccion-acciones';
 import type { BaseCrm } from '@/lib/prospeccion';
 import CopiarEnlace from './CopiarEnlace';
@@ -92,6 +93,22 @@ export default function FrancotiradorWhatsapp({
   const partes = dividirEnPartes(mensaje);
   const enPartes = partes.length > 1;
   const [partesEnviadas, setPartesEnviadas] = useState(0);
+  // 27/11 (caso La Góndola): antes de enviar, comprobar que el perfil de WhatsApp es del local.
+  const claveVerif = `dk-franco-verif-${prospectoId}`;
+  const [verificado, setVerificado] = useState(false);
+  const [numeroMal, setNumeroMal] = useState(false);
+  useEffect(() => { if (sessionStorage.getItem(claveVerif) === '1') setVerificado(true); }, [claveVerif]);
+  const confirmarPerfil = () => { sessionStorage.setItem(claveVerif, '1'); setVerificado(true); };
+  const marcarNumeroMal = () => {
+    setError(null);
+    iniciarEnviar(async () => {
+      const r = await numeroNoEsDelLocalAction({ base, prospectoId });
+      if (!r.ok) { setError(r.error); return; }
+      setNumeroMal(true);
+      setAviso('Anotado: el número no es del local. No se envía nada; el siguiente paso queda en «Verificar teléfono».');
+      router.refresh();
+    });
+  };
   // Al volver de WhatsApp el móvil puede recargar la pestaña: se recuerda por qué parte iba.
   const clavePartes = `dk-franco-partes-${prospectoId}`;
   useEffect(() => {
@@ -255,7 +272,24 @@ export default function FrancotiradorWhatsapp({
         </div>
       )}
 
-      {telWa && enPartes && (
+      {telWa && !bloqueado && !numeroMal && (
+        <div className={`mt-3 rounded-2xl border px-3.5 py-3 text-xs ${verificado ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-300 bg-amber-50 text-amber-950'}`}>
+          {verificado ? (
+            <p className="font-semibold">✓ Perfil comprobado: el número es del local.</p>
+          ) : (
+            <>
+              <p className="font-bold">Paso 0 · Comprueba que el número es del local</p>
+              <p className="mt-1">Abre el mensaje 1 <b>sin enviarlo</b>, toca el nombre arriba del chat y mira el perfil: nombre, foto y empresa deben ser de {nombre}. Si no coincide, no envíes nada.</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button type="button" onClick={confirmarPerfil} className="inline-flex min-h-[38px] items-center rounded-full bg-emerald-700 px-4 text-xs font-bold text-white hover:bg-emerald-800">Es del local</button>
+                <button type="button" onClick={marcarNumeroMal} disabled={pendienteEnviar} className="inline-flex min-h-[38px] items-center rounded-full bg-red-700 px-4 text-xs font-bold text-white hover:bg-red-800 disabled:opacity-60">No es del local · no enviar</button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {telWa && enPartes && !numeroMal && (
         <div className="mt-3 space-y-2">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-900">
             {partes.length} mensajes · ábrelos, envíalos en WhatsApp y, al terminar, confirma abajo
@@ -267,7 +301,7 @@ export default function FrancotiradorWhatsapp({
               <button
                 key={i}
                 type="button"
-                disabled={bloqueado}
+                disabled={bloqueado || (i > 0 && !verificado)}
                 onClick={() => abrirParte(i)}
                 className={`flex w-full min-h-[52px] items-start gap-3 rounded-2xl px-4 py-3 text-left text-sm ${
                   hecha
@@ -301,10 +335,10 @@ export default function FrancotiradorWhatsapp({
         </button>
       )}
 
-      {telWa && !bloqueado && (
+      {telWa && !bloqueado && !numeroMal && (
         <button
           type="button"
-          disabled={pendienteEnviar}
+          disabled={pendienteEnviar || !verificado}
           onClick={enviarYRegistrar}
           className="mt-2 w-full min-h-[48px] rounded-2xl bg-tinta px-5 py-3 text-sm font-bold text-white hover:bg-vino disabled:opacity-60"
         >

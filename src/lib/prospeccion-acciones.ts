@@ -548,6 +548,27 @@ export async function registrarEnvioWhatsappFrancotiradorAction(d: {
   }
 }
 
+/** 27/11 (Alex, caso La Góndola): el número de WhatsApp no es del local. Se anota y no se envía nada. */
+export async function numeroNoEsDelLocalAction(d: { base?: string; prospectoId: string; detalle?: string }): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const jwt = await obtenerJwtDeSesion().catch(() => null);
+    if (!jwt) return { ok: false, error: 'Sesión caducada.' };
+    if (!UUID.test(d?.prospectoId ?? '')) return { ok: false, error: 'Prospecto no válido.' };
+    const detalle = String(d.detalle ?? '').trim().slice(0, 300);
+    await comoCliente(jwt, (c) => c.query('SELECT dk.prosp_anotar($1, $2, $3, $4, $5)', [
+      d.prospectoId, 'nota',
+      `NÚMERO NO ES DEL LOCAL: el perfil de WhatsApp no corresponde. No enviar WhatsApp hasta verificar el teléfono.${detalle ? ' · ' + detalle : ''}`,
+      'Verificar teléfono (no enviar WhatsApp)', hoyMadrid(),
+    ]));
+    const base = esBaseCrm(d.base) ? d.base : '/admin-dkitchen/prospeccion';
+    revalidatePath(base);
+    revalidatePath(`${base}/${d.prospectoId}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'No se pudo anotar.' };
+  }
+}
+
 /** 0118: Acciones en lote para prospectos (dk.admin_lote_accion). */
 export async function loteAccionProspectosAction(datos: { base: string; ids: string[]; accion: string; valor?: string }) {
   // 05/11: doble cerrojo (sesión de Central + dk.exigir_direccion() en la base)
