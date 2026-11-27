@@ -49,6 +49,7 @@ export type Contacto = {
 
 export type Ficha = Omit<Prospecto, 'muestra' | 'nota_guia' | 'instagram' | 'plataformas'> & {
   instagram: string | null; web: string | null; contacto: string | null; plataformas: string | null;
+  facebook?: string | null; tiktok?: string | null;
   ticket_medio: number | null; mesas: number | null; competidores: string | null; notas: string | null;
   referido_por: string | null; place_id: string | null; muestra_url: string | null; oferta: keyof typeof OFERTAS;
   propuesta_texto: string | null; propuesta_token: string | null; propuesta_vista_en: string | null;

@@ -571,6 +571,25 @@ export async function numeroNoEsDelLocalAction(d: { base?: string; prospectoId: 
   }
 }
 
+/** 0130 (27/11, Alex): guarda la cuenta verificada a mano de una red (Instagram, Facebook o TikTok). '' la borra. */
+export async function guardarRedProspectoAction(d: { base?: string; prospectoId: string; red: 'instagram' | 'facebook' | 'tiktok'; valor: string }): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const jwt = await obtenerJwtDeSesion().catch(() => null);
+    if (!jwt) return { ok: false, error: 'Sesión caducada.' };
+    if (!UUID.test(d?.prospectoId ?? '')) return { ok: false, error: 'Prospecto no válido.' };
+    if (!['instagram', 'facebook', 'tiktok'].includes(d.red)) return { ok: false, error: 'Red no válida.' };
+    const v = String(d.valor ?? '').trim().slice(0, 200);
+    await comoCliente(jwt, (c) => c.query('SELECT dk.prosp_redes($1, $2, $3, $4)', [
+      d.prospectoId, d.red === 'instagram' ? v : null, d.red === 'facebook' ? v : null, d.red === 'tiktok' ? v : null,
+    ]));
+    const base = esBaseCrm(d.base) ? d.base : '/admin-dkitchen/prospeccion';
+    revalidatePath(`${base}/${d.prospectoId}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message.replace(/^.*?: /, '') : 'No se pudo guardar.' };
+  }
+}
+
 /** 0118: Acciones en lote para prospectos (dk.admin_lote_accion). */
 export async function loteAccionProspectosAction(datos: { base: string; ids: string[]; accion: string; valor?: string }) {
   // 05/11: doble cerrojo (sesión de Central + dk.exigir_direccion() en la base)

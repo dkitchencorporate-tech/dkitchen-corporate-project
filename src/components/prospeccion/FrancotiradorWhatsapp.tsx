@@ -8,6 +8,7 @@ import {
   guardarWhatsappBorradorAction,
   registrarEnvioWhatsappFrancotiradorAction,
   numeroNoEsDelLocalAction,
+  guardarRedProspectoAction,
 } from '@/lib/prospeccion-acciones';
 import type { BaseCrm } from '@/lib/prospeccion';
 import CopiarEnlace from './CopiarEnlace';
@@ -46,6 +47,8 @@ export default function FrancotiradorWhatsapp({
   zona,
   telefono,
   instagram,
+  facebook,
+  tiktok,
   demoSlug,
   propuestaToken,
   preparacionInicial,
@@ -59,6 +62,8 @@ export default function FrancotiradorWhatsapp({
   zona: string;
   telefono: string | null;
   instagram?: string | null;
+  facebook?: string | null;
+  tiktok?: string | null;
   demoSlug: string | null;
   propuestaToken: string | null;
   preparacionInicial: string | null;
@@ -95,12 +100,31 @@ export default function FrancotiradorWhatsapp({
   const [canal, setCanal] = useState<CanalF>(telWa ? 'whatsapp' : instagram ? 'instagram' : 'facebook');
   const enWa = canal === 'whatsapp';
   const [copiadoDm, setCopiadoDm] = useState(false);
-  const q = encodeURIComponent(`${nombre} ${zona}`);
-  const ig = (instagram || '').replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/.*$/, '');
-  const perfilRed: Record<Exclude<CanalF, 'whatsapp'>, { nombre: string; url: string; nota: string }> = {
-    instagram: { nombre: 'Instagram', url: ig ? `https://www.instagram.com/${ig}/` : `https://www.google.com/search?q=${q}+instagram`, nota: ig ? `@${ig}` : 'Sin cuenta guardada: se busca en Google' },
-    facebook: { nombre: 'Facebook', url: `https://www.facebook.com/search/pages/?q=${q}`, nota: 'Búsqueda de su página' },
-    tiktok: { nombre: 'TikTok', url: `https://www.tiktok.com/search/user?q=${q}`, nota: 'Búsqueda de su cuenta' },
+  const [redes, setRedes] = useState<Record<'instagram' | 'facebook' | 'tiktok', string>>({
+    instagram: (instagram || '').replace(/^@/, ''), facebook: facebook || '', tiktok: (tiktok || '').replace(/^@/, ''),
+  });
+  const [editandoRed, setEditandoRed] = useState(false);
+  const [valorRed, setValorRed] = useState('');
+  const [pendienteRed, iniciarRed] = useTransition();
+  const nombreQ = encodeURIComponent(`"${nombre}" ${zona}`);
+  const perfilRed: Record<Exclude<CanalF, 'whatsapp'>, { nombre: string; url: string | null; buscar: string; ayuda: string }> = {
+    instagram: { nombre: 'Instagram', url: redes.instagram ? `https://www.instagram.com/${redes.instagram}/` : null, buscar: `https://www.google.com/search?q=${nombreQ}+instagram`, ayuda: 'Pega el enlace o el usuario (@cuenta)' },
+    facebook: { nombre: 'Facebook', url: redes.facebook || null, buscar: `https://www.google.com/search?q=${nombreQ}+facebook`, ayuda: 'Pega el enlace de su página de Facebook' },
+    tiktok: { nombre: 'TikTok', url: redes.tiktok ? `https://www.tiktok.com/@${redes.tiktok}` : null, buscar: `https://www.google.com/search?q=${nombreQ}+tiktok`, ayuda: 'Pega el enlace o el usuario (@cuenta)' },
+  };
+  const guardarRed = (red: 'instagram' | 'facebook' | 'tiktok', valor: string) => {
+    setError(null);
+    iniciarRed(async () => {
+      const r = await guardarRedProspectoAction({ base, prospectoId, red, valor });
+      if (!r.ok) { setError(r.error); return; }
+      const limpio = red === 'facebook'
+        ? (valor.trim() && !/^https?:\/\//.test(valor.trim()) ? `https://${valor.trim()}` : valor.trim())
+        : valor.trim().replace(/^https?:\/\/(www\.)?(instagram|tiktok)\.com\/@?/, '').replace(/^@/, '').replace(/[/?].*$/, '');
+      setRedes((x) => ({ ...x, [red]: red === 'instagram' ? limpio.toLowerCase() : limpio }));
+      setEditandoRed(false);
+      setValorRed('');
+      router.refresh();
+    });
   };
   const textoDm = dividirEnPartes(mensaje).join('\n\n');
   // 26/11 (Alex): mensaje en partes. Una línea que solo tenga --- separa cada burbuja;
@@ -281,14 +305,32 @@ export default function FrancotiradorWhatsapp({
         const red = perfilRed[canal as Exclude<CanalF, 'whatsapp'>];
         return (
           <div className="mt-3 space-y-2">
-            <a href={red.url} target="_blank" rel="noopener noreferrer" className="flex min-h-[52px] items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-linea hover:ring-emerald-700">
-              <span className="font-bold">1.</span>
-              <span><b>Abrir su {red.nombre} y seguirle</b><span className="block text-xs text-niebla">{red.nota}. Comprueba que es la cuenta del local; seguirle antes hace que tu mensaje no llegue de un desconocido.</span></span>
-            </a>
+            {textoDm.length > 1000 && <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900">El mensaje tiene {textoDm.length} caracteres y en Instagram el máximo es 1.000: acórtalo en «Ver o cambiar el texto» antes de copiarlo.</p>}
+            {canal === 'tiktok' && <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900">TikTok solo deja escribir a cuentas que te siguen o que tienen los mensajes abiertos. Si no aparece el botón «Mensaje», usa otro canal.</p>}
+            {red.url && !editandoRed ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <a href={red.url} target="_blank" rel="noopener noreferrer" className="flex min-h-[52px] flex-1 items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-linea hover:ring-emerald-700">
+                  <span className="font-bold">1.</span>
+                  <span><b>Abrir su {red.nombre} y seguirle</b><span className="block text-xs text-niebla">Cuenta verificada por ti · seguirle antes hace que tu mensaje no llegue de un desconocido.</span></span>
+                </a>
+                <button type="button" onClick={() => { setEditandoRed(true); setValorRed(''); }} className="min-h-[36px] rounded-full bg-white px-3 text-[11px] font-bold text-grafito ring-1 ring-linea">Cambiar cuenta</button>
+              </div>
+            ) : (
+              <div className="space-y-2 rounded-2xl bg-white p-3.5 ring-1 ring-amber-300">
+                <p className="text-xs font-bold text-amber-950">1. Encuentra y verifica su {red.nombre}</p>
+                <a href={red.buscar} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[36px] items-center rounded-full bg-amber-100 px-3.5 text-xs font-bold text-amber-950 hover:bg-amber-200">Buscar «{nombre}» en {red.nombre} ↗</a>
+                <p className="text-[11px] text-niebla">Comprueba que es la cuenta del local (nombre, fotos, dirección) y pega aquí su enlace. Quedará guardada en la ficha.</p>
+                <div className="flex gap-2">
+                  <input value={valorRed} onChange={(e) => setValorRed(e.target.value)} placeholder={red.ayuda} className="min-w-0 flex-1 rounded-xl border border-linea px-3 py-2 text-sm focus:border-emerald-700 focus:outline-none" />
+                  <button type="button" disabled={pendienteRed || !valorRed.trim()} onClick={() => guardarRed(canal as 'instagram' | 'facebook' | 'tiktok', valorRed)} className="rounded-xl bg-emerald-700 px-3.5 text-xs font-bold text-white disabled:opacity-50">{pendienteRed ? 'Guardando…' : 'Guardar'}</button>
+                </div>
+                {red.url && <button type="button" onClick={() => setEditandoRed(false)} className="text-[11px] font-semibold text-niebla underline">Cancelar</button>}
+              </div>
+            )
             <button type="button" onClick={() => { void navigator.clipboard.writeText(textoDm).then(() => setCopiadoDm(true)); }}
               className={`flex w-full min-h-[52px] items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm ${copiadoDm ? 'bg-emerald-100 text-emerald-950' : 'bg-emerald-700 font-bold text-white hover:bg-emerald-800'}`}>
               <span className="font-bold">{copiadoDm ? '✓' : '2.'}</span>
-              <span><b>{copiadoDm ? 'Mensaje copiado' : 'Copiar el mensaje'}</b><span className="block text-xs font-normal opacity-80">Un solo mensaje con el enlace. Pégalo en su chat de {red.nombre} y envíalo.</span></span>
+              <span><b>{copiadoDm ? 'Mensaje copiado' : 'Copiar el mensaje'}</b><span className="block text-xs font-normal opacity-80">Un solo mensaje con el enlace ({textoDm.length} caracteres). Pégalo en su chat de {red.nombre} y envíalo: en redes, si no te siguen, solo deja enviar un primer mensaje hasta que lo acepten.</span></span>
             </button>
             <button type="button" disabled={pendienteEnviar || !copiadoDm} onClick={enviarYRegistrar}
               className="w-full min-h-[48px] rounded-2xl bg-tinta px-5 py-3 text-sm font-bold text-white hover:bg-vino disabled:opacity-50">

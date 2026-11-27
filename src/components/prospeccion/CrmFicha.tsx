@@ -111,6 +111,8 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
         zona={f.zona}
         telefono={f.telefono}
         instagram={f.instagram}
+        facebook={f.facebook ?? null}
+        tiktok={f.tiktok ?? null}
         demoSlug={f.cliente_slug}
         propuestaToken={f.propuesta_token}
         preparacionInicial={f.preparacion}
