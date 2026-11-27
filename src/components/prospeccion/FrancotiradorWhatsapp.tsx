@@ -45,6 +45,7 @@ export default function FrancotiradorWhatsapp({
   nombre,
   zona,
   telefono,
+  instagram,
   demoSlug,
   propuestaToken,
   preparacionInicial,
@@ -57,6 +58,7 @@ export default function FrancotiradorWhatsapp({
   nombre: string;
   zona: string;
   telefono: string | null;
+  instagram?: string | null;
   demoSlug: string | null;
   propuestaToken: string | null;
   preparacionInicial: string | null;
@@ -88,6 +90,19 @@ export default function FrancotiradorWhatsapp({
   const [pendienteEnviar, iniciarEnviar] = useTransition();
 
   const telWa = normalizarTelefonoWa(telefono);
+  // 27/11 (Alex): prospectar por el canal que más usa el local. En redes: seguir primero, copiar y pegar en su chat.
+  type CanalF = 'whatsapp' | 'instagram' | 'facebook' | 'tiktok';
+  const [canal, setCanal] = useState<CanalF>(telWa ? 'whatsapp' : instagram ? 'instagram' : 'facebook');
+  const enWa = canal === 'whatsapp';
+  const [copiadoDm, setCopiadoDm] = useState(false);
+  const q = encodeURIComponent(`${nombre} ${zona}`);
+  const ig = (instagram || '').replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/.*$/, '');
+  const perfilRed: Record<Exclude<CanalF, 'whatsapp'>, { nombre: string; url: string; nota: string }> = {
+    instagram: { nombre: 'Instagram', url: ig ? `https://www.instagram.com/${ig}/` : `https://www.google.com/search?q=${q}+instagram`, nota: ig ? `@${ig}` : 'Sin cuenta guardada: se busca en Google' },
+    facebook: { nombre: 'Facebook', url: `https://www.facebook.com/search/pages/?q=${q}`, nota: 'Búsqueda de su página' },
+    tiktok: { nombre: 'TikTok', url: `https://www.tiktok.com/search/user?q=${q}`, nota: 'Búsqueda de su cuenta' },
+  };
+  const textoDm = dividirEnPartes(mensaje).join('\n\n');
   // 26/11 (Alex): mensaje en partes. Una línea que solo tenga --- separa cada burbuja;
   // el enlace va en la última. La parte 1 registra el envío; las demás solo abren WhatsApp.
   const partes = dividirEnPartes(mensaje);
@@ -186,7 +201,7 @@ export default function FrancotiradorWhatsapp({
     setError(null);
     setAviso(null);
     // 26/11: sin teléfono no hay envío real, así que no se registra nada.
-    if (!telWa) {
+    if (enWa && !telWa) {
       setError('Este local no tiene teléfono: copia el mensaje o visítalo; no se registra ningún envío.');
       return;
     }
@@ -194,8 +209,9 @@ export default function FrancotiradorWhatsapp({
       const r = await registrarEnvioWhatsappFrancotiradorAction({
         base,
         prospectoId,
-        texto: mensaje,
+        texto: enWa ? mensaje : textoDm,
         preparacion,
+        canal,
       });
       if (!r.ok) {
         setError(r.error);
@@ -246,7 +262,43 @@ export default function FrancotiradorWhatsapp({
           <Link href={`${base}?zona=enviar`} className="mt-2 flex min-h-[38px] w-fit items-center rounded-full bg-tinta px-4 py-1.5 text-xs font-bold text-white hover:bg-vino">← Siguiente local por enviar</Link>
         </p>
       )}
-      {!telWa && (
+      {!bloqueado && (
+        <div className="mt-3">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-900">Canal · elige el que más usa el local</p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {(['whatsapp', 'instagram', 'facebook', 'tiktok'] as CanalF[]).map((c) => (
+              <button key={c} type="button" onClick={() => { setCanal(c); setCopiadoDm(false); }}
+                className={`inline-flex min-h-[36px] items-center rounded-full px-3.5 text-xs font-bold ${canal === c ? 'bg-emerald-700 text-white' : 'bg-white text-emerald-950 ring-1 ring-emerald-900/20 hover:ring-emerald-700'}`}>
+                {c === 'whatsapp' ? 'WhatsApp' : perfilRed[c].nombre}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1.5 text-[11px] text-niebla">El correo no aparece a propósito: por ley (LSSI) solo se puede escribir por correo a quien lo haya autorizado.</p>
+        </div>
+      )}
+
+      {!enWa && !bloqueado && (() => {
+        const red = perfilRed[canal as Exclude<CanalF, 'whatsapp'>];
+        return (
+          <div className="mt-3 space-y-2">
+            <a href={red.url} target="_blank" rel="noopener noreferrer" className="flex min-h-[52px] items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-linea hover:ring-emerald-700">
+              <span className="font-bold">1.</span>
+              <span><b>Abrir su {red.nombre} y seguirle</b><span className="block text-xs text-niebla">{red.nota}. Comprueba que es la cuenta del local; seguirle antes hace que tu mensaje no llegue de un desconocido.</span></span>
+            </a>
+            <button type="button" onClick={() => { void navigator.clipboard.writeText(textoDm).then(() => setCopiadoDm(true)); }}
+              className={`flex w-full min-h-[52px] items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm ${copiadoDm ? 'bg-emerald-100 text-emerald-950' : 'bg-emerald-700 font-bold text-white hover:bg-emerald-800'}`}>
+              <span className="font-bold">{copiadoDm ? '✓' : '2.'}</span>
+              <span><b>{copiadoDm ? 'Mensaje copiado' : 'Copiar el mensaje'}</b><span className="block text-xs font-normal opacity-80">Un solo mensaje con el enlace. Pégalo en su chat de {red.nombre} y envíalo.</span></span>
+            </button>
+            <button type="button" disabled={pendienteEnviar || !copiadoDm} onClick={enviarYRegistrar}
+              className="w-full min-h-[48px] rounded-2xl bg-tinta px-5 py-3 text-sm font-bold text-white hover:bg-vino disabled:opacity-50">
+              {pendienteEnviar ? 'Registrando envío…' : copiadoDm ? `3. Ya lo envié por ${red.nombre} · registrar y bloquear` : '3. Copia el mensaje para poder registrar'}
+            </button>
+          </div>
+        );
+      })()}
+
+      {enWa && !telWa && (
         <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
           {telefono
             ? `El teléfono guardado (${telefono}) es fijo o no admite WhatsApp: llama o visítalo. No se registra ningún envío.`
@@ -272,7 +324,7 @@ export default function FrancotiradorWhatsapp({
         </div>
       )}
 
-      {telWa && !bloqueado && !numeroMal && (
+      {enWa && telWa && !bloqueado && !numeroMal && (
         <div className={`mt-3 rounded-2xl border px-3.5 py-3 text-xs ${verificado ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-300 bg-amber-50 text-amber-950'}`}>
           {verificado ? (
             <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-semibold">✓ Perfil comprobado: el número es del local.</p><button type="button" onClick={() => { sessionStorage.removeItem(claveVerif); setVerificado(false); }} className="inline-flex min-h-[32px] items-center rounded-full bg-white px-3 text-[11px] font-bold text-emerald-900 ring-1 ring-emerald-300 hover:ring-emerald-700">Deshacer</button></div>
@@ -289,7 +341,7 @@ export default function FrancotiradorWhatsapp({
         </div>
       )}
 
-      {telWa && enPartes && !numeroMal && (
+      {enWa && telWa && enPartes && !numeroMal && (
         <div className="mt-3 space-y-2">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-900">
             {partes.length} mensajes · ábrelos, envíalos en WhatsApp y, al terminar, confirma abajo
@@ -324,7 +376,7 @@ export default function FrancotiradorWhatsapp({
         </div>
       )}
 
-      {telWa && !enPartes && (
+      {enWa && telWa && !enPartes && (
         <button
           type="button"
           disabled={bloqueado}
@@ -335,7 +387,7 @@ export default function FrancotiradorWhatsapp({
         </button>
       )}
 
-      {telWa && !bloqueado && !numeroMal && (
+      {enWa && telWa && !bloqueado && !numeroMal && (
         <button
           type="button"
           disabled={pendienteEnviar || !verificado}

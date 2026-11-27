@@ -55,7 +55,7 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
   const wa = enlaceWhatsapp(f.telefono);
   const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${f.direccion || f.nombre}, ${f.zona}`)}`;
   const propuesta = f.propuesta_token ? `${SITIO}/propuesta/${f.propuesta_token}` : null;
-  const ultimoWa = f.eventos.find((e) => e.tipo === 'whatsapp');
+  const ultimoWa = f.eventos.find((e) => e.tipo === 'whatsapp' || (e.tipo === 'dm' && /^(instagram|facebook|tiktok) · /.test(e.texto || '')));
   const ultimoEnvioWhatsapp = ultimoWa ? momento(ultimoWa.creado_en) : null;
   const oculto = <input type="hidden" name="base" value={base} />;
   const idOculto = <input type="hidden" name="id" value={f.id} />;
@@ -110,6 +110,7 @@ export default function CrmFicha({ base, f, aviso, ok, comerciales }: {
         nombre={f.nombre}
         zona={f.zona}
         telefono={f.telefono}
+        instagram={f.instagram}
         demoSlug={f.cliente_slug}
         propuestaToken={f.propuesta_token}
         preparacionInicial={f.preparacion}

@@ -509,6 +509,7 @@ export async function guardarWhatsappBorradorAction(d: {
 export async function registrarEnvioWhatsappFrancotiradorAction(d: {
   base?: string;
   prospectoId: string;
+  canal?: 'whatsapp' | 'instagram' | 'facebook' | 'tiktok';
   texto: string;
   preparacion?: string | null;
 }): Promise<{ ok: true; enviosHoy: number } | { ok: false; error: string }> {
@@ -529,10 +530,10 @@ export async function registrarEnvioWhatsappFrancotiradorAction(d: {
       await c.query('SELECT dk.prosp_registrar($1, $2)', [
         d.prospectoId,
         {
-          canal: 'whatsapp',
+          canal: ['instagram', 'facebook', 'tiktok'].includes(String(d.canal)) ? d.canal : 'whatsapp',
           // 26/11: enviar no es interés; el local queda en «demo» hasta que responda.
           resultado: 'demo',
-          plantilla: 'Francotirador personalizado',
+          plantilla: d.canal && d.canal !== 'whatsapp' ? `Francotirador · ${d.canal}` : 'Francotirador personalizado',
           texto: texto.slice(0, 950),
         },
       ]);
